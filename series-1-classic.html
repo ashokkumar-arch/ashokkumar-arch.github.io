@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Series I — OpenShift on VMware vSphere | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --red:#c8102e;--blue:#1a5c8f;--green:#0e6b45;--amber:#a87015;--purple:#534ab7;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);text-decoration:none}
+.nav-back{font-size:.875rem;color:var(--ink2);text-decoration:none;display:flex;align-items:center;gap:.5rem}
+.nav-back:hover{color:var(--red)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.series-badge{font-family:var(--font-mono);font-size:.72rem;color:var(--blue);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.series-badge::before{content:'I';display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--blue);color:#fff;font-size:.8rem;font-family:var(--font-display)}
+h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem}
+.page-sub{font-size:.95rem;color:var(--ink2);font-weight:300;max-width:620px;line-height:1.7;margin-bottom:1.5rem}
+.meta-row{display:flex;gap:2rem;flex-wrap:wrap}
+.meta-item{font-family:var(--font-mono);font-size:.75rem;color:var(--ink3)}
+.meta-item strong{color:var(--ink);font-weight:500}
+.note-box{margin-top:1.5rem;padding:1rem 1.25rem;background:var(--paper2);border-left:3px solid var(--amber);font-size:.875rem;color:var(--ink2);line-height:1.7;max-width:680px}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.25rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-label:first-child{margin-top:0}
+.guide-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border)}
+.guide-card{background:var(--paper);padding:1.25rem 1.5rem;display:grid;grid-template-columns:48px 1fr auto;gap:1.25rem;align-items:start;transition:background .15s;text-decoration:none;color:inherit}
+.guide-card:hover{background:var(--paper2)}
+.guide-num{font-family:var(--font-display);font-size:1.5rem;color:var(--paper3);line-height:1;padding-top:.1rem}
+.guide-title{font-size:.95rem;font-weight:500;color:var(--ink);margin-bottom:.3rem;line-height:1.3}
+.guide-desc{font-size:.8rem;color:var(--ink2);line-height:1.6}
+.guide-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem}
+.chip{font-family:var(--font-mono);font-size:.65rem;padding:.15rem .5rem;border-radius:2px;background:var(--paper2);border:1px solid var(--border);color:var(--ink3)}
+.guide-arrow{font-size:1rem;color:var(--border);align-self:center;transition:color .15s}
+.guide-card:hover .guide-arrow{color:var(--ink2)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Ashok Kumar P.</a>
+    <a href="index.html#projects" class="nav-back">← All projects</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="series-badge">Series I — Private Data Center</div>
+  <h1>OpenShift on VMware vSphere<br><em>Classic</em></h1>
+  <p class="page-sub">Full-stack enterprise deployment from physical fabric design through production-hardened OpenShift — 31 guides covering every layer of the NovaCrestBank infrastructure stack.</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>31</strong> guides</div>
+    <div class="meta-item"><strong>Environment:</strong> novacrestbank.local · 10.x.x.x RFC 1918</div>
+    <div class="meta-item"><strong>Compliance:</strong> PCI-DSS v4.0 · NIST SP 800-53</div>
+    <div class="meta-item"><strong>Status:</strong> Complete</div>
+  </div>
+  <div class="note-box">Domain convention: This series uses <code>novacrestbank.local</code> for the internal AD domain, consistent with the environment design at time of authoring. The VCF series (Series II) adopts <code>corp.novacrestbank.com</code> following current Microsoft guidance on internal domain naming.</div>
+</div>
+
+<main>
+
+  <div class="section-label"><span>Phase 0 — Conceptual deep-dive</span><span>1 guide</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VMware-Classic/0.openshift-installation-deep-dive.html" class="guide-card">
+      <div class="guide-num">0</div>
+      <div>
+        <div class="guide-title">OpenShift Installation Deep-Dive</div>
+        <div class="guide-desc">The architectural thinking behind NovaCrestBank's OpenShift deployment before a single command is run. Covers IPI vs UPI vs Agent-based decision framework, node role architecture (master/infra/worker and the licensing rationale), split-horizon DNS design, PKI strategy across three CAs, HSM integration planning, air-gapped install considerations, and PCI audit trail requirements. The "how to think and decide" guide.</div>
+        <div class="guide-chips"><span class="chip">IPI vs UPI</span><span class="chip">Node architecture</span><span class="chip">PKI strategy</span><span class="chip">HSM planning</span><span class="chip">Air-gap</span><span class="chip">PCI-DSS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 1 — Physical fabric (Cisco)</span><span>8 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VMware-Classic/1.cisco-guide1-physical-foundation.html" class="guide-card">
+      <div class="guide-num">1</div>
+      <div>
+        <div class="guide-title">Physical Foundation</div>
+        <div class="guide-desc">Why leaf-spine over 3-tier, device inventory, rack layout, port-by-port cabling, cable types (DAC vs fibre vs Cat6), VLAN master plan, IP addressing master plan, naming conventions, console access, and OOB management planning.</div>
+        <div class="guide-chips"><span class="chip">Leaf-spine</span><span class="chip">Rack design</span><span class="chip">VLAN plan</span><span class="chip">IP plan</span><span class="chip">OOB</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/2.cisco-guide2-nxos-first-boot.html" class="guide-card">
+      <div class="guide-num">2</div>
+      <div>
+        <div class="guide-title">NX-OS First Boot</div>
+        <div class="guide-desc">Initial configuration of every Nexus device — NX-OS concepts, configuration order and strategy, Catalyst 9200 OOB setup, spine and leaf first-boot sequences with full terminal output.</div>
+        <div class="guide-chips"><span class="chip">NX-OS</span><span class="chip">First boot</span><span class="chip">Catalyst 9200</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/3.cisco-guide3-oob-management.html" class="guide-card">
+      <div class="guide-num">3</div>
+      <div>
+        <div class="guide-title">OOB Management Network</div>
+        <div class="guide-desc">The network that manages everything else — why OOB exists (the 3 AM scenario), OOB topology and separation, HP iLO configuration for all hosts, and connectivity verification across every managed device.</div>
+        <div class="guide-chips"><span class="chip">OOB</span><span class="chip">HP iLO</span><span class="chip">Catalyst 9200</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/4.cisco-guide4-spine-configuration.html" class="guide-card">
+      <div class="guide-num">4</div>
+      <div>
+        <div class="guide-title">Spine Configuration</div>
+        <div class="guide-desc">BGP underlay, ECMP, and pure L3 backbone — what a spine does, BGP concepts for spine-leaf, ECMP equal-cost multipath, full spine configuration with terminal output and BGP state verification.</div>
+        <div class="guide-chips"><span class="chip">BGP</span><span class="chip">ECMP</span><span class="chip">Nexus 9504</span><span class="chip">L3 only</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/5.cisco-guide5-leaf-configuration.html" class="guide-card">
+      <div class="guide-num">5</div>
+      <div>
+        <div class="guide-title">Leaf Configuration</div>
+        <div class="guide-desc">L2+L3 at the edge — what a leaf does, vPC dual-homing explained, leaf01 configuration order, vPC infrastructure (keepalive and domain), full leaf configuration with SVI and trunk setup.</div>
+        <div class="guide-chips"><span class="chip">vPC</span><span class="chip">SVI</span><span class="chip">Trunking</span><span class="chip">Nexus 93180YC-FX</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/6.cisco-guide6-vlan-ip-master-plan.html" class="guide-card">
+      <div class="guide-num">6</div>
+      <div>
+        <div class="guide-title">VLAN &amp; IP Master Plan</div>
+        <div class="guide-desc">Every decision, every reason, every trade-off. The four questions every VLAN decision must answer, five reasons for traffic separation, five IP addressing principles (encoding VLAN ID in third octet, /24 sizing rationale, gateway consistency convention), deep-dive on all 7 VLANs (10/20/25/30/40/50/60/70), and trunk matrix for every port.</div>
+        <div class="guide-chips"><span class="chip">VLAN 10-70</span><span class="chip">RFC 1918</span><span class="chip">MTU 9000</span><span class="chip">QoS DSCP</span><span class="chip">PCI-DSS scope</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/7.cisco-guide7-edge-routers.html" class="guide-card">
+      <div class="guide-num">7</div>
+      <div>
+        <div class="guide-title">Edge Routers</div>
+        <div class="guide-desc">ASR 1002-X BGP peering, WAN, HA, and QoS — edge design and perimeter role, ASR capabilities, dual-ISP BGP configuration, HSRP/failover, and WAN QoS policy for banking traffic classes.</div>
+        <div class="guide-chips"><span class="chip">BGP</span><span class="chip">Dual-ISP</span><span class="chip">ASR 1002-X</span><span class="chip">QoS</span><span class="chip">HSRP</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/8.cisco-guide9-fabric-verification-handoff.html" class="guide-card">
+      <div class="guide-num">8</div>
+      <div>
+        <div class="guide-title">Full Fabric Verification &amp; Handoff</div>
+        <div class="guide-desc">Pre-test checklist, Layer 1/2 physical and switching verification, Layer 3 routing and BGP validation, VLAN and SVI connectivity tests, end-to-end traffic validation, and formal handoff sign-off to the VMware team.</div>
+        <div class="guide-chips"><span class="chip">Verification</span><span class="chip">BGP validation</span><span class="chip">Handoff</span><span class="chip">Sign-off</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 2 — VMware vSphere platform</span><span>9 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VMware-Classic/9.esxi-01-installation.html" class="guide-card">
+      <div class="guide-num">9</div>
+      <div>
+        <div class="guide-title">ESXi Installation</div>
+        <div class="guide-desc">HP ProLiant DL380 Gen11 ESXi installation via iLO — installer screen-by-screen walkthrough with NovaCrestBank-specific NIC assignment, management IP configuration, and first-boot verification.</div>
+        <div class="guide-chips"><span class="chip">ESXi</span><span class="chip">HP iLO</span><span class="chip">DL380 Gen11</span><span class="chip">NIC assignment</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/10.vsphere-01-vcenter-deployment.html" class="guide-card">
+      <div class="guide-num">10</div>
+      <div>
+        <div class="guide-title">vCenter Deployment</div>
+        <div class="guide-desc">VCSA deployment via the two-stage installer wizard — stage 1 appliance deployment, stage 2 configuration, SSO setup, and initial datacenter/cluster creation for NovaCrestBank.</div>
+        <div class="guide-chips"><span class="chip">VCSA</span><span class="chip">SSO</span><span class="chip">Datacenter</span><span class="chip">Cluster</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/11.vsphere-02-vds-phase1.html" class="guide-card">
+      <div class="guide-num">11</div>
+      <div>
+        <div class="guide-title">vDS Phase 1</div>
+        <div class="guide-desc">Why vDS exists and what standard vSwitch cannot do — vDS creation, uplink configuration, management portgroup migration, and host addition. Phase 1 establishes the distributed switch foundation before storage and advanced networking.</div>
+        <div class="guide-chips"><span class="chip">vDS</span><span class="chip">Uplinks</span><span class="chip">Portgroups</span><span class="chip">LACP</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/16.vsphere-03-ad-integration-cert-replacement.html" class="guide-card">
+      <div class="guide-num">12</div>
+      <div>
+        <div class="guide-title">vCenter AD Integration &amp; Certificate Replacement</div>
+        <div class="guide-desc">How vCenter AD integration works, certificate replacement rationale, prerequisites, LDAP identity source configuration, and replacement of VMCA self-signed certificates with NovaCrestBank-IssuingCA certificates.</div>
+        <div class="guide-chips"><span class="chip">AD/LDAP</span><span class="chip">SSO</span><span class="chip">Certificate replacement</span><span class="chip">VMCA</span><span class="chip">PKI</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/17.vsphere-04-vds-phase2.html" class="guide-card">
+      <div class="guide-num">13</div>
+      <div>
+        <div class="guide-title">vDS Phase 2</div>
+        <div class="guide-desc">Complete VMkernel adapter configuration for all traffic types — vMotion (VLAN 20), vSAN (VLAN 25, MTU 9000), NFS (VLAN 30), OCP nodes (VLAN 50) — and NIC-to-traffic-type mapping with DSCP QoS policies.</div>
+        <div class="guide-chips"><span class="chip">VMkernel</span><span class="chip">vMotion</span><span class="chip">vSAN MTU 9000</span><span class="chip">NFS</span><span class="chip">DSCP</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/18.vsphere-05-vsan.html" class="guide-card">
+      <div class="guide-num">14</div>
+      <div>
+        <div class="guide-title">vSAN</div>
+        <div class="guide-desc">vSAN concepts (objects, components, witnesses), disk groups (cache tier and capacity tier), cluster enablement, storage policies, health checks, and the vmkping MTU 9000 end-to-end verification procedure.</div>
+        <div class="guide-chips"><span class="chip">vSAN</span><span class="chip">Disk groups</span><span class="chip">Storage policy</span><span class="chip">MTU 9000</span><span class="chip">Health check</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/19.vsphere-06-ha-drs.html" class="guide-card">
+      <div class="guide-num">15</div>
+      <div>
+        <div class="guide-title">HA &amp; DRS</div>
+        <div class="guide-desc">vSphere HA failure detection and VM restart logic, DRS load balancing and placement, anti-affinity rules for OCP masters, HA and DRS together — how they complement each other in a banking environment.</div>
+        <div class="guide-chips"><span class="chip">vSphere HA</span><span class="chip">DRS</span><span class="chip">Anti-affinity</span><span class="chip">Admission control</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/20.vsphere-07-content-library.html" class="guide-card">
+      <div class="guide-num">16</div>
+      <div>
+        <div class="guide-title">Content Library</div>
+        <div class="guide-desc">Local vs subscribed libraries, item types (ISO, OVF, VM Template), NovaCrestBank content library plan — RHCOS OVA, Windows Server ISOs, and VM templates — and customization specifications for rapid deployment.</div>
+        <div class="guide-chips"><span class="chip">Content Library</span><span class="chip">OVF</span><span class="chip">VM Templates</span><span class="chip">RHCOS OVA</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 3 — Windows Server infrastructure</span><span>5 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VMware-Classic/12.win-01-dc1-dc2.html" class="guide-card">
+      <div class="guide-num">17</div>
+      <div>
+        <div class="guide-title">DC1 and DC2 — Active Directory</div>
+        <div class="guide-desc">Windows Server 2022 domain controller deployment, Active Directory domain setup for novacrestbank.local, site and replication topology, OU structure for NovaCrestBank (servers, service accounts, OCP groups), and DC2 as a redundant domain controller.</div>
+        <div class="guide-chips"><span class="chip">Active Directory</span><span class="chip">Domain Controllers</span><span class="chip">OU structure</span><span class="chip">Replication</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/13.win-02-dhcp.html" class="guide-card">
+      <div class="guide-num">18</div>
+      <div>
+        <div class="guide-title">DHCP</div>
+        <div class="guide-desc">DHCP concepts, scope plan for all VLANs, DHCP relay across VLAN boundaries, failover partnership between DC01 and DC02, scope options (DNS, gateway), and DHCP for OpenShift bootstrap nodes.</div>
+        <div class="guide-chips"><span class="chip">DHCP scopes</span><span class="chip">Failover</span><span class="chip">DHCP relay</span><span class="chip">All VLANs</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/14.win-03-root-ca.html" class="guide-card">
+      <div class="guide-num">19</div>
+      <div>
+        <div class="guide-title">Root CA</div>
+        <div class="guide-desc">Offline Root CA design rationale — why offline, two-tier PKI hierarchy, Root CA installation on a standalone Windows Server, CAPolicy.inf configuration, certificate extensions, and the Root CA signing the Issuing CA certificate. The PKI foundation for all NovaCrestBank certificates.</div>
+        <div class="guide-chips"><span class="chip">Offline Root CA</span><span class="chip">Two-tier PKI</span><span class="chip">CAPolicy.inf</span><span class="chip">PCI-DSS PKI</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/15.win-04-issuing-ca.html" class="guide-card">
+      <div class="guide-num">20</div>
+      <div>
+        <div class="guide-title">Issuing CA</div>
+        <div class="guide-desc">Enterprise Subordinate CA installation, certificate templates for all NovaCrestBank use cases (web servers, clients, vCenter, OCP API, OCP Ingress), auto-enrollment via Group Policy, and certificate lifecycle management.</div>
+        <div class="guide-chips"><span class="chip">Issuing CA</span><span class="chip">Cert templates</span><span class="chip">Auto-enrollment</span><span class="chip">ADCS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/21.win-05-group-policy.html" class="guide-card">
+      <div class="guide-num">21</div>
+      <div>
+        <div class="guide-title">Group Policy</div>
+        <div class="guide-desc">Security baseline GPOs — domain password policy, Fine-Grained Password Policy for service accounts, PKI auto-enrollment policy, OCP service account restrictions, and Windows security baseline aligned with PCI-DSS account management requirements.</div>
+        <div class="guide-chips"><span class="chip">GPO</span><span class="chip">Password policy</span><span class="chip">FGPP</span><span class="chip">Security baseline</span><span class="chip">PKI GPO</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 4 — OpenShift deployment &amp; operations</span><span>9 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VMware-Classic/22.Openshift-live-install-execution.html" class="guide-card">
+      <div class="guide-num">22</div>
+      <div>
+        <div class="guide-title">Live Install Execution</div>
+        <div class="guide-desc">Real-time installation walkthrough with every command and output — Phase 0 pre-flight gate checks (DNS, NTP, network, certificates), Phase 1–6 from bootstrap through workers joining, real-time debugging sections (DNS failures, TLS failures, bootstrap hangs), and first 5 minutes post-install.</div>
+        <div class="guide-chips"><span class="chip">IPI install</span><span class="chip">Pre-flight gates</span><span class="chip">Bootstrap</span><span class="chip">Real-time debug</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/23.ocp-installation.html" class="guide-card">
+      <div class="guide-num">23</div>
+      <div>
+        <div class="guide-title">OCP Installation — Full Reference</div>
+        <div class="guide-desc">Complete installation reference — why OCP over vanilla Kubernetes, node types and licensing, IPI vs UPI decision, install-config.yaml every field explained, AD OAuth integration, certificate replacement (API and Ingress), vSAN storage class, infra node creation, and end-to-end cluster verification.</div>
+        <div class="guide-chips"><span class="chip">install-config.yaml</span><span class="chip">AD OAuth</span><span class="chip">Cert replacement</span><span class="chip">Infra nodes</span><span class="chip">StorageClass</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/24.openshift-storage-deep-dive.html" class="guide-card">
+      <div class="guide-num">24</div>
+      <div>
+        <div class="guide-title">Storage Deep-Dive</div>
+        <div class="guide-desc">How OCP storage works, PVC lifecycle end-to-end, vSphere CSI architecture (vSAN backend), NetApp Trident CSI (NFS backend), StorageClass design for banking workloads, and dynamic provisioning verification.</div>
+        <div class="guide-chips"><span class="chip">vSphere CSI</span><span class="chip">Trident CSI</span><span class="chip">PVC lifecycle</span><span class="chip">StorageClass</span><span class="chip">NetApp NFS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/25.openshift-day2-operations.html" class="guide-card">
+      <div class="guide-num">25</div>
+      <div>
+        <div class="guide-title">Day-2 Operations</div>
+        <div class="guide-desc">Operations mindset and runbook, daily health check routine, cluster upgrades (CVO, pre-upgrade preparation, live execution, rollback), node scaling (add/drain/remove), certificate rotation, etcd backup, and alerting configuration.</div>
+        <div class="guide-chips"><span class="chip">CVO upgrades</span><span class="chip">Node scaling</span><span class="chip">Cert rotation</span><span class="chip">etcd backup</span><span class="chip">Alertmanager</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/26.openshift-day2-hardening.html" class="guide-card">
+      <div class="guide-num">26</div>
+      <div>
+        <div class="guide-title">Day-2 Hardening</div>
+        <div class="guide-desc">Sequenced hardening tasks for a fresh OCP install — AD identity provider, API cert replacement, Ingress cert replacement, kubeadmin removal, infra node setup, etcd encryption at rest, monitoring isolation, and internal image registry. Closes every gap present on a fresh install in a banking environment.</div>
+        <div class="guide-chips"><span class="chip">AD IDP</span><span class="chip">etcd encryption</span><span class="chip">kubeadmin removal</span><span class="chip">Infra nodes</span><span class="chip">PCI-DSS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/27.openshift-security-hardening.html" class="guide-card">
+      <div class="guide-num">27</div>
+      <div>
+        <div class="guide-title">Security Hardening</div>
+        <div class="guide-desc">Security landscape and threat model, PCI-DSS requirements mapped to OCP controls, Thales Luna HSM integration, Red Hat ACS (StackRox) deployment and policy configuration, Network Policies for banking workloads, and admission control hardening.</div>
+        <div class="guide-chips"><span class="chip">ACS/StackRox</span><span class="chip">Network Policy</span><span class="chip">HSM</span><span class="chip">PCI-DSS mapping</span><span class="chip">Admission control</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/28.hsm-kms-integration.html" class="guide-card">
+      <div class="guide-num">28</div>
+      <div>
+        <div class="guide-title">Thales Luna HSM — KMS Integration</div>
+        <div class="guide-desc">What an HSM is and why banking mandates one (PCI-DSS), KMIP protocol architecture, Thales Luna HSM 7 appliance initialization, partition creation, HA group across both HSMs, Luna client on vCenter, NTLS trust establishment, vCenter KMS registration, and vSAN encryption with HSM-backed keys.</div>
+        <div class="guide-chips"><span class="chip">Thales Luna HSM 7</span><span class="chip">KMIP</span><span class="chip">FIPS 140-2 L3</span><span class="chip">vSAN encryption</span><span class="chip">NTLS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/29.powerstore-fc-san.html" class="guide-card">
+      <div class="guide-num">29</div>
+      <div>
+        <div class="guide-title">PowerStore — FC SAN</div>
+        <div class="guide-desc">FC fundamentals (WWNs, fabrics, zoning), NovaCrestBank dual-fabric FC architecture, collecting HBA WWNs from ESXi hosts, Cisco MDS zoning configuration, PowerStore host registration, LUN creation, host group mapping, and VMFS datastore creation for Oracle RAC.</div>
+        <div class="guide-chips"><span class="chip">FC SAN</span><span class="chip">Cisco MDS 9148S</span><span class="chip">PowerStore</span><span class="chip">Zoning</span><span class="chip">Oracle RAC</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VMware-Classic/30.OpenShift-troubleshooting.html" class="guide-card">
+      <div class="guide-num">30</div>
+      <div>
+        <div class="guide-title">Troubleshooting Scenarios</div>
+        <div class="guide-desc">Troubleshooting mindset and methodology, first 5 minutes of any incident, node NotReady scenarios, etcd quorum loss, certificate expiry incidents, storage provisioning failures, network policy misconfigurations, and operator degraded states — with real command outputs and resolution paths.</div>
+        <div class="guide-chips"><span class="chip">Node NotReady</span><span class="chip">etcd quorum</span><span class="chip">Cert expiry</span><span class="chip">Storage failures</span><span class="chip">Operator debug</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  Ashok Kumar P. · Series I — OpenShift on VMware vSphere · 31 guides · ashokkumar-arch.github.io
+</footer>
+</body>
+</html>

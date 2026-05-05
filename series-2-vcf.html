@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Series II — OpenShift on VCF + NSX | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --red:#c8102e;--blue:#1a5c8f;--green:#0e6b45;--amber:#a87015;
+  --vcf:#1b5e8c;--nsx:#6e2b8c;--ocp:#cc0000;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);text-decoration:none}
+.nav-back{font-size:.875rem;color:var(--ink2);text-decoration:none;display:flex;align-items:center;gap:.5rem}
+.nav-back:hover{color:var(--red)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.series-badge{font-family:var(--font-mono);font-size:.72rem;color:var(--nsx);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.series-badge::before{content:'II';display:inline-flex;align-items:center;justify-content:center;width:28px;height:24px;background:var(--nsx);color:#fff;font-size:.75rem;font-family:var(--font-display)}
+h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem}
+.page-sub{font-size:.95rem;color:var(--ink2);font-weight:300;max-width:660px;line-height:1.7;margin-bottom:1.5rem}
+.meta-row{display:flex;gap:2rem;flex-wrap:wrap}
+.meta-item{font-family:var(--font-mono);font-size:.75rem;color:var(--ink3)}
+.meta-item strong{color:var(--ink);font-weight:500}
+.prereq-box{margin-top:1.5rem;padding:1rem 1.25rem;background:var(--paper2);border-left:3px solid var(--nsx);font-size:.875rem;color:var(--ink2);line-height:1.7;max-width:680px}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.25rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-label:first-child{margin-top:0}
+.phase-header{display:flex;align-items:center;gap:.75rem}
+.phase-dot{width:10px;height:10px;border-radius:50%}
+.guide-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border)}
+.guide-card{background:var(--paper);padding:1.25rem 1.5rem;display:grid;grid-template-columns:48px 1fr auto;gap:1.25rem;align-items:start;transition:background .15s;text-decoration:none;color:inherit}
+.guide-card:hover{background:var(--paper2)}
+.guide-num{font-family:var(--font-display);font-size:1.5rem;color:var(--paper3);line-height:1;padding-top:.1rem}
+.guide-title{font-size:.95rem;font-weight:500;color:var(--ink);margin-bottom:.3rem;line-height:1.3}
+.guide-desc{font-size:.8rem;color:var(--ink2);line-height:1.6}
+.guide-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem}
+.chip{font-family:var(--font-mono);font-size:.65rem;padding:.15rem .5rem;border-radius:2px;background:var(--paper2);border:1px solid var(--border);color:var(--ink3)}
+.chip-vcf{background:#e8f2fb;border-color:#b0cde8;color:#0d3a5c}
+.chip-nsx{background:#f3edfb;border-color:#c8a0e8;color:#4a1a6c}
+.chip-ocp{background:#fff0f0;border-color:#f0b0b0;color:#8a0000}
+.guide-arrow{font-size:1rem;color:var(--border);align-self:center;transition:color .15s}
+.guide-card:hover .guide-arrow{color:var(--ink2)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Ashok Kumar P.</a>
+    <a href="index.html#projects" class="nav-back">← All projects</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="series-badge">Series II — Private Cloud</div>
+  <h1>OpenShift on VMware<br>Cloud Foundation + NSX</h1>
+  <p class="page-sub">Advanced platform architecture on VCF with NSX overlay networking — 36 guides covering the complete stack from VCF workload domain design through NSX configuration, OCP installation, platform services, observability, GitOps, storage, and cluster lifecycle management.</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>36</strong> guides</div>
+    <div class="meta-item"><strong>Environment:</strong> corp.novacrestbank.com · 10.x.x.x RFC 1918</div>
+    <div class="meta-item"><strong>Compliance:</strong> PCI-DSS v4.0 · NIST SP 800-53 · APRA CPS 234</div>
+    <div class="meta-item"><strong>Status:</strong> Complete</div>
+  </div>
+  <div class="prereq-box">Prerequisites: Series I (physical fabric through Windows Server infrastructure) provides the foundation. This series assumes a running VCF management domain, NSX Manager cluster, and the Windows AD/PKI infrastructure established in Series I — adapted to the VCF environment with <code>corp.novacrestbank.com</code> domain naming.</div>
+</div>
+
+<main>
+
+  <div class="section-label"><span>Phase 1 — VCF architecture &amp; NSX concepts</span><span>2 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/1.vcf-01-architecture-network-planning.html" class="guide-card">
+      <div class="guide-num">1</div>
+      <div>
+        <div class="guide-title">VCF Architecture &amp; Network Planning</div>
+        <div class="guide-desc">The foundational design document for all subsequent guides. Covers underlay/overlay mental model, two-domain architecture (Management Domain and OCP Workload Domain), complete VLAN plan (VLANs 10/20/25/40/100/101/102/103), full IP addressing scheme, TEP pool design, T0/T1 BGP peering (ASN 65010 to Leaf-01 ASN 65001 and Leaf-02 ASN 65002), NSX LB VIP design (API 10.50.0.200:6443, Ingress 10.50.0.201), DFW zone model with PCI-DSS v4.0 and NIST SP 800-53 anchors, complete DNS record plan, and PKI certificate plan.</div>
+        <div class="guide-chips"><span class="chip chip-vcf">VCF domains</span><span class="chip chip-nsx">NSX overlay</span><span class="chip chip-vcf">VLAN plan</span><span class="chip chip-nsx">TEP pools</span><span class="chip chip-nsx">BGP peering</span><span class="chip">PCI-DSS</span><span class="chip">NIST</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/2.vcf-02-nsx-concepts.html" class="guide-card">
+      <div class="guide-num">2</div>
+      <div>
+        <div class="guide-title">NSX-T Concepts</div>
+        <div class="guide-desc">Deep conceptual foundation before any NSX configuration — Transport Zones and why they exist, Transport Nodes (host and edge), the overlay network model (Geneve encapsulation), T0/T1 gateway hierarchy, segment types (overlay vs VLAN-backed), TEP addressing and the packet-walk through NSX, Distributed Firewall concepts, and how NSX integrates with VCF.</div>
+        <div class="guide-chips"><span class="chip chip-nsx">Transport Zones</span><span class="chip chip-nsx">Geneve</span><span class="chip chip-nsx">T0/T1</span><span class="chip chip-nsx">DFW</span><span class="chip chip-nsx">TEP</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 2 — NSX configuration</span><span>5 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/3.nsx-01-transport-zones-host-transport-nodes.html" class="guide-card">
+      <div class="guide-num">3</div>
+      <div>
+        <div class="guide-title">NSX-01 — Transport Zones &amp; Host Transport Nodes</div>
+        <div class="guide-desc">Creating the overlay and VLAN transport zones, preparing ESXi hosts as NSX transport nodes, uplink profiles, TEP IP pool assignment, and verifying host transport node status in the NSX Manager GUI — screen by screen with every field explained.</div>
+        <div class="guide-chips"><span class="chip chip-nsx">Transport Zones</span><span class="chip chip-nsx">Host TNs</span><span class="chip chip-nsx">Uplink profiles</span><span class="chip chip-nsx">TEP pool</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/4.nsx-02-edge-t0-gateway.html" class="guide-card">
+      <div class="guide-num">4</div>
+      <div>
+        <div class="guide-title">NSX-02 — Edge Nodes &amp; Tier-0 Gateway</div>
+        <div class="guide-desc">Edge node deployment (form factor decisions, resource requirements, HA mode), Edge Cluster creation, Tier-0 gateway creation with BGP configuration, BGP peering to physical Leaf switches (ASN 65010 ↔ ASN 65001/65002), route redistribution, ECMP, and BGP route verification.</div>
+        <div class="guide-chips"><span class="chip chip-nsx">Edge nodes</span><span class="chip chip-nsx">T0 gateway</span><span class="chip chip-nsx">BGP</span><span class="chip chip-nsx">ECMP</span><span class="chip chip-nsx">Route redistribution</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/5.nsx-03-t1-gateways-segments.html" class="guide-card">
+      <div class="guide-num">5</div>
+      <div>
+        <div class="guide-title">NSX-03 — Tier-1 Gateways &amp; Segments</div>
+        <div class="guide-desc">T1 gateway creation for OCP workloads (NCB-T1-OCP), linking T1 to T0, route advertisement configuration, creating the OCP node segment (seg-ocp-nodes 10.50.0.0/24), and verifying segment connectivity — the network substrate that OCP VMs attach to.</div>
+        <div class="guide-chips"><span class="chip chip-nsx">T1 gateway</span><span class="chip chip-nsx">Segments</span><span class="chip chip-nsx">seg-ocp-nodes</span><span class="chip chip-ocp">OCP prep</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/6.nsx-04-load-balancer.html" class="guide-card">
+      <div class="guide-num">6</div>
+      <div>
+        <div class="guide-title">NSX-04 — NSX Load Balancer</div>
+        <div class="guide-desc">NSX LB vs keepalived — what changes for OCP, LB object hierarchy (four objects, one flow), Load Balancer service creation on NCB-T1-OCP, health monitors for API (TCP 6443) and Ingress (HTTP/HTTPS), server pools, virtual servers for API VIP (10.50.0.200:6443) and Ingress VIP (10.50.0.201:443/80), and end-to-end VIP verification.</div>
+        <div class="guide-chips"><span class="chip chip-nsx">NSX LB</span><span class="chip chip-nsx">Virtual servers</span><span class="chip chip-ocp">API VIP</span><span class="chip chip-ocp">Ingress VIP</span><span class="chip chip-nsx">Health monitors</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/7.nsx-05-distributed-firewall.html" class="guide-card">
+      <div class="guide-num">7</div>
+      <div>
+        <div class="guide-title">NSX-05 — Distributed Firewall</div>
+        <div class="guide-desc">DFW zone model for NovaCrestBank (management, infrastructure, OCP, application zones), Groups (dynamic membership by tag/segment), DFW policy sections and rule hierarchy, PCI-DSS v4.0 network segmentation requirements mapped to DFW rules, and microsegmentation for banking application namespaces.</div>
+        <div class="guide-chips"><span class="chip chip-nsx">DFW</span><span class="chip chip-nsx">Groups</span><span class="chip chip-nsx">Microsegmentation</span><span class="chip">PCI-DSS Req 1</span><span class="chip">NIST SC-7</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 3 — Windows Server for VCF</span><span>3 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/8.win-vcf-01-dns.html" class="guide-card">
+      <div class="guide-num">8</div>
+      <div>
+        <div class="guide-title">WIN-VCF-01 — DNS for VCF &amp; OCP</div>
+        <div class="guide-desc">Complete DNS record plan for VCF and OCP (~35 records) — VCF management components (SDDC Manager, vcenter-mgmt, vcenter-ocp, NSX Manager cluster, Edge nodes), OCP records (api.ocp, api-int.ocp, *.apps.ocp, all master and worker nodes), Windows DNS Manager GUI walkthrough screen by screen.</div>
+        <div class="guide-chips"><span class="chip chip-vcf">VCF DNS</span><span class="chip chip-ocp">OCP DNS</span><span class="chip chip-nsx">NSX records</span><span class="chip">Split-horizon</span><span class="chip">corp.novacrestbank.com</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/9.win-vcf-02-dhcp.html" class="guide-card">
+      <div class="guide-num">9</div>
+      <div>
+        <div class="guide-title">WIN-VCF-02 — DHCP for VCF Underlay</div>
+        <div class="guide-desc">Why VCF needs DHCP and exactly what it uses it for (TEP bootstrap), scope plan for all VCF underlay ranges (VLAN 10 management, TEP pools), exclusions and options, DHCP Manager GUI walkthrough on DC01, and scope verification.</div>
+        <div class="guide-chips"><span class="chip chip-vcf">VCF DHCP</span><span class="chip chip-nsx">TEP bootstrap</span><span class="chip">VLAN 10</span><span class="chip">TEP pool</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/10.win-vcf-03-pki-certs.html" class="guide-card">
+      <div class="guide-num">10</div>
+      <div>
+        <div class="guide-title">WIN-VCF-03 — PKI / Certificates</div>
+        <div class="guide-desc">Certificate replacement for all 6 new VCF components (SDDC Manager, vcenter-ocp, NSX Manager nodes) using the NovaCrestBank-IssuingCA via web enrollment — GUI only, screen by screen, every click documented. Replaces auto-generated VMCA certificates with PKI-signed certificates before OCP installation.</div>
+        <div class="guide-chips"><span class="chip">IssuingCA</span><span class="chip chip-vcf">SDDC Manager cert</span><span class="chip chip-vcf">vcenter-ocp cert</span><span class="chip chip-nsx">NSX cert</span><span class="chip">Web enrollment</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 4 — OpenShift installation on VCF+NSX</span><span>2 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/11.ocp-vcf-01-install-config-vcf-nsx.html" class="guide-card">
+      <div class="guide-num">11</div>
+      <div>
+        <div class="guide-title">OCP-VCF-01 — install-config.yaml for VCF + NSX</div>
+        <div class="guide-desc">Why the VCF install-config differs from standalone vSphere, the six things that change (side-by-side comparison), VCF two-vCenter architecture and why it matters for the YAML, every field explained — platform.vsphere.vcenters, failureDomains, topology.networks (NSX segment reference), apiVIPs/ingressVIPs (NSX LB), CA bundle for additionalTrustBundle, and pre-flight validation.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">install-config.yaml</span><span class="chip chip-vcf">failureDomains</span><span class="chip chip-nsx">NSX segment</span><span class="chip chip-nsx">NSX VIPs</span><span class="chip">CA bundle</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/12.ocp-vcf-02-run-install-postinstall.html" class="guide-card">
+      <div class="guide-num">12</div>
+      <div>
+        <div class="guide-title">OCP-VCF-02 — Run Installer &amp; Post-Install</div>
+        <div class="guide-desc">Final pre-flight gate checks, launching the installer, bootstrap phase mechanics, master node etcd quorum, post-install health checks, MachineSet for infra node creation, Ingress Router and monitoring stack migration to infra nodes, AD OAuth integration, kubeadmin removal, API and Ingress certificate replacement, vSAN StorageClass tiering, and VCF+NSX-specific failure scenarios with fixes.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">IPI install</span><span class="chip chip-ocp">MachineSet</span><span class="chip chip-ocp">Infra nodes</span><span class="chip">AD OAuth</span><span class="chip">Cert replacement</span><span class="chip chip-vcf">vSAN StorageClass</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 5 — Platform services</span><span>6 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/13.registry-01-harbor-internal-registry.html" class="guide-card">
+      <div class="guide-num">13</div>
+      <div>
+        <div class="guide-title">Registry-01 — Harbor Internal Registry</div>
+        <div class="guide-desc">Registry landscape decision (quay.io vs registry.redhat.io vs Harbor), Harbor concepts (projects, robot accounts, replication, scanning), Helm deployment on OCP, IssuingCA certificate configuration, AD LDAP integration, project structure (banking-apps, base-images, platform), robot accounts for Jenkins push and OCP pull, global pull secret, and Trivy vulnerability scanning.</div>
+        <div class="guide-chips"><span class="chip">Harbor</span><span class="chip">Helm</span><span class="chip">AD LDAP</span><span class="chip">Robot accounts</span><span class="chip">Trivy scanning</span><span class="chip">Image mirroring</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/14.ocp-ops-01-openshift-operators.html" class="guide-card">
+      <div class="guide-num">14</div>
+      <div>
+        <div class="guide-title">OCP-OPS-01 — OpenShift Operators</div>
+        <div class="guide-desc">The reconciliation loop explained from first principles, CRDs as Kubernetes vocabulary extension, why operators over Helm charts, OLM architecture, OperatorHub and air-gap with Harbor mirroring, update channels and approval control, and the NovaCrestBank operator catalogue with the rationale for every installed operator.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">OLM</span><span class="chip chip-ocp">CRDs</span><span class="chip chip-ocp">OperatorHub</span><span class="chip">Reconciliation loop</span><span class="chip">Air-gap</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/15.ocp-ops-02-cert-manager.html" class="guide-card">
+      <div class="guide-num">15</div>
+      <div>
+        <div class="guide-title">OCP-OPS-02 — Cert-Manager Operator</div>
+        <div class="guide-desc">Why cert-manager at scale, the four CRDs (ClusterIssuer, Issuer, Certificate, CertificateRequest), installation via OLM, connecting to NovaCrestBank-IssuingCA via ADCS, ClusterIssuer creation with every field explained, Certificate CRD, issuing the first certificate for Harbor, and automatic certificate management via Ingress annotation.</div>
+        <div class="guide-chips"><span class="chip">Cert-Manager</span><span class="chip">ClusterIssuer</span><span class="chip">ADCS</span><span class="chip">Certificate CRD</span><span class="chip">Ingress TLS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/16.ocp-ops-03-acs.html" class="guide-card">
+      <div class="guide-num">16</div>
+      <div>
+        <div class="guide-title">OCP-OPS-03 — Red Hat ACS</div>
+        <div class="guide-desc">The four pillars of container security, Central and SecuredCluster architecture, compliance frameworks (PCI-DSS, NIST, FedRAMP, FFIEC, SOC 2, DORA), ACS and ATO evidence, runtime threat detection (process and network anomaly), vulnerability management pipeline, policy enforcement, Splunk SIEM integration, and compliance report automation for banking audits.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">ACS/StackRox</span><span class="chip">Central</span><span class="chip">SecuredCluster</span><span class="chip">PCI-DSS</span><span class="chip">SIEM</span><span class="chip">ATO evidence</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/17.ocp-ops-04-pipelines.html" class="guide-card">
+      <div class="guide-num">17</div>
+      <div>
+        <div class="guide-title">OCP-OPS-04 — OpenShift Pipelines (Tekton)</div>
+        <div class="guide-desc">Tekton from first principles — Pipeline, Task, PipelineRun, TaskRun, Workspaces CRDs, why Buildah over Docker (rootless builds), the 8-stage NovaCrestBank pipeline (clone → Maven build → Buildah image → Harbor push + cosign signing → ACS gate → GitOps staging → production MR → approval), and full Tekton pipeline YAML with every field annotated.</div>
+        <div class="guide-chips"><span class="chip">Tekton</span><span class="chip">Buildah</span><span class="chip">cosign</span><span class="chip">Pipeline CRD</span><span class="chip">ACS gate</span><span class="chip">GitOps deploy</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/18.ocp-ops-05-gitops.html" class="guide-card">
+      <div class="guide-num">18</div>
+      <div>
+        <div class="guide-title">OCP-OPS-05 — OpenShift GitOps (Argo CD)</div>
+        <div class="guide-desc">GitOps as an operational discipline (no manual kubectl in production), pull-based vs push-based deployment, the two-repository pattern, Kustomize base+overlay model (dev/staging/production environments), Argo CD Application and AppProject CRDs, ApplicationSet for multi-environment deployment, AD authentication, and PCI-DSS Req 6.4 change management compliance via merge requests.</div>
+        <div class="guide-chips"><span class="chip">Argo CD</span><span class="chip">Kustomize</span><span class="chip">AppProject</span><span class="chip">Two-repo pattern</span><span class="chip">AD auth</span><span class="chip">PCI-DSS Req 6.4</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 6 — Observability</span><span>4 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/19.obs-01-monitoring-deep-dive.html" class="guide-card">
+      <div class="guide-num">19</div>
+      <div>
+        <div class="guide-title">OBS-01 — Monitoring Deep-Dive</div>
+        <div class="guide-desc">Prometheus pull model and time-series database, ServiceMonitor and PodMonitor CRDs, PromQL for banking SLIs, Alertmanager routing and inhibition, Thanos for long-term storage and global query, OCP monitoring stack architecture, why monitoring lives on infra nodes, cluster-monitoring-config with every field explained, and banking-specific alert rules (payment API latency, transaction volume anomaly, HSM connectivity).</div>
+        <div class="guide-chips"><span class="chip">Prometheus</span><span class="chip">Alertmanager</span><span class="chip">Thanos</span><span class="chip">ServiceMonitor</span><span class="chip">PromQL</span><span class="chip">Banking alerts</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/20.obs-02-custom-app-metrics.html" class="guide-card">
+      <div class="guide-num">20</div>
+      <div>
+        <div class="guide-title">OBS-02 — Custom Application Metrics</div>
+        <div class="guide-desc">The four golden signals applied to banking APIs, Micrometer instrumentation for Spring Boot, custom Counter/Timer/Gauge metrics for the payment-service, Actuator /prometheus endpoint, user workload monitoring setup, ServiceMonitor for the payment-service, and Grafana dashboard panels for transaction throughput, latency percentiles, and error rates.</div>
+        <div class="guide-chips"><span class="chip">Micrometer</span><span class="chip">Spring Boot</span><span class="chip">Custom metrics</span><span class="chip">Grafana</span><span class="chip">Golden signals</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/21.obs-03.html" class="guide-card">
+      <div class="guide-num">21</div>
+      <div>
+        <div class="guide-title">OBS-03 — OpenShift Logging</div>
+        <div class="guide-desc">Three log types (infrastructure, audit, application), why Loki (log aggregation without index explosion), ClusterLogForwarder routing engine, LokiStack deployment with MinIO object storage, ClusterLogForwarder for infrastructure and application logs to Loki, audit log forwarding to Splunk SIEM, PCI-DSS Req 10 log retention policy, and SIEM integration verification.</div>
+        <div class="guide-chips"><span class="chip">Loki</span><span class="chip">LokiStack</span><span class="chip">ClusterLogForwarder</span><span class="chip">Splunk SIEM</span><span class="chip">PCI-DSS Req 10</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/22.obs-04.html" class="guide-card">
+      <div class="guide-num">22</div>
+      <div>
+        <div class="guide-title">OBS-04 — Distributed Tracing</div>
+        <div class="guide-desc">Why tracing — following one payment transaction across 8 services, OpenTelemetry concepts (traces, spans, context propagation), Tempo trace storage, OpenTelemetry Collector deployment, Java agent for zero-code instrumentation of the payment-service, custom spans for banking business logic, paymentId context propagation across service boundaries, and sampling strategy for production banking workloads.</div>
+        <div class="guide-chips"><span class="chip">OpenTelemetry</span><span class="chip">Tempo</span><span class="chip">Jaeger UI</span><span class="chip">Java agent</span><span class="chip">Distributed tracing</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 7 — Cluster upgrades</span><span>3 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/23.upg-01-upgrade-strategy.html" class="guide-card">
+      <div class="guide-num">23</div>
+      <div>
+        <div class="guide-title">UPG-01 — Upgrade Strategy</div>
+        <div class="guide-desc">z-stream vs minor version upgrades, the Cluster Version Operator, the update graph and safe paths, update channels (stable/fast/candidate/EUS), why EUS matters for banking (18-month support windows), the Machine Config Operator for RHCOS node updates, cluster operator upgrade order, rolling upgrade mechanics (masters first then workers), zero-downtime mechanics for banking applications, and change management planning.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">CVO</span><span class="chip chip-ocp">EUS channel</span><span class="chip chip-ocp">Update graph</span><span class="chip chip-ocp">MCO</span><span class="chip">Change management</span><span class="chip">Zero-downtime</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/24.upg-02-upgrade-execution.html" class="guide-card">
+      <div class="guide-num">24</div>
+      <div>
+        <div class="guide-title">UPG-02 — Performing an OCP Upgrade</div>
+        <div class="guide-desc">Pre-upgrade health gates (go/no-go), pausing MachineConfigPools, triggering via CLI and GUI, watching CVO progress in the first 30 minutes, etcd and kube-apiserver rolling updates, master RHCOS node drain/reboot/rejoin with terminal output, unpausing MCPs for workers, infra node upgrades and monitoring stack behaviour, and post-upgrade verification.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">Upgrade execution</span><span class="chip chip-ocp">MachineConfigPool</span><span class="chip chip-ocp">Rolling nodes</span><span class="chip">Pre-upgrade gates</span><span class="chip">Terminal output</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/25.upg-03-machineconfig-machinepool.html" class="guide-card">
+      <div class="guide-num">25</div>
+      <div>
+        <div class="guide-title">UPG-03 — MachineConfig &amp; MachineConfigPool</div>
+        <div class="guide-desc">MachineConfig as declarative RHCOS configuration, the three MachineConfigPools (master/worker/infra), the rendered MachineConfig merge process, Machine Config Daemon per-node agent, inspecting existing MachineConfigs, applying custom sysctl to infra nodes, kernel arguments for workers, custom files and systemd units via MachineConfig, and pool pause/resume for controlled rollout.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">MachineConfig</span><span class="chip chip-ocp">MachineConfigPool</span><span class="chip chip-ocp">MC Daemon</span><span class="chip">sysctl</span><span class="chip">kernel args</span><span class="chip">systemd units</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 8 — GitOps &amp; CI/CD</span><span>6 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/26.gitops-00-gitlab-self-managed.html" class="guide-card">
+      <div class="guide-num">26</div>
+      <div>
+        <div class="guide-title">GITOPS-00 — GitLab Self-Managed on OpenShift</div>
+        <div class="guide-desc">Why GitLab self-managed for a banking VCS (data sovereignty, air-gap, compliance), GitLab architecture on OCP, GitLab Operator installation via OLM, GitLab CR with every field explained, TLS via cert-manager, AD/LDAP authentication using the same pattern as OCP and Harbor, group sync, deploy keys for Argo CD, and webhook configuration for CI triggers.</div>
+        <div class="guide-chips"><span class="chip">GitLab</span><span class="chip">GitLab Operator</span><span class="chip">AD LDAP</span><span class="chip">Webhooks</span><span class="chip">Self-managed VCS</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/27.gitops-01-gitops-architecture.html" class="guide-card">
+      <div class="guide-num">27</div>
+      <div>
+        <div class="guide-title">GITOPS-01 — GitOps Architecture</div>
+        <div class="guide-desc">What GitOps means operationally in a banking context, Git as the source of truth (what this means on a Monday morning), pull-based vs push-based deployment, no manual kubectl in production as operational discipline, the two-repository pattern (why problems arise from one repo), access control model, PCI-DSS Req 6.4 change management compliance, and the complete NovaCrestBank pipeline flow from commit to production.</div>
+        <div class="guide-chips"><span class="chip">GitOps model</span><span class="chip">Two-repo pattern</span><span class="chip">Pull-based deploy</span><span class="chip">PCI-DSS Req 6.4</span><span class="chip">Banking compliance</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/28.gitops-02-jenkins-on-openshift.html" class="guide-card">
+      <div class="guide-num">28</div>
+      <div>
+        <div class="guide-title">GITOPS-02 — Jenkins on OpenShift</div>
+        <div class="guide-desc">Jenkins Operator vs Helm chart decision, controller and dynamic agent architecture, ephemeral agent pods (zero idle cost), Jenkins Operator installation, Jenkins CR with every field explained, persistent storage via vsan-standard StorageClass, RBAC design for agent pod creation, AD/LDAP authentication, dynamic agent template configuration, and GitLab plugin setup for webhook triggers.</div>
+        <div class="guide-chips"><span class="chip">Jenkins</span><span class="chip">Jenkins Operator</span><span class="chip">Dynamic agents</span><span class="chip">AD LDAP</span><span class="chip">RBAC</span><span class="chip">GitLab plugin</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/29.gitops-03-jenkinsfile-walkthrough.html" class="guide-card">
+      <div class="guide-num">29</div>
+      <div>
+        <div class="guide-title">GITOPS-03 — The NovaCrestBank Jenkinsfile</div>
+        <div class="guide-desc">Complete 8-stage pipeline annotated line by line — Stage 1 (checkout and environment), Stage 2 (Maven build and SonarQube gate), Stage 3 (Buildah image build — why not Docker), Stage 4 (Harbor push and cosign signing — why cosign), Stage 5 (ACS vulnerability scan gate), Stage 6 (GitOps staging deploy — image tag commit to config repo), Stage 7 (production merge request), Stage 8 (post-deploy smoke test).</div>
+        <div class="guide-chips"><span class="chip">Jenkinsfile</span><span class="chip">Buildah</span><span class="chip">cosign</span><span class="chip">Harbor</span><span class="chip">ACS gate</span><span class="chip">GitOps MR</span><span class="chip">SonarQube</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/30.gitops-04-applicationset.html" class="guide-card">
+      <div class="guide-num">30</div>
+      <div>
+        <div class="guide-title">GITOPS-04 — Argo CD ApplicationSet</div>
+        <div class="guide-desc">ApplicationSet vs Application (one definition for many environments), Kustomize base+overlay model, ApplicationSet generators (list, git directory, cluster), the payment-service ApplicationSet YAML fully annotated, dev/staging/production overlay differences, sync waves for ordered deployment, health checks and status verification in Argo CD UI, and rollback procedure via Argo CD.</div>
+        <div class="guide-chips"><span class="chip">ApplicationSet</span><span class="chip">Kustomize overlays</span><span class="chip">Sync waves</span><span class="chip">Argo CD UI</span><span class="chip">Multi-environment</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/31.gitops-05-external-secrets-cyberark.html" class="guide-card">
+      <div class="guide-num">31</div>
+      <div>
+        <div class="guide-title">GITOPS-05 — External Secrets &amp; CyberArk</div>
+        <div class="guide-desc">The GitOps secret problem (why secrets cannot go in Git), the ESO model bridging Git and CyberArk, CyberArk Conjur vs HashiCorp Vault (the banking choice), ESO installation via OLM, CyberArk Conjur prerequisites, ClusterSecretStore YAML fully annotated, ExternalSecret anatomy, automatic secret rotation lifecycle, and the payment-service database credential flow end-to-end.</div>
+        <div class="guide-chips"><span class="chip">External Secrets</span><span class="chip">CyberArk Conjur</span><span class="chip">SecretStore</span><span class="chip">Secret rotation</span><span class="chip">Banking secrets</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="section-label"><span>Phase 9 — Storage</span><span>5 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_VCF/32.storage-01-odf-architecture-installation.html" class="guide-card">
+      <div class="guide-num">32</div>
+      <div>
+        <div class="guide-title">STORAGE-01 — ODF Architecture &amp; Installation</div>
+        <div class="guide-desc">NovaCrestBank storage landscape (vSAN, MinIO, ODF), what ODF is (Ceph inside OpenShift), all Ceph components (MON, OSD, MGR, MDS, RGW, MCG), three storage types (block/file/object) and when each applies, ODF vs vSAN decision framework, dedicated vs converged node planning, Local Storage Operator for raw disk preparation, and ODF StorageSystem installation via OLM.</div>
+        <div class="guide-chips"><span class="chip">ODF</span><span class="chip">Ceph</span><span class="chip">Block/File/Object</span><span class="chip">Local Storage</span><span class="chip">OSD</span><span class="chip">MCG</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/33.storage-02-minio-installation-configuration.html" class="guide-card">
+      <div class="guide-num">33</div>
+      <div>
+        <div class="guide-title">STORAGE-02 — MinIO Installation &amp; Configuration</div>
+        <div class="guide-desc">Why MinIO (filling the LokiStack object storage gap), MinIO vs ODF MCG decision, MinIO StatefulSet architecture, TLS via cert-manager, bucket provisioning for ncb-ocp-logs (LokiStack), ncb-harbor-registry (Harbor storage), ncb-velero-backup (OADP), mc CLI administration tool, and MinIO Console access setup.</div>
+        <div class="guide-chips"><span class="chip">MinIO</span><span class="chip">StatefulSet</span><span class="chip">Object storage</span><span class="chip">LokiStack</span><span class="chip">OADP</span><span class="chip">mc CLI</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/34.storage-03.html" class="guide-card">
+      <div class="guide-num">34</div>
+      <div>
+        <div class="guide-title">STORAGE-03 — StorageClass Design</div>
+        <div class="guide-desc">Access modes (RWO, RWX, ROX, RWOP), the five-question decision framework for StorageClass selection, block RWO comparison (ODF ceph-rbd vs vsan-standard vs vsan-gold), shared RWX with CephFS, object storage decision (MinIO vs ODF MCG vs ODF RGW), workload-to-StorageClass mapping for all platform and banking workloads, setting the default StorageClass, and GitOps-managed StorageClass policy.</div>
+        <div class="guide-chips"><span class="chip">StorageClass</span><span class="chip">RWO/RWX</span><span class="chip">ceph-rbd</span><span class="chip">CephFS</span><span class="chip">vSAN</span><span class="chip">Decision framework</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/35.storage-03-storageclass-design.html" class="guide-card">
+      <div class="guide-num">35a</div>
+      <div>
+        <div class="guide-title">STORAGE-03 — StorageClass Design (Extended)</div>
+        <div class="guide-desc">Extended StorageClass design reference — GitOps policy for StorageClass governance and the complete workload mapping table for all NovaCrestBank components across platform services, banking applications, and OCP internal components.</div>
+        <div class="guide-chips"><span class="chip">StorageClass</span><span class="chip">GitOps policy</span><span class="chip">Workload mapping</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+    <a href="OCP_on_VCF/35.storage-04-backup-dr-oadp-rto-rpo.html" class="guide-card">
+      <div class="guide-num">35b</div>
+      <div>
+        <div class="guide-title">STORAGE-04 — Backup &amp; DR: OADP, etcd, RTO/RPO</div>
+        <div class="guide-desc">HA vs DR vs Business Continuity — the three distinct disciplines, RTO and RPO definition and ownership, NovaCrestBank RTO/RPO targets from the BIA and APRA CPS 234, enterprise etcd backup (CronJob, storage, alerting), OADP/Velero installation, DataProtectionApplication CR with every field explained, backup schedules for platform and banking workloads, and DR runbook.</div>
+        <div class="guide-chips"><span class="chip">OADP</span><span class="chip">Velero</span><span class="chip">etcd backup</span><span class="chip">RTO/RPO</span><span class="chip">APRA CPS 234</span><span class="chip">DR runbook</span></div>
+      </div>
+      <div class="guide-arrow">→</div>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  Ashok Kumar P. · Series II — OpenShift on VCF + NSX · 36 guides · ashokkumar-arch.github.io
+</footer>
+</body>
+</html>
