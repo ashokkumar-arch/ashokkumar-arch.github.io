@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>vSphere-04 — vDS Phase 2 · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --vm-blue:#1e6eb5;--vm-dark:#0e1e2e;
+    --r:10px;--r2:6px;
+    /* traffic-type colours */
+    --mgmt-col:#1a5c8f;--vmotion-col:#6b3aa0;
+    --vsan-col:#c76b00;--nfs-col:#0e6b45;
+    --vm-col:#1e6eb5;--ocp-col:#c00;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--vm-blue);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--vm-blue);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--vm-blue);}
+
+  /* ── MAIN ── */
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1040px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--vm-blue);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--vm-blue);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--vm-blue);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.why) .cl{color:var(--vm-blue);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:22px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--vm-blue);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+
+  /* ── DECISION BOX ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:220px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--vm-blue);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ── NIC MAP DIAGRAM ── */
+  .nic-map{background:var(--bg3);border-radius:var(--r);padding:18px 22px;margin:16px 0;}
+  .nic-row{display:flex;align-items:center;gap:0;margin-bottom:8px;font-size:13px;}
+  .nic-row:last-child{margin-bottom:0;}
+  .nic-label{width:90px;flex-shrink:0;font-family:"SF Mono","Fira Code",monospace;
+    font-size:12px;color:var(--text2);}
+  .nic-bar{flex:1;height:28px;border-radius:4px;display:flex;align-items:center;
+    padding:0 10px;font-size:11.5px;font-weight:600;color:#fff;}
+  .nic-bar.mgmt{background:var(--mgmt-col);}
+  .nic-bar.vmotion{background:var(--vmotion-col);}
+  .nic-bar.storage{background:var(--vsan-col);}
+  .nic-bar.empty{background:var(--bg2);border:1px dashed var(--border2);color:var(--text3);}
+  .nic-arrow{width:36px;flex-shrink:0;text-align:center;color:var(--text3);font-size:16px;}
+  .nic-target{width:200px;flex-shrink:0;font-size:12px;color:var(--text2);}
+
+  /* ── VCENTER WIZARD MOCKUP ── */
+  .vc-wizard{background:#fff;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #c8c8c8;box-shadow:0 2px 14px rgba(0,0,0,.1);}
+  .ww-header{background:#1a3a5c;padding:12px 20px;display:flex;align-items:center;gap:12px;}
+  .ww-icon{width:28px;height:28px;border-radius:4px;background:#0078d4;
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;}
+  .ww-title{font-size:14px;font-weight:700;color:#fff;}
+  .ww-sub{font-size:11.5px;color:#8ab8d8;margin-top:1px;}
+  .ww-body{display:flex;min-height:260px;}
+  .ww-nav{width:195px;flex-shrink:0;background:#f5f5f5;
+    border-right:1px solid #e0e0e0;padding:10px 0;}
+  .ww-step{padding:7px 14px;font-size:12.5px;color:#5a5a5a;cursor:default;
+    display:flex;align-items:center;gap:8px;}
+  .ww-step.active{background:#e6f0fa;color:#1e6eb5;font-weight:600;
+    border-left:3px solid #0078d4;padding-left:11px;}
+  .ww-step.done{color:#107c10;}
+  .ww-step-num{width:18px;height:18px;border-radius:50%;
+    border:1.5px solid currentColor;display:flex;align-items:center;
+    justify-content:center;font-size:9px;flex-shrink:0;}
+  .ww-step.active .ww-step-num{background:#0078d4;border-color:#0078d4;color:#fff;}
+  .ww-step.done .ww-step-num{background:#107c10;border-color:#107c10;color:#fff;}
+  .ww-content{flex:1;padding:18px 24px;overflow-y:auto;}
+  .ww-section-title{font-size:14px;font-weight:700;color:#1a2a3a;margin-bottom:4px;}
+  .ww-section-sub{font-size:12.5px;color:#5a5a5a;margin-bottom:14px;}
+  .ww-field{margin-bottom:12px;}
+  .ww-label{font-size:12px;color:#5a5a5a;margin-bottom:4px;}
+  .ww-req{color:#e05252;font-size:10px;}
+  .ww-input{width:100%;border:1px solid #c0c0c0;border-radius:3px;
+    padding:6px 10px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .ww-input.filled{border-color:#107c10;background:#f8fff8;}
+  .ww-select{width:100%;border:1px solid #c0c0c0;border-radius:3px;
+    padding:6px 10px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .ww-select.filled{border-color:#107c10;background:#f8fff8;}
+  .ww-checkbox{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;font-size:13px;}
+  .ww-cb{width:14px;height:14px;border:1.5px solid #0078d4;border-radius:2px;
+    background:#0078d4;flex-shrink:0;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+  .ww-cb.off{background:#fff;border-color:#aaa;}
+  .ww-info-box{background:#e8f4fe;border:1px solid #90caf9;border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:#0d47a1;line-height:1.6;}
+  .ww-warn-box{background:#fff3e0;border:1px solid #ffb74d;border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:#e65100;line-height:1.6;}
+  .ww-footer{background:#f5f5f5;padding:10px 20px;display:flex;
+    justify-content:space-between;align-items:center;border-top:1px solid #e0e0e0;}
+  .ww-footer-btns{display:flex;gap:8px;}
+  .ww-btn{padding:6px 18px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer;}
+  .ww-btn.back{background:#fff;color:#333;border:1px solid #c0c0c0;}
+  .ww-btn.next{background:#0078d4;color:#fff;border:none;}
+  .ww-btn.finish{background:#107c10;color:#fff;border:none;}
+
+  /* Screen annotation */
+  .screen-ann{display:flex;gap:9px;background:#1a2030;
+    border-left:3px solid #d4a331;padding:7px 13px;margin:0 0 8px;
+    border-radius:0 4px 4px 0;font-size:12px;color:#c8d8e8;line-height:1.5;}
+  .screen-ann.ok{border-left-color:#5ccb6f;}
+  .screen-ann.info{border-left-color:#4da8da;}
+  .screen-ann.danger{border-left-color:#e05252;}
+  .sai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* PowerShell / CLI */
+  .psh{background:#012456;border-radius:var(--r);overflow:hidden;
+    margin:16px 0;border:1px solid #013a7a;
+    font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .psh-bar{background:#001a3a;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #013a7a;}
+  .psh-dot{width:10px;height:10px;border-radius:50%;}
+  .psh-dot.r{background:#e05252;}.psh-dot.y{background:#d4a331;}.psh-dot.g{background:#5ccb6f;}
+  .psh-label{font-size:11px;color:#4a7ab0;margin-left:6px;}
+  .psh-body{padding:14px 18px;overflow-x:auto;}
+  .psh-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#cccccc;white-space:pre;}
+  .pp{color:#f1c40f;font-weight:700;}.pc{color:#61c5eb;}
+  .pg{color:#4ccd99;}.pd{color:#608b7a;}.ps-txt{color:#eeedf0;}
+  .pann{display:flex;gap:9px;background:#001a3a;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#cccccc;line-height:1.5;}
+  .pann.ok{border-left-color:#4ccd99;}
+  .pai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · VMware Series</div>
+    <h1>vSphere-04 — vDS Phase 2</h1>
+    <p>vMotion · vSAN · NFS · LACP complete</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Overview and planning</div>
+    <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — What Phase 2 completes</div>
+    <div class="ni" onclick="show('state-review')"><div class="nd"></div>02 — Current state after Phase 1</div>
+    <div class="ni" onclick="show('ip-plan')"><div class="nd"></div>03 — IP address plan — all VMkernel adapters</div>
+    <div class="ni" onclick="show('execution-order')"><div class="nd"></div>04 — Execution order — why sequence matters</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Complete LAG-Management (vmnic1)</div>
+    <div class="ni" onclick="show('mgmt-lag-complete')"><div class="nd"></div>05 — Add vmnic1 to Uplink2 — complete the management bond</div>
+    <div class="ni" onclick="show('mgmt-lag-verify')"><div class="nd"></div>06 — Verify LAG-Management is fully bonded (both NICs)</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">vMotion VMkernel — VLAN 20</div>
+    <div class="ni" onclick="show('vmotion-concept')"><div class="nd"></div>07 — What vMotion needs and why it has dedicated NICs</div>
+    <div class="ni" onclick="show('vmotion-create')"><div class="nd"></div>08 — Create vMotion VMkernel on each host</div>
+    <div class="ni" onclick="show('vmotion-verify')"><div class="nd"></div>09 — Verify vMotion connectivity — live migration test</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Migrate VM/OCP NICs (vmnic2/3)</div>
+    <div class="ni" onclick="show('vm-nic-migrate')"><div class="nd"></div>10 — Migrate vmnic2 and vmnic3 to vDS Uplink3/4</div>
+    <div class="ni" onclick="show('vm-nic-verify')"><div class="nd"></div>11 — Verify LAG-VM-OCP is active</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">vSAN VMkernel — VLAN 25</div>
+    <div class="ni" onclick="show('vsan-concept')"><div class="nd"></div>12 — What vSAN VMkernel does</div>
+    <div class="ni" onclick="show('vsan-create')"><div class="nd"></div>13 — Create vSAN VMkernel on each host (MTU 9000)</div>
+    <div class="ni" onclick="show('vsan-verify')"><div class="nd"></div>14 — Verify vSAN VMkernel — vmkping MTU 9000 test</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">NFS VMkernel — VLAN 30</div>
+    <div class="ni" onclick="show('nfs-concept')"><div class="nd"></div>15 — What NFS VMkernel does</div>
+    <div class="ni" onclick="show('nfs-create')"><div class="nd"></div>16 — Create NFS VMkernel on each host (MTU 9000)</div>
+    <div class="ni" onclick="show('nfs-verify')"><div class="nd"></div>17 — Verify NFS VMkernel — vmkping MTU 9000 test</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Migrate storage NICs (vmnic4/5)</div>
+    <div class="ni" onclick="show('storage-nic-migrate')"><div class="nd"></div>18 — Migrate vmnic4 and vmnic5 to Uplink5/6</div>
+    <div class="ni" onclick="show('storage-nic-verify')"><div class="nd"></div>19 — Verify LAG-Storage is active on leaf switches</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Remove legacy vSwitch</div>
+    <div class="ni" onclick="show('vswitch-remove-prereq')"><div class="nd"></div>20 — Prerequisites before removing vSwitch0</div>
+    <div class="ni" onclick="show('vswitch-remove-steps')"><div class="nd"></div>21 — Remove vSwitch0 from all hosts</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">NIOC and traffic shaping</div>
+    <div class="ni" onclick="show('nioc-configure')"><div class="nd"></div>22 — Configure NIOC traffic shares per VMkernel type</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Full verification</div>
+    <div class="ni" onclick="show('verify-all-hosts')"><div class="nd"></div>23 — Full host-by-host verification</div>
+    <div class="ni" onclick="show('verify-lacp-all')"><div class="nd"></div>24 — Verify all LACP bonds on Cisco leaf switches</div>
+    <div class="ni" onclick="show('verify-vmotion-live')"><div class="nd"></div>25 — Live vMotion test — migrate vCenter VM</div>
+    <div class="ni" onclick="show('final-checklist')"><div class="nd"></div>26 — Final checklist and what comes next</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 OVERVIEW ══════ -->
+<div class="page active" id="page-overview">
+  <div class="ey">VMware Series · vSphere-04 · Section 01</div>
+  <div class="pt">What Phase 2 completes — the networking foundation becomes whole</div>
+  <div class="ps">Phase 2 finishes what Phase 1 started. After this guide, every physical NIC is in a LACP bond, every traffic type has its own VMkernel adapter, and the temporary vSwitch0 is gone from every host.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Cisco<br/>fabric</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>ESXi<br/>vCenter</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>vDS<br/>Phase 1</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>DC/PKI<br/>DHCP</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>AD+Certs<br/>vSphere-03</div>
+    <div class="pt-step active"><span class="pt-n">→</span>vDS<br/>Phase 2</div>
+    <div class="pt-step"><span class="pt-n">7+</span>vSAN<br/>HA/DRS</div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Why Phase 2 was deferred until after the Windows and PKI guides</div>
+    Phase 1 (vSphere-02) migrated only the management VMkernel (vmk0) to the vDS and left vmnic1–5 on vSwitch0. Four guides have since been completed — DC1/DC2, DHCP, Root CA, Issuing CA, and vSphere-03 (AD integration + certificates). All of those guides required stable DNS (pointing to DC01 at 10.70.0.10), stable management connectivity (vmk0 already on vDS), and a working vCenter. They did not require vMotion, vSAN, or NFS — which is exactly why Phase 2 waited. Now everything those services depend on is in place: DNS, PKI for vSAN encryption, and AD authentication for management.
+  </div>
+
+  <h2>Phase 1 vs Phase 2 — the complete picture</h2>
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <h3 style="color:var(--accent2);">Phase 1 — done (vSphere-02)</h3>
+      <ul style="font-size:13px;margin-left:16px;">
+        <li>NCB-vDS-01 created — version 8.0.3, 6 uplinks, NIOC v3</li>
+        <li>7 port groups created — VLAN 10/20/25/30/50/60/70</li>
+        <li>All 5 hosts added to the vDS</li>
+        <li>vmnic0 migrated → vDS Uplink1 (LAG-Management port 0)</li>
+        <li>vmk0 migrated → PG-VLAN10-Management</li>
+        <li>LAG-Management configured but only 1 NIC active</li>
+        <li>vmnic1–5 still on vSwitch0 (mostly unused)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--vm-blue);">
+      <h3 style="color:var(--vm-blue);">Phase 2 — this guide</h3>
+      <ul style="font-size:13px;margin-left:16px;">
+        <li>vmnic1 → vDS Uplink2 (completes LAG-Management to 2×25G)</li>
+        <li>vmk1 (vMotion) created on PG-VLAN20 — 10.20.0.x</li>
+        <li>vmnic2/3 → vDS Uplink3/4 (LAG-VM-OCP active)</li>
+        <li>vmk2 (vSAN) created on PG-VLAN25 — 10.25.0.x, MTU 9000</li>
+        <li>vmk3 (NFS) created on PG-VLAN30 — 10.30.0.x, MTU 9000</li>
+        <li>vmnic4/5 → vDS Uplink5/6 (LAG-Storage active)</li>
+        <li>vSwitch0 removed from all 5 hosts</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>What becomes possible after Phase 2</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Requires</th><th>Status after Phase 2</th></tr></thead>
+    <tbody>
+      <tr><td><strong>vMotion (live VM migration)</strong></td><td>vmk1 on VLAN 20</td><td><span class="badge bg">✓ Ready</span></td></tr>
+      <tr><td><strong>vSAN (distributed storage)</strong></td><td>vmk2 on VLAN 25 + NIC pair dedicated</td><td><span class="badge bg">✓ Ready to configure</span></td></tr>
+      <tr><td><strong>NFS datastore (NetApp)</strong></td><td>vmk3 on VLAN 30</td><td><span class="badge bg">✓ Ready to mount</span></td></tr>
+      <tr><td><strong>HA (VM auto-restart)</strong></td><td>vMotion + shared storage (vSAN/NFS)</td><td><span class="badge bg">✓ Ready to enable</span></td></tr>
+      <tr><td><strong>DRS (load balancing)</strong></td><td>vMotion</td><td><span class="badge bg">✓ Ready to enable</span></td></tr>
+      <tr><td><strong>Full LACP bonding</strong></td><td>All 6 NICs in vDS LAGs</td><td><span class="badge bg">✓ All bonds complete</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 02 STATE REVIEW ══════ -->
+<div class="page" id="page-state-review">
+  <div class="ey">VMware Series · vSphere-04 · Section 02</div>
+  <div class="pt">Current state — exactly what Phase 1 left on each host</div>
+  <div class="ps">A precise inventory of what exists and what is missing before starting Phase 2</div>
+
+  <h2>Per-host NIC state after Phase 1</h2>
+
+  <div class="nic-map">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px;">Each host — NIC assignment after Phase 1</div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic0</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar mgmt">vDS Uplink1 · LAG-Management port 0 · management traffic</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic1</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar empty">vSwitch0 — UNUSED — Phase 2 moves this to Uplink2</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic2</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar empty">vSwitch0 — UNUSED — Phase 2 moves this to Uplink3</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic3</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar empty">vSwitch0 — UNUSED — Phase 2 moves this to Uplink4</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic4</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar empty">vSwitch0 — UNUSED — Phase 2 moves this to Uplink5</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic5</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar empty">vSwitch0 — UNUSED — Phase 2 moves this to Uplink6</div>
+    </div>
+  </div>
+
+  <h2>Per-host VMkernel state after Phase 1</h2>
+  <table>
+    <thead><tr><th>VMkernel</th><th>IP</th><th>VLAN</th><th>Location</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>vmk0</strong> — Management</td>
+        <td>10.10.0.11–15</td>
+        <td>10</td>
+        <td>vDS PG-VLAN10-Management</td>
+        <td><span class="badge bg">✓ Done in Phase 1</span></td>
+      </tr>
+      <tr>
+        <td><strong>vmk1</strong> — vMotion</td>
+        <td>10.20.0.11–15</td>
+        <td>20</td>
+        <td>Not created yet</td>
+        <td><span class="badge ba">Phase 2 — Section 08</span></td>
+      </tr>
+      <tr>
+        <td><strong>vmk2</strong> — vSAN</td>
+        <td>10.25.0.11–15</td>
+        <td>25</td>
+        <td>Not created yet</td>
+        <td><span class="badge ba">Phase 2 — Section 13</span></td>
+      </tr>
+      <tr>
+        <td><strong>vmk3</strong> — NFS</td>
+        <td>10.30.0.11–15</td>
+        <td>30</td>
+        <td>Not created yet</td>
+        <td><span class="badge ba">Phase 2 — Section 16</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="cl">Temporarily disable lockdown mode on each host before Phase 2 NIC migrations</div>
+    vSphere-03 enabled Normal lockdown mode on all five ESXi hosts. The NIC migration steps in Phase 2 use the "Add and Manage Hosts" wizard in vCenter — which does not require disabling lockdown. However, the VMkernel adapter creation steps also work through vCenter, so lockdown mode does not block them either. The one step that may be needed is ESXi SSH for MTU verification (vmkping). If SSH is blocked in lockdown mode, use the vCenter VM console instead of SSH for those verification steps.
+  </div>
+</div>
+
+<!-- ══════ 03 IP PLAN ══════ -->
+<div class="page" id="page-ip-plan">
+  <div class="ey">VMware Series · vSphere-04 · Section 03</div>
+  <div class="pt">IP address plan — every VMkernel adapter on every host</div>
+  <div class="ps">All 15 VMkernel IP addresses decided before touching a single wizard — .11 through .15 are reserved for the five ESXi hosts on every VMkernel VLAN</div>
+
+  <h2>Complete VMkernel IP assignment</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>vmk0 Management<br/>VLAN 10</th>
+        <th>vmk1 vMotion<br/>VLAN 20</th>
+        <th>vmk2 vSAN<br/>VLAN 25</th>
+        <th>vmk3 NFS<br/>VLAN 30</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>esxi01</td><td>10.10.0.11 ✓</td><td>10.20.0.11</td><td>10.25.0.11</td><td>10.30.0.11</td></tr>
+      <tr><td>esxi02</td><td>10.10.0.12 ✓</td><td>10.20.0.12</td><td>10.25.0.12</td><td>10.30.0.12</td></tr>
+      <tr><td>esxi03</td><td>10.10.0.13 ✓</td><td>10.20.0.13</td><td>10.25.0.13</td><td>10.30.0.13</td></tr>
+      <tr><td>esxi04</td><td>10.10.0.14 ✓</td><td>10.20.0.14</td><td>10.25.0.14</td><td>10.30.0.14</td></tr>
+      <tr><td>esxi05</td><td>10.10.0.15 ✓</td><td>10.20.0.15</td><td>10.25.0.15</td><td>10.30.0.15</td></tr>
+      <tr>
+        <td style="color:var(--text2);">Subnet mask</td>
+        <td>255.255.255.0</td><td>255.255.255.0</td><td>255.255.255.0</td><td>255.255.255.0</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text2);">Gateway</td>
+        <td>10.10.0.1</td><td>10.20.0.1</td><td>None*</td><td>None*</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text2);">MTU</td>
+        <td>1500</td><td>1500</td><td>9000</td><td>9000</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="decision-label">Why vSAN and NFS VMkernel adapters have no default gateway</div>
+    <div class="decision-q">vmk0 has a gateway (10.10.0.1) and vmk1 (vMotion) has a gateway (10.20.0.1). Why do vmk2 and vmk3 have no gateway?</div>
+    <div class="decision-a"><strong>Because vSAN and NFS traffic never leaves the local subnet — all communication is host-to-host within the 10.25.0.0/24 or 10.30.0.0/24 subnet.</strong><br/><br/>
+    vSAN VMkernel adapters (vmk2 at 10.25.0.x) communicate only with other ESXi hosts' vmk2 adapters in the same /24 subnet. No vSAN traffic ever needs to be routed to another subnet — all vSAN replication, heartbeat, and metadata traffic is local. Setting a gateway would be harmless but meaningless, and could potentially cause ESXi to try routing vSAN traffic through the gateway (which would fail). Best practice: no gateway for storage VMkernels.<br/><br/>
+    NFS VMkernel adapters (vmk3 at 10.30.0.x) connect to the NetApp AFF A400 NFS LIFs at 10.30.0.100 and 10.30.0.101 — both in the same /24 subnet. No routing needed. Same principle: no gateway.</div>
+  </div>
+</div>
+
+<!-- ══════ 04 EXECUTION ORDER ══════ -->
+<div class="page" id="page-execution-order">
+  <div class="ey">VMware Series · vSphere-04 · Section 04</div>
+  <div class="pt">Execution order — why sequence matters in Phase 2</div>
+  <div class="ps">The order of operations is not arbitrary — it is designed to ensure that at every step, at least one path to each host remains operational</div>
+
+  <div class="decision">
+    <div class="decision-label">The Phase 2 execution sequence — and the reasoning</div>
+    <div class="decision-q">Phase 2 involves six distinct operations. Does the order matter?</div>
+    <div class="decision-a"><strong>Yes — significantly. The correct order keeps management connectivity operational at every step, and ensures each LACP bond is complete before the next is started.</strong><br/><br/>
+    <strong>Step 1: Complete LAG-Management (vmnic1 → Uplink2)</strong><br/>
+    Management redundancy first. Currently only vmnic0 is in the management LAG. If vmnic0 fails during Phase 2 operations, management connectivity to that host is lost. Adding vmnic1 to the LAG immediately makes the management bond resilient — a failure of either NIC no longer causes a management outage.<br/><br/>
+    <strong>Step 2: Create vMotion VMkernel (vmk1)</strong><br/>
+    Before migrating vmnic2/3 to the vDS, the port group (PG-VLAN20-vMotion) they will carry traffic for must exist and have at least one test VMkernel on it. Creating vmk1 first confirms the VLAN 20 port group works before traffic-carrying NICs are moved to it.<br/><br/>
+    <strong>Step 3: Migrate vmnic2/3 → LAG-VM-OCP (Uplink3/4)</strong><br/>
+    VM production, vMotion, and OCP traffic now use dedicated NICs. vMotion becomes fully operational.<br/><br/>
+    <strong>Step 4: Create vSAN and NFS VMkernels (vmk2, vmk3)</strong><br/>
+    These VMkernels need to exist before the storage NICs are assigned — the port groups they use (VLAN 25, VLAN 30) must be confirmed working before vmnic4/5 are moved.<br/><br/>
+    <strong>Step 5: Migrate vmnic4/5 → LAG-Storage (Uplink5/6)</strong><br/>
+    Storage NICs move to the vDS. vSAN and NFS paths become active.<br/><br/>
+    <strong>Step 6: Remove vSwitch0</strong><br/>
+    Only after every VMkernel is on the vDS and every NIC is in a LAG. This is the final cleanup step — no traffic should be on vSwitch0 at this point.</div>
+  </div>
+</div>
+
+<!-- ══════ 05 MGMT LAG COMPLETE ══════ -->
+<div class="page" id="page-mgmt-lag-complete">
+  <div class="ey">VMware Series · vSphere-04 · Section 05</div>
+  <div class="pt">Complete LAG-Management — add vmnic1 to Uplink2</div>
+  <div class="ps">Adding the second NIC to the management LACP bond — making the management path fully redundant before anything else changes</div>
+
+  <h2>The procedure for each host — repeated for all 5</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter — right-click NCB-vDS-01 → Add and Manage Hosts</div>
+        <p style="font-size:13.5px">In the Networking view, right-click <strong>NCB-vDS-01</strong>. Click <strong>Add and Manage Hosts</strong>. Select <strong>Manage host networking</strong>. Select <strong>esxi01</strong> only. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Manage physical adapters — assign vmnic1 to Uplink2 and to LAG-Management</div>
+        <p style="font-size:13.5px">The Manage physical adapters screen shows all NICs. Click <strong>vmnic1</strong>. Click <strong>Assign uplink</strong>. Select <strong>Uplink2</strong>. Click <strong>OK</strong>. vmnic1 is now assigned to Uplink2 in the vDS.</p>
+        <div class="callout" style="margin-top:8px;font-size:13px;">
+          <div class="cl">Also assign vmnic1 to the LACP LAG</div>
+          After assigning vmnic1 to Uplink2, navigate to NCB-vDS-01 → Configure → LACP → <strong>LAG-Management</strong> → Edit → assign Uplink2 as the second port in LAG-Management. The LAG now has two uplinks: Uplink1 (vmnic0) and Uplink2 (vmnic1) — forming the 2×25G LACP bond.
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Click Next → skip VMkernel adapters screen → Finish</div>
+        <p style="font-size:13.5px">Click <strong>Next</strong>. The VMkernel adapters screen appears — do not change anything here. Click <strong>Next</strong> → review → <strong>Finish</strong>. vmnic1 is now a member of the vDS and assigned to LAG-Management port 1.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Repeat for esxi02 through esxi05</div>
+        <p style="font-size:13.5px">Perform the same steps for each remaining host, selecting one host at a time. The management LAG is complete on each host after vmnic1 is added.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 06 MGMT LAG VERIFY ══════ -->
+<div class="page" id="page-mgmt-lag-verify">
+  <div class="ey">VMware Series · vSphere-04 · Section 06</div>
+  <div class="pt">Verify LAG-Management — both NICs bonded on Cisco leaf</div>
+  <div class="ps">Confirming the Cisco leaf switch shows both vmnic0 and vmnic1 as active LACP members in the management port channel</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">leaf01 — verify esxi01 management LACP bond after vmnic1 addition</span></div>
+    <div class="psh-body"><pre><span class="pd"># Check Po101 (esxi01 management NIC pair — vmnic0/vmnic1)</span>
+<span class="pp">leaf01#</span> <span class="pc">show port-channel summary | include Po101</span>
+<span class="pg">101  Po101(SU)   Eth  LACP  Eth1/1(P)  Eth1/2(P)</span>
+<span class="pd">
+↑ Po101: SU = Switching, Up ✓
+  Eth1/1(P) = vmnic0 — in port-channel ✓  (added in Phase 1)
+  Eth1/2(P) = vmnic1 — in port-channel ✓  (just added in Phase 2)
+  Both NICs show (P) — both are active LACP members
+  The management bond is now a full 2×25G = 50G aggregate ✓</span>
+
+<span class="pd"># Before Phase 2, this showed: Eth1/1(P)  Eth1/2(I)
+# Eth1/2(I) = Individual — not a LAG member — vmnic1 was on vSwitch0, not speaking LACP
+# After Phase 2: Eth1/2(P) — LACP negotiated, both NICs in the bond</span>
+
+<span class="pd"># Verify all 5 hosts' management bonds (Po101–Po105 for esxi01–esxi05)</span>
+<span class="pp">leaf01#</span> <span class="pc">show port-channel summary | include "Po10[1-5]"</span>
+<span class="pg">101  Po101(SU)   Eth  LACP  Eth1/1(P)  Eth1/2(P)   ← esxi01 management ✓
+102  Po102(SU)   Eth  LACP  Eth1/3(P)  Eth1/4(P)   ← esxi01 VM/OCP (Phase 2 later)
+103  Po103(SU)   Eth  LACP  Eth1/5(P)  Eth1/6(P)   ← esxi01 storage (Phase 2 later)</span>
+<span class="pd"># Note: Po102 and Po103 may still show (I) until vmnic2–5 are migrated later in Phase 2</span></pre>
+    </div>
+  </div>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>LAG-Management is complete on all hosts. Both vmnic0 and vmnic1 are active LACP members in each host's management port channel. Management redundancy: if either NIC or cable fails, the other carries all management traffic without interruption.</span></div>
+</div>
+
+<!-- ══════ 07 VMOTION CONCEPT ══════ -->
+<div class="page" id="page-vmotion-concept">
+  <div class="ey">VMware Series · vSphere-04 · Section 07</div>
+  <div class="pt">vMotion VMkernel — what it is and what it enables</div>
+  <div class="ps">Understanding the VMkernel adapter that makes live VM migration possible before creating it</div>
+
+  <div class="decision">
+    <div class="decision-label">What vMotion actually does at the network level</div>
+    <div class="decision-q">vMotion migrates a running VM between hosts. What does the VMkernel adapter actually carry during a migration?</div>
+    <div class="decision-a"><strong>During a vMotion migration, the contents of the source VM's RAM are iteratively copied across the network to the destination host while the VM continues running. The vMotion VMkernel adapter on each host carries this memory transfer.</strong><br/><br/>
+    The migration process: (1) vCenter instructs the source host (esxi01's vmk1 at 10.20.0.11) to begin copying the VM's memory pages to the destination host (esxi02's vmk1 at 10.20.0.12). (2) Pages that change while being copied are re-copied (dirty page tracking). (3) When the remaining dirty pages are small enough to copy in under a few milliseconds, the VM is briefly paused, the final pages are copied, and the VM resumes on the destination host. (4) The total pause time is typically under 1 second — invisible to users.<br/><br/>
+    This transfer can involve gigabytes of data per migration. A 64 GB VM at 25 Gbps line rate takes approximately 20 seconds. That's why vMotion has dedicated NICs (vmnic2/3 in LAG-VM-OCP) and a dedicated VLAN — to prevent this bulk transfer from affecting management traffic or storage replication.</div>
+  </div>
+</div>
+
+<!-- ══════ 08 VMOTION CREATE ══════ -->
+<div class="page" id="page-vmotion-create">
+  <div class="ey">VMware Series · vSphere-04 · Section 08</div>
+  <div class="pt">Create the vMotion VMkernel adapter on each host</div>
+  <div class="ps">Adding vmk1 to every host — the wizard walkthrough for esxi01, then repeat for esxi02–05 with incrementing IPs</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter — select esxi01 → Configure → Networking → VMkernel adapters → Add Networking</div>
+        <p style="font-size:13.5px">In the Hosts and Clusters view, click <strong>esxi01 (10.10.0.11)</strong>. Click the <strong>Configure</strong> tab. In the left sub-navigation, click <strong>Networking → VMkernel adapters</strong>. Click <strong>Add Networking</strong> (the blue link or button in the top right). The Add Networking wizard opens.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="vc-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🌐</div>
+      <div><div class="ww-title">Add Networking — VMkernel Adapter</div><div class="ww-sub">esxi01 · vMotion VMkernel</div></div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step active"><div class="ww-step-num">→</div>Select connection type</div>
+        <div class="ww-step"><div class="ww-step-num">2</div>Select target device</div>
+        <div class="ww-step"><div class="ww-step-num">3</div>Port properties</div>
+        <div class="ww-step"><div class="ww-step-num">4</div>IPv4 settings</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Ready to complete</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Select connection type</div>
+        <div class="ww-section-sub">Choose the type of connection to add</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;background:#e6f0fa;border:1px solid #1e6eb5;border-radius:4px;cursor:pointer;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;margin-top:2px;"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a2a3a;">VMkernel Network Adapter ← select this</div>
+              <div style="font-size:11.5px;color:#6c757d;margin-top:1px;">Add a VMkernel adapter for host-level services (vMotion, vSAN, NFS, management)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;background:#fff;border:1px solid #d0dce8;border-radius:4px;cursor:pointer;opacity:.5;">
+            <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d0dce8;flex-shrink:0;margin-top:2px;"></div>
+            <div style="font-size:13px;color:#6c757d;">Virtual Machine Port Group for a Standard Switch — not applicable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">Cancel</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <p>Select <strong>VMkernel Network Adapter</strong>. Click <strong>Next</strong>.</p>
+
+  <h2>Step 2 — Select target device</h2>
+  <div class="vc-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🌐</div>
+      <div><div class="ww-title">Add Networking — Select target device</div></div>
+    </div>
+    <div class="ww-body" style="min-height:180px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Select target device</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;background:#e6f0fa;border:1px solid #1e6eb5;border-radius:4px;cursor:pointer;margin-top:8px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;margin-top:2px;"></div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0078d4;">Select an existing distributed port group ← select this</div>
+          </div>
+        </div>
+        <div class="ww-field" style="margin-top:12px;">
+          <div class="ww-label">Distributed port group:</div>
+          <div class="ww-select filled">NCB-vDS-01 / PG-VLAN20-vMotion</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <p>Select <strong>"Select an existing distributed port group"</strong>. From the dropdown, select <strong>NCB-vDS-01 / PG-VLAN20-vMotion</strong>. Click <strong>Next</strong>.</p>
+
+  <h2>Step 3 — Port properties</h2>
+  <div class="vc-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🌐</div>
+      <div><div class="ww-title">Add Networking — Port properties</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Port properties — enable vMotion traffic</div>
+        <div class="ww-field">
+          <div class="ww-label">Network label (VMkernel adapter name):</div>
+          <div class="ww-input filled">vmk1</div>
+          <div style="font-size:11px;color:#8090a0;margin-top:3px;">Auto-assigned — this will be vmk1 (vmk0 is already the management adapter)</div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:12px;color:#5a5a5a;margin-bottom:8px;font-weight:600;">Enable services — tick which traffic type this VMkernel carries:</div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div>
+            <span>vSphere Replication traffic</span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div>
+            <span>vSphere Replication NFC traffic</span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb">✓</div>
+            <span><strong>vMotion traffic ← tick this</strong></span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div>
+            <span>Fault Tolerance logging</span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div>
+            <span>Management traffic</span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div>
+            <span>vSAN traffic</span>
+          </div>
+        </div>
+        <div class="ww-field" style="margin-top:12px;">
+          <div class="ww-label">MTU:</div>
+          <div class="ww-input filled">1500</div>
+          <div style="font-size:11px;color:#8090a0;margin-top:3px;">vMotion uses standard MTU — not jumbo frames</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <p>Tick <strong>vMotion traffic</strong> only. Leave all others unticked. MTU: <strong>1500</strong>. Click <strong>Next</strong>.</p>
+
+  <div class="decision">
+    <div class="decision-label">Why only "vMotion traffic" is ticked — not Fault Tolerance or Management</div>
+    <div class="decision-q">This VMkernel will be on the VM/OCP NIC pair. Could it also carry Fault Tolerance logging?</div>
+    <div class="decision-a"><strong>One VMkernel — one purpose. Each traffic type gets its own dedicated VMkernel adapter.</strong><br/><br/>
+    Fault Tolerance (FT) logging requires extremely low latency and extremely high bandwidth — an FT-protected VM sends every memory write to the secondary host in real time. FT logging and vMotion compete for the same NIC bandwidth. If both are on vmk1, a vMotion burst (gigabytes per migration) starves FT logging, causing FT secondary host synchronisation failures.<br/><br/>
+    NovaCrestBank does not plan to use vSphere Fault Tolerance initially (it is a more restrictive HA mechanism than standard HA and requires single-vCPU VMs). If FT is needed in the future, a separate vmk adapter should be created for it. For now: vmk1 = vMotion only.</div>
+  </div>
+
+  <h2>Step 4 — IPv4 settings</h2>
+  <div class="vc-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🌐</div>
+      <div><div class="ww-title">Add Networking — IPv4 settings</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-content">
+        <div class="ww-section-title">IPv4 settings</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+          <strong>Use static IPv4 settings</strong>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">IPv4 address: <span class="ww-req">*</span></div>
+          <div class="ww-input filled">10.20.0.11</div>
+          <div style="font-size:11px;color:#8090a0;margin-top:3px;">esxi01 vMotion IP — use .12–.15 for esxi02–esxi05</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Subnet mask:</div>
+          <div class="ww-input filled">255.255.255.0</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Default gateway:</div>
+          <div class="ww-input filled">10.20.0.1</div>
+          <div style="font-size:11px;color:#8090a0;margin-top:3px;">VLAN 20 SVI on leaf01 — allows vMotion to route between hosts if on different subnets (not needed here but best practice)</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div style="color:var(--text2);margin-bottom:8px;"># vMotion VMkernel IP addresses — one per host</div>
+    <div>esxi01: IP=<strong style="color:var(--vm-blue);">10.20.0.11</strong>  mask=255.255.255.0  gw=10.20.0.1</div>
+    <div>esxi02: IP=<strong style="color:var(--vm-blue);">10.20.0.12</strong>  mask=255.255.255.0  gw=10.20.0.1</div>
+    <div>esxi03: IP=<strong style="color:var(--vm-blue);">10.20.0.13</strong>  mask=255.255.255.0  gw=10.20.0.1</div>
+    <div>esxi04: IP=<strong style="color:var(--vm-blue);">10.20.0.14</strong>  mask=255.255.255.0  gw=10.20.0.1</div>
+    <div>esxi05: IP=<strong style="color:var(--vm-blue);">10.20.0.15</strong>  mask=255.255.255.0  gw=10.20.0.1</div>
+  </div>
+
+  <p>Select <strong>Use static IPv4 settings</strong>. Enter the IP for esxi01 (<code>10.20.0.11</code>), mask (<code>255.255.255.0</code>), and gateway (<code>10.20.0.1</code>). Click <strong>Next</strong> → review → <strong>Finish</strong>. The vmk1 adapter appears in esxi01's VMkernel adapters list. Repeat for esxi02–esxi05, incrementing the IP by 1 each time.</p>
+</div>
+
+<!-- ══════ 09 VMOTION VERIFY ══════ -->
+<div class="page" id="page-vmotion-verify">
+  <div class="ey">VMware Series · vSphere-04 · Section 09</div>
+  <div class="pt">Verify vMotion connectivity between hosts</div>
+  <div class="ps">Confirming vmk1 on each host can reach the other hosts' vmk1 adapters — the prerequisite check before any live migration</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">ESXi SSH or vCenter Shell — esxi01 — ping vMotion VMkernels</span></div>
+    <div class="psh-body"><pre><span class="pd"># vmkping tests connectivity between VMkernel adapters
+# -I vmk1 = use the vMotion VMkernel as source
+# Ping each host's vMotion VMkernel from esxi01</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk1 10.20.0.12</span>
+<span class="pg">PING 10.20.0.12 (10.20.0.12): 56 data bytes
+64 bytes from 10.20.0.12: icmp_seq=0 ttl=64 time=0.187 ms
+64 bytes from 10.20.0.12: icmp_seq=1 ttl=64 time=0.182 ms
+64 bytes from 10.20.0.12: icmp_seq=2 ttl=64 time=0.183 ms
+--- 10.20.0.12 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss</span>
+<span class="pd">↑ esxi01 vmk1 can reach esxi02 vmk1 ✓  (0.18ms RTT — excellent for same-rack hosts)</span>
+
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk1 10.20.0.13 && vmkping -I vmk1 10.20.0.14 && vmkping -I vmk1 10.20.0.15</span>
+<span class="pg">10.20.0.13: 3 packets, 0% loss ✓
+10.20.0.14: 3 packets, 0% loss ✓
+10.20.0.15: 3 packets, 0% loss ✓</span>
+<span class="pd">↑ esxi01 vMotion VMkernel can reach all other hosts ✓</span>
+
+<span class="pd"># Note: vmkping will fail if vmnic2/3 are not yet in the vDS LAG-VM-OCP
+# That's OK at this point — VLAN 20 is still routed via vmk0's NIC pair
+# After vmnic2/3 are migrated (Section 10), vmk1 uses its dedicated NIC pair</span></pre>
+    </div>
+  </div>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>At this stage, vmk1 (vMotion) traffic is currently using Uplink1/2 (the management NIC pair) because vmnic2/3 are not yet in the vDS. This is temporary — after Section 10 migrates vmnic2/3, vMotion traffic shifts to the dedicated LAG-VM-OCP bond. The connectivity test above confirms the VLAN and IP configuration is correct before the NIC migration.</span></div>
+</div>
+
+<!-- ══════ 10 VM NIC MIGRATE ══════ -->
+<div class="page" id="page-vm-nic-migrate">
+  <div class="ey">VMware Series · vSphere-04 · Section 10</div>
+  <div class="pt">Migrate vmnic2 and vmnic3 to vDS Uplink3 and Uplink4</div>
+  <div class="ps">Moving the VM/vMotion/OCP NIC pair into the LAG-VM-OCP bond — one host at a time</div>
+
+  <div class="callout warn">
+    <div class="cl">Momentary traffic disruption during vmnic2/3 migration</div>
+    When vmnic2 and vmnic3 are moved from vSwitch0 (where they are mostly unused) to the vDS, there is a brief moment where neither NIC is fully in an LACP bond. Existing VMs on PG-VLAN60 and PG-VLAN70 will experience less than 1 second of disruption as the LAG reconverges. vMotion traffic (vmk1) briefly falls back to Uplink1/2 during the switchover. The management VMkernel (vmk0) on Uplink1/2 is not affected.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NCB-vDS-01 → Add and Manage Hosts → Manage host networking → esxi01</div>
+        <p style="font-size:13.5px">Same procedure as Section 05. Select Manage host networking. Select esxi01 only.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Assign vmnic2 → Uplink3, assign vmnic3 → Uplink4</div>
+        <p style="font-size:13.5px">On the Manage physical adapters screen: click <strong>vmnic2</strong> → <strong>Assign uplink</strong> → select <strong>Uplink3</strong> → OK. Then click <strong>vmnic3</strong> → <strong>Assign uplink</strong> → select <strong>Uplink4</strong> → OK. Both NICs are now assigned to Uplink3 and Uplink4.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Also add both NICs to LAG-VM-OCP</div>
+        <p style="font-size:13.5px">Navigate to NCB-vDS-01 → Configure → LACP → <strong>LAG-VM-OCP</strong>. Edit the LAG to include Uplink3 as port 0 and Uplink4 as port 1. Save. The LAG-VM-OCP bond is now active on esxi01 with vmnic2 and vmnic3.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Skip VMkernel migration → Finish → Repeat for esxi02–esxi05</div>
+        <p style="font-size:13.5px">Click Next through the VMkernel adapters screen without changes. Finish. vMotion traffic (vmk1) now has its dedicated NIC pair. Repeat for all remaining hosts.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 11 VM NIC VERIFY ══════ -->
+<div class="page" id="page-vm-nic-verify">
+  <div class="ey">VMware Series · vSphere-04 · Section 11</div>
+  <div class="pt">Verify LAG-VM-OCP is active on Cisco leaf switches</div>
+  <div class="ps">Confirming vmnic2 and vmnic3 are showing as active LACP members on the VM/OCP port channels</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">leaf01 — verify VM/OCP LACP bond after vmnic2/3 migration</span></div>
+    <div class="psh-body"><pre><span class="pd"># Po102 = esxi01 VM/OCP NIC pair (vmnic2/vmnic3)</span>
+<span class="pp">leaf01#</span> <span class="pc">show port-channel summary | include Po102</span>
+<span class="pg">102  Po102(SU)   Eth  LACP  Eth1/3(P)  Eth1/4(P)</span>
+<span class="pd">↑ Both vmnic2 (Eth1/3) and vmnic3 (Eth1/4) show (P) — active LACP members ✓
+  LAG-VM-OCP is a full 2×25G = 50G bond ✓</span>
+
+<span class="pd"># Verify vMotion connectivity now uses the dedicated NIC pair</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk1 10.20.0.12</span>
+<span class="pg">64 bytes from 10.20.0.12: time=0.142 ms — 0% loss ✓</span>
+<span class="pd">↑ vMotion VMkernel still reachable after NIC pair migration ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 12 VSAN CONCEPT ══════ -->
+<div class="page" id="page-vsan-concept">
+  <div class="ey">VMware Series · vSphere-04 · Section 12</div>
+  <div class="pt">vSAN VMkernel — what it carries and why MTU 9000 is mandatory</div>
+  <div class="ps">Understanding the storage network before creating it — the VMkernel adapter that vSAN uses for all distributed storage traffic</div>
+
+  <div class="decision">
+    <div class="decision-label">What traffic the vSAN VMkernel carries</div>
+    <div class="decision-q">What actually flows through the vSAN VMkernel adapter (vmk2)?</div>
+    <div class="decision-a"><strong>The vSAN VMkernel carries four types of traffic, all of which require stable, low-latency, high-throughput connectivity between hosts:</strong><br/><br/>
+    <strong>1. Data plane — read/write I/O.</strong> When a VM writes to its virtual disk, the data is sent from the host where the VM runs to the hosts that hold the vSAN disk stripes (typically 2 or 3 other hosts in the cluster). This is the highest-bandwidth component — sustained VM disk I/O generates continuous traffic on vmk2.<br/><br/>
+    <strong>2. Resynchronisation traffic.</strong> When a host comes back online after maintenance or a failure, vSAN re-synchronises any data that changed while the host was offline. This can generate very high bandwidth for a sustained period — potentially saturating a 25G NIC pair for hours.<br/><br/>
+    <strong>3. Heartbeat traffic.</strong> vSAN sends periodic heartbeat packets between hosts to detect host failures. These are small packets but extremely latency-sensitive — a missed heartbeat can trigger a fault domain recalculation.<br/><br/>
+    <strong>4. Metadata and cluster state.</strong> Object placement decisions, witness traffic, and cluster health information.<br/><br/>
+    All of this together is why vSAN gets dedicated NICs (vmnic4/5) and why MTU 9000 is required — large frames reduce per-packet overhead for bulk data transfers.</div>
+  </div>
+</div>
+
+<!-- ══════ 13 VSAN CREATE ══════ -->
+<div class="page" id="page-vsan-create">
+  <div class="ey">VMware Series · vSphere-04 · Section 13</div>
+  <div class="pt">Create the vSAN VMkernel adapter on each host</div>
+  <div class="ps">Adding vmk2 to every host — the same Add Networking wizard with storage-specific settings</div>
+
+  <p>Follow the same Add Networking wizard as Section 08. The steps are identical — the key differences are the port group, service type, IP addresses, and MTU:</p>
+
+  <div class="vc-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">💽</div>
+      <div><div class="ww-title">Add Networking — vSAN VMkernel</div><div class="ww-sub">esxi01 · vmk2 · VLAN 25 · MTU 9000</div></div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Connection type (VMkernel)</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Target: PG-VLAN25-vSAN</div>
+        <div class="ww-step active"><div class="ww-step-num">→</div>Port properties</div>
+        <div class="ww-step"><div class="ww-step-num">4</div>IPv4 settings</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Ready to complete</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Port properties — vSAN VMkernel</div>
+        <div class="ww-field">
+          <div class="ww-label">MTU:</div>
+          <div class="ww-input filled">9000</div>
+          <div style="font-size:11px;color:#c68000;margin-top:3px;">⚠ Must match the Cisco leaf VLAN 25 SVI MTU (also 9000, configured in Cisco Guide 5)</div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:12px;color:#5a5a5a;margin-bottom:8px;font-weight:600;">Enable services:</div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div><span>vMotion traffic</span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div><span>Management traffic</span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb">✓</div>
+            <span><strong>vSAN traffic ← tick this</strong></span>
+          </div>
+          <div class="ww-checkbox">
+            <div class="ww-cb off"></div><span>NFS traffic (for NFS use vmk3)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <h2>IPv4 settings for vSAN VMkernel</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div style="color:var(--text2);margin-bottom:8px;"># vSAN VMkernel (vmk2) IP addresses — no gateway</div>
+    <div>esxi01: IP=<strong style="color:var(--vm-blue);">10.25.0.11</strong>  mask=255.255.255.0  gw=<strong style="color:var(--amber);">NONE</strong></div>
+    <div>esxi02: IP=<strong style="color:var(--vm-blue);">10.25.0.12</strong>  mask=255.255.255.0  gw=NONE</div>
+    <div>esxi03: IP=<strong style="color:var(--vm-blue);">10.25.0.13</strong>  mask=255.255.255.0  gw=NONE</div>
+    <div>esxi04: IP=<strong style="color:var(--vm-blue);">10.25.0.14</strong>  mask=255.255.255.0  gw=NONE</div>
+    <div>esxi05: IP=<strong style="color:var(--vm-blue);">10.25.0.15</strong>  mask=255.255.255.0  gw=NONE</div>
+    <div style="margin-top:8px;color:#8090a0;"># Leave "Default gateway" field blank — no routing needed for vSAN traffic</div>
+    <div style="color:#8090a0;"># MTU: 9000 — must be set in Port properties, not here</div>
+  </div>
+
+  <p>Target port group: <strong>NCB-vDS-01 / PG-VLAN25-vSAN</strong>. Service: <strong>vSAN traffic</strong> ticked only. MTU: <strong>9000</strong>. No gateway. Click Next → Finish. Repeat for all five hosts with incrementing IPs.</p>
+</div>
+
+<!-- ══════ 14 VSAN VERIFY ══════ -->
+<div class="page" id="page-vsan-verify">
+  <div class="ey">VMware Series · vSphere-04 · Section 14</div>
+  <div class="pt">Verify vSAN VMkernel — the MTU 9000 vmkping test</div>
+  <div class="ps">The single most important verification for storage networking — confirming jumbo frames traverse the entire path without fragmentation</div>
+
+  <div class="callout danger">
+    <div class="cl">This test must pass before vSAN is configured — a failed MTU test means silent data loss</div>
+    If any hop in the path between two vSAN VMkernels has an MTU mismatch, vSAN traffic is silently dropped. vSAN will appear to function but with dramatically degraded performance, frequent resync storms, and potential data corruption. The vmkping -d -s 8972 test is non-negotiable — run it between every pair of hosts before enabling vSAN.
+  </div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">ESXi SSH — esxi01 — vSAN VMkernel MTU verification</span></div>
+    <div class="psh-body"><pre><span class="pd"># vmkping with -d (don't fragment) and -s 8972
+# 8972 = 9000 (jumbo frame) - 28 bytes (IP + ICMP header overhead)
+# If this passes: the full end-to-end path supports jumbo frames ✓
+# If this fails: there is an MTU mismatch somewhere in the path</span>
+
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk2 -d -s 8972 10.25.0.12</span>
+<span class="pg">PING 10.25.0.12 (10.25.0.12): 8972 data bytes
+8980 bytes from 10.25.0.12: icmp_seq=0 ttl=64 time=0.298 ms
+8980 bytes from 10.25.0.12: icmp_seq=1 ttl=64 time=0.291 ms
+8980 bytes from 10.25.0.12: icmp_seq=2 ttl=64 time=0.289 ms
+--- 10.25.0.12 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss</span>
+<span class="pd">
+↑ 8972-byte jumbo frames delivered without fragmentation ✓
+  RTT ~0.3ms is excellent — confirms same-rack, same-switch connectivity
+  0% packet loss ✓</span>
+
+<span class="pd"># Test all pairs — from esxi01 to esxi02, 03, 04, 05</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">for ip in 10.25.0.12 10.25.0.13 10.25.0.14 10.25.0.15; do
+  result=$(vmkping -I vmk2 -d -s 8972 -c 3 $ip 2>&1 | grep "packet loss")
+  echo "$ip: $result"
+done</span>
+<span class="pg">10.25.0.12: 3 packets transmitted, 3 received, 0% packet loss ✓
+10.25.0.13: 3 packets transmitted, 3 received, 0% packet loss ✓
+10.25.0.14: 3 packets transmitted, 3 received, 0% packet loss ✓
+10.25.0.15: 3 packets transmitted, 3 received, 0% packet loss ✓</span>
+
+<span class="pd"># If any test fails with "Message too long" or 100% packet loss:
+# 1. Check PG-VLAN25-vSAN port group MTU is set to 9000 in vDS settings
+# 2. Check vmk2's MTU is 9000: esxcli network ip interface list | grep vmk2
+# 3. Check leaf VLAN 25 SVI: show interface vlan25 | include MTU
+# 4. Check leaf port channel MTU: show interface Po103 | include MTU
+# All four must show MTU 9000/9216 (NX-OS rounds up to 9216)</span></pre>
+      <div class="pann ok"><span class="pai">✓</span><span>All five hosts can exchange 9000-byte jumbo frames over the vSAN VMkernel without fragmentation. The end-to-end MTU path is consistent: vmk2 (9000) → PG-VLAN25-vSAN (9000) → vmnic4/5 → leaf switch port channel (MTU 9216) → VLAN 25 SVI (MTU 9216) → peer leaf → destination host. vSAN is ready to be configured.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 15 NFS CONCEPT ══════ -->
+<div class="page" id="page-nfs-concept">
+  <div class="ey">VMware Series · vSphere-04 · Section 15</div>
+  <div class="pt">NFS VMkernel — the path to the NetApp AFF A400</div>
+  <div class="ps">What the NFS VMkernel connects and why it needs the same MTU treatment as vSAN</div>
+
+  <div class="decision">
+    <div class="decision-label">Why NFS and vSAN are on the same NIC pair but separate VMkernels</div>
+    <div class="decision-q">vSAN and NFS both use vmnic4/5 through LAG-Storage. Why create separate VMkernels (vmk2 for vSAN, vmk3 for NFS) rather than one combined VMkernel?</div>
+    <div class="decision-a"><strong>Because each VMkernel service binding is what tells ESXi which traffic type a VMkernel carries — and each traffic type must be bound to exactly one VMkernel per host. You cannot tick both "vSAN traffic" and "NFS traffic" on the same VMkernel adapter and expect both to work correctly.</strong><br/><br/>
+    Additionally, separate VMkernels provide operational clarity: vmk2 is vSAN, vmk3 is NFS. When troubleshooting NFS connectivity, you ping from vmk3 to the NetApp LIF. When troubleshooting vSAN heartbeat issues, you inspect vmk2 statistics. If both were on one VMkernel, diagnosing per-service issues would require capturing all traffic on that VMkernel and filtering — unnecessarily complex.<br/><br/>
+    Both VMkernels share the same physical NIC pair (vmnic4/5 through LAG-Storage) — the NIC pair serves both storage protocols simultaneously. This is correct: the LACP bond provides up to 50G aggregate bandwidth, and NFS and vSAN traffic are segregated at the software layer even though they share the physical path.</div>
+  </div>
+</div>
+
+<!-- ══════ 16 NFS CREATE ══════ -->
+<div class="page" id="page-nfs-create">
+  <div class="ey">VMware Series · vSphere-04 · Section 16</div>
+  <div class="pt">Create the NFS VMkernel adapter on each host</div>
+  <div class="ps">Adding vmk3 — same Add Networking wizard, NFS-specific settings</div>
+
+  <p>Follow the same Add Networking wizard as Section 08 and 13. Target port group: <strong>NCB-vDS-01 / PG-VLAN30-NFS</strong>. The key settings:</p>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Target port group</span><span class="spec-val">NCB-vDS-01 / PG-VLAN30-NFS</span></div>
+    <div class="spec-row"><span class="spec-label">Service type (tick)</span><span class="spec-val">Leave all unticked — NFS does not have a dedicated "NFS traffic" checkbox in the wizard</span></div>
+    <div class="spec-row"><span class="spec-label">MTU</span><span class="spec-val">9000</span></div>
+    <div class="spec-row"><span class="spec-label">Gateway</span><span class="spec-val">None (leave blank)</span></div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Why there is no "NFS traffic" service checkbox in the wizard</div>
+    The Add VMkernel wizard has checkboxes for vMotion, vSAN, Management, and Fault Tolerance — but not for NFS. This is intentional: NFS does not need a special service flag. Any VMkernel adapter without a specific service assignment can be used for NFS mounts. ESXi uses vmk3 for NFS based on routing — when ESXi tries to reach the NetApp NFS LIF at 10.30.0.100, it looks up the routing table and finds that 10.30.0.0/24 is reachable via vmk3 (which is in that subnet). No explicit NFS binding is needed.
+  </div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div style="color:var(--text2);margin-bottom:8px;"># NFS VMkernel (vmk3) IP addresses</div>
+    <div>esxi01: IP=<strong style="color:var(--vm-blue);">10.30.0.11</strong>  mask=255.255.255.0  gw=NONE  MTU=9000</div>
+    <div>esxi02: IP=<strong style="color:var(--vm-blue);">10.30.0.12</strong>  mask=255.255.255.0  gw=NONE  MTU=9000</div>
+    <div>esxi03: IP=<strong style="color:var(--vm-blue);">10.30.0.13</strong>  mask=255.255.255.0  gw=NONE  MTU=9000</div>
+    <div>esxi04: IP=<strong style="color:var(--vm-blue);">10.30.0.14</strong>  mask=255.255.255.0  gw=NONE  MTU=9000</div>
+    <div>esxi05: IP=<strong style="color:var(--vm-blue);">10.30.0.15</strong>  mask=255.255.255.0  gw=NONE  MTU=9000</div>
+  </div>
+</div>
+
+<!-- ══════ 17 NFS VERIFY ══════ -->
+<div class="page" id="page-nfs-verify">
+  <div class="ey">VMware Series · vSphere-04 · Section 17</div>
+  <div class="pt">Verify NFS VMkernel — MTU 9000 test to the NetApp LIF</div>
+  <div class="ps">Confirming jumbo frames reach the NetApp AFF A400 NFS interface — verifying the storage network path end-to-end</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">ESXi SSH — esxi01 — NFS VMkernel connectivity verification</span></div>
+    <div class="psh-body"><pre><span class="pd"># vmkping from vmk3 to the NetApp NFS LIF
+# NetApp AFF A400 NFS LIF addresses: 10.30.0.100 and 10.30.0.101
+# (configured on the NetApp — one LIF per HA node)</span>
+
+<span class="pd"># Standard ping first (confirms basic connectivity)</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk3 10.30.0.100</span>
+<span class="pg">64 bytes from 10.30.0.100: icmp_seq=0 ttl=64 time=0.412 ms ✓</span>
+
+<span class="pd"># Jumbo frame ping to verify MTU 9000 end-to-end</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk3 -d -s 8972 10.30.0.100</span>
+<span class="pg">8980 bytes from 10.30.0.100: icmp_seq=0 ttl=64 time=0.438 ms ✓
+8980 bytes from 10.30.0.100: icmp_seq=1 ttl=64 time=0.431 ms ✓
+0% packet loss</span>
+<span class="pd">↑ Jumbo frames reach the NetApp LIF without fragmentation ✓</span>
+
+<span class="pd"># Verify NFS inter-host connectivity (each host's vmk3 can reach others)</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk3 -d -s 8972 10.30.0.12</span>
+<span class="pg">8980 bytes from 10.30.0.12: time=0.295 ms  0% loss ✓</span>
+
+<span class="pd"># Verify all hosts can reach both NetApp LIFs</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk3 10.30.0.101</span>
+<span class="pg">64 bytes from 10.30.0.101: time=0.419 ms ✓</span>
+<span class="pd">↑ Both NetApp NFS LIFs reachable from esxi01 vmk3 ✓</span></pre>
+      <div class="pann ok"><span class="pai">✓</span><span>NFS VMkernel connectivity verified. Jumbo frames (8972 bytes) traverse the complete path: vmk3 → PG-VLAN30-NFS → vmnic4/5 → leaf switch → VLAN 30 SVI → NetApp AFF A400 NFS LIF — all at MTU 9000 without fragmentation. NFS datastores can now be mounted from the NetApp.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 18 STORAGE NIC MIGRATE ══════ -->
+<div class="page" id="page-storage-nic-migrate">
+  <div class="ey">VMware Series · vSphere-04 · Section 18</div>
+  <div class="pt">Migrate vmnic4 and vmnic5 to vDS Uplink5 and Uplink6</div>
+  <div class="ps">Moving the storage NIC pair into LAG-Storage — completing the final LACP bond</div>
+
+  <p>Follow the same procedure as Section 10 (vmnic2/3 migration). The storage NIC pair migration has the lowest risk of the three NIC pair migrations — vSAN and NFS are not yet actively serving data (vSAN is not yet configured, NFS datastores are not yet mounted), so the migration cannot disrupt any storage I/O:</p>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NCB-vDS-01 → Add and Manage Hosts → Manage host networking → esxi01</div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Assign vmnic4 → Uplink5, assign vmnic5 → Uplink6</div>
+        <p style="font-size:13.5px">Click vmnic4 → Assign uplink → Uplink5 → OK. Click vmnic5 → Assign uplink → Uplink6 → OK.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Add both NICs to LAG-Storage</div>
+        <p style="font-size:13.5px">NCB-vDS-01 → Configure → LACP → LAG-Storage → Edit → assign Uplink5 as port 0 and Uplink6 as port 1. Save. LAG-Storage is now active with vmnic4 and vmnic5.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Repeat for esxi02–esxi05</div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 19 STORAGE NIC VERIFY ══════ -->
+<div class="page" id="page-storage-nic-verify">
+  <div class="ey">VMware Series · vSphere-04 · Section 19</div>
+  <div class="pt">Verify LAG-Storage is active on all leaf switches</div>
+  <div class="ps">All three LACP bonds are now active — the final confirmation from the Cisco layer</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">leaf01 — verify all three LACP bonds for esxi01</span></div>
+    <div class="psh-body"><pre><span class="pd"># Check all three port channels for esxi01 (Po101, Po102, Po103)</span>
+<span class="pp">leaf01#</span> <span class="pc">show port-channel summary | include "Po10[1-3]"</span>
+<span class="pg">101  Po101(SU)   Eth  LACP  Eth1/1(P)  Eth1/2(P)   ← LAG-Management  (mgmt + Windows VMs)</span>
+<span class="pg">102  Po102(SU)   Eth  LACP  Eth1/3(P)  Eth1/4(P)   ← LAG-VM-OCP      (vMotion + VMs + OCP)</span>
+<span class="pg">103  Po103(SU)   Eth  LACP  Eth1/5(P)  Eth1/6(P)   ← LAG-Storage      (vSAN + NFS)</span>
+<span class="pd">
+↑ All three port channels: SU (Switching, Up) ✓
+  All six NICs per host: (P) = active LACP member ✓
+  Each bond is 2×25G = 50G aggregate
+  Total per-host bandwidth: 6×25G = 150G across three LACP bonds ✓</span>
+
+<span class="pd"># The transition from Phase 1 to Phase 2 complete:
+# Before Phase 1: all 6 NICs showed (I) = Individual (no LACP)
+# After Phase 1:  Eth1/1(P) Eth1/2(I) — only one NIC in management bond
+# After Phase 2:  All 6 NICs show (P) — all three bonds fully active</span>
+
+<span class="pd"># Re-run the full vmkping MTU tests now that vmnic4/5 are in the vDS</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk2 -d -s 8972 10.25.0.12</span>
+<span class="pg">8980 bytes from 10.25.0.12: time=0.289 ms  0% loss ✓</span>
+<span class="pd">↑ vSAN VMkernel still working after storage NIC migration ✓</span>
+
+<span class="pp">root@esxi01:~#</span> <span class="pc">vmkping -I vmk3 -d -s 8972 10.30.0.100</span>
+<span class="pg">8980 bytes from 10.30.0.100: time=0.435 ms  0% loss ✓</span>
+<span class="pd">↑ NFS VMkernel still working after storage NIC migration ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 20 VSWITCH REMOVE PREREQ ══════ -->
+<div class="page" id="page-vswitch-remove-prereq">
+  <div class="ey">VMware Series · vSphere-04 · Section 20</div>
+  <div class="pt">Prerequisites before removing vSwitch0</div>
+  <div class="ps">Confirming everything has migrated off the standard vSwitch before removing it — the removal is irreversible</div>
+
+  <div class="callout danger">
+    <div class="cl">Removing vSwitch0 is irreversible — verify every item before proceeding</div>
+    Once vSwitch0 is removed from a host, any traffic that was on vSwitch0 becomes unreachable until it is moved to the vDS. If any VMkernel or VM is still on vSwitch0 when it is removed, that adapter loses connectivity immediately. There is no undo — the vSwitch is deleted and must be re-created manually if removed prematurely.
+  </div>
+
+  <h2>The pre-removal checklist — verify on each host before removing vSwitch0</h2>
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">ESXi SSH — esxi01 — pre-removal verification</span></div>
+    <div class="psh-body"><pre><span class="pd"># Check: are any VMkernel adapters still on vSwitch0?</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network vswitch standard list</span>
+<span class="pg">vSwitch0
+   Name: vSwitch0
+   Uplinks: (empty — all NICs migrated to vDS)
+   Portgroups: VM Network, PG-VLAN10-Management
+   VMkernel Ports: (none)
+   Active Ports: 0</span>
+<span class="pd">
+↑ Key checks:
+  Uplinks: (empty) ✓ — no NICs assigned to vSwitch0 anymore
+  VMkernel Ports: (none) ✓ — vmk0 moved to vDS in Phase 1; vmk1/2/3 created on vDS
+  Active Ports: 0 ✓ — no VMs or VMkernels connected</span>
+
+<span class="pd"># Double-check VMkernel adapter assignments</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface list</span>
+<span class="pg">vmk0
+   Name: vmk0
+   MAC Address: 00:50:56:6a:1b:2c
+   Enabled: true
+   Portset: DvsPortset-0  ← on vDS (DvsPortset = Distributed Virtual Switch) ✓
+   IP Family: IPv4
+   IP Address: 10.10.0.11
+
+vmk1
+   Name: vmk1
+   Portset: DvsPortset-0  ← on vDS ✓
+   IP Address: 10.20.0.11
+
+vmk2
+   Name: vmk2
+   Portset: DvsPortset-0  ← on vDS ✓
+   IP Address: 10.25.0.11
+
+vmk3
+   Name: vmk3
+   Portset: DvsPortset-0  ← on vDS ✓
+   IP Address: 10.30.0.11</span>
+<span class="pd">↑ All four VMkernels are on DvsPortset-0 (the vDS) — none on vSwitch0 ✓
+  vSwitch0 is empty and can be safely removed</span>
+
+<span class="pd"># Also verify no VMs are on the VM Network port group (vSwitch0)</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network vswitch standard portgroup list</span>
+<span class="pg">Name            Virtual Switch  Active Clients
+--------------  --------------  --------------
+VM Network      vSwitch0        0               ← 0 clients ✓
+PG-VLAN10-Mgmt  vSwitch0        0               ← 0 clients ✓</span>
+<span class="pd">↑ Both port groups on vSwitch0 have 0 active clients ✓
+  Safe to remove vSwitch0</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 21 VSWITCH REMOVE STEPS ══════ -->
+<div class="page" id="page-vswitch-remove-steps">
+  <div class="ey">VMware Series · vSphere-04 · Section 21</div>
+  <div class="pt">Remove vSwitch0 from all hosts</div>
+  <div class="ps">The final cleanup — eliminating the last remnant of the temporary standard vSwitch</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter — select esxi01 → Configure → Networking → Virtual Switches</div>
+        <p style="font-size:13.5px">In the Hosts and Clusters view, click <strong>esxi01</strong>. Click the <strong>Configure</strong> tab. Click <strong>Networking → Virtual Switches</strong>. The Virtual Switches page shows two entries: <strong>vSwitch0</strong> (the standard vSwitch) and <strong>DvsPortset-0</strong> (the vDS uplink). The vSwitch0 entry shows no uplinks and no VMkernels.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click vSwitch0 to select it → click the X (Remove) button</div>
+        <p style="font-size:13.5px">Click on <strong>vSwitch0</strong> in the list to select it. In the toolbar, click the <strong>X</strong> (Remove) icon. A confirmation dialog appears: "This will remove vSwitch0 from the host. Are you sure?" Click <strong>Yes</strong>. vSwitch0 is deleted. The Virtual Switches page now shows only DvsPortset-0.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Repeat for esxi02 through esxi05</div>
+        <p style="font-size:13.5px">Run the pre-removal checklist (Section 20) on each host before removing vSwitch0. Confirm no VMkernels or VMs are on vSwitch0. Remove it. After removal from all five hosts, there are no standard vSwitches anywhere in the cluster — every NIC is in a vDS LACP bond, every VMkernel is on the vDS.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout success">
+    <div class="cl">vSwitch0 removed from all 5 hosts — the cluster is fully on the vDS</div>
+    The temporary standard vSwitches created during ESXi installation are gone. Every NIC on every host is in a LACP bond. Every VMkernel is on the distributed vSwitch. Management is 2×25G bonded. vMotion is 2×25G bonded. Storage (vSAN and NFS) is 2×25G bonded. The networking foundation is complete.
+  </div>
+</div>
+
+<!-- ══════ 22 NIOC CONFIGURE ══════ -->
+<div class="page" id="page-nioc-configure">
+  <div class="ey">VMware Series · vSphere-04 · Section 22</div>
+  <div class="pt">Configure NIOC traffic shares now that all VMkernels exist</div>
+  <div class="ps">NIOC was enabled in Phase 1 but could only be partially configured — now that vSAN and NFS VMkernels exist, the full traffic-type policy can be applied</div>
+
+  <p>Navigate to <strong>NCB-vDS-01 → Configure tab → Network I/O Control → Edit</strong>. Confirm or set the following shares policy which was partially configured in vSphere-02 but can now be verified against all active traffic types:</p>
+
+  <table>
+    <thead><tr><th>Traffic type</th><th>Shares</th><th>Reservation</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>vSAN</strong></td>
+        <td>High (100)</td>
+        <td>0 Mbps</td>
+        <td>Storage I/O has the highest latency sensitivity. High shares ensure vSAN is not starved by VM traffic bursts during peak load.</td>
+      </tr>
+      <tr>
+        <td><strong>vMotion</strong></td>
+        <td>Normal (50)</td>
+        <td>0 Mbps</td>
+        <td>vMotion benefits from high bandwidth but is not latency-critical. Shares ensure it completes in reasonable time without starving vSAN.</td>
+      </tr>
+      <tr>
+        <td><strong>Management</strong></td>
+        <td>Normal (50)</td>
+        <td>100 Mbps</td>
+        <td>The 100 Mbps hard reservation ensures management traffic is always served — critical during incidents when every other traffic type may be saturated.</td>
+      </tr>
+      <tr>
+        <td><strong>Virtual Machine</strong></td>
+        <td>Normal (50)</td>
+        <td>0 Mbps</td>
+        <td>VM traffic is best-effort. Gets what remains after storage and management are served. During normal operations (no contention) this is the majority of bandwidth.</td>
+      </tr>
+      <tr>
+        <td><strong>NFS</strong></td>
+        <td>High (100)</td>
+        <td>0 Mbps</td>
+        <td>NFS storage latency directly affects VM disk I/O on NetApp-hosted datastores. Treated identically to vSAN.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="decision-label">Why the management reservation is fixed Mbps but vSAN uses shares</div>
+    <div class="decision-q">NIOC supports both shares (proportional) and reservations (absolute Mbps). Why use a reservation for management but shares for everything else?</div>
+    <div class="decision-a"><strong>Because management traffic has a hard minimum requirement — it must work at any load level — while storage traffic needs proportional prioritisation relative to VM traffic, not absolute bandwidth guarantees.</strong><br/><br/>
+    Management traffic (SSH sessions, vCenter API calls, heartbeat packets) totals perhaps 10–50 Mbps under heavy use. A 100 Mbps reservation guarantees that even if a VM generates a 49G burst on the management NIC pair (consuming all but 1 Gbps of the 50G bond), the management VMkernel still gets its 100 Mbps. Without this reservation, it is possible for management to be starved to near-zero in extreme circumstances.<br/><br/>
+    For vSAN and NFS, a fixed reservation would hold bandwidth unused during off-peak periods when no storage I/O is occurring. Shares are proportional — when vSAN traffic is heavy, it gets 2× the proportion of VM traffic (100 shares vs 50 shares). When vSAN traffic is light, all bandwidth goes to VMs. No waste.</div>
+  </div>
+</div>
+
+<!-- ══════ 23 VERIFY ALL HOSTS ══════ -->
+<div class="page" id="page-verify-all-hosts">
+  <div class="ey">VMware Series · vSphere-04 · Section 23</div>
+  <div class="pt">Full host-by-host verification — the complete network state</div>
+  <div class="ps">A comprehensive check of every VMkernel and NIC on every host</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">ESXi SSH — any host — full VMkernel and NIC inventory check</span></div>
+    <div class="psh-body"><pre><span class="pd"># Run on each host — expected output shown for esxi01</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface list | grep -A3 "vmk"</span>
+<span class="pg">vmk0  Name:vmk0  Portset:DvsPortset-0  IPv4:10.10.0.11  Enabled:true
+vmk1  Name:vmk1  Portset:DvsPortset-0  IPv4:10.20.0.11  Enabled:true
+vmk2  Name:vmk2  Portset:DvsPortset-0  IPv4:10.25.0.11  Enabled:true
+vmk3  Name:vmk3  Portset:DvsPortset-0  IPv4:10.30.0.11  Enabled:true</span>
+<span class="pd">↑ All 4 VMkernels on DvsPortset-0 (vDS) ✓
+  All 4 IPs correctly assigned ✓</span>
+
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network nic list | awk '{print $1, $3, $4}'</span>
+<span class="pg">vmnic0 Up 25000Mbit
+vmnic1 Up 25000Mbit
+vmnic2 Up 25000Mbit
+vmnic3 Up 25000Mbit
+vmnic4 Up 25000Mbit
+vmnic5 Up 25000Mbit</span>
+<span class="pd">↑ All 6 NICs: Up, 25000Mbit (25G) ✓</span>
+
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network vswitch standard list 2>/dev/null || echo "No standard vSwitches"</span>
+<span class="pg">No standard vSwitches</span>
+<span class="pd">↑ vSwitch0 has been removed ✓</span>
+
+<span class="pd"># Verify VMkernel service flags</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface tag get -i vmk0</span>
+<span class="pg">Tags: Management</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface tag get -i vmk1</span>
+<span class="pg">Tags: VMotion</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface tag get -i vmk2</span>
+<span class="pg">Tags: VSAN</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface tag get -i vmk3</span>
+<span class="pg">Tags: (empty — NFS uses routing, no tag needed)</span>
+<span class="pd">↑ vmk0=Management, vmk1=VMotion, vmk2=VSAN, vmk3=(NFS-by-routing) ✓</span>
+
+<span class="pd"># Verify MTU settings</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">esxcli network ip interface list | grep -E "vmk|MTU"</span>
+<span class="pg">vmk0: MTU=1500 ✓   vmk1: MTU=1500 ✓   vmk2: MTU=9000 ✓   vmk3: MTU=9000 ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 24 VERIFY LACP ALL ══════ -->
+<div class="page" id="page-verify-lacp-all">
+  <div class="ey">VMware Series · vSphere-04 · Section 24</div>
+  <div class="pt">Verify all LACP bonds — complete Cisco leaf switch confirmation</div>
+  <div class="ps">The ground truth check — every port channel for every host showing (P) active on the Cisco leaf switches</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">leaf01 — complete LACP verification for all ESXi hosts</span></div>
+    <div class="psh-body"><pre><span class="pd"># All 15 port channels for 5 hosts × 3 bonds each
+# Po101-Po105: management bonds (LAG-Management)
+# Po106-Po110 or Po102,Po107... : varies by design — adapt to actual port numbering
+# In NovaCrestBank's design from Cisco Guide 5:
+# esxi01: Po101 (mgmt), Po102 (vm/ocp), Po103 (storage)
+# esxi02: Po104 (mgmt), Po105 (vm/ocp), Po106 (storage)
+# etc. — check your Cisco Guide 5 port-channel assignments</span>
+
+<span class="pp">leaf01#</span> <span class="pc">show port-channel summary | include Po10</span>
+<span class="pg">101  Po101(SU)   Eth  LACP  Eth1/1(P)   Eth1/2(P)    ← esxi01 Management ✓
+102  Po102(SU)   Eth  LACP  Eth1/3(P)   Eth1/4(P)    ← esxi01 VM/OCP     ✓
+103  Po103(SU)   Eth  LACP  Eth1/5(P)   Eth1/6(P)    ← esxi01 Storage     ✓
+104  Po104(SU)   Eth  LACP  Eth1/7(P)   Eth1/8(P)    ← esxi02 Management ✓
+105  Po105(SU)   Eth  LACP  Eth1/9(P)   Eth1/10(P)   ← esxi02 VM/OCP     ✓
+106  Po106(SU)   Eth  LACP  Eth1/11(P)  Eth1/12(P)   ← esxi02 Storage     ✓
+107  Po107(SU)   Eth  LACP  Eth1/13(P)  Eth1/14(P)   ← esxi03 Management ✓
+108  Po108(SU)   Eth  LACP  Eth1/15(P)  Eth1/16(P)   ← esxi03 VM/OCP     ✓
+109  Po109(SU)   Eth  LACP  Eth1/17(P)  Eth1/18(P)   ← esxi03 Storage     ✓
+110  Po110(SU)   Eth  LACP  Eth1/19(P)  Eth1/20(P)   ← esxi04 Management ✓
+111  Po111(SU)   Eth  LACP  Eth1/21(P)  Eth1/22(P)   ← esxi04 VM/OCP     ✓
+112  Po112(SU)   Eth  LACP  Eth1/23(P)  Eth1/24(P)   ← esxi04 Storage     ✓
+113  Po113(SU)   Eth  LACP  Eth1/25(P)  Eth1/26(P)   ← esxi05 Management ✓
+114  Po114(SU)   Eth  LACP  Eth1/27(P)  Eth1/28(P)   ← esxi05 VM/OCP     ✓
+115  Po115(SU)   Eth  LACP  Eth1/29(P)  Eth1/30(P)   ← esxi05 Storage     ✓</span>
+
+<span class="pd">Summary:
+  All 15 port channels: SU = Switching, Up ✓
+  All 30 physical NIC connections: (P) = active LACP member ✓
+  Zero individual (I) members — complete LACP negotiation across all bonds ✓
+  
+  Phase 1 state: 5 bonds active (Po101–Po105), 10 bonds Individual (I)
+  Phase 2 state: 15 bonds fully active — networking foundation is complete</span></pre>
+      <div class="pann ok"><span class="pai">✓</span><span>All 15 LACP port channels are active. All 30 physical NIC connections are in port channel (P) state. The vDS LACP configuration aligns perfectly with the Cisco leaf switch configuration. The I→P transition is complete across the entire cluster.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 25 VMOTION LIVE TEST ══════ -->
+<div class="page" id="page-verify-vmotion-live">
+  <div class="ey">VMware Series · vSphere-04 · Section 25</div>
+  <div class="pt">Live vMotion test — migrate the vCenter VM between hosts</div>
+  <div class="ps">The most conclusive vMotion test — migrating a running VM live between two hosts with zero downtime</div>
+
+  <div class="callout">
+    <div class="cl">The vCenter VM is the ideal test subject for the first vMotion</div>
+    The vCenter VM is a perfect vMotion test candidate: it is a running VM on esxi01 (10.10.0.11), it has a well-known IP address (10.10.0.100), and if vMotion fails, you will know immediately because the vSphere Client disconnects. After a successful vMotion, vCenter is accessible on the same IP from esxi02, confirming end-to-end operation.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter — right-click the vCenter VM → Migrate</div>
+        <p style="font-size:13.5px">In the Hosts and Clusters view, find <strong>vcenter.novacrestbank.local</strong> (it is under esxi01). Right-click it. Click <strong>Migrate</strong>. The Migrate wizard opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Select "Change compute resource only" — migration type</div>
+        <p style="font-size:13.5px">The Migrate wizard asks: what type of migration? Select <strong>"Change compute resource only"</strong> — move the VM to a different host. The VM's disk stays on the same datastore (datastore1 on esxi01 initially — after vSAN is configured, vCenter will be migrated to vSAN storage). Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Select destination host: esxi02</div>
+        <p style="font-size:13.5px">The destination selection shows the cluster tree. Click <strong>esxi02 (10.10.0.12)</strong>. A green compatibility check appears: "Validation succeeded." Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Accept the network mapping → click Finish</div>
+        <p style="font-size:13.5px">The network mapping screen shows: PG-VLAN10-Management → PG-VLAN10-Management (same port group exists on both hosts — this is the vDS advantage). Click <strong>Next</strong> → <strong>Finish</strong>. The vMotion begins.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Watch the Tasks panel — migration completes in under 30 seconds</div>
+        <p style="font-size:13.5px">The Tasks panel at the bottom shows the migration progress: "Relocating vcenter.novacrestbank.local" with a percentage progress bar. For the vCenter VM (with approximately 12–20 GB RAM), the migration completes in approximately 15–30 seconds on a 25G vMotion link. The vSphere Client may briefly show a "Connection lost" state during the final VM pause (typically under 1 second). After migration, the Tasks panel shows "Completed successfully." The vCenter VM is now running on esxi02.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Verify vCenter is accessible at the same IP after migration</div>
+        <p style="font-size:13.5px">Open a new browser tab to <strong>https://vcenter.novacrestbank.local/ui</strong>. The vSphere Client loads immediately — proving vCenter's IP (10.10.0.100) is reachable on its new host (esxi02). The vCenter VM's summary tab shows it is now on esxi02. vMotion is fully operational.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="decision">
+    <div class="decision-label">Why vMotion worked without reconfiguring the network</div>
+    <div class="decision-q">The vCenter VM moved from esxi01 to esxi02. Why did it not need a new IP address or network reconfiguration on the new host?</div>
+    <div class="decision-a"><strong>Because the vDS port group (PG-VLAN10-Management) is the same object on both hosts — there is no "esxi01's PG-VLAN10" vs "esxi02's PG-VLAN10." There is one port group, spanning all hosts, and the VM simply connects to it on a different host.</strong><br/><br/>
+    This is the fundamental vDS advantage over standard vSwitches. With standard vSwitches, you would have "esxi01-vSwitch0-VM-Network" and "esxi02-vSwitch0-VM-Network" — two separate port groups that happen to have the same name. If their configurations ever diverge (different VLAN IDs, different teaming policies), a VM migrating between them would experience a network configuration change. The vDS eliminates this class of problem entirely — one port group, consistent everywhere, always.</div>
+  </div>
+</div>
+
+<!-- ══════ 26 FINAL CHECKLIST ══════ -->
+<div class="page" id="page-final-checklist">
+  <div class="ey">VMware Series · vSphere-04 · Section 26</div>
+  <div class="pt">Final checklist — vDS Phase 2 complete</div>
+  <div class="ps">Every item confirmed — and the path forward to vSAN, HA, and DRS</div>
+
+  <div class="callout success">
+    <div class="cl">vDS Phase 2 complete — the networking foundation is whole</div>
+    Every ESXi host now has: four VMkernel adapters (management, vMotion, vSAN, NFS), six physical NICs in three active LACP bonds, all traffic types on dedicated NIC pairs, and the temporary vSwitch0 removed. The vDS is the sole networking construct on every host. vMotion has been tested live. All 15 LACP port channels on the Cisco leaf switches show (P) active. The cluster is ready for vSAN.
+  </div>
+
+  <h2>Verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">vmk0 (Management) on all 5 hosts</span><span class="spec-val badge bg">✓ VLAN 10 · 10.10.0.11–15 · MTU 1500</span></div>
+    <div class="spec-row"><span class="spec-label">vmk1 (vMotion) on all 5 hosts</span><span class="spec-val badge bg">✓ VLAN 20 · 10.20.0.11–15 · MTU 1500</span></div>
+    <div class="spec-row"><span class="spec-label">vmk2 (vSAN) on all 5 hosts</span><span class="spec-val badge bg">✓ VLAN 25 · 10.25.0.11–15 · MTU 9000</span></div>
+    <div class="spec-row"><span class="spec-label">vmk3 (NFS) on all 5 hosts</span><span class="spec-val badge bg">✓ VLAN 30 · 10.30.0.11–15 · MTU 9000</span></div>
+    <div class="spec-row"><span class="spec-label">All VMkernels on DvsPortset-0 (vDS)</span><span class="spec-val badge bg">✓ None on vSwitch0</span></div>
+    <div class="spec-row"><span class="spec-label">LAG-Management — vmnic0+vmnic1 bonded</span><span class="spec-val badge bg">✓ Po101–Po105 all (P) on leaf switches</span></div>
+    <div class="spec-row"><span class="spec-label">LAG-VM-OCP — vmnic2+vmnic3 bonded</span><span class="spec-val badge bg">✓ Po102–Po106 all (P) on leaf switches</span></div>
+    <div class="spec-row"><span class="spec-label">LAG-Storage — vmnic4+vmnic5 bonded</span><span class="spec-val badge bg">✓ Po103–Po107 all (P) on leaf switches</span></div>
+    <div class="spec-row"><span class="spec-label">vSwitch0 removed from all 5 hosts</span><span class="spec-val badge bg">✓ esxcli confirms no standard vSwitches</span></div>
+    <div class="spec-row"><span class="spec-label">vSAN MTU 9000: vmkping -d -s 8972 passes</span><span class="spec-val badge bg">✓ 0% loss on all host pairs</span></div>
+    <div class="spec-row"><span class="spec-label">NFS MTU 9000: vmkping to NetApp LIF passes</span><span class="spec-val badge bg">✓ 0% loss to 10.30.0.100 and 10.30.0.101</span></div>
+    <div class="spec-row"><span class="spec-label">NIOC: vSAN/NFS High, Mgmt 100Mbps reserved</span><span class="spec-val badge bg">✓ Configured in NCB-vDS-01 NIOC settings</span></div>
+    <div class="spec-row"><span class="spec-label">Live vMotion test: vCenter VM migrated to esxi02</span><span class="spec-val badge bg">✓ Migration completed, vCenter accessible at same IP</span></div>
+    <div class="spec-row"><span class="spec-label">All 5 hosts Connected in vCenter after Phase 2</span><span class="spec-val badge bg">✓ No hosts in Not Responding state</span></div>
+  </div>
+
+  <h2>The complete NIC map — final state of every host</h2>
+
+  <div class="nic-map">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px;">Every host after Phase 2 — all 6 NICs in active LACP bonds</div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic0</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar mgmt">Uplink1 · LAG-Management · mgmt (vmk0) + Windows VMs</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic1</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar mgmt">Uplink2 · LAG-Management · mgmt (vmk0) + Windows VMs</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic2</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar vmotion">Uplink3 · LAG-VM-OCP · vMotion (vmk1) + VMs + OCP</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic3</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar vmotion">Uplink4 · LAG-VM-OCP · vMotion (vmk1) + VMs + OCP</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic4</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar storage">Uplink5 · LAG-Storage · vSAN (vmk2) + NFS (vmk3)</div>
+    </div>
+    <div class="nic-row">
+      <div class="nic-label">vmnic5</div>
+      <div class="nic-arrow">→</div>
+      <div class="nic-bar storage">Uplink6 · LAG-Storage · vSAN (vmk2) + NFS (vmk3)</div>
+    </div>
+  </div>
+
+  <h2>What comes next — vSphere-05 vSAN</h2>
+  <table>
+    <thead><tr><th>Next guide</th><th>What it does</th><th>Phase 2 dependency</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>vSphere-05 — vSAN</strong></td>
+        <td>Enable vSAN on the cluster. Claim NVMe disks for the cache and capacity tiers. Configure fault domains. Enable deduplication and compression. Migrate the vCenter VM from local datastore to vSAN datastore.</td>
+        <td>vmk2 on VLAN 25 with MTU 9000 is the required prerequisite. vmnic4/5 in LAG-Storage are the required NIC pair. Both confirmed in this guide.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-06 — HA and DRS</strong></td>
+        <td>Enable vSphere HA (requires vSAN shared storage). Enable DRS automation. Configure anti-affinity rules to keep DC1 and DC2 on separate hosts.</td>
+        <td>vMotion via vmk1 is required for both HA failover and DRS migration. Confirmed working in this guide.</td>
+      </tr>
+      <tr>
+        <td><strong>NetApp NFS mounting</strong></td>
+        <td>Connect the NetApp AFF A400 to the ESXi hosts via NFS. Mount NFS datastores. Use for large sequential workloads (archive, backup staging).</td>
+        <td>vmk3 on VLAN 30 with MTU 9000 and confirmed connectivity to 10.30.0.100/101. Done in this guide.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--vm-blue)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

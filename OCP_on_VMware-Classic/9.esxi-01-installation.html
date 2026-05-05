@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ESXi-01 — ESXi Installation · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f7f6f2;--bg2:#ffffff;--bg3:#efede8;
+    --text:#1c1b18;--text2:#5c5a54;--text3:#8c8a84;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#b07615;--red:#a02828;--purple:#4f46a0;
+    --r:10px;--r2:6px;
+    /* terminal */
+    --tm:#0a0e14;--tc:#b8c0cc;
+    --tg:#5ccb6f;--ty:#d4a331;--tr:#e05252;
+    --tblu:#4da8da;--tw:#e8edf4;--td:#3d4450;
+    --to:#e09b3d;--tpu:#9d8fe0;
+    /* ESXi screen colours */
+    --esxi-bg:#1a2332;--esxi-dark:#0d1520;--esxi-border:#2a3f5a;
+    --esxi-text:#c8d8e8;--esxi-hi:#4da8da;--esxi-sel:#1e4a78;
+    --esxi-warn:#d4a331;--esxi-ok:#5ccb6f;
+    /* iLO colours */
+    --ilo-bg:#1c2a3a;--ilo-header:#0f1e2d;--ilo-text:#cdd8e5;
+    --ilo-blue:#3a7fc1;--ilo-green:#4cad6a;--ilo-bar:#243447;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .nav-group{padding:4px 0;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--accent);}
+
+  /* ── MAIN ── */
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1040px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--accent);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.vmware{border-left-color:#6db33f;}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.vmware .cl{color:#6db33f;}
+  .callout:not(.warn):not(.danger):not(.success):not(.vmware) .cl{color:var(--accent);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}
+  .ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}
+  .bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}
+  .bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}
+    .ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}
+    .bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}
+    .bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:20px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+
+  /* ══════════════════════════════════════════════════
+     ESXi SCREEN MOCKUP — the visual heart of this guide
+     Every installer screen is mocked as a terminal
+  ══════════════════════════════════════════════════ */
+  .esxi-screen{background:var(--esxi-bg);border-radius:var(--r);
+    overflow:hidden;margin:18px 0;border:1px solid var(--esxi-border);
+    font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;
+    line-height:1.6;box-shadow:0 4px 24px rgba(0,0,0,.3);}
+  .esxi-titlebar{background:var(--esxi-dark);padding:8px 14px;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--esxi-border);}
+  .esxi-dot{width:10px;height:10px;border-radius:50%;}
+  .esxi-dot.r{background:#e05252;}.esxi-dot.y{background:#d4a331;}.esxi-dot.g{background:#5ccb6f;}
+  .esxi-label{font-size:11px;color:#5a7090;margin-left:8px;font-family:inherit;}
+  .esxi-body{padding:0;}
+
+  /* Header bar (grey VMware bar at top of installer) */
+  .esxi-header{background:#2a4a6e;padding:10px 20px;
+    display:flex;align-items:center;justify-content:space-between;}
+  .esxi-header-logo{font-size:13px;font-weight:700;color:#a8d4f0;letter-spacing:.04em;}
+  .esxi-header-ver{font-size:11px;color:#6898c0;}
+
+  /* Content area */
+  .esxi-content{padding:18px 24px;color:var(--esxi-text);}
+  .esxi-title{font-size:15px;color:var(--esxi-hi);font-weight:700;
+    margin-bottom:4px;border-bottom:1px solid var(--esxi-border);padding-bottom:8px;}
+  .esxi-subtitle{font-size:12px;color:#8098b0;margin-bottom:14px;}
+  .esxi-text{font-size:12.5px;margin-bottom:8px;color:var(--esxi-text);}
+
+  /* Selection list (the arrow-key navigable menu items) */
+  .esxi-list{margin:10px 0;}
+  .esxi-item{padding:5px 12px;font-size:12.5px;color:var(--esxi-text);border-radius:3px;}
+  .esxi-item.selected{background:var(--esxi-sel);color:#fff;
+    position:relative;padding-left:20px;}
+  .esxi-item.selected::before{content:"►";position:absolute;left:6px;
+    font-size:10px;color:var(--esxi-hi);}
+
+  /* Input field */
+  .esxi-input-row{display:flex;align-items:center;gap:10px;margin:8px 0;}
+  .esxi-input-label{font-size:12px;color:#8098b0;min-width:160px;flex-shrink:0;}
+  .esxi-input-field{background:#0d1a2a;border:1px solid var(--esxi-hi);
+    border-radius:3px;padding:4px 10px;font-size:12.5px;
+    color:var(--esxi-hi);font-family:inherit;flex:1;}
+
+  /* Status/progress bar */
+  .esxi-progress{margin:14px 0;}
+  .esxi-progress-label{font-size:11.5px;color:#8098b0;margin-bottom:6px;}
+  .esxi-progress-bar{background:#0d1a2a;border:1px solid var(--esxi-border);
+    border-radius:3px;overflow:hidden;height:16px;}
+  .esxi-progress-fill{background:linear-gradient(90deg,#1e6aad,#4da8da);
+    height:100%;display:flex;align-items:center;padding-left:8px;
+    font-size:10px;color:#fff;font-weight:600;transition:width .3s;}
+
+  /* Bottom buttons */
+  .esxi-buttons{background:#162030;padding:8px 20px;
+    display:flex;gap:16px;border-top:1px solid var(--esxi-border);}
+  .esxi-btn{font-size:11.5px;color:#8098b0;padding:3px 8px;
+    border:1px solid #2a3f5a;border-radius:3px;background:transparent;}
+  .esxi-btn.primary{background:#1e4a78;color:var(--esxi-hi);border-color:var(--esxi-hi);}
+  .esxi-btn-key{font-size:10px;color:#5a7090;margin-right:3px;}
+
+  /* Warning / error box inside ESXi screen */
+  .esxi-warn-box{background:#2a1a0a;border:1px solid var(--esxi-warn);
+    border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;
+    color:var(--esxi-warn);}
+  .esxi-ok-box{background:#0a2015;border:1px solid var(--esxi-ok);
+    border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;
+    color:var(--esxi-ok);}
+
+  /* Annotation under ESXi screens */
+  .screen-ann{display:flex;gap:9px;background:#1a2030;
+    border-left:3px solid var(--esxi-warn);padding:7px 13px;margin:0 0 8px;
+    border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;
+    font-size:12px;color:#c8d8e8;line-height:1.5;}
+  .screen-ann.ok{border-left-color:var(--esxi-ok);}
+  .screen-ann.info{border-left-color:var(--esxi-hi);}
+  .screen-ann.danger{border-left-color:var(--tr);}
+  .sai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* ── iLO MOCKUP ── */
+  .ilo-screen{background:var(--ilo-bg);border-radius:var(--r);
+    overflow:hidden;margin:18px 0;border:1px solid #2a3f58;
+    box-shadow:0 4px 20px rgba(0,0,0,.25);}
+  .ilo-titlebar{background:var(--ilo-header);padding:9px 16px;
+    display:flex;align-items:center;gap:10px;border-bottom:1px solid #1a3050;}
+  .ilo-favicon{width:14px;height:14px;background:#3a7fc1;border-radius:3px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:8px;color:#fff;font-weight:800;}
+  .ilo-url{font-size:11.5px;color:#6888a8;font-family:"SF Mono","Fira Code",monospace;flex:1;}
+  .ilo-lock{font-size:10px;color:#4cad6a;margin-right:4px;}
+  .ilo-body{padding:18px 22px;}
+  .ilo-nav{background:#162436;padding:10px 22px;
+    display:flex;gap:20px;border-bottom:1px solid #1a3050;flex-wrap:wrap;}
+  .ilo-nav-item{font-size:12px;color:#6888a8;cursor:pointer;padding:4px 0;}
+  .ilo-nav-item.active{color:var(--ilo-blue);border-bottom:2px solid var(--ilo-blue);}
+  .ilo-panel{padding:16px 20px;}
+  .ilo-header-row{display:flex;align-items:center;gap:14px;
+    padding:12px 0;border-bottom:1px solid #1a3050;margin-bottom:14px;}
+  .ilo-badge{font-size:10px;font-weight:700;padding:2px 8px;
+    border-radius:4px;background:#4cad6a22;color:#4cad6a;}
+  .ilo-hostname{font-size:15px;font-weight:700;color:var(--ilo-text);}
+  .ilo-model{font-size:12px;color:#6888a8;margin-top:2px;}
+  .ilo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .ilo-stat{background:#1a2f45;border-radius:6px;padding:10px 14px;}
+  .ilo-stat-label{font-size:10px;color:#5a7890;text-transform:uppercase;
+    letter-spacing:.06em;margin-bottom:4px;}
+  .ilo-stat-val{font-size:14px;font-weight:700;color:var(--ilo-text);}
+  .ilo-stat-val.ok{color:var(--ilo-green);}
+  .ilo-stat-val.warn{color:#d4a331;}
+  .ilo-remote-btn{background:var(--ilo-blue);color:#fff;border:none;
+    padding:8px 16px;border-radius:5px;font-size:12.5px;font-weight:600;
+    cursor:pointer;margin-top:8px;display:inline-block;}
+  .ilo-vm-btn{background:#1a3a5a;color:var(--ilo-blue);border:1px solid var(--ilo-blue);
+    padding:6px 14px;border-radius:5px;font-size:12px;font-weight:600;
+    cursor:pointer;margin-top:6px;display:inline-block;}
+
+  /* ── DCUI mockup ── */
+  .dcui{background:#1a2d42;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #2a4060;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:13px;line-height:1.7;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  .dcui-bar{background:#0d1e30;padding:9px 16px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #2a4060;}
+  .dcui-label{font-size:11px;color:#4a6a8a;margin-left:6px;font-family:inherit;}
+  .dcui-body{padding:16px 20px;color:#c0d0e0;}
+  .dcui-logo{color:#4da8da;font-size:14px;font-weight:700;margin-bottom:8px;}
+  .dcui-item{display:flex;justify-content:space-between;
+    padding:5px 10px;margin:2px 0;border-radius:3px;}
+  .dcui-item.sel{background:#1e4a78;color:#fff;}
+  .dcui-item-label{color:#c0d0e0;}
+  .dcui-item-val{color:#4da8da;font-size:12px;}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:190px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--accent);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · VMware Series</div>
+    <h1>ESXi-01 — ESXi Installation</h1>
+    <p>All 5 HP ProLiant DL380 Gen11 hosts</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Before you begin</div>
+    <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — What this guide installs</div>
+    <div class="ni" onclick="show('prerequisites')"><div class="nd"></div>02 — Prerequisites — what must exist first</div>
+    <div class="ni" onclick="show('nic-plan')"><div class="nd"></div>03 — NIC mapping — which vmnic does what</div>
+    <div class="ni" onclick="show('iso-prep')"><div class="nd"></div>04 — Preparing the ESXi ISO</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">iLO — mounting the installer</div>
+    <div class="ni" onclick="show('ilo-open')"><div class="nd"></div>05 — Opening iLO — every screen</div>
+    <div class="ni" onclick="show('ilo-console')"><div class="nd"></div>06 — Launching the HTML5 remote console</div>
+    <div class="ni" onclick="show('ilo-mount')"><div class="nd"></div>07 — Mounting the ESXi ISO as virtual media</div>
+    <div class="ni" onclick="show('ilo-boot')"><div class="nd"></div>08 — Booting the server from the ISO</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">ESXi installer — every screen</div>
+    <div class="ni" onclick="show('install-s1')"><div class="nd"></div>09 — Welcome screen and EULA</div>
+    <div class="ni" onclick="show('install-s2')"><div class="nd"></div>10 — Selecting the install disk</div>
+    <div class="ni" onclick="show('install-s3')"><div class="nd"></div>11 — Keyboard layout</div>
+    <div class="ni" onclick="show('install-s4')"><div class="nd"></div>12 — Root password</div>
+    <div class="ni" onclick="show('install-s5')"><div class="nd"></div>13 — Confirmation and install</div>
+    <div class="ni" onclick="show('install-s6')"><div class="nd"></div>14 — Installation progress</div>
+    <div class="ni" onclick="show('install-s7')"><div class="nd"></div>15 — Reboot complete — DCUI appears</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">First-time ESXi configuration (DCUI)</div>
+    <div class="ni" onclick="show('dcui-network')"><div class="nd"></div>16 — Set management network — vmk0</div>
+    <div class="ni" onclick="show('dcui-vlan')"><div class="nd"></div>17 — Set VLAN 10 on management NIC</div>
+    <div class="ni" onclick="show('dcui-ip')"><div class="nd"></div>18 — Static IP, subnet, gateway, DNS</div>
+    <div class="ni" onclick="show('dcui-hostname')"><div class="nd"></div>19 — Hostname and DNS suffix</div>
+    <div class="ni" onclick="show('dcui-apply')"><div class="nd"></div>20 — Apply settings and test connectivity</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Post-install from browser</div>
+    <div class="ni" onclick="show('browser-login')"><div class="nd"></div>21 — Logging into ESXi Host Client</div>
+    <div class="ni" onclick="show('browser-ntp')"><div class="nd"></div>22 — Configure NTP</div>
+    <div class="ni" onclick="show('browser-ssh')"><div class="nd"></div>23 — Enable SSH (for VMware guide use)</div>
+    <div class="ni" onclick="show('browser-timecheck')"><div class="nd"></div>24 — Verify time, NTP, and connectivity</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Repeat for all 5 hosts</div>
+    <div class="ni" onclick="show('all-hosts')"><div class="nd"></div>25 — Hosts 2–5 — what changes per host</div>
+    <div class="ni" onclick="show('verify-all')"><div class="nd"></div>26 — Verify all 5 hosts ready for vCenter</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 OVERVIEW ══════ -->
+<div class="page active" id="page-overview">
+  <div class="ey">VMware Series · ESXi-01 · Section 01</div>
+  <div class="pt">What this guide installs — and where it sits in the build sequence</div>
+  <div class="ps">ESXi is the foundation. Nothing in the VMware or Windows Server world can exist until the hypervisor is running on physical hardware.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Cisco<br/>fabric</div>
+    <div class="pt-step active"><span class="pt-n">→</span>ESXi<br/>install</div>
+    <div class="pt-step"><span class="pt-n">3</span>vCenter<br/>deploy</div>
+    <div class="pt-step"><span class="pt-n">4</span>vDS<br/>Phase 1</div>
+    <div class="pt-step"><span class="pt-n">5</span>Windows<br/>DC/DNS</div>
+    <div class="pt-step"><span class="pt-n">6</span>AD CS<br/>PKI</div>
+    <div class="pt-step"><span class="pt-n">7+</span>vSAN<br/>HA/DRS</div>
+  </div>
+
+  <div class="callout vmware">
+    <div class="cl">ESXi — VMware's bare-metal hypervisor</div>
+    ESXi (Elastic Sky X Integrated) is VMware's Type 1 hypervisor — it installs directly onto physical hardware and runs instead of a traditional operating system. There is no Windows or Linux underneath it. ESXi takes full control of the server's CPU, memory, storage, and network, then partitions those resources into virtual machines. In NovaCrestBank's data center, ESXi runs on all five HP ProLiant DL380 Gen11 hosts and will later host Domain Controllers, the Certificate Authority servers, vCenter itself, and the OpenShift node VMs.
+  </div>
+
+  <h2>What this guide covers — host by host</h2>
+  <table>
+    <thead><tr><th>Host</th><th>iLO IP</th><th>ESXi management IP</th><th>Rack</th><th>Connected to</th></tr></thead>
+    <tbody>
+      <tr><td><strong>esxi01</strong></td><td>10.40.0.31</td><td>10.10.0.11</td><td>Rack 1</td><td>leaf01 (vmnic0/2/4), leaf02 (vmnic1/3/5)</td></tr>
+      <tr><td><strong>esxi02</strong></td><td>10.40.0.32</td><td>10.10.0.12</td><td>Rack 1</td><td>leaf01 (vmnic0/2/4), leaf02 (vmnic1/3/5)</td></tr>
+      <tr><td><strong>esxi03</strong></td><td>10.40.0.33</td><td>10.10.0.13</td><td>Rack 2</td><td>leaf02 (vmnic0/2/4), leaf01 (vmnic1/3/5)</td></tr>
+      <tr><td><strong>esxi04</strong></td><td>10.40.0.34</td><td>10.10.0.14</td><td>Rack 2</td><td>leaf02 (vmnic0/2/4), leaf01 (vmnic1/3/5)</td></tr>
+      <tr><td><strong>esxi05</strong></td><td>10.40.0.35</td><td>10.10.0.15</td><td>Rack 3</td><td>leaf03 only (all NICs)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What this guide does NOT cover</h2>
+  <p>This guide installs ESXi and performs first-time network configuration using the DCUI (Direct Console User Interface — the blue text menu on the server screen). It does NOT configure vMotion VMkernel adapters, vSAN VMkernel adapters, or NFS VMkernel adapters — those require vCenter and are configured in the vDS guides. After this guide, each host has exactly one thing working: its management network (vmk0 on VLAN 10) and SSH access. That is enough for vCenter to discover and manage the hosts.</p>
+
+  <div class="callout">
+    <div class="cl">Why all 5 hosts are installed before vCenter is deployed</div>
+    vCenter is itself a VM — it runs as a virtual appliance on ESXi. VMware recommends deploying vCenter before configuring additional ESXi hosts, because vCenter is what manages them. However, the more practical approach for NovaCrestBank is to install ESXi on all five hosts first, verify basic connectivity, and then deploy vCenter — because vCenter's deployment wizard requires at least one ESXi host to deploy the VCSA onto, and having all hosts ready means you can configure the cluster immediately after vCenter comes up.
+  </div>
+</div>
+
+<!-- ══════ 02 PREREQUISITES ══════ -->
+<div class="page" id="page-prerequisites">
+  <div class="ey">VMware Series · ESXi-01 · Section 02</div>
+  <div class="pt">Prerequisites — what must exist before ESXi installation begins</div>
+  <div class="ps">Checking these before opening a single iLO window saves hours of troubleshooting</div>
+
+  <h2>Network prerequisites (from the Cisco guides)</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">leaf01 port Po101 (esxi01 mgmt)</span><span class="spec-val">Configured, trunking VLAN 10 and 70 — confirmed in Cisco Guide 5</span></div>
+    <div class="spec-row"><span class="spec-label">leaf01 port Po102 (esxi01 VM/OCP)</span><span class="spec-val">Configured, trunking VLAN 20, 50, 60</span></div>
+    <div class="spec-row"><span class="spec-label">leaf01 port Po103 (esxi01 vSAN)</span><span class="spec-val">Configured, trunking VLAN 25, 30, MTU 9000</span></div>
+    <div class="spec-row"><span class="spec-label">VLAN 10 SVI on leaf01</span><span class="spec-val">10.10.0.1/24 — the default gateway esxi01 will use</span></div>
+    <div class="spec-row"><span class="spec-label">DHCP on VLAN 10</span><span class="spec-val">Not needed — all ESXi hosts get static IPs from the DCUI</span></div>
+    <div class="spec-row"><span class="spec-label">OOB access to all 5 iLO IPs</span><span class="spec-val">10.40.0.31–35 all reachable — verified in Cisco Guide 9</span></div>
+    <div class="spec-row"><span class="spec-label">DNS entry for esxi01</span><span class="spec-val">Not required yet — DNS (Windows DC) does not exist until after ESXi is running</span></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">The DNS chicken-and-egg situation</div>
+    ESXi installation requires a hostname but not necessarily a working DNS server at install time. NovaCrestBank's DNS lives on the Windows Domain Controllers — which are VMs — which do not exist yet. ESXi can be installed and will work perfectly with just a static IP and a hostname. DNS will be filled in after the Domain Controllers are built. For now, use the Windows DC IP (10.70.0.10) as the DNS server setting — even though it does not yet respond. ESXi will simply get a DNS timeout for resolution attempts but will function normally for everything that matters during the initial installation.
+  </div>
+
+  <h2>What you need on your laptop</h2>
+  <ul>
+    <li><strong>VMware ESXi 8.0 U3 ISO file</strong> — downloaded from the VMware Customer Connect portal (requires a VMware account). The filename looks like <code>VMware-VMvisor-Installer-8.0U3-24022510.x86_64.iso</code>. This file is approximately 380 MB.</li>
+    <li><strong>A web browser</strong> — Chrome or Firefox. iLO's HTML5 console works best in Chrome. Do not use Internet Explorer.</li>
+    <li><strong>Your laptop must be on a network that can reach 10.40.0.31</strong> — either directly connected to the OOB switch or via a VPN that has access to 10.40.0.0/24.</li>
+    <li><strong>The CyberArk PAM credentials</strong> for the iLO accounts: Administrator / NovaCrest$iLO2026!</li>
+  </ul>
+
+  <h2>HP ProLiant DL380 Gen11 — what ESXi 8 requires</h2>
+  <table>
+    <thead><tr><th>Requirement</th><th>ESXi 8 minimum</th><th>DL380 Gen11 actual</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>CPU</td><td>x86-64 with hardware virtualisation (VT-x/AMD-V)</td><td>Intel Xeon Scalable 4th Gen — VT-x enabled</td><td><span class="badge bg">MEETS</span></td></tr>
+      <tr><td>RAM</td><td>8 GB minimum (32 GB recommended)</td><td>512 GB DDR5</td><td><span class="badge bg">EXCEEDS</span></td></tr>
+      <tr><td>Boot device</td><td>32 GB minimum</td><td>2× M.2 480 GB NVMe (mirrored RAID-1 for ESXi)</td><td><span class="badge bg">EXCEEDS</span></td></tr>
+      <tr><td>NIC</td><td>1 Gbps or faster</td><td>6× 25G SFP28 (HPE NS204i-u)</td><td><span class="badge bg">EXCEEDS</span></td></tr>
+      <tr><td>Hardware compatibility</td><td>VMware HCL listed</td><td>DL380 Gen11 is on VMware HCL for ESXi 8</td><td><span class="badge bg">VERIFIED</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 03 NIC PLAN ══════ -->
+<div class="page" id="page-nic-plan">
+  <div class="ey">VMware Series · ESXi-01 · Section 03</div>
+  <div class="pt">NIC mapping — which vmnic does what</div>
+  <div class="ps">Understanding the physical NIC to vmnic mapping before installation — this determines which NIC carries which traffic</div>
+
+  <div class="callout">
+    <div class="cl">The most important thing to understand before ESXi installation</div>
+    When ESXi boots, it names each physical NIC as vmnic0, vmnic1, vmnic2, etc. in the order it discovers them. On the HP ProLiant DL380 Gen11, this order is determined by the PCIe slot and port numbering. NovaCrestBank's Cisco switch ports are cabled to specific NIC ports. You must know which vmnic corresponds to which physical port so you configure the right NIC for management traffic — otherwise the management VMkernel ends up on the wrong NIC and the host is unreachable from the network.
+  </div>
+
+  <h2>HP ProLiant DL380 Gen11 NIC discovery order</h2>
+  <p>The DL380 Gen11 in NovaCrestBank is equipped with the HPE NS204i-u NIC — a six-port 25G SFP28 adapter. ESXi discovers NICs in order of PCIe bus address. On the DL380 Gen11 the order is consistent and predictable:</p>
+  <table>
+    <thead><tr><th>vmnic #</th><th>Physical port label on NIC</th><th>Connected to (esxi01)</th><th>Traffic purpose</th><th>VLAN</th></tr></thead>
+    <tbody>
+      <tr><td><strong>vmnic0</strong></td><td>Port 1 (leftmost)</td><td>leaf01 Eth1/1 → Po101</td><td>Management (primary)</td><td>10, 70</td></tr>
+      <tr><td><strong>vmnic1</strong></td><td>Port 2</td><td>leaf02 Eth1/1 → Po101</td><td>Management (secondary — vPC)</td><td>10, 70</td></tr>
+      <tr><td><strong>vmnic2</strong></td><td>Port 3</td><td>leaf01 Eth1/3 → Po102</td><td>VM traffic + OCP (primary)</td><td>20, 50, 60</td></tr>
+      <tr><td><strong>vmnic3</strong></td><td>Port 4</td><td>leaf02 Eth1/3 → Po102</td><td>VM traffic + OCP (secondary)</td><td>20, 50, 60</td></tr>
+      <tr><td><strong>vmnic4</strong></td><td>Port 5</td><td>leaf01 Eth1/5 → Po103</td><td>vSAN + NFS (primary)</td><td>25, 30</td></tr>
+      <tr><td><strong>vmnic5</strong></td><td>Port 6 (rightmost)</td><td>leaf02 Eth1/5 → Po103</td><td>vSAN + NFS (secondary)</td><td>25, 30</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="cl">ESXi management uses vmnic0 only during initial install</div>
+    During ESXi installation and first-time DCUI configuration, ESXi creates a temporary standard vSwitch0 with vmnic0 as its uplink. Only vmnic0 carries management traffic at this stage. The other five NICs are physically connected to the switch but ESXi does not yet use them — they sit idle until vCenter and the vDS are configured. This is correct behaviour. Do not worry that only vmnic0 is active after installation.
+  </div>
+
+  <h2>How to verify the vmnic-to-port mapping during installation</h2>
+  <p>ESXi's installer shows you each network adapter it discovers, including its MAC address. The MAC address is printed on a label on the physical NIC or readable in iLO under <strong>Information → System Information → Network Adapters</strong>. Cross-referencing the MAC address with the port number confirms you are configuring the right adapter. In practice, the DL380 Gen11 is consistent — vmnic0 is always Port 1 — but verifying with the MAC address is the professional approach.</p>
+</div>
+
+<!-- ══════ 04 ISO PREP ══════ -->
+<div class="page" id="page-iso-prep">
+  <div class="ey">VMware Series · ESXi-01 · Section 04</div>
+  <div class="pt">Preparing the ESXi ISO</div>
+  <div class="ps">Downloading the correct version and understanding why we use a custom HP image — not the generic VMware ISO</div>
+
+  <div class="callout vmware">
+    <div class="cl">Use the HPE Custom ESXi Image — not the generic VMware ESXi ISO</div>
+    VMware and HP produce a customised ESXi image specifically for HP ProLiant hardware. This custom ISO includes HP-specific drivers (for the storage controller, NIC, and iLO integration), the HP SMT (Smart Array Management) tools, and pre-configured health monitoring for HP hardware components. If you install the generic VMware ESXi ISO on a DL380 Gen11, some HP-specific hardware may not function correctly — the Smart Array controller may not present storage correctly, and iLO health integration may be degraded. Always use the HPE-customised image for HP hardware.
+  </div>
+
+  <h2>Where to download the HPE Custom ESXi Image</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Go to the VMware Customer Connect portal</div>
+        <p style="font-size:13.5px">Open your browser and go to <code>customerconnect.vmware.com</code>. Log in with your VMware account. If NovaCrestBank has a VMware licence, the account tied to that licence is what you use.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Navigate to Products and Downloads → VMware vSphere → Drivers and Tools</div>
+        <p style="font-size:13.5px">In the top menu click <strong>Products</strong> → <strong>VMware vSphere</strong>. On the vSphere product page click <strong>Drivers and Tools</strong>. In the search filter type <strong>HPE</strong>. Look for the entry titled <strong>VMware ESXi 8.0 U3 for HPE ProLiant</strong> or similar. The filename will look like:<br/><code>VMware-ESXi-8.0U3-HPE-800.24195311.iso</code></p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Download the ISO to your laptop</div>
+        <p style="font-size:13.5px">Click the download link. The file is approximately 400–500 MB (larger than the generic ISO because of additional HPE drivers). Save it to a location you can easily find — for example, <code>C:\ISO\VMware-ESXi-8.0U3-HPE.iso</code> on Windows or <code>~/Downloads/VMware-ESXi-8.0U3-HPE.iso</code> on Mac. You do not need to burn this to a USB drive — iLO mounts it virtually over the network.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Verify the MD5 or SHA256 checksum</div>
+        <p style="font-size:13.5px">VMware provides a checksum on the download page. Verify your downloaded ISO matches it. On Windows: open PowerShell and run <code>Get-FileHash C:\ISO\VMware-ESXi-8.0U3-HPE.iso -Algorithm SHA256</code>. On Mac: run <code>shasum -a 256 ~/Downloads/VMware-ESXi-8.0U3-HPE.iso</code>. A corrupted ISO causes mysterious install failures — verifying the checksum takes 30 seconds and eliminates that possibility.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 05 ILO OPEN ══════ -->
+<div class="page" id="page-ilo-open">
+  <div class="ey">VMware Series · ESXi-01 · Section 05</div>
+  <div class="pt">Opening iLO — every screen described</div>
+  <div class="ps">Connecting to esxi01's iLO web interface for the first time — what you see and what to click</div>
+
+  <h2>Open the iLO web interface for esxi01</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open Chrome and navigate to https://10.40.0.31</div>
+        <p style="font-size:13.5px">Type <code>https://10.40.0.31</code> directly into Chrome's address bar and press Enter. Your laptop must be on a network that can reach the OOB subnet (10.40.0.0/24) — either via a direct connection to the OOB switch or via VPN. If the page does not load, ping 10.40.0.31 first to confirm basic connectivity.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Accept the certificate warning</div>
+        <p style="font-size:13.5px">Chrome shows a warning: <strong>"Your connection is not private"</strong> with the error code <code>NET::ERR_CERT_AUTHORITY_INVALID</code>. This is expected — iLO ships with a self-signed certificate that Chrome does not trust. Click <strong>Advanced</strong> (appears at the bottom of the warning page). Then click <strong>Proceed to 10.40.0.31 (unsafe)</strong>. This is safe because you are on the internal OOB network, not the public internet. In a later guide you will replace this self-signed certificate with one issued by the AD CS Issuing CA.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">The iLO login screen appears — what it looks like</div>
+        <p style="font-size:13.5px">A dark-blue HP branded page appears. At the top left is the HP logo and the text <strong>"HPE iLO 6"</strong>. In the centre of the page are two text fields: <strong>Username</strong> and <strong>Password</strong>. Below is a blue <strong>Sign In</strong> button. Type:</p>
+        <div class="card" style="margin-top:8px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+          <div>Username: <strong style="color:var(--accent);">Administrator</strong></div>
+          <div style="margin-top:4px;">Password: <strong style="color:var(--accent);">NovaCrest$iLO2026!</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Sign In</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>The iLO dashboard — what you see after login</h2>
+
+  <div class="ilo-screen">
+    <div class="ilo-titlebar">
+      <div class="ilo-favicon">iLO</div>
+      <div class="ilo-url"><span class="ilo-lock">🔒</span>https://10.40.0.31/ui/#/dashboard</div>
+    </div>
+    <div class="ilo-nav">
+      <div class="ilo-nav-item active">Overview</div>
+      <div class="ilo-nav-item">System Information</div>
+      <div class="ilo-nav-item">Firmware &amp; OS Software</div>
+      <div class="ilo-nav-item">Remote Console &amp; Media</div>
+      <div class="ilo-nav-item">Power &amp; Thermal</div>
+      <div class="ilo-nav-item">Storage</div>
+      <div class="ilo-nav-item">Administration</div>
+    </div>
+    <div class="ilo-panel">
+      <div class="ilo-header-row">
+        <div>
+          <div class="ilo-hostname">esxi01-ilo.novacrestbank.local</div>
+          <div class="ilo-model">HPE ProLiant DL380 Gen11 — Serial: MXQ12345678</div>
+        </div>
+        <div class="ilo-badge">System Health: OK</div>
+      </div>
+      <div class="ilo-grid">
+        <div class="ilo-stat">
+          <div class="ilo-stat-label">Server Power</div>
+          <div class="ilo-stat-val ok">ON</div>
+        </div>
+        <div class="ilo-stat">
+          <div class="ilo-stat-label">System Health</div>
+          <div class="ilo-stat-val ok">OK</div>
+        </div>
+        <div class="ilo-stat">
+          <div class="ilo-stat-label">iLO Firmware</div>
+          <div class="ilo-stat-val">3.10 Dec 2025</div>
+        </div>
+        <div class="ilo-stat">
+          <div class="ilo-stat-label">CPU Temperature</div>
+          <div class="ilo-stat-val ok">38°C</div>
+        </div>
+        <div class="ilo-stat">
+          <div class="ilo-stat-label">Fan Status</div>
+          <div class="ilo-stat-val ok">All OK</div>
+        </div>
+        <div class="ilo-stat">
+          <div class="ilo-stat-label">Power Supply</div>
+          <div class="ilo-stat-val ok">Redundant</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#5a7890;margin-top:8px;">This dashboard shows the physical server's health in real time. The server is currently powered on and healthy. You are about to reboot it into the ESXi installer.</div>
+    </div>
+  </div>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>You are now looking at the iLO dashboard for esxi01. The server is healthy, powered on, and currently has no operating system installed (or it may have a previous OS). The next step is to open the remote console — the virtual screen that shows you exactly what is displayed on the server's physical monitor.</span></div>
+</div>
+
+<!-- ══════ 06 ILO CONSOLE ══════ -->
+<div class="page" id="page-ilo-console">
+  <div class="ey">VMware Series · ESXi-01 · Section 06</div>
+  <div class="pt">Launching the HTML5 remote console</div>
+  <div class="ps">Opening the virtual screen that shows you exactly what is on the server's physical display — as if you were sitting in front of a monitor in the data center</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Click "Remote Console &amp; Media" in the iLO navigation</div>
+        <p style="font-size:13.5px">In the top navigation bar of the iLO interface, click <strong>Remote Console &amp; Media</strong>. The page that loads has two sections: <strong>Remote Console</strong> on the left and <strong>Virtual Media</strong> on the right.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click "Launch" under "HTML5 Console"</div>
+        <p style="font-size:13.5px">Under the <strong>Remote Console</strong> section you will see two options: <strong>HTML5 Console</strong> and <strong>Java-based Console</strong>. Always use <strong>HTML5 Console</strong> — it requires no browser plugins and works in Chrome directly. Click the blue <strong>Launch</strong> button under HTML5 Console.</p>
+        <p style="font-size:13.5px">A new browser tab or window opens. This is the remote console — it shows the server's physical screen in real time. You can see the keyboard cursor and type into it as if you were physically at the server.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">What you see in the remote console right now</div>
+        <p style="font-size:13.5px">The console shows the current state of the server's display. If no OS is installed, you may see a black screen with the text <strong>"No bootable media found"</strong> or a BIOS/UEFI splash screen. If a previous OS was installed, you may see its boot screen. Whatever you see now will change once you mount the ESXi ISO and reboot — which is the next step.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Familiarise yourself with the console toolbar</div>
+        <p style="font-size:13.5px">At the top of the remote console window is a toolbar with several icons. The key ones are: a <strong>Power</strong> icon (with sub-options: Power On, Power Off, Reset, Cold Boot), a <strong>Virtual Media</strong> icon (a disc/CD icon — this is where you mount the ESXi ISO), and a <strong>Keyboard</strong> icon (for sending special key combinations like Ctrl+Alt+Delete or F11 that the browser might intercept). Keep this window open — you will use it throughout the installation.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 07 ILO MOUNT ══════ -->
+<div class="page" id="page-ilo-mount">
+  <div class="ey">VMware Series · ESXi-01 · Section 07</div>
+  <div class="pt">Mounting the ESXi ISO as virtual media</div>
+  <div class="ps">Making the ESXi installer ISO available to the server as if it were a physical DVD — without touching the server physically</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Click the Virtual Media icon in the remote console toolbar</div>
+        <p style="font-size:13.5px">In the remote console window toolbar, click the <strong>Virtual Media</strong> icon (it looks like a small disc/CD). A small dropdown menu appears with the options: <strong>CD/DVD</strong>, <strong>Floppy</strong>, and <strong>USB Drive Key</strong>. Click <strong>CD/DVD</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">The Virtual Media dialog box opens</div>
+        <p style="font-size:13.5px">A small dialog box appears with two options: <strong>Local File</strong> and <strong>URL</strong>. You are mounting the ISO from your laptop, so click <strong>Local File</strong>. A standard file browser dialog from your operating system opens — this is Chrome asking you to select a file from your laptop.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Browse to and select the ESXi ISO file</div>
+        <p style="font-size:13.5px">Navigate to where you saved the ISO: <code>C:\ISO\VMware-ESXi-8.0U3-HPE.iso</code> on Windows, or the equivalent on Mac. Click the ISO file to select it. Click <strong>Open</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Click "Connect" to mount the ISO</div>
+        <p style="font-size:13.5px">Back in the Virtual Media dialog, the filename of the ISO now appears next to the Local File button. Click the <strong>Connect</strong> button (or <strong>OK</strong> depending on the iLO version). The dialog shows <strong>Connected</strong> or a green indicator confirming the ISO is mounted. The server now sees the ISO as a virtual DVD drive — exactly as if you had inserted a physical DVD.</p>
+        <p style="font-size:13.5px">Note: The ISO is streamed from your laptop to the server over the network connection. Your laptop must stay connected throughout the installation. If you close the iLO browser tab, the virtual media disconnects and the installation will fail. Keep the tab open.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>The ESXi ISO is now mounted as a virtual CD/DVD drive on esxi01. The server sees it exactly as if a physical DVD were inserted. The next step is rebooting the server and forcing it to boot from the virtual DVD.</span></div>
+</div>
+
+<!-- ══════ 08 ILO BOOT ══════ -->
+<div class="page" id="page-ilo-boot">
+  <div class="ey">VMware Series · ESXi-01 · Section 08</div>
+  <div class="pt">Booting from the ISO — the F11 boot menu</div>
+  <div class="ps">Restarting the server and selecting the virtual DVD as the boot device</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In the remote console, click the Power icon → "Cold Boot"</div>
+        <p style="font-size:13.5px">In the remote console toolbar, click the <strong>Power</strong> icon. A dropdown appears: <strong>Power On</strong>, <strong>Power Off</strong>, <strong>Reset</strong>, <strong>Cold Boot</strong>. Click <strong>Cold Boot</strong>. A confirmation dialog asks "Are you sure you want to cold boot this server?" Click <strong>OK</strong>. The server restarts completely — you will see the HP POST screen appear in the remote console within a few seconds.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Watch the POST screen — press F11 at exactly the right moment</div>
+        <p style="font-size:13.5px">The HP ProLiant POST screen appears — a black screen with HP logos and memory check information scrolling rapidly. At the <em>bottom</em> of the POST screen you will see two lines:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:var(--bg3);">
+          <div>Press &lt;F9&gt; System Utilities</div>
+          <div>Press &lt;F11&gt; Boot Menu</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">These prompts appear for approximately 8–10 seconds. You need to press <strong>F11</strong> now. Click inside the remote console window first (to make sure the console has keyboard focus), then press <strong>F11</strong> on your keyboard.</p>
+        <p style="font-size:13.5px"><strong>If you miss F11:</strong> The server will boot from whatever is currently on the disk (or show "no bootable media"). Just click Power → Reset and try again — you get another chance on every reboot.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">The HP Boot Menu appears — select the virtual DVD</div>
+        <p style="font-size:13.5px">After pressing F11, a blue boot menu screen appears. You will see a list of boot devices. Look for an entry that says something like:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:#0d1520;color:#c8d8e8;">
+          <div style="color:#4da8da;">One-Time Boot Menu</div>
+          <div style="margin-top:8px;">HP Embedded RAID Controller</div>
+          <div>HP NS204i-u NIC Port 1</div>
+          <div style="background:#1e4a78;padding:2px 8px;border-radius:3px;margin-top:4px;">iLO Virtual USB 3 : iLO Virtual CD-ROM</div>
+          <div>Enter Setup</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Use the <strong>↑ and ↓ arrow keys</strong> to highlight <strong>iLO Virtual USB 3 : iLO Virtual CD-ROM</strong> (the exact wording varies slightly by iLO firmware version). Press <strong>Enter</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">The server boots from the ESXi ISO</div>
+        <p style="font-size:13.5px">The server reads from the virtual DVD. In the remote console you will see text scrolling rapidly on a black screen — this is the ESXi installer loading its kernel and drivers. This takes 30–90 seconds. You will see messages like <code>Loading /tboot.b00...</code>, <code>Loading /imgdb.tgz...</code>, and many others. This is normal — wait for it to finish. You do not need to press anything.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>After the loading messages complete, the ESXi installer's graphical interface appears — a dark background with VMware branding. This is the first screen of the installer. The server is now running entirely from the ISO mounted on your laptop. Section 09 covers every screen from here to the end of the installation.</span></div>
+</div>
+
+<!-- ══════ 09 INSTALL S1 ══════ -->
+<div class="page" id="page-install-s1">
+  <div class="ey">VMware Series · ESXi-01 · Section 09</div>
+  <div class="pt">ESXi installer — Screen 1: Welcome and EULA</div>
+  <div class="ps">The first two screens of the installer — accepting the licence and pressing Enter to continue</div>
+
+  <h2>Screen 1 of 6: Welcome screen</h2>
+  <p>After the loading messages, the ESXi installer displays its welcome screen. Here is exactly what it looks like:</p>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0 Installation</div>
+      <div class="esxi-header-ver">VMware, Inc.</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">Welcome to the VMware ESXi 8.0.3 Installation</div>
+      <div class="esxi-subtitle">HPE ProLiant Custom Image</div>
+      <div class="esxi-text" style="margin-top:14px;">This installation will install VMware ESXi 8.0.3 on this machine.</div>
+      <div class="esxi-text">VMware ESXi 8.0.3 is a powerful bare-metal hypervisor that installs directly on your server and partitions it into multiple virtual machines.</div>
+      <div class="esxi-text" style="color:#8098b0;margin-top:14px;">Warning: This product is protected by intellectual property laws including but not limited to U.S. copyright law and international treaties. Unauthorised reproduction or distribution is subject to civil and criminal penalties.</div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>Continue</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>This welcome screen simply tells you which version of ESXi is about to be installed. The "HPE ProLiant Custom Image" text confirms you are using the HP-customised ISO (not the generic VMware one). Press <strong>Enter</strong> on your keyboard to continue.</span></div>
+
+  <h2>Screen 2 of 6: End User Licence Agreement (EULA)</h2>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">End User License Agreement (EULA)</div>
+      <div class="esxi-text" style="margin-top:10px;color:#8098b0;font-size:11.5px;max-height:140px;overflow:hidden;">
+        VMWARE END USER LICENSE AGREEMENT<br/><br/>
+        PLEASE NOTE THAT THE TERMS OF THIS END USER LICENSE AGREEMENT SHALL GOVERN YOUR USE OF THE SOFTWARE, REGARDLESS OF ANY TERMS THAT MAY APPEAR DURING THE INSTALLATION OF THE SOFTWARE.<br/><br/>
+        IMPORTANT-READ CAREFULLY: BY DOWNLOADING, INSTALLING, OR USING THE SOFTWARE, YOU (THE INDIVIDUAL OR LEGAL ENTITY) AGREE TO BE BOUND BY THE TERMS OF THIS END USER LICENSE AGREEMENT ("EULA"). IF YOU DO NOT AGREE TO THE TERMS OF THIS EULA, YOU MUST NOT DOWNLOAD, INSTALL, OR USE THE SOFTWARE...
+      </div>
+      <div class="esxi-text" style="color:var(--esxi-hi);margin-top:12px;">[Use Page Up/Page Down to scroll the agreement]</div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[F11]</span>Accept and Continue</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>This is the VMware EULA. You do not need to scroll through it during an enterprise installation — it is the standard VMware licence agreement that was reviewed when NovaCrestBank purchased its vSphere licences. Press <strong>F11</strong> to accept and continue. Note that the key is F11 here (not Enter) — this is intentional on VMware's part to ensure you deliberately accept the licence.</span></div>
+</div>
+
+<!-- ══════ 10 INSTALL S2 ══════ -->
+<div class="page" id="page-install-s2">
+  <div class="ey">VMware Series · ESXi-01 · Section 10</div>
+  <div class="pt">ESXi installer — Screen 3: Selecting the install disk</div>
+  <div class="ps">Choosing where ESXi installs — the most important decision in the installer</div>
+
+  <div class="callout warn">
+    <div class="cl">Critical — selecting the correct disk is essential</div>
+    The DL380 Gen11 in NovaCrestBank has multiple storage devices: two M.2 NVMe SSDs (configured as RAID-1 by the HP Smart Array controller — presented as a single logical drive to ESXi), and potentially other storage visible to the HP Smart Array. ESXi must be installed on the M.2 RAID-1 logical volume — NOT on a vSAN disk, NOT on a shared SAN LUN. Installing ESXi on the wrong disk will either overwrite important data or result in ESXi not booting after the server reboots.
+  </div>
+
+  <h2>Screen 3 of 6: Select a Disk</h2>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">Select a Disk to Install or Upgrade</div>
+      <div class="esxi-subtitle">Contains a VMFS datastore: No  ·  Select the disk to install ESXi on</div>
+      <div class="esxi-list" style="margin-top:12px;">
+        <div class="esxi-item selected">
+          Local  ·  HPE MR416i-p — Logical Volume 0  ·  960.00 GB  ·  (M.2 RAID-1)
+        </div>
+        <div class="esxi-item" style="color:#6888a8;">
+          Local  ·  SEAGATE ST2400MM0129  ·  2.40 TB  ·  (SAS HDD — for vSAN, do NOT select)
+        </div>
+        <div class="esxi-item" style="color:#6888a8;">
+          Local  ·  SEAGATE ST2400MM0129  ·  2.40 TB  ·  (SAS HDD — for vSAN, do NOT select)
+        </div>
+        <div class="esxi-item" style="color:#6888a8;">
+          Local  ·  SEAGATE ST2400MM0129  ·  2.40 TB  ·  (SAS HDD — for vSAN, do NOT select)
+        </div>
+      </div>
+      <div class="esxi-text" style="margin-top:12px;color:#8098b0;font-size:11.5px;">[↑↓] Select  [Enter] Continue  [Esc] Cancel  [F1] Details</div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>Continue</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <h2>How to identify the correct disk</h2>
+  <p>Use the arrow keys to scroll through the list. You are looking for the logical volume presented by the HPE Smart Array controller from the two M.2 NVMe drives. It will be identified by:</p>
+  <ul>
+    <li><strong>Controller name</strong>: Contains "HPE MR" or "HPE Smart Array" or "HPE MR416i-p" — this is the HP RAID controller that manages the M.2 drives</li>
+    <li><strong>Size</strong>: Approximately 900 GB–1 TB (the combined RAID-1 capacity of two 480 GB M.2 drives)</li>
+    <li><strong>Description</strong>: Will say "Logical Volume" — meaning it is a RAID logical volume, not a raw physical disk</li>
+  </ul>
+  <p>The SAS HDDs (if visible) will show as individual physical disks with "SEAGATE" or similar manufacturer names and sizes of 1.2 TB, 1.8 TB, or 2.4 TB. Do not select these — they are reserved for vSAN.</p>
+  <p>Use the <strong>↑ and ↓ arrow keys</strong> to highlight the correct M.2 RAID-1 logical volume. Press <strong>F1</strong> if you want to see more details about the selected disk (useful to confirm it is the right one). Press <strong>Enter</strong> when the correct disk is highlighted.</p>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>Select the HPE MR controller Logical Volume (the M.2 RAID-1 array) and press Enter. The SAS HDDs are for vSAN and must not have ESXi installed on them.</span></div>
+</div>
+
+<!-- ══════ 11 INSTALL S3 ══════ -->
+<div class="page" id="page-install-s3">
+  <div class="ey">VMware Series · ESXi-01 · Section 11</div>
+  <div class="pt">ESXi installer — Screen 4: Keyboard layout</div>
+  <div class="ps">A simple screen — selecting the keyboard layout for the ESXi console</div>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">Please Select a Keyboard Layout</div>
+      <div class="esxi-list" style="margin-top:12px;">
+        <div class="esxi-item selected">Default (US)  ·  US Default</div>
+        <div class="esxi-item" style="color:#6888a8;">Belgian  ·  Belgium</div>
+        <div class="esxi-item" style="color:#6888a8;">Brazilian Portuguese  ·  Brazil</div>
+        <div class="esxi-item" style="color:#6888a8;">Canadian French  ·  Canada</div>
+        <div class="esxi-item" style="color:#6888a8;">Croatian  ·  Croatia</div>
+        <div class="esxi-item" style="color:#6888a8;">Czech  ·  Czech Republic</div>
+      </div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>Continue</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <p>The keyboard layout affects how keystrokes are interpreted when you type in the ESXi DCUI (the blue text console that appears after installation). For NovaCrestBank, leave this as <strong>Default (US)</strong> — the standard English US keyboard. Press <strong>Enter</strong>.</p>
+</div>
+
+<!-- ══════ 12 INSTALL S4 ══════ -->
+<div class="page" id="page-install-s4">
+  <div class="ey">VMware Series · ESXi-01 · Section 12</div>
+  <div class="pt">ESXi installer — Screen 5: Root password</div>
+  <div class="ps">Setting the ESXi root password — the most security-sensitive step in the installer</div>
+
+  <div class="callout danger">
+    <div class="cl">Root is the only local account on ESXi — protect it carefully</div>
+    ESXi has a single local administrative account: <strong>root</strong>. This account has complete control over the hypervisor. After vCenter is deployed and AD integration is configured, daily operations use AD accounts — but the root account is the emergency break-glass account if vCenter or AD is unavailable. The root password must be strong, unique per host, stored in CyberArk immediately after installation, and never shared informally. Use the same password pattern for all five hosts to simplify operations, but ensure it is stored securely.
+  </div>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">Enter a Root Password</div>
+      <div class="esxi-text" style="margin-top:10px;">Assign a password to the root user account. The root user has full administrative access to this ESXi host.</div>
+      <div style="margin-top:16px;">
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Password:</div>
+          <div class="esxi-input-field">●●●●●●●●●●●●●●●●●●●●</div>
+        </div>
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Confirm password:</div>
+          <div class="esxi-input-field">●●●●●●●●●●●●●●●●●●●●</div>
+        </div>
+      </div>
+      <div class="esxi-ok-box" style="margin-top:12px;">Password strength: Strong ✓</div>
+      <div class="esxi-text" style="color:#8098b0;font-size:11.5px;margin-top:8px;">Password must be at least 7 characters. ESXi recommends a mix of uppercase, lowercase, numbers, and special characters.</div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>Continue</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <h2>What to type</h2>
+  <p>Click inside the <strong>Password</strong> field (using your mouse in the remote console window) and type the root password:</p>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13.5px;">
+    Root password: <strong style="color:var(--accent);">NovaCrest$ESXi2026!</strong>
+  </div>
+  <p style="margin-top:10px;">Press <strong>Tab</strong> to move to the <strong>Confirm password</strong> field. Type the same password again. The <strong>Password strength</strong> indicator should show <strong>Strong</strong> or <strong>Good</strong> in green — this confirms the password meets ESXi's complexity requirements. Press <strong>Enter</strong> to continue.</p>
+
+  <div class="callout">
+    <div class="cl">Store this in CyberArk immediately after installation is complete</div>
+    Before you start installing the next ESXi host, open CyberArk and create an entry for this host: Account = root, System = esxi01 (10.10.0.11), Password = NovaCrest$ESXi2026!. Do not rely on memory. The password is only useful if you can retrieve it — and when you need the ESXi root password at 3 AM during a crisis, you will not be in a state to remember it.
+  </div>
+</div>
+
+<!-- ══════ 13 INSTALL S5 ══════ -->
+<div class="page" id="page-install-s5">
+  <div class="ey">VMware Series · ESXi-01 · Section 13</div>
+  <div class="pt">ESXi installer — Screen 6: Confirmation</div>
+  <div class="ps">The final screen before installation begins — the point of no return</div>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">Confirm Install</div>
+      <div class="esxi-warn-box" style="margin-top:12px;">
+        ⚠  Warning: Installing VMware ESXi will PERMANENTLY DESTROY the data on the disk selected. This operation cannot be undone.<br/><br/>
+        The following disk will be repartitioned:<br/>
+        HPE MR416i-p · Logical Volume 0 · 960.00 GB
+      </div>
+      <div class="esxi-text" style="margin-top:12px;">ESXi 8.0.3 will be installed on the selected disk and the disk will be repartitioned. To continue with the installation, press F11.</div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[F11]</span>Install</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <p>This is the last chance to cancel. The warning tells you that the selected disk will be wiped and repartitioned — all existing data on that disk is lost permanently. Verify that the disk shown is the M.2 RAID-1 logical volume (not a vSAN disk). If it is correct, press <strong>F11</strong> to begin the installation.</p>
+</div>
+
+<!-- ══════ 14 INSTALL S6 ══════ -->
+<div class="page" id="page-install-s6">
+  <div class="ey">VMware Series · ESXi-01 · Section 14</div>
+  <div class="pt">ESXi installer — Installation in progress</div>
+  <div class="ps">Watching the installation progress bar — what is happening behind the scenes</div>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — VMware ESXi 8.0 Installer</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-title">Installing VMware ESXi 8.0.3</div>
+      <div class="esxi-text" style="margin-top:14px;color:#8098b0;">Please wait while ESXi is installed. This may take several minutes.</div>
+      <div class="esxi-progress" style="margin-top:20px;">
+        <div class="esxi-progress-label">Partitioning disk...</div>
+        <div class="esxi-progress-bar">
+          <div class="esxi-progress-fill" style="width:35%;">35%</div>
+        </div>
+      </div>
+      <div class="esxi-progress" style="margin-top:14px;">
+        <div class="esxi-progress-label">Overall progress</div>
+        <div class="esxi-progress-bar">
+          <div class="esxi-progress-fill" style="width:22%;">22%</div>
+        </div>
+      </div>
+      <div class="esxi-text" style="margin-top:14px;color:#8098b0;font-size:11.5px;">
+        The installer is copying VMkernel, ESX system files, and HPE-specific drivers to the disk. Current operation: writing partition table...
+      </div>
+    </div>
+  </div>
+
+  <h2>What happens during installation — step by step</h2>
+  <p>The progress bar moves through these operations in sequence. You do not need to do anything — just watch:</p>
+  <ol>
+    <li><strong>Partitioning disk</strong> — ESXi creates its partition layout on the M.2 RAID volume. ESXi uses a specific partition structure: a small EFI partition, a boot bank, a second boot bank (for upgrade rollback), a scratch partition, and a large VMFS datastore for VMs.</li>
+    <li><strong>Installing VMkernel</strong> — The ESXi kernel (VMkernel) is written to the boot partitions. This is the core of ESXi.</li>
+    <li><strong>Installing system files</strong> — ESXi's management agents, configuration tools, and the HPE-specific drivers from the custom image are written to disk.</li>
+    <li><strong>Configuring boot loader</strong> — The disk's boot record is configured to load ESXi on startup.</li>
+  </ol>
+  <p>Total installation time: approximately <strong>5–10 minutes</strong> when streaming from the iLO virtual media. It is slower than a local USB install because the data transfers over the network from your laptop. Do not close the iLO browser tab during this process.</p>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>While the installer is running on esxi01, you could open a second iLO browser tab for esxi02 (https://10.40.0.32), launch its remote console, mount the same ISO, and reboot esxi02 into the installer. The installations can run in parallel across all five hosts, significantly reducing the total installation time. Just ensure you have five separate browser tabs or windows open — one per host.</span></div>
+</div>
+
+<!-- ══════ 15 INSTALL S7 ══════ -->
+<div class="page" id="page-install-s7">
+  <div class="ey">VMware Series · ESXi-01 · Section 15</div>
+  <div class="pt">Installation complete — the reboot and DCUI</div>
+  <div class="ps">What you see when the installer finishes — and what the DCUI is</div>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">iLO Remote Console — esxi01 — Installation complete</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">VMware ESXi 8.0.3 Installation</div>
+    </div>
+    <div class="esxi-content">
+      <div class="esxi-ok-box" style="margin:16px 0;">
+        ✓  VMware ESXi 8.0.3 installation complete.
+      </div>
+      <div class="esxi-text">ESXi has been successfully installed on the selected disk.</div>
+      <div class="esxi-text" style="margin-top:10px;">Please remove the installation CD/DVD before restarting the server.</div>
+      <div class="esxi-warn-box" style="margin-top:12px;">
+        The system will reboot in: 10 seconds
+      </div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>Reboot Now</div>
+    </div>
+  </div>
+
+  <h2>What to do at this screen</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Disconnect the virtual media FIRST</div>
+        <p style="font-size:13.5px">Before letting the server reboot, disconnect the virtual media — otherwise the server may boot from the ISO again and restart the installer. In the remote console toolbar, click the <strong>Virtual Media</strong> icon → <strong>CD/DVD</strong> → <strong>Disconnect</strong>. You will see the Connected indicator change to Disconnected.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Press Enter to reboot immediately</div>
+        <p style="font-size:13.5px">Press <strong>Enter</strong> to reboot immediately (or wait 10 seconds for the automatic reboot). The server reboots, goes through HP POST again, and this time boots from the M.2 RAID disk (which now contains ESXi). The boot takes approximately 60–90 seconds.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">The DCUI appears — what it looks like</div>
+        <p style="font-size:13.5px">After ESXi boots, the remote console displays the DCUI (Direct Console User Interface). This is a blue-and-grey text interface — not a graphical desktop, not a command line — a structured menu system designed for initial ESXi configuration without a network connection.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="dcui">
+    <div class="dcui-bar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="dcui-label">iLO Remote Console — esxi01 — ESXi DCUI (first boot)</span>
+    </div>
+    <div class="dcui-body">
+      <div class="dcui-logo">VMware ESXi 8.0.3 (VMKernel Release Build 24022510)</div>
+      <div style="margin:6px 0;color:#8098b0;font-size:12px;">HPE ProLiant DL380 Gen11   ·   2× Intel Xeon Gold 6442Y   ·   512 GB RAM</div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:10px 0;"/>
+      <div style="color:#a0c0e0;font-size:12.5px;margin-bottom:10px;">Download tools to manage this host from:</div>
+      <div style="color:#c0d0e0;font-size:12px;margin-bottom:10px;">https://&lt;IP address&gt;/ui or https://&lt;IP address&gt;/sdk</div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:10px 0;"/>
+      <div class="dcui-item">
+        <div class="dcui-item-label">IP Address:</div>
+        <div class="dcui-item-val" style="color:#d4a331;">Not configured (DHCP failed)</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Hostname:</div>
+        <div class="dcui-item-val" style="color:#d4a331;">localhost.localdomain</div>
+      </div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:12px 0;"/>
+      <div class="dcui-item sel">
+        <div class="dcui-item-label">F2  Customize System / View Logs</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">F12  Shut Down / Restart</div>
+        <div class="dcui-item-val"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-ann warn"><span class="sai">!</span><span>The DCUI shows "Not configured" for the IP address — this is expected. ESXi tried DHCP on boot but there is no DHCP server on VLAN 10 yet (the Windows DC that will serve DHCP is a VM that does not exist yet). In the next section you configure a static IP. Press F2 to enter the configuration menu.</span></div>
+</div>
+
+<!-- ══════ 16 DCUI NETWORK ══════ -->
+<div class="page" id="page-dcui-network">
+  <div class="ey">VMware Series · ESXi-01 · Section 16</div>
+  <div class="pt">DCUI — Configure Management Network</div>
+  <div class="ps">Pressing F2 to enter the DCUI configuration menu — setting up the management network so the host is reachable over the network</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Press F2 — you are prompted for the root password</div>
+        <p style="font-size:13.5px">Press <strong>F2</strong> on your keyboard. A small authentication dialog appears in the centre of the DCUI screen, asking for the root password. Type <code>NovaCrest$ESXi2026!</code> and press <strong>Enter</strong>. The main DCUI configuration menu appears.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">The System Customization menu — what you see</div>
+        <p style="font-size:13.5px">A menu appears with several options. Use the <strong>↑ and ↓ arrow keys</strong> to navigate. The options include: Configure Management Network, Restart Management Network, Test Management Network, Network Restore Options, Configure Keyboard, Troubleshooting Options, View System Logs, View Support Information, Reset System Configuration. Navigate to <strong>Configure Management Network</strong> and press <strong>Enter</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="dcui">
+    <div class="dcui-bar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="dcui-label">DCUI — System Customization menu</span>
+    </div>
+    <div class="dcui-body">
+      <div class="dcui-logo" style="font-size:12px;">System Customization</div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:8px 0;"/>
+      <div class="dcui-item sel">
+        <div class="dcui-item-label">Configure Management Network</div>
+        <div class="dcui-item-val">→</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Restart Management Network</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Test Management Network</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Network Restore Options</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Configure Keyboard</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Troubleshooting Options</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">View System Logs</div>
+        <div class="dcui-item-val"></div>
+      </div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:8px 0;"/>
+      <div style="font-size:11px;color:#4a6a8a;">[↑↓] Navigate  [Enter] Select  [Esc] Log Out</div>
+    </div>
+  </div>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>Press Enter on "Configure Management Network" to open the network configuration sub-menu. This is where you set the NIC, VLAN, IP address, gateway, hostname, and DNS server.</span></div>
+</div>
+
+<!-- ══════ 17 DCUI VLAN ══════ -->
+<div class="page" id="page-dcui-vlan">
+  <div class="ey">VMware Series · ESXi-01 · Section 17</div>
+  <div class="pt">DCUI — Network Adapters and VLAN ID</div>
+  <div class="ps">Selecting the correct NIC and tagging the management VLAN — the two settings that determine whether the host ever becomes reachable</div>
+
+  <h2>Inside "Configure Management Network" — the sub-menu</h2>
+  <p>The Configure Management Network sub-menu has several items. You will configure three of them in this and the following section: <strong>Network Adapters</strong>, <strong>VLAN (optional)</strong>, and <strong>IPv4 Configuration</strong>.</p>
+
+  <div class="dcui">
+    <div class="dcui-bar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="dcui-label">DCUI — Configure Management Network</span>
+    </div>
+    <div class="dcui-body">
+      <div class="dcui-logo" style="font-size:12px;">Configure Management Network</div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:8px 0;"/>
+      <div class="dcui-item sel">
+        <div class="dcui-item-label">Network Adapters</div>
+        <div class="dcui-item-val">vmnic0</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">VLAN (optional)</div>
+        <div class="dcui-item-val" style="color:#d4a331;">None</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">IPv4 Configuration</div>
+        <div class="dcui-item-val" style="color:#d4a331;">DHCP, no address</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">IPv6 Configuration</div>
+        <div class="dcui-item-val">Disabled</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">DNS Configuration</div>
+        <div class="dcui-item-val" style="color:#d4a331;">DHCP, not set</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Custom DNS Suffixes</div>
+        <div class="dcui-item-val">None</div>
+      </div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:8px 0;"/>
+      <div style="font-size:11px;color:#4a6a8a;">[↑↓] Navigate  [Enter] Select  [Esc] Cancel — Apply changes</div>
+    </div>
+  </div>
+
+  <h2>Step 1: Network Adapters — confirm vmnic0 is selected</h2>
+  <p>Navigate to <strong>Network Adapters</strong> and press <strong>Enter</strong>. A list of physical NICs appears, showing each vmnic with its MAC address and link speed. vmnic0 should already be selected (indicated by a checkbox or asterisk). Confirm vmnic0 is ticked. If it is not, use the spacebar to select it. Press <strong>Enter</strong> to confirm and go back to the previous menu.</p>
+  <p>At this stage, do NOT select vmnic1 as a second management NIC. vSwitch0 will later be migrated to the vDS where LACP will be configured. Adding vmnic1 here via the DCUI creates a standard vSwitch team — which is not what we want. Leave management on vmnic0 only for now.</p>
+
+  <h2>Step 2: VLAN — set VLAN ID 10</h2>
+  <p>Navigate to <strong>VLAN (optional)</strong> and press <strong>Enter</strong>. A text input box appears asking for a VLAN ID. Type <code>10</code> and press <strong>Enter</strong>.</p>
+
+  <div class="callout">
+    <div class="cl">Why VLAN 10 must be set here — this is the most common ESXi installation mistake</div>
+    The Cisco leaf switch port (Po101 on leaf01) is configured as a <strong>trunk port</strong> — not an access port. This means the switch expects frames arriving from ESXi to carry an 802.1Q VLAN tag. If you do not set VLAN 10 in the DCUI, ESXi sends untagged frames, which arrive at the switch on the native VLAN (VLAN 1) — not VLAN 10. The switch does not deliver these to the VLAN 10 subnet (10.10.0.0/24), so the host is unreachable even though the cable is plugged in and the link light is on. Setting VLAN 10 in the DCUI causes ESXi to tag all management traffic with VLAN 10, which the switch correctly routes to the 10.10.0.1 gateway.
+  </div>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>After setting VLAN 10, the VLAN line in the Configure Management Network menu now shows "10" instead of "None". Proceed to IPv4 Configuration to set the static IP address.</span></div>
+</div>
+
+<!-- ══════ 18 DCUI IP ══════ -->
+<div class="page" id="page-dcui-ip">
+  <div class="ey">VMware Series · ESXi-01 · Section 18</div>
+  <div class="pt">DCUI — IPv4 Configuration — static IP, subnet, gateway</div>
+  <div class="ps">Setting a permanent static IP address — the address vCenter, monitoring tools, and administrators will use to reach this host forever</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Navigate to IPv4 Configuration and press Enter</div>
+        <p style="font-size:13.5px">In the Configure Management Network menu, navigate to <strong>IPv4 Configuration</strong> and press <strong>Enter</strong>. The IPv4 Configuration screen appears.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">DCUI — IPv4 Configuration (esxi01)</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">Configure Management Network — IPv4 Configuration</div>
+    </div>
+    <div class="esxi-content">
+      <div style="margin-top:10px;">
+        <div class="esxi-item" style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+          <div style="width:12px;height:12px;border:2px solid #4da8da;border-radius:2px;flex-shrink:0;"></div>
+          <div style="color:#8098b0;">Use dynamic IP address and network configuration (DHCP)</div>
+        </div>
+        <div class="esxi-item selected" style="display:flex;align-items:center;gap:10px;padding:6px 12px;margin-top:4px;">
+          <div style="width:12px;height:12px;border:2px solid #4da8da;border-radius:2px;background:#4da8da;flex-shrink:0;"></div>
+          <div>Set static IP address and network configuration</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">IP Address:</div>
+          <div class="esxi-input-field">10.10.0.11</div>
+        </div>
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Subnet Mask:</div>
+          <div class="esxi-input-field">255.255.255.0</div>
+        </div>
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Default Gateway:</div>
+          <div class="esxi-input-field">10.10.0.1</div>
+        </div>
+      </div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>OK</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <h2>What to type — esxi01</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Select "Set static IP address and network configuration"</div>
+        <p style="font-size:13.5px">Use the <strong>↑ and ↓ arrow keys</strong> to highlight the second radio button option: <strong>"Set static IP address and network configuration"</strong>. Press <strong>Space</strong> to select it (or it may already be selected if DHCP failed). The three input fields below it become active.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Fill in the IP address fields</div>
+        <p style="font-size:13.5px">Press <strong>Tab</strong> to move to the first field (IP Address). The existing content (0.0.0.0 or any failed DHCP address) is selected — just type the new value to replace it. Use Tab to move between fields.</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>IP Address:       <strong style="color:var(--accent);">10.10.0.11</strong></div>
+          <div style="margin-top:4px;">Subnet Mask:      <strong style="color:var(--accent);">255.255.255.0</strong></div>
+          <div style="margin-top:4px;">Default Gateway:  <strong style="color:var(--accent);">10.10.0.1</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">The default gateway 10.10.0.1 is the leaf01 SVI for VLAN 10 — configured in the Cisco guides. This is the router that esxi01 will use to reach any address outside the 10.10.0.0/24 subnet.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Press Enter to confirm</div>
+        <p style="font-size:13.5px">Press <strong>Enter</strong>. You are returned to the Configure Management Network sub-menu. The IPv4 Configuration line now shows <code>10.10.0.11 / 255.255.255.0</code>.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 19 DCUI HOSTNAME ══════ -->
+<div class="page" id="page-dcui-hostname">
+  <div class="ey">VMware Series · ESXi-01 · Section 19</div>
+  <div class="pt">DCUI — Hostname, DNS suffix, and DNS server</div>
+  <div class="ps">Setting the hostname and DNS configuration — the identity the host presents to the network</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Navigate to DNS Configuration and press Enter</div>
+        <p style="font-size:13.5px">In the Configure Management Network menu, navigate to <strong>DNS Configuration</strong> and press <strong>Enter</strong>. The DNS Configuration screen appears.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="esxi-screen">
+    <div class="esxi-titlebar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="esxi-label">DCUI — DNS Configuration (esxi01)</span>
+    </div>
+    <div class="esxi-header">
+      <div class="esxi-header-logo">Configure Management Network — DNS Configuration</div>
+    </div>
+    <div class="esxi-content">
+      <div style="margin-top:10px;">
+        <div class="esxi-item selected" style="display:flex;align-items:center;gap:10px;padding:6px 12px;">
+          <div style="width:12px;height:12px;border:2px solid #4da8da;border-radius:2px;background:#4da8da;flex-shrink:0;"></div>
+          <div>Use the following DNS server addresses and hostname:</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Primary DNS Server:</div>
+          <div class="esxi-input-field">10.70.0.10</div>
+        </div>
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Alternate DNS Server:</div>
+          <div class="esxi-input-field">10.70.0.11</div>
+        </div>
+        <div class="esxi-input-row">
+          <div class="esxi-input-label">Hostname:</div>
+          <div class="esxi-input-field">esxi01</div>
+        </div>
+      </div>
+    </div>
+    <div class="esxi-buttons">
+      <div class="esxi-btn primary"><span class="esxi-btn-key">[Enter]</span>OK</div>
+      <div class="esxi-btn"><span class="esxi-btn-key">[Esc]</span>Cancel</div>
+    </div>
+  </div>
+
+  <h2>What to type</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Primary DNS Server:    <strong style="color:var(--accent);">10.70.0.10</strong>  (dc01 — not built yet, set it anyway)</div>
+    <div style="margin-top:4px;">Alternate DNS Server:  <strong style="color:var(--accent);">10.70.0.11</strong>  (dc02)</div>
+    <div style="margin-top:4px;">Hostname:              <strong style="color:var(--accent);">esxi01</strong></div>
+  </div>
+
+  <p style="margin-top:12px;">Press <strong>Enter</strong> to confirm. Then navigate back to the Configure Management Network menu and also check <strong>Custom DNS Suffixes</strong> — type <code>novacrestbank.local</code> and press Enter. This tells ESXi that when it resolves a short name like <code>vcenter</code>, it should try <code>vcenter.novacrestbank.local</code>.</p>
+</div>
+
+<!-- ══════ 20 DCUI APPLY ══════ -->
+<div class="page" id="page-dcui-apply">
+  <div class="ey">VMware Series · ESXi-01 · Section 20</div>
+  <div class="pt">Apply settings and test connectivity</div>
+  <div class="ps">Pressing Escape to apply all settings — and then testing that the host is reachable from the network</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Press Escape from the Configure Management Network menu</div>
+        <p style="font-size:13.5px">When you are in the Configure Management Network sub-menu (showing Network Adapters, VLAN, IPv4 Configuration, DNS Configuration), press <strong>Escape</strong>. A confirmation dialog appears asking: <strong>"Apply changes and restart management network?"</strong> with options <strong>Yes</strong> and <strong>No</strong>. Press <strong>Y</strong> or navigate to <strong>Yes</strong> and press Enter.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">The management network restarts</div>
+        <p style="font-size:13.5px">The DCUI briefly shows a message: <strong>"Applying changes..."</strong> and then the management network service restarts. After a few seconds, the main DCUI screen returns — and this time the IP address at the top now shows <code>10.10.0.11</code> and the hostname shows <code>esxi01.novacrestbank.local</code>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Test the network configuration using DCUI Test Management Network</div>
+        <p style="font-size:13.5px">From the main DCUI screen press <strong>F2</strong> again, authenticate with root password, and navigate to <strong>Test Management Network</strong>. Press Enter. The test menu appears with three tests:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:var(--bg3);">
+          <div>Ping 10.10.0.1  (default gateway — leaf01 SVI)   → <strong style="color:#1a5c8f;">10.10.0.1: OK</strong></div>
+          <div style="margin-top:4px;">Ping 10.70.0.10 (primary DNS server — dc01)    → <strong style="color:#d4a331;">Request timeout</strong> (expected — DC not built)</div>
+          <div style="margin-top:4px;">Resolve esxi01.novacrestbank.local              → <strong style="color:#d4a331;">Cannot resolve</strong> (expected — no DNS yet)</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">The most important result is the <strong>ping to 10.10.0.1 (the gateway) succeeding</strong>. This proves the VLAN tagging is correct, the IP is correctly assigned, and the path through the leaf switch is working. The DNS timeout is expected — there is no DNS server yet. Press <strong>Escape</strong> to close the test results.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="dcui">
+    <div class="dcui-bar">
+      <div class="esxi-dot r"></div><div class="esxi-dot y"></div><div class="esxi-dot g"></div>
+      <span class="dcui-label">DCUI — esxi01 — Network configured successfully</span>
+    </div>
+    <div class="dcui-body">
+      <div class="dcui-logo">VMware ESXi 8.0.3 (VMKernel Release Build 24022510)</div>
+      <div style="margin:6px 0;color:#8098b0;font-size:12px;">HPE ProLiant DL380 Gen11   ·   2× Intel Xeon Gold 6442Y   ·   512 GB RAM</div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:10px 0;"/>
+      <div style="color:#a0c0e0;font-size:12.5px;margin-bottom:10px;">To manage this host go to:</div>
+      <div style="color:#4da8da;font-size:13px;margin-bottom:10px;font-weight:600;">https://10.10.0.11/ui</div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:10px 0;"/>
+      <div class="dcui-item">
+        <div class="dcui-item-label">IP Address:</div>
+        <div class="dcui-item-val" style="color:#5ccb6f;">10.10.0.11 (static)</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">Hostname:</div>
+        <div class="dcui-item-val" style="color:#5ccb6f;">esxi01.novacrestbank.local</div>
+      </div>
+      <hr style="border:none;border-top:1px solid #2a4060;margin:12px 0;"/>
+      <div class="dcui-item sel">
+        <div class="dcui-item-label">F2  Customize System / View Logs</div>
+      </div>
+      <div class="dcui-item">
+        <div class="dcui-item-label">F12  Shut Down / Restart</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>esxi01 now shows IP 10.10.0.11 and hostname esxi01.novacrestbank.local. The gateway ping succeeded. The host is reachable from the network. The next step is opening the ESXi Host Client in a browser — which you can now do from any machine on the 10.10.0.0/24 network, including via SSH from the jump host.</span></div>
+</div>
+
+<!-- ══════ 21 BROWSER LOGIN ══════ -->
+<div class="page" id="page-browser-login">
+  <div class="ey">VMware Series · ESXi-01 · Section 21</div>
+  <div class="pt">Logging into the ESXi Host Client — the browser-based management interface</div>
+  <div class="ps">The ESXi Host Client is a full-featured web UI built into every ESXi host — used for initial configuration before vCenter is deployed</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open a new browser tab and go to https://10.10.0.11</div>
+        <p style="font-size:13.5px">Open a new tab in Chrome. Type <code>https://10.10.0.11</code> in the address bar and press Enter. A certificate warning appears — same as iLO. Click <strong>Advanced</strong> → <strong>Proceed to 10.10.0.11 (unsafe)</strong>. This self-signed certificate warning will be resolved later when you replace vCenter and host certificates with AD CS-signed ones.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">The ESXi Host Client login screen appears</div>
+        <p style="font-size:13.5px">A VMware-branded login page appears with the heading <strong>"VMware ESXi"</strong> and two fields: <strong>User name</strong> and <strong>Password</strong>. Type:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>User name: <strong style="color:var(--accent);">root</strong></div>
+          <div style="margin-top:4px;">Password:  <strong style="color:var(--accent);">NovaCrest$ESXi2026!</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click the <strong>Log In</strong> button.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">The ESXi Host Client dashboard appears</div>
+        <p style="font-size:13.5px">A dark-themed interface loads with a left sidebar showing: Host, Virtual Machines, Storage, Networking, and other sections. The main area shows a dashboard with the host's CPU, memory, and storage usage (all near zero since no VMs are running). At the top you see the hostname <strong>esxi01.novacrestbank.local</strong>. This confirms you are logged into the correct host.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout vmware">
+    <div class="cl">ESXi Host Client vs vCenter — when to use each</div>
+    The ESXi Host Client (https://IP/ui) is for managing a single host directly — without vCenter. You use it now because vCenter does not exist yet. Once vCenter is deployed, all normal operations (creating VMs, configuring networks, monitoring) are done through vCenter instead. The Host Client becomes a break-glass tool: used only when vCenter is unavailable or you need to manage a host independently of the cluster.
+  </div>
+</div>
+
+<!-- ══════ 22 BROWSER NTP ══════ -->
+<div class="page" id="page-browser-ntp">
+  <div class="ey">VMware Series · ESXi-01 · Section 22</div>
+  <div class="pt">Configure NTP in the Host Client</div>
+  <div class="ps">Setting the NTP server so the host has accurate time — required for certificates, vSAN, and log correlation</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In the left sidebar, click "Host"</div>
+        <p style="font-size:13.5px">In the left sidebar of the ESXi Host Client, click <strong>Host</strong>. The main panel shows the host overview. In the top-right area of the host panel, click <strong>Manage</strong>. The Manage section opens with tabs: Services, Hardware, Packages, Security &amp; Users, System, and others.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click the "System" tab → Time &amp; Date</div>
+        <p style="font-size:13.5px">Click the <strong>System</strong> tab in the Manage section. In the left list within System, click <strong>Time &amp; Date</strong>. The Time &amp; Date page shows the current system time and NTP configuration.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Click "Edit NTP Settings"</div>
+        <p style="font-size:13.5px">Click the blue <strong>Edit NTP Settings</strong> button. A dialog box opens with the title <strong>Edit NTP Settings</strong>. It has a dropdown for NTP service startup policy and a text field for NTP servers.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Configure NTP settings</div>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div style="margin-bottom:8px;"><strong>NTP service startup policy:</strong> Select <strong>"Start and stop with host"</strong> from the dropdown — this ensures NTP starts automatically every time the host boots.</div>
+          <div><strong>NTP Servers:</strong> Delete any existing content and type:<br/>
+          <code style="display:block;margin-top:6px;">10.70.0.10</code>
+          <p style="font-size:12.5px;margin-top:6px;color:var(--text2);">This is dc01 — the Windows Domain Controller that will serve as NTP stratum 2. It does not exist yet, but entering the IP now means the host will sync automatically the moment dc01 is built. For now, ESXi's NTP client will try and fail gracefully (no error — just no sync until dc01 is available). As a temporary measure, you can also add a public NTP server: <code>216.239.35.0</code> on a second line — ESXi will sync to whichever responds first.</p>
+          </div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Save</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Start the NTP service</div>
+        <p style="font-size:13.5px">After saving NTP settings, you are returned to the Time &amp; Date page. You will see the NTP service listed as <strong>Stopped</strong>. Click the <strong>Actions</strong> button next to the ntpd service and select <strong>Start</strong>. The service status changes to <strong>Running</strong>. The NTP client is now active and will sync when the NTP server is reachable.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 23 BROWSER SSH ══════ -->
+<div class="page" id="page-browser-ssh">
+  <div class="ey">VMware Series · ESXi-01 · Section 23</div>
+  <div class="pt">Enable SSH in the Host Client</div>
+  <div class="ps">Turning on SSH access so the VMware team and automation tools can connect directly to the ESXi command line when needed</div>
+
+  <div class="callout warn">
+    <div class="cl">SSH on ESXi — enable it but understand the security trade-off</div>
+    ESXi SSH is disabled by default for security — ESXi's attack surface is minimised when SSH is off. In a production environment, SSH should only be enabled when actively needed and disabled afterwards. For NovaCrestBank's initial build phase, SSH is enabled on all hosts because it is needed for vSphere setup, vSAN configuration, and troubleshooting. After go-live, a vCenter policy (via Host Profile) should enforce SSH=disabled unless explicitly overridden for a specific maintenance task.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In Host → Manage → Services, find "SSH"</div>
+        <p style="font-size:13.5px">Click <strong>Host</strong> in the left sidebar, then <strong>Manage</strong>, then the <strong>Services</strong> tab. A list of ESXi services appears. Scroll down to find <strong>SSH</strong> (it may be labelled as <strong>TSM-SSH</strong>). The Status shows <strong>Stopped</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Right-click SSH → Start</div>
+        <p style="font-size:13.5px">Right-click the <strong>SSH</strong> row. A context menu appears with options: <strong>Start</strong>, <strong>Stop</strong>, <strong>Restart</strong>, <strong>Policy</strong>. Click <strong>Start</strong>. The SSH service status changes to <strong>Running</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Change startup policy to "Start and stop with host"</div>
+        <p style="font-size:13.5px">Right-click <strong>SSH</strong> again → <strong>Policy</strong> → Select <strong>"Start and stop with host"</strong>. This ensures SSH survives a host reboot — important during the build phase when frequent reboots may occur for maintenance.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Test SSH from the jump host</div>
+        <p style="font-size:13.5px">Open a terminal on the jump host and run:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:var(--bg3);">
+          ssh root@10.10.0.11
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Accept the SSH host key fingerprint (type <code>yes</code> when prompted). Enter the root password <code>NovaCrest$ESXi2026!</code>. You should see the ESXi shell prompt: <code>[root@esxi01:~]</code></p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 24 VERIFY ══════ -->
+<div class="page" id="page-browser-timecheck">
+  <div class="ey">VMware Series · ESXi-01 · Section 24</div>
+  <div class="pt">Verify time, NTP, and network connectivity</div>
+  <div class="ps">A quick set of checks confirming esxi01 is ready — before repeating the process for esxi02 through esxi05</div>
+
+  <div class="card">
+    <h3>Verification checklist — esxi01</h3>
+    <div class="spec-row"><span class="spec-label">ESXi Host Client accessible</span><span class="spec-val badge bg">✓ https://10.10.0.11/ui loads and shows esxi01</span></div>
+    <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val badge bg">✓ 10.10.0.11 — confirmed in DCUI and Host Client</span></div>
+    <div class="spec-row"><span class="spec-label">Hostname</span><span class="spec-val badge bg">✓ esxi01.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Default gateway ping</span><span class="spec-val badge bg">✓ 10.10.0.1 responds from DCUI test</span></div>
+    <div class="spec-row"><span class="spec-label">VLAN 10 tagged</span><span class="spec-val badge bg">✓ Set to VLAN 10 in DCUI</span></div>
+    <div class="spec-row"><span class="spec-label">NTP service</span><span class="spec-val badge bg">✓ Running, policy: start with host</span></div>
+    <div class="spec-row"><span class="spec-label">SSH service</span><span class="spec-val badge bg">✓ Running, policy: start with host</span></div>
+    <div class="spec-row"><span class="spec-label">SSH from jump host</span><span class="spec-val badge bg">✓ root@10.10.0.11 connects successfully</span></div>
+    <div class="spec-row"><span class="spec-label">ESXi version</span><span class="spec-val">ESXi 8.0.3 Build 24022510 — HPE Custom Image</span></div>
+    <div class="spec-row"><span class="spec-label">CyberArk entry created</span><span class="spec-val badge ba">⚠ Do before moving to esxi02</span></div>
+  </div>
+</div>
+
+<!-- ══════ 25 ALL HOSTS ══════ -->
+<div class="page" id="page-all-hosts">
+  <div class="ey">VMware Series · ESXi-01 · Section 25</div>
+  <div class="pt">Hosts 2–5 — what changes per host</div>
+  <div class="ps">The complete process from Sections 05–24 is repeated for each host. Only these values change.</div>
+
+  <div class="callout vmware">
+    <div class="cl">Parallel installation — save time by running all 5 simultaneously</div>
+    Open five Chrome windows — one per iLO tab. Mount the ISO on all five hosts first, then reboot all five simultaneously. All five will go through POST and reach the F11 boot menu within seconds of each other. Run through each installer screen on each host — the installations take roughly the same time, so you can progress all five in parallel. When all five show the installation progress bar, switch between them and confirm they are all progressing. This turns a 50-minute sequential install into a 10-minute parallel one.
+  </div>
+
+  <table>
+    <thead><tr><th>Value</th><th>esxi01</th><th>esxi02</th><th>esxi03</th><th>esxi04</th><th>esxi05</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>iLO IP</strong></td>
+        <td>10.40.0.31</td><td>10.40.0.32</td><td>10.40.0.33</td><td>10.40.0.34</td><td>10.40.0.35</td>
+      </tr>
+      <tr>
+        <td><strong>ESXi mgmt IP</strong></td>
+        <td>10.10.0.11</td><td>10.10.0.12</td><td>10.10.0.13</td><td>10.10.0.14</td><td>10.10.0.15</td>
+      </tr>
+      <tr>
+        <td><strong>Hostname (short)</strong></td>
+        <td>esxi01</td><td>esxi02</td><td>esxi03</td><td>esxi04</td><td>esxi05</td>
+      </tr>
+      <tr>
+        <td><strong>Default gateway</strong></td>
+        <td>10.10.0.1</td><td>10.10.0.1</td><td>10.10.0.1</td><td>10.10.0.1</td><td>10.10.0.3</td>
+      </tr>
+      <tr>
+        <td><strong>VLAN in DCUI</strong></td>
+        <td>10</td><td>10</td><td>10</td><td>10</td><td>10</td>
+      </tr>
+      <tr>
+        <td><strong>Management NIC</strong></td>
+        <td>vmnic0</td><td>vmnic0</td><td>vmnic0</td><td>vmnic0</td><td>vmnic0</td>
+      </tr>
+      <tr>
+        <td><strong>Root password</strong></td>
+        <td colspan="5">NovaCrest$ESXi2026! (same on all — stored in CyberArk per host)</td>
+      </tr>
+      <tr>
+        <td><strong>DNS servers</strong></td>
+        <td colspan="5">10.70.0.10 (primary), 10.70.0.11 (secondary) — same on all</td>
+      </tr>
+      <tr>
+        <td><strong>DNS suffix</strong></td>
+        <td colspan="5">novacrestbank.local — same on all</td>
+      </tr>
+      <tr>
+        <td><strong>Install disk</strong></td>
+        <td colspan="5">HPE MR controller Logical Volume (M.2 RAID-1) — same selection on all</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="cl">esxi05 uses a different gateway — 10.10.0.3</div>
+    esxi05 connects only to leaf03 (Rack 3). The leaf03 VLAN 10 SVI is 10.10.0.3 — not 10.10.0.1 (leaf01). When configuring esxi05's DCUI, the Default Gateway must be <strong>10.10.0.3</strong>. Using 10.10.0.1 for esxi05 would fail because esxi05's traffic exits via leaf03, which routes to its own SVI (10.10.0.3) — not leaf01's SVI. Everything else about esxi05's configuration is identical to the other hosts.
+  </div>
+</div>
+
+<!-- ══════ 26 VERIFY ALL ══════ -->
+<div class="page" id="page-verify-all">
+  <div class="ey">VMware Series · ESXi-01 · Section 26</div>
+  <div class="pt">Verify all 5 hosts ready for vCenter deployment</div>
+  <div class="ps">The final checklist before moving to the vCenter deployment guide — confirming every host is reachable and correctly configured</div>
+
+  <div class="callout success">
+    <div class="cl">Run this verification from the jump host before opening the vCenter installer</div>
+    vCenter's deployment wizard discovers and connects to ESXi hosts during deployment. If any host is not reachable, incorrectly configured, or has a hostname mismatch, the vCenter deployment will fail partway through — which is difficult to recover from. These checks take 5 minutes and prevent that scenario.
+  </div>
+
+  <h2>Jump host verification — all 5 hosts at once</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
+    <div style="color:var(--text2);margin-bottom:8px;"># Ping all 5 ESXi management IPs</div>
+    <div>for ip in 10.10.0.11 10.10.0.12 10.10.0.13 10.10.0.14 10.10.0.15; do</div>
+    <div style="padding-left:16px;">ping -c 2 -W 2 $ip > /dev/null && echo "$ip — REACHABLE" || echo "$ip — FAIL"</div>
+    <div>done</div>
+    <div style="margin-top:12px;color:var(--accent2);">10.10.0.11 — REACHABLE</div>
+    <div style="color:var(--accent2);">10.10.0.12 — REACHABLE</div>
+    <div style="color:var(--accent2);">10.10.0.13 — REACHABLE</div>
+    <div style="color:var(--accent2);">10.10.0.14 — REACHABLE</div>
+    <div style="color:var(--accent2);">10.10.0.15 — REACHABLE</div>
+  </div>
+
+  <h2>Final state — all 5 hosts post-installation</h2>
+  <table>
+    <thead><tr><th>Host</th><th>IP</th><th>Gateway ping</th><th>Host Client</th><th>SSH</th><th>NTP</th><th>Ready</th></tr></thead>
+    <tbody>
+      <tr><td>esxi01</td><td>10.10.0.11</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓ running</span></td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>esxi02</td><td>10.10.0.12</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓ running</span></td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>esxi03</td><td>10.10.0.13</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓ running</span></td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>esxi04</td><td>10.10.0.14</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓ running</span></td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>esxi05</td><td>10.10.0.15</td><td><span class="badge bg">✓ via .3</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓ running</span></td><td><span class="badge bg">✓</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <div class="cl">ESXi-01 complete — all 5 hosts installed and ready</div>
+    All five HP ProLiant DL380 Gen11 hosts are running VMware ESXi 8.0.3. Each host has a static management IP on VLAN 10, a correctly configured hostname, SSH enabled, and NTP configured. The ESXi Host Client is accessible from the network for each host. The foundation for the entire NovaCrestBank virtualisation platform is in place. The next guide deploys vCenter Server Appliance (VCSA) onto esxi01.
+  </div>
+
+  <h2>What comes next — vSphere-01: vCenter deployment</h2>
+  <p>The next guide deploys the VMware vCenter Server Appliance (VCSA) — the management plane for the entire vSphere cluster. vCenter is deployed as a pre-built virtual appliance (OVA) directly onto esxi01 using the VCSA installer application that runs on your laptop. The installer communicates with esxi01's API, uploads the appliance, powers it on, and runs a two-stage configuration wizard. Every screen of that wizard is covered in the same depth as this guide.</p>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--accent)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

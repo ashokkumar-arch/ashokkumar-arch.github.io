@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cisco Fabric Guide 2 — NX-OS First Boot · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f8f7f4;--bg2:#ffffff;--bg3:#f1f0eb;
+    --text:#1a1a18;--text2:#5a5955;--text3:#8a8880;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --accent:#1a6b3c;--accent2:#0f4f8c;
+    --blue:#185fa5;--green:#0f6e56;--amber:#ba7517;
+    --red:#a32d2d;--purple:#534ab7;
+    --r:10px;--r2:6px;
+    --term-bg:#0d1117;--term-text:#c9d1d9;
+    --term-green:#3fb950;--term-yellow:#d29922;--term-red:#f85149;
+    --term-blue:#58a6ff;--term-cyan:#39d0d8;--term-gray:#6e7681;
+    --term-white:#f0f6fc;--term-orange:#ffa657;--term-dim:#484f58;
+    --term-purple:#d2a8ff;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#13130f;--bg2:#1c1c18;--bg3:#252520;--text:#e8e6de;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.08);
+    --border2:rgba(255,255,255,0.15);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.75;}
+
+  .sidebar{position:fixed;top:0;left:0;width:272px;height:100vh;background:var(--bg2);border-right:0.5px solid var(--border);overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;}
+  .sh h1{font-size:13.5px;font-weight:600;color:var(--text);}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);padding:6px 20px 4px;}
+  .nav-group{padding:6px 0;}
+  .ni{display:flex;align-items:center;gap:8px;padding:7px 20px;font-size:12.5px;color:var(--text2);border-left:2px solid transparent;cursor:pointer;transition:all 0.13s;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nd{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;}
+  .ni.active .nd{background:var(--accent);}
+  .dev-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:1px 6px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .dt-spine{background:#e6f1fb;color:#0c447c;}
+  .dt-leaf{background:#eaf3de;color:#27500a;}
+  .dt-oob{background:#faeeda;color:#633806;}
+  .dt-all{background:#eeedfe;color:#26215c;}
+  @media(prefers-color-scheme:dark){.dt-spine{background:#042c53;color:#b5d4f4;}.dt-leaf{background:#173404;color:#c0dd97;}.dt-oob{background:#412402;color:#fac775;}.dt-all{background:#26215c;color:#cecbf6;}}
+
+  .main{margin-left:272px;padding:40px 56px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+  .pt{font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid var(--border);}
+  h2{font-size:18px;font-weight:600;margin:32px 0 10px;color:var(--text);}
+  h3{font-size:15px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 22px;color:var(--text);}
+  li{margin-bottom:6px;font-size:14px;line-height:1.7;}
+
+  /* Terminal */
+  .terminal{background:var(--term-bg);border-radius:var(--r);overflow:hidden;margin:18px 0;border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .ttb{background:#161b22;padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #30363d;}
+  .tdt{width:12px;height:12px;border-radius:50%;}
+  .tdt.r{background:#ff5f57;}.tdt.y{background:#ffbd2e;}.tdt.g{background:#28c840;}
+  .ttt{font-size:11.5px;color:#6e7681;margin-left:8px;font-family:inherit;}
+  .tb{padding:16px 20px;overflow-x:auto;}
+  .tb pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:var(--term-text);white-space:pre;}
+  /* Terminal colours */
+  .tg{color:var(--term-green);}.ty{color:var(--term-yellow);}.tr{color:var(--term-red);}
+  .tblu{color:var(--term-blue);}.tc{color:var(--term-cyan);}.tgr{color:var(--term-gray);}
+  .tw{color:var(--term-white);}.to{color:var(--term-orange);}.td{color:var(--term-dim);}
+  .tpu{color:var(--term-purple);}
+  .tpr{color:var(--term-green);}.tcmd{color:var(--term-white);}
+  /* User input — highlighted differently so you see exactly what YOU type */
+  .input{color:#ffa657;font-weight:700;}
+  .prompt{color:var(--term-green);}
+  .ann{display:flex;gap:10px;background:#1c2128;border-left:3px solid var(--term-yellow);padding:8px 14px;margin:8px 0;border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;font-size:12px;color:#c9d1d9;line-height:1.5;}
+  .ann.ok{border-left-color:var(--term-green);}.ann.no{border-left-color:var(--term-red);}.ann.info{border-left-color:var(--term-blue);}.ann.warn{border-left-color:var(--term-yellow);}
+  .ai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* Callouts */
+  .callout{border-left:3px solid var(--blue);background:var(--bg3);padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}.callout.danger{border-left-color:var(--red);}.callout.success{border-left-color:var(--green);}.callout.cisco{border-left-color:var(--accent2);}
+  .cl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;}
+  .callout.warn .cl{color:var(--amber);}.callout.danger .cl{color:var(--red);}.callout.success .cl{color:var(--green);}.callout.cisco .cl{color:var(--accent2);}
+  .callout:not(.warn):not(.danger):not(.success):not(.cisco) .cl{color:var(--blue);}
+
+  /* Layout */
+  .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  code{font-family:"SF Mono","Fira Code",monospace;font-size:12px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+  /* Badges */
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:0.04em;}
+  .bg{background:#eaf3de;color:#27500a;}.ba{background:#faeeda;color:#633806;}
+  .br{background:#fcebeb;color:#501313;}.bb{background:#e6f1fb;color:#0c447c;}
+  .bp{background:#eeedfe;color:#26215c;}.bgr{background:#f1efe8;color:#444441;}
+  @media(prefers-color-scheme:dark){.bg{background:#173404;color:#c0dd97;}.ba{background:#412402;color:#fac775;}.br{background:#501313;color:#f7c1c1;}.bb{background:#042c53;color:#b5d4f4;}.bp{background:#26215c;color:#cecbf6;}.bgr{background:#2c2c2a;color:#d3d1c7;}}
+
+  /* Step list */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:20px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}.step-title{font-weight:600;margin-bottom:4px;font-size:14px;}
+
+  /* Device header banner */
+  .device-banner{border-radius:var(--r);padding:14px 20px;margin:28px 0 18px;display:flex;align-items:center;gap:14px;}
+  .db-icon{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+  .db-title{font-size:16px;font-weight:700;}
+  .db-sub{font-size:13px;opacity:0.85;margin-top:2px;}
+  .db-spine{background:#dbeafe;color:#1e40af;}
+  .db-leaf{background:#d1fae5;color:#065f46;}
+  .db-oob{background:#fef3c7;color:#92400e;}
+  @media(prefers-color-scheme:dark){.db-spine{background:#1e3a5f;color:#93c5fd;}.db-leaf{background:#064e3b;color:#6ee7b7;}.db-oob{background:#451a03;color:#fcd34d;}}
+
+  /* Spec row */
+  .spec-row{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:13px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:160px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* Config summary box */
+  .config-summary{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:16px 20px;margin:16px 0;}
+  .cs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:10px;}
+  .cs-row{display:flex;gap:10px;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--border);}
+  .cs-row:last-child{border-bottom:none;}
+  .cs-key{color:var(--text2);min-width:180px;flex-shrink:0;}
+  .cs-val{color:var(--text);font-weight:600;font-family:"SF Mono","Fira Code",monospace;font-size:12.5px;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+
+  /* Progress tracker */
+  .progress-track{display:flex;gap:0;margin:20px 0;border-radius:var(--r);overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:600;border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#eaf3de;color:#27500a;}
+  .pt-step.active{background:var(--accent);color:#fff;}
+  .pt-step .pt-n{font-size:16px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#173404;color:#c0dd97;}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Cisco Fabric</div>
+    <h1>Guide 2 — NX-OS First Boot</h1>
+    <p>Initial configuration of every Nexus device</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Understanding NX-OS</div>
+    <div class="ni active" onclick="show('nxos-intro')"><div class="nd"></div>01 — What NX-OS is &amp; how it works</div>
+    <div class="ni" onclick="show('config-order')"><div class="nd"></div>02 — Configuration order &amp; strategy</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">OOB switch — configure first</div>
+    <div class="ni" onclick="show('oob-wizard')"><div class="nd"></div>03 — Catalyst 9200 setup wizard<span class="dev-tag dt-oob">OOB</span></div>
+    <div class="ni" onclick="show('oob-post')"><div class="nd"></div>04 — Post-wizard: VLANs, SSH, NTP<span class="dev-tag dt-oob">OOB</span></div>
+    <div class="ni" onclick="show('oob-verify')"><div class="nd"></div>05 — Verify OOB switch is ready<span class="dev-tag dt-oob">OOB</span></div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Spine switches</div>
+    <div class="ni" onclick="show('spine-wizard')"><div class="nd"></div>06 — spine01 setup wizard — full<span class="dev-tag dt-spine">Spine</span></div>
+    <div class="ni" onclick="show('spine-post')"><div class="nd"></div>07 — spine01 post-wizard config<span class="dev-tag dt-spine">Spine</span></div>
+    <div class="ni" onclick="show('spine01-features')"><div class="nd"></div>08 — spine01 feature enablement<span class="dev-tag dt-spine">Spine</span></div>
+    <div class="ni" onclick="show('spine01-verify')"><div class="nd"></div>09 — spine01 verification &amp; save<span class="dev-tag dt-spine">Spine</span></div>
+    <div class="ni" onclick="show('spine02-config')"><div class="nd"></div>10 — spine02 — same pattern, different IPs<span class="dev-tag dt-spine">Spine</span></div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Leaf switches</div>
+    <div class="ni" onclick="show('leaf-wizard')"><div class="nd"></div>11 — leaf01 setup wizard — full<span class="dev-tag dt-leaf">Leaf</span></div>
+    <div class="ni" onclick="show('leaf-post')"><div class="nd"></div>12 — leaf01 post-wizard config<span class="dev-tag dt-leaf">Leaf</span></div>
+    <div class="ni" onclick="show('leaf01-features')"><div class="nd"></div>13 — leaf01 feature enablement<span class="dev-tag dt-leaf">Leaf</span></div>
+    <div class="ni" onclick="show('leaf01-verify')"><div class="nd"></div>14 — leaf01 verification &amp; save<span class="dev-tag dt-leaf">Leaf</span></div>
+    <div class="ni" onclick="show('leaf02-leaf03')"><div class="nd"></div>15 — leaf02 and leaf03 — differences only<span class="dev-tag dt-leaf">Leaf</span></div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">After all devices configured</div>
+    <div class="ni" onclick="show('ssh-verify')"><div class="nd"></div>16 — SSH to every device from jump host</div>
+    <div class="ni" onclick="show('ntp-verify')"><div class="nd"></div>17 — NTP sync verification across all devices</div>
+    <div class="ni" onclick="show('guide2-summary')"><div class="nd"></div>18 — Guide 2 complete — what you have</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ════════════ 01 — NX-OS INTRO ════════════ -->
+<div class="page active" id="page-nxos-intro">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 01</div>
+  <div class="pt">What NX-OS is — and how it differs from IOS</div>
+  <div class="ps">Before your first command, understand the operating system you are working with</div>
+
+  <div class="callout cisco">
+    <div class="cl">NX-OS vs IOS — important differences for a CCNA candidate</div>
+    Your CCNA knowledge is based on Cisco IOS — the OS on routers and Catalyst switches. Nexus switches run NX-OS, which is a different OS sharing some IOS conventions but with important differences. Knowing these differences prevents confusion when commands behave differently than expected.
+  </div>
+
+  <h2>Key differences between IOS and NX-OS</h2>
+  <table>
+    <thead><tr><th>Concept</th><th>Cisco IOS (CCNA knowledge)</th><th>NX-OS (what Nexus uses)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Features / services</strong></td>
+        <td>Most features are always available — just configure them</td>
+        <td>Most features are <strong>disabled by default</strong> to save resources. You must explicitly enable each feature with <code>feature bgp</code>, <code>feature lacp</code>, etc. before you can configure it.</td>
+      </tr>
+      <tr>
+        <td><strong>Interface numbering</strong></td>
+        <td><code>GigabitEthernet0/1</code> or <code>Gi0/1</code></td>
+        <td><code>Ethernet1/1</code> or <code>Eth1/1</code>. The format is <em>module/port</em>. On a fixed switch like the 93180YC-FX, module is always 1. On a modular chassis like the 9504, module is the line card slot number.</td>
+      </tr>
+      <tr>
+        <td><strong>Startup config</strong></td>
+        <td><code>copy running-config startup-config</code> or <code>wr</code></td>
+        <td>Same command works. NX-OS also accepts <code>copy run start</code>. <strong>Critical difference</strong>: NX-OS does NOT auto-save. If you configure the switch and it reboots before you save, all your work is lost. Save after every significant change.</td>
+      </tr>
+      <tr>
+        <td><strong>VDC — Virtual Device Context</strong></td>
+        <td>Not present in IOS</td>
+        <td>Nexus 9504 modular chassis supports VDCs — virtual partitions of the switch that act as separate devices. NovaCrestBank uses the default VDC (VDC 1). You do not need to configure additional VDCs.</td>
+      </tr>
+      <tr>
+        <td><strong>Layer 2 vs Layer 3 ports</strong></td>
+        <td>Interfaces default to Layer 3 (routed) on routers, Layer 2 (switchport) on switches</td>
+        <td>Nexus interfaces default to Layer 3 (routed, <code>no switchport</code>). To make a port a Layer 2 switchport, you must type <code>switchport</code> explicitly. This is the opposite of IOS switches.</td>
+      </tr>
+      <tr>
+        <td><strong>Interface ranges</strong></td>
+        <td><code>interface range Gi0/1-24</code></td>
+        <td><code>interface Ethernet1/1-24</code> (same concept, slightly different syntax)</td>
+      </tr>
+      <tr>
+        <td><strong>Privileged mode</strong></td>
+        <td><code>enable</code> → <code>#</code> prompt</td>
+        <td>NX-OS uses role-based access. The admin account logs straight into a full-privilege shell. The prompt is <code>switch#</code> or <code>switch(config)#</code>. No separate <code>enable</code> password needed for the admin account.</td>
+      </tr>
+      <tr>
+        <td><strong>Spanning Tree</strong></td>
+        <td>STP enabled by default</td>
+        <td>Nexus supports STP but for spine-to-leaf uplinks (which are routed/Layer 3) STP is irrelevant. STP runs only on Layer 2 (switchport) interfaces — leaf switch downlinks to servers.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>NX-OS command mode hierarchy — where you are at each prompt</h2>
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">NX-OS prompt hierarchy explained</span>
+    </div>
+    <div class="tb"><pre><span class="tg">spine01#</span>                     <span class="td">← Privileged EXEC mode. Read-only commands. show, ping, copy.</span>
+                               <span class="td">  You start here after logging in.</span>
+
+<span class="tg">spine01#</span> <span class="tcmd">configure terminal</span>
+<span class="tg">spine01(config)#</span>             <span class="td">← Global Configuration mode. Configure anything system-wide.</span>
+                               <span class="td">  Enter by typing: configure terminal (or conf t)</span>
+                               <span class="td">  Exit by typing: end (goes back to #) or exit (goes up one level)</span>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">interface Ethernet1/1</span>
+<span class="tg">spine01(config-if)#</span>          <span class="td">← Interface Configuration mode. Configure a specific interface.</span>
+                               <span class="td">  Exit by typing: exit (back to config) or end (back to #)</span>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">router bgp 65001</span>
+<span class="tg">spine01(config-router)#</span>      <span class="td">← Router/Protocol Configuration mode. Configure BGP, OSPF, etc.</span>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">vlan 10</span>
+<span class="tg">spine01(config-vlan)#</span>        <span class="td">← VLAN Configuration mode. Name VLANs, set state.</span>
+
+<span class="td"># Most useful navigation shortcuts:</span>
+<span class="tcmd">end</span>             <span class="td">← From ANYWHERE back to privileged EXEC (#)</span>
+<span class="tcmd">exit</span>            <span class="td">← One level up (config-if → config → #)</span>
+<span class="tcmd">Ctrl+Z</span>          <span class="td">← Same as 'end' — emergency exit to # prompt</span>
+<span class="tcmd">do show ...</span>     <span class="td">← Run a show command while inside (config)# without exiting</span>
+<span class="tcmd">?</span>               <span class="td">← Context-sensitive help — shows all commands available at current prompt</span>
+<span class="tcmd">Tab</span>             <span class="td">← Auto-complete (same as IOS)</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 02 — CONFIG ORDER ════════════ -->
+<div class="page" id="page-config-order">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 02</div>
+  <div class="pt">Configuration order &amp; strategy</div>
+  <div class="ps">Which device to configure first, second, and third — and the logic behind the order</div>
+
+  <div class="callout">
+    <div class="cl">The golden rule of initial configuration order</div>
+    Configure the OOB management switch first. Once you have OOB working, every other device is accessible via SSH over the OOB network — even if you make a mistake on the production interfaces. Without OOB, a configuration error that breaks connectivity means driving to the data center with a console cable.
+  </div>
+
+  <h2>The configuration sequence</h2>
+  <div class="progress-track">
+    <div class="pt-step active"><span class="pt-n">1</span>OOB switch<br/>(Catalyst 9200)</div>
+    <div class="pt-step"><span class="pt-n">2</span>spine01<br/>(via console)</div>
+    <div class="pt-step"><span class="pt-n">3</span>spine02<br/>(via console)</div>
+    <div class="pt-step"><span class="pt-n">4</span>leaf01<br/>(via console)</div>
+    <div class="pt-step"><span class="pt-n">5</span>leaf02<br/>(via console)</div>
+    <div class="pt-step"><span class="pt-n">6</span>leaf03<br/>(via console)</div>
+    <div class="pt-step"><span class="pt-n">7</span>Verify all<br/>(via SSH/OOB)</div>
+  </div>
+
+  <h2>What each device needs at this stage</h2>
+  <p>Guide 2 covers only the <strong>base configuration</strong> — the foundation every device needs before any network-specific config can happen. Think of it as installing and naming each server before configuring any applications on it.</p>
+
+  <table>
+    <thead><tr><th>What we configure in Guide 2</th><th>Why at this stage</th><th>What comes later</th></tr></thead>
+    <tbody>
+      <tr><td>Hostname</td><td>Identification — you must know which device you are on</td><td>N/A — set once</td></tr>
+      <tr><td>Admin password</td><td>Security — no device should have default credentials</td><td>N/A — set once</td></tr>
+      <tr><td>Management IP (mgmt0)</td><td>Allows SSH access via OOB network</td><td>N/A — set once</td></tr>
+      <tr><td>Default gateway (mgmt VRF)</td><td>Allows mgmt traffic to leave the OOB subnet</td><td>N/A — set once</td></tr>
+      <tr><td>SSH</td><td>Secure remote access — console cable is only for emergencies after this</td><td>N/A — set once</td></tr>
+      <tr><td>NTP</td><td>Time sync — all logs, certs, and protocols require accurate time</td><td>Updated to Windows DC later</td></tr>
+      <tr><td>Features (BGP, LACP, etc.)</td><td>Must be enabled before they can be configured in Guide 4–5</td><td>Actually configured in Guide 4–5</td></tr>
+      <tr><td>Interface descriptions</td><td>Documentation — self-explanatory ports</td><td>N/A — set now, referenced always</td></tr>
+      <tr><td>copy run start</td><td>Save everything — NX-OS does not auto-save</td><td>Run after every change</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="cl">Important: use a temporary NTP server during Guide 2</div>
+    The Windows DC (which will be NovaCrestBank's NTP server) has not been installed yet. During Guide 2 we point all devices to a public NTP server (<code>216.239.35.0</code> — Google's NTP) as a temporary measure. In the Windows Server guide, we will update NTP on all devices to point to <code>dc01.novacrestbank.local</code>.
+  </div>
+</div>
+
+<!-- ════════════ 03 — OOB WIZARD ════════════ -->
+<div class="page" id="page-oob-wizard">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 03</div>
+  <div class="pt">Catalyst 9200 setup wizard — OOB switch first</div>
+  <div class="ps">The very first device you configure — every prompt, every answer, every output</div>
+
+  <div class="device-banner db-oob">
+    <div class="db-icon" style="background:#92400e;color:#fef3c7;">OOB</div>
+    <div>
+      <div class="db-title">oob-sw01.novacrestbank.local</div>
+      <div class="db-sub">Cisco Catalyst 9200 · Management IP: 10.40.0.1 · Connected via console cable</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Catalyst 9200 uses IOS-XE — not NX-OS</div>
+    The OOB management switch is a Catalyst 9200, which runs Cisco IOS-XE — the same OS family your CCNA knowledge covers. The setup wizard and interface syntax are very similar to what you already know from IOS. This makes it a good device to start with.
+  </div>
+
+  <h2>Connecting to the Catalyst 9200 via console</h2>
+  <p>Connect your console cable to the Catalyst 9200's console port (RJ45, labelled CONSOLE on the front panel). Open PuTTY → Serial → COM3 (your COM port) → Speed 9600 → Open. Power on the switch. You will see boot messages for about 60–90 seconds, then the setup dialog begins.</p>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">Catalyst 9200 — first boot setup dialog (IOS-XE)</span>
+    </div>
+    <div class="tb"><pre><span class="td">         --- System Configuration Dialog ---</span>
+
+<span class="td">Would you like to enter the initial configuration dialog? [yes/no]:</span> <span class="input">yes</span>
+<span class="td">                                                                         ↑ type this and press Enter</span>
+
+<span class="tw">At any point you may enter a question mark '?' for help.</span>
+<span class="tw">Use ctrl-c to abort configuration dialog at any point.</span>
+<span class="tw">Refer to the 'Getting Started Guide' for additional help.</span>
+
+<span class="tw">Default settings are in square brackets '[]'.</span>
+
+<span class="tw">Basic management setup configures only enough connectivity</span>
+<span class="tw">for management of the system, extended setup will ask you</span>
+<span class="tw">to configure each interface on the system.</span>
+
+<span class="tw">Would you like to enter basic management setup? [yes/no]:</span> <span class="input">yes</span>
+
+<span class="tw">Configuring global parameters:</span>
+
+<span class="tw">  Enter host name [Switch]:</span> <span class="input">oob-sw01</span>
+
+<span class="tw">  The enable secret is a password used to protect</span>
+<span class="tw">  access to privileged EXEC and configuration modes.</span>
+<span class="tw">  This password, unlike the password below,</span>
+<span class="tw">  will not appear when you type it, and is stored</span>
+<span class="tw">  as an encrypted string in the configuration.</span>
+<span class="tw">  Enter enable secret:</span> <span class="input">NovaCrest$OOB2026!</span>
+<span class="tw">  Confirm enable secret:</span> <span class="input">NovaCrest$OOB2026!</span>
+
+<span class="tw">  Enter virtual terminal password:</span> <span class="input">NovaCrest$OOB2026!</span>
+<span class="td">                                      ↑ Same password for VTY (SSH/Telnet) lines</span>
+
+<span class="tw">  Configure SNMP Network Management? [no]:</span> <span class="input">yes</span>
+<span class="tw">    Community string [public]:</span> <span class="input">NovaCrest-RO-2026</span>
+<span class="td">                                 ↑ SNMP read-only community — for monitoring tools</td>
+
+<span class="tw">  Enter interface name used to connect to the</span>
+<span class="tw">  management network from the above interface summary:</span> <span class="input">GigabitEthernet0/0</span>
+<span class="td">                                                          ↑ The management interface on Catalyst 9200</td>
+
+<span class="tw">  Configuring interface GigabitEthernet0/0:</span>
+<span class="tw">    Configure IP on this interface? [yes]:</span> <span class="input">yes</span>
+<span class="tw">    IP address for this interface:</span> <span class="input">10.40.0.1</span>
+<span class="tw">    Subnet mask for this interface [255.0.0.0]:</span> <span class="input">255.255.255.0</span>
+
+<span class="tw">The following configuration command script was created:</span>
+<span class="tg">hostname oob-sw01</span>
+<span class="tg">enable secret 9 $9$encrypted...</span>
+<span class="tg">line vty 0 4</span>
+<span class="tg"> password NovaCrest$OOB2026!</span>
+<span class="tg">snmp-server community NovaCrest-RO-2026 RO</span>
+<span class="tg">interface GigabitEthernet0/0</span>
+<span class="tg"> ip address 10.40.0.1 255.255.255.0</span>
+<span class="tg"> no shutdown</span>
+
+<span class="tw">Use this configuration? [yes/no]:</span> <span class="input">yes</span>
+
+<span class="tg">Building configuration...</span>
+<span class="tg">[OK]</span>
+
+<span class="tw">Press RETURN to get started!</span>
+<span class="input">[Enter]</span>
+
+<span class="tg">oob-sw01#</span>    <span class="td">← You are now at the privileged EXEC prompt. Basic config is done.</span></pre>
+
+      <div class="ann ok"><span class="ai">✓</span><span>The Catalyst 9200 is now named <code>oob-sw01</code> and has a management IP. However, this is just the foundation. The next section covers the additional configuration the wizard did not ask about — VLANs, SSH, NTP, and port configuration.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 04 — OOB POST WIZARD ════════════ -->
+<div class="page" id="page-oob-post">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 04</div>
+  <div class="pt">Catalyst 9200 post-wizard configuration</div>
+  <div class="ps">Everything the wizard did not configure — SSH, VLAN 40, port config, NTP, and saving</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">oob-sw01 — post-wizard configuration (still on console)</span>
+    </div>
+    <div class="tb"><pre><span class="td"># ── Step 1: Enable SSH (the wizard did not set this up properly) ──</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">configure terminal</span>
+<span class="tg">oob-sw01(config)#</span>
+
+<span class="td"># Set the domain name — required for SSH key generation</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+
+<span class="td"># Generate RSA keys for SSH (2048-bit)</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">crypto key generate rsa modulus 2048</span>
+<span class="tw">The name for the keys will be: oob-sw01.novacrestbank.local</span>
+<span class="tw">% Generating 2048 bit RSA keys, keys will be non-exportable...</span>
+<span class="tg">[OK] (elapsed time was 3 seconds)</span>
+
+<span class="td"># Enforce SSH version 2 only (SSH v1 is insecure)</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ip ssh version 2</span>
+
+<span class="td"># Configure VTY lines to use SSH and require authentication</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">line vty 0 15</span>
+<span class="tg">oob-sw01(config-line)#</span> <span class="tcmd">transport input ssh</span>
+<span class="td">                                   ↑ Only SSH allowed — Telnet is blocked</span>
+<span class="tg">oob-sw01(config-line)#</span> <span class="tcmd">login local</span>
+<span class="td">                                   ↑ Use local username database for login</span>
+<span class="tg">oob-sw01(config-line)#</span> <span class="tcmd">exec-timeout 15 0</span>
+<span class="td">                                   ↑ Disconnect idle sessions after 15 minutes</span>
+<span class="tg">oob-sw01(config-line)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Create local admin user (more secure than enable password alone)</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">username admin privilege 15 secret NovaCrest$OOB2026!</span>
+<span class="td">                                         ↑ privilege 15 = full admin access</span>
+
+<span class="td"># ── Step 2: VLAN 40 — OOB management VLAN ─────────────────────────</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">vlan 40</span>
+<span class="tg">oob-sw01(config-vlan)#</span> <span class="tcmd">name OOB-Management</span>
+<span class="tg">oob-sw01(config-vlan)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Create SVI (Layer 3 interface) for VLAN 40 — the switch's own IP</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface Vlan40</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">ip address 10.40.0.1 255.255.255.0</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description OOB Management Gateway</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">no shutdown</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Default route — OOB traffic goes via Palo Alto inside interface</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ip default-gateway 10.10.0.2</span>
+<span class="td">                               ↑ Palo Alto PA-5250 inside interface IP
+                                 This allows admins on VPN to reach OOB devices</td>
+
+<span class="td"># ── Step 3: Configure access ports — all in VLAN 40 ───────────────</span>
+<span class="td"># iLO ports (Gi1/0/1 through Gi1/0/5) — one per ESXi host</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface range GigabitEthernet1/0/1-5</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">switchport mode access</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">switchport access vlan 40</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">spanning-tree portfast</span>
+<span class="td">                                         ↑ PortFast: skip STP listening/learning on edge ports
+                                           iLO is an end device — it does not create loops</td>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">no shutdown</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Add descriptions to iLO ports</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/1</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description esxi01 iLO — 10.40.0.31</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/2</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description esxi02 iLO — 10.40.0.32</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/3</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description esxi03 iLO — 10.40.0.33</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/4</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description esxi04 iLO — 10.40.0.34</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/5</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description esxi05 iLO — 10.40.0.35</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Nexus mgmt0 ports (Gi1/0/10 through Gi1/0/14)</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface range GigabitEthernet1/0/10-14</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">switchport mode access</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">switchport access vlan 40</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">spanning-tree portfast</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">no shutdown</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">exit</span>
+
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/10</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description leaf01 mgmt0 — 10.40.0.20</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/11</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description leaf02 mgmt0 — 10.40.0.21</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/12</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description leaf03 mgmt0 — 10.40.0.22</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/13</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description spine01 mgmt0 — 10.40.0.10</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/14</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description spine02 mgmt0 — 10.40.0.11</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Palo Alto and edge router management ports</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface range GigabitEthernet1/0/20-22</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">switchport mode access</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">switchport access vlan 40</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">spanning-tree portfast</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">no shutdown</span>
+<span class="tg">oob-sw01(config-if-range)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/20</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description Palo Alto PA-5250 MGMT — 10.40.0.50</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/21</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description edge01 ASR1002-X MGMT — 10.40.0.51</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">interface GigabitEthernet1/0/22</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">description edge02 ASR1002-X MGMT — 10.40.0.52</span>
+<span class="tg">oob-sw01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># ── Step 4: NTP (temporary public NTP until Windows DC is ready) ───</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ntp server 216.239.35.0</span>
+<span class="td">                               ↑ Google public NTP — temporary</td>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ntp server 216.239.35.4</span>
+<span class="td">                               ↑ Second Google NTP for redundancy</td>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">clock timezone UTC 0 0</span>
+<span class="td">                               ↑ All network devices use UTC — NEVER local time</td>
+
+<span class="td"># ── Step 5: Security hardening ────────────────────────────────────</span>
+<span class="td"># Disable Telnet completely</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">no service telnet</span>
+
+<span class="td"># Disable CDP on external-facing ports (not needed on OOB)</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">no cdp run</span>
+<span class="td">                       ↑ CDP (Cisco Discovery Protocol) reveals device information
+                         Disable it on OOB — we use LLDP on production switches instead</td>
+
+<span class="td"># Banner — legal warning shown before login</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">banner motd #</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">* NovaCrestBank - OOB Management Switch                         *</span>
+<span class="tcmd">* AUTHORISED ACCESS ONLY. All activity is monitored and logged. *</span>
+<span class="tcmd">* Unauthorised access is a criminal offence.                    *</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">#</span>
+
+<span class="td"># ── Step 6: Save the configuration ────────────────────────────────</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">end</span>
+<span class="tg">oob-sw01#</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">copy running-config startup-config</span>
+<span class="tw">Destination filename [startup-config]?</span> <span class="input">[Enter]</span>
+<span class="tg">Building configuration...</span>
+<span class="tg">[OK]</span>
+<span class="tg">oob-sw01#</span>    <span class="td">← Configuration saved. The switch will boot with this config after a reboot.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 05 — OOB VERIFY ════════════ -->
+<div class="page" id="page-oob-verify">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 05</div>
+  <div class="pt">Verify OOB switch is ready</div>
+  <div class="ps">Confirming everything is correct before moving to the Nexus switches</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">oob-sw01 — verification commands and expected outputs</span>
+    </div>
+    <div class="tb"><pre><span class="td"># Check the hostname and IOS version</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">show version | include hostname|Version</span>
+<span class="tg">Cisco IOS XE Software, Version 17.12.1</span>
+<span class="tg">hostname oob-sw01</span>
+
+<span class="td"># Check all configured interfaces</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">show ip interface brief</span>
+<span class="tw">Interface              IP-Address      OK? Method Status                Protocol</span>
+<span class="tg">GigabitEthernet0/0     10.40.0.1       YES NVRAM  up                    up</span>
+<span class="tg">Vlan40                 10.40.0.1       YES manual up                    up</span>
+<span class="tgr">GigabitEthernet1/0/1   unassigned      YES unset  up                    up</span>     <span class="td">← esxi01 iLO connected</span>
+<span class="tgr">GigabitEthernet1/0/2   unassigned      YES unset  up                    up</span>     <span class="td">← esxi02 iLO connected</span>
+<span class="ty">GigabitEthernet1/0/10  unassigned      YES unset  down                  down</span>   <span class="td">← leaf01 not yet configured</span>
+<span class="ty">GigabitEthernet1/0/11  unassigned      YES unset  down                  down</span>   <span class="td">← leaf02 not yet configured</span>
+<span class="td">    ↑ Ports to Nexus switches are down — expected (Nexus not configured yet)
+      Ports to iLO that show "up/up" = ESXi hosts are powered and iLO is active ✓</span>
+
+<span class="td"># Check VLAN database</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">show vlan brief</span>
+<span class="tw">VLAN Name                             Status    Ports</span>
+<span class="tg">40   OOB-Management                   active    Gi1/0/1, Gi1/0/2, Gi1/0/3, Gi1/0/4, Gi1/0/5</span>
+<span class="tg">                                               Gi1/0/10, Gi1/0/11, Gi1/0/12, Gi1/0/13, Gi1/0/14</span>
+<span class="tg">                                               Gi1/0/20, Gi1/0/21, Gi1/0/22</span>
+<span class="td">     ↑ VLAN 40 exists and all management ports are assigned to it ✓</span>
+
+<span class="td"># Check SSH is configured</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">show ip ssh</span>
+<span class="tg">SSH Enabled - version 2.0</span>
+<span class="tw">Authentication timeout: 120 secs; Authentication retries: 3</span>
+<span class="tw">Minimum expected Diffie Hellman key size : 1024 bits</span>
+<span class="tg">IOS Keys in SECSH format(ssh-rsa, base64 encoded):</span>
+<span class="tg">oob-sw01.novacrestbank.local</span>
+<span class="td">                 ↑ SSH v2.0 enabled ✓</td>
+
+<span class="td"># Check NTP status</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">show ntp status</span>
+<span class="tg">Clock is synchronized, stratum 2, reference is 216.239.35.0</span>
+<span class="tw">nominal freq is 250.0000 Hz, actual freq is 250.0002 Hz, precision is 2**10</span>
+<span class="tw">ntp uptime is 420 (1/100 of seconds), resolution is 4000</span>
+<span class="tw">reference time is EC4F8A3B.2C4D8F1A (09:42:51.173 UTC Mon Apr 13 2026)</span>
+<span class="tg">clock offset is 0.0412 msec, root delay is 10.41 msec</span>
+<span class="td">                                              ↑ "Clock is synchronized" = NTP working ✓</td>
+
+<span class="td"># Show running config to confirm everything</span>
+<span class="tg">oob-sw01#</span> <span class="tcmd">show running-config | include hostname|username|ip ssh|ntp|vlan</span>
+<span class="tg">hostname oob-sw01</span>
+<span class="tg">ip domain-name novacrestbank.local</span>
+<span class="tg">ip ssh version 2</span>
+<span class="tg">username admin privilege 15 secret 9 $9$encrypted...</span>
+<span class="tg">ntp server 216.239.35.0</span>
+<span class="tg">ntp server 216.239.35.4</span>
+<span class="tg">vlan 40</span>
+<span class="tg"> name OOB-Management</span>
+
+<span class="td"># Test from your laptop — SSH to the OOB switch IP</span>
+<span class="td"># (Your laptop must be on a network that can reach 10.40.0.1)</span>
+<span class="td"># Open a NEW PuTTY window → Connection type: SSH → Host: 10.40.0.1 → Port: 22</span>
+<span class="tpr">admin@laptop:~$</span> <span class="tcmd">ssh admin@10.40.0.1</span>
+<span class="tw">******************************************************************</span>
+<span class="tw">* NovaCrestBank - OOB Management Switch                         *</span>
+<span class="tw">* AUTHORISED ACCESS ONLY...                                     *</span>
+<span class="tw">******************************************************************</span>
+<span class="tw">Password:</span> <span class="input">NovaCrest$OOB2026!</span>
+<span class="tg">oob-sw01#</span>    <span class="td">← SSH access working ✓ From this point on, use SSH — not console — for this switch</td></pre>
+
+      <div class="ann ok"><span class="ai">✓</span><span>OOB switch is fully configured and verified. All management ports are on VLAN 40. SSH is working. NTP is synchronised. From this point, you will access the OOB switch via SSH from your jump host — the console cable on this device can be disconnected and stored.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 06 — SPINE WIZARD ════════════ -->
+<div class="page" id="page-spine-wizard">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 06</div>
+  <div class="pt">spine01 setup wizard — complete NX-OS first boot</div>
+  <div class="ps">Every prompt of the NX-OS setup wizard answered — exactly what you see, exactly what to type</div>
+
+  <div class="device-banner db-spine">
+    <div class="db-icon" style="background:#1e40af;color:#dbeafe;">S1</div>
+    <div>
+      <div class="db-title">spine01.novacrestbank.local</div>
+      <div class="db-sub">Cisco Nexus 9504 · Management IP: 10.40.0.10 · Connected via console cable from laptop</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Connecting to the Nexus 9504 console</div>
+    The Nexus 9504 console port is on the Supervisor module, located in a dedicated slot at the front of the chassis. Look for the module labelled SUP or SUPERVISOR. The console port is RJ45, labelled CON. Connect your console cable here. NX-OS takes approximately 3–5 minutes to fully boot — you will see a lot of boot messages. Wait until the setup wizard prompt appears before typing anything.
+  </div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">spine01 — NX-OS first boot setup wizard (complete, every prompt)</span>
+    </div>
+    <div class="tb"><pre><span class="td">         ---- System Admin Account Setup ----</span>
+
+<span class="tw">Do you want to enforce secure password standard (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="td">↑ Always yes — enforces minimum password complexity (uppercase, lowercase, number, special char)</td>
+
+<span class="tw">Enter the password for "admin":</span> <span class="input">NovaCrest$Spine2026!</span>
+<span class="tw">Confirm the password for "admin":</span> <span class="input">NovaCrest$Spine2026!</span>
+
+<span class="td">         ---- Basic System Configuration Dialog VDC: 1 ----</span>
+
+<span class="tw">This setup utility will guide you through the basic configuration of</span>
+<span class="tw">the system. Setup configures only enough connectivity for management</span>
+<span class="tw">of the system.</span>
+
+<span class="tw">Would you like to enter the basic configuration dialog (yes/no):</span> <span class="input">yes</span>
+
+<span class="tw">Create another login account (yes/no) [n]:</span> <span class="input">no</span>
+<span class="td">↑ We only need the admin account. Additional accounts created after deployment via TACACS/RADIUS.</td>
+
+<span class="tw">Configure read-only SNMP community string (yes/no) [n]:</span> <span class="input">yes</span>
+<span class="tw">  SNMP community string:</span> <span class="input">NovaCrest-RO-2026</span>
+<span class="td">↑ SNMP read-only string — used by network monitoring tools (same on all devices for consistency)</td>
+
+<span class="tw">Configure read-write SNMP community string (yes/no) [n]:</span> <span class="input">no</span>
+<span class="td">↑ No read-write SNMP — SNMP write access is a security risk. Manage via SSH only.</td>
+
+<span class="tw">Enter the switch name:</span> <span class="input">spine01</span>
+<span class="td">↑ Hostname only — no domain name here. Domain is set in post-wizard config.</td>
+
+<span class="tw">Continue with Out-of-band (mgmt0) management configuration? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tw">  Mgmt0 IPv4 address:</span> <span class="input">10.40.0.10</span>
+<span class="tw">  Mgmt0 IPv4 netmask:</span> <span class="input">255.255.255.0</span>
+<span class="td">↑ This puts the management interface on the OOB subnet (VLAN 40)</td>
+
+<span class="tw">Configure the default gateway? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tw">  IPv4 address of the default gateway:</span> <span class="input">10.40.0.1</span>
+<span class="td">↑ Default gateway for mgmt VRF = OOB switch (Catalyst 9200) — which routes to rest of network</td>
+
+<span class="tw">Configure advanced IP options? (yes/no) [n]:</span> <span class="input">no</span>
+<span class="td">↑ Skip IPv6 and other advanced options — not needed</td>
+
+<span class="tw">Enable the telnet service? (yes/no) [n]:</span> <span class="input">no</span>
+<span class="td">↑ NEVER enable Telnet — it sends passwords in plain text. SSH only.</td>
+
+<span class="tw">Enable the ssh service? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tw">  Type of ssh key you would like to generate (dsa/rsa) [rsa]:</span> <span class="input">rsa</span>
+<span class="tw">  Number of rsa key bits &lt;1024-2048&gt; [1024]:</span> <span class="input">2048</span>
+<span class="td">↑ 2048-bit RSA key — more secure than the default 1024-bit</td>
+
+<span class="tw">Configure the ntp server? (yes/no) [n]:</span> <span class="input">yes</span>
+<span class="tw">  NTP server IPv4 address:</span> <span class="input">216.239.35.0</span>
+<span class="td">↑ Temporary public NTP server — will be updated to dc01 later</td>
+
+<span class="tw">Configure CoPP system profile (strict/moderate/lenient/dense) [strict]:</span> <span class="input">strict</span>
+<span class="td">↑ CoPP = Control Plane Policing. Strict mode limits traffic that can flood the CPU.
+  Always use strict in production — prevents CPU exhaustion attacks.</td>
+
+<span class="tw">Would you like to edit the configuration? (yes/no) [n]:</span> <span class="input">no</span>
+
+<span class="tw">Use this configuration and save it? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tg">[########################################] 100%</span>
+<span class="tg">Copy complete, now saving to disk (please wait)...</span>
+<span class="tg">Copy complete.</span>
+
+<span class="tg">spine01#</span>    <span class="td">← You are at the NX-OS privileged EXEC prompt. Wizard is complete.</td></pre>
+
+      <div class="ann info"><span class="ai">ℹ</span><span>The wizard saved the basic config. Now the spine01 switch has a name, a management IP, SSH, and NTP. But there is more to do — the next section covers everything the wizard cannot configure: the NX-OS domain name, features (BGP, LACP, LLDP, etc.), interface descriptions, and security hardening.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 07 — SPINE POST WIZARD ════════════ -->
+<div class="page" id="page-spine-post">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 07</div>
+  <div class="pt">spine01 post-wizard configuration</div>
+  <div class="ps">Domain name, DNS, timezone, banners, security hardening, interface descriptions — all the things the wizard skips</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">spine01 — post-wizard configuration (still on console)</span>
+    </div>
+    <div class="tb"><pre><span class="tg">spine01#</span> <span class="tcmd">configure terminal</span>
+<span class="tg">spine01(config)#</span>
+
+<span class="td"># ── Domain name and DNS ───────────────────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+<span class="td">↑ Required for SSH key generation with a proper hostname (spine01.novacrestbank.local)</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">ip name-server 10.70.0.10</span>
+<span class="td">↑ DNS server = dc01 (Windows DC). Even though dc01 is not built yet,</td>
+<span class="td">  we set this now — when dc01 comes online, DNS will start working automatically.</td>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ip name-server 10.70.0.11</span>
+<span class="td">↑ Secondary DNS = dc02</td>
+
+<span class="td"># ── Timezone ──────────────────────────────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">clock timezone UTC 0 0</span>
+<span class="td">↑ ALL infrastructure devices use UTC. Never local time. This ensures log timestamps</td>
+<span class="td">  across all devices are comparable without time zone conversion.</td>
+
+<span class="td"># ── Banner — shows before every login ─────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">banner motd @</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">* NovaCrestBank - spine01.novacrestbank.local                   *</span>
+<span class="tcmd">* AUTHORISED ACCESS ONLY. All activity is monitored and logged. *</span>
+<span class="tcmd">* Unauthorised access is a criminal offence.                    *</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">@</span>
+<span class="td">↑ The @ sign is the delimiter — type it alone on a new line to end the banner</td>
+
+<span class="td"># ── SSH hardening ─────────────────────────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ssh key rsa 2048</span>
+<span class="td">↑ Regenerate SSH key with 2048 bits (overrides the 1024-bit key from wizard)</td>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ssh login-attempts 3</span>
+<span class="td">↑ Lock out after 3 failed login attempts</td>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ssh timeout 60</span>
+<span class="td">↑ Disconnect if login not completed in 60 seconds</td>
+
+<span class="td"># ── VTY (SSH session) timeout ─────────────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">line vty</span>
+<span class="tg">spine01(config-line)#</span> <span class="tcmd">exec-timeout 15 0</span>
+<span class="td">↑ Disconnect idle SSH sessions after 15 minutes (15 minutes, 0 seconds)</td>
+<span class="tg">spine01(config-line)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># ── Logging ───────────────────────────────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">logging server 10.70.0.10</span>
+<span class="td">↑ Send syslog to dc01 (which will run a syslog collector)</td>
+<span class="td">  This means all Nexus log messages are centralised — critical for troubleshooting</td>
+<span class="tg">spine01(config)#</span> <span class="tcmd">logging source-interface mgmt0</span>
+<span class="td">↑ Syslog messages originate from mgmt0 IP — so the syslog server knows who sent the log</td>
+
+<span class="td"># ── Interface descriptions for mgmt0 ──────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">interface mgmt0</span>
+<span class="tg">spine01(config-if)#</span> <span class="tcmd">description oob-sw01:Gi1/0/13 — OOB management</span>
+<span class="tg">spine01(config-if)#</span> <span class="tcmd">vrf member management</span>
+<span class="td">↑ mgmt0 on Nexus is in the "management" VRF (Virtual Routing and Forwarding instance).</td>
+<span class="td">  This isolates management traffic from production traffic — they use separate routing tables.</td>
+<span class="td">  The default gateway you set in the wizard is in the management VRF.</td>
+<span class="tg">spine01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># ── User account hardening ─────────────────────────────────────────</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">username admin role network-admin password 0 NovaCrest$Spine2026!</span>
+<span class="td">↑ Explicitly set the admin account with the network-admin role</td>
+<span class="td">  The "0" means the password is entered in cleartext (NX-OS will encrypt it when saved)</td>
+
+<span class="td"># Disable the default 'admin' password from being "admin"</span>
+<span class="td"># (already set above — this is confirmation it is correct)</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">no username admin password</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">username admin password NovaCrest$Spine2026!</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 08 — SPINE FEATURES ════════════ -->
+<div class="page" id="page-spine01-features">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 08</div>
+  <div class="pt">spine01 feature enablement</div>
+  <div class="ps">The NX-OS features that must be turned on before any protocol can be configured — and why each one is needed</div>
+
+  <div class="callout cisco">
+    <div class="cl">The most important NX-OS concept to understand</div>
+    In NX-OS, features are disabled by default to conserve memory and CPU. If you try to configure BGP without enabling it first, NX-OS will say "% Invalid command". Enable all features first, then configure them. This guide enables every feature that NovaCrestBank's fabric will need — even those not configured until Guide 4 or 5 — so you do not have to re-visit this step later.
+  </div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">spine01 — feature enablement (still in configure terminal)</span>
+    </div>
+    <div class="tb"><pre><span class="td"># Features needed on spine switches</span>
+<span class="td"># Enable each feature and you will see "[##########] 100%" progress bar</span>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature bgp</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← BGP (Border Gateway Protocol) — the routing protocol for our spine-leaf underlay</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature ospf</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← OSPF — not used on spines but enabled as backup option</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature pim</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← PIM (Protocol Independent Multicast) — needed for some overlay protocols</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature interface-vlan</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← Enables SVI (Layer 3 VLAN interfaces). Spines do not use SVIs but enable for consistency.</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature lacp</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← LACP (Link Aggregation Control Protocol) — for port channel bonding</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature lldp</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← LLDP (Link Layer Discovery Protocol) — neighbour discovery. Better than CDP in mixed environments.</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature nxapi</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← NX-API — allows automation tools (Ansible, Python) to manage the switch via REST API</td>
+
+<span class="tg">spine01(config)#</span> <span class="tcmd">feature sla</span>
+<span class="tg">spine01(config)#</span>   <span class="td">← IP SLA — active monitoring of network paths (ping tests, jitter measurements)</td>
+
+<span class="td"># Verify all features are enabled</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">end</span>
+<span class="tg">spine01#</span> <span class="tcmd">show feature | grep -E "bgp|ospf|pim|interface-vlan|lacp|lldp|nxapi|sla"</span>
+<span class="tw">NAME                        INSTANCE  STATE</span>
+<span class="tg">bgp                         1         enabled</span>
+<span class="tg">interface-vlan              1         enabled</span>
+<span class="tg">lacp                        1         enabled</span>
+<span class="tg">lldp                        1         enabled</span>
+<span class="tg">nxapi                       1         enabled</span>
+<span class="tg">ospf                        1         enabled</span>
+<span class="tg">pim                         1         enabled</span>
+<span class="tg">sla                         1         enabled</span>
+<span class="td">                                      ↑ All features showing "enabled" ✓</td>
+
+<span class="td"># What LLDP immediately shows you — which devices are directly connected</span>
+<span class="tg">spine01#</span> <span class="tcmd">show lldp neighbors</span>
+<span class="tw">Capability codes:</span>
+<span class="tw">  (R) Router, (B) Bridge, (T) Telephone, (C) DOCSIS Cable Device</span>
+<span class="tw">  (W) Wlan-Access-Point, (P) Repeater, (S) Station, (O) Other</span>
+<span class="tw">Device ID         Local Intf    Holdtme  Capability  Port ID</span>
+<span class="ty">leaf01            Eth1/1        120      B, R        Eth1/49</span>   <span class="td">← leaf01 is connected on Eth1/1 ✓</span>
+<span class="ty">leaf02            Eth1/2        120      B, R        Eth1/49</span>   <span class="td">← leaf02 is connected on Eth1/2 ✓</span>
+<span class="ty">leaf03            Eth1/3        120      B, R        Eth1/49</span>   <span class="td">← leaf03 is connected on Eth1/3 ✓</span>
+<span class="ty">spine02           Eth1/10       120      R           Eth1/10</span>   <span class="td">← spine02 peer link connected ✓</span>
+<span class="td">    ↑ LLDP automatically discovers neighbours and shows which port connects to which device
+      This immediately verifies your cabling is correct — the neighbours match your cabling matrix from Guide 1</td></pre>
+
+      <div class="ann ok"><span class="ai">✓</span><span>LLDP is one of the most powerful verification tools available. The moment you enable it, the switch tells you exactly what is physically connected and on which port. If leaf01 appears on Eth1/2 instead of Eth1/1, you know a cable is in the wrong port before you have configured a single routing protocol.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 09 — SPINE VERIFY AND SAVE ════════════ -->
+<div class="page" id="page-spine01-verify">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 09</div>
+  <div class="pt">spine01 verification and save</div>
+  <div class="ps">Confirming the full base configuration is correct, then saving — and your first SSH connection to spine01</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">spine01 — complete verification and save</span>
+    </div>
+    <div class="tb"><pre><span class="td"># ── Full verification sequence — run through all of these ─────────</span>
+
+<span class="td"># 1. Hostname correct?</span>
+<span class="tg">spine01#</span> <span class="tcmd">show hostname</span>
+<span class="tg">spine01</span>   <span class="td">← correct ✓</td>
+
+<span class="td"># 2. Management IP correct?</span>
+<span class="tg">spine01#</span> <span class="tcmd">show interface mgmt0 | include IP</span>
+<span class="tg">    IP address: 10.40.0.10/24</span>   <span class="td">← correct ✓</td>
+
+<span class="td"># 3. Management VRF default route correct?</span>
+<span class="tg">spine01#</span> <span class="tcmd">show ip route vrf management</span>
+<span class="tw">IP Route Table for VRF "management"</span>
+<span class="tg">0.0.0.0/0, ubest/mbest: 1/0</span>
+<span class="tg">    *via 10.40.0.1, mgmt0, [1/0], 00:15:42, static</span>
+<span class="td">         ↑ Default route via 10.40.0.1 (OOB switch) in management VRF ✓</td>
+
+<span class="td"># 4. Can spine01 reach the OOB switch?</span>
+<span class="tg">spine01#</span> <span class="tcmd">ping 10.40.0.1 vrf management count 4</span>
+<span class="tg">PING 10.40.0.1 (10.40.0.1): 56 data bytes</span>
+<span class="tg">64 bytes from 10.40.0.1: icmp_seq=0 ttl=255 time=0.842 ms</span>
+<span class="tg">64 bytes from 10.40.0.1: icmp_seq=1 ttl=255 time=0.631 ms</span>
+<span class="tg">64 bytes from 10.40.0.1: icmp_seq=2 ttl=255 time=0.724 ms</span>
+<span class="tg">64 bytes from 10.40.0.1: icmp_seq=3 ttl=255 time=0.698 ms</span>
+<span class="tg">4 packets transmitted, 4 packets received, 0.00% packet loss</span>
+<span class="td">         ↑ spine01 can reach OOB switch ✓ (OOB management path is working)</td>
+
+<span class="td"># 5. NTP synchronised?</span>
+<span class="tg">spine01#</span> <span class="tcmd">show ntp status</span>
+<span class="tg">Clock is synchronized, stratum 2, reference: 216.239.35.0</span>
+<span class="td">         ↑ "Clock is synchronized" ✓</td>
+
+<span class="tg">spine01#</span> <span class="tcmd">show ntp peers</span>
+<span class="tw">   Peer IP Address               Serv/Peer   Stratum Poll Reach Delay   Vrf</span>
+<span class="tg">*  216.239.35.0                  Server      1       64   377   10.412  management</span>
+<span class="td">   ↑ The * means this is the current reference clock (synchronised to it) ✓</td>
+
+<span class="td"># 6. SSH working?</span>
+<span class="tg">spine01#</span> <span class="tcmd">show ssh server</span>
+<span class="tg">ssh version 2 is enabled</span>
+<span class="td">         ↑ SSH v2 enabled ✓</td>
+
+<span class="td"># 7. No errors in system log?</span>
+<span class="tg">spine01#</span> <span class="tcmd">show logging last 20 | grep -i error</span>
+<span class="td">                          ← no output = no errors ✓</td>
+
+<span class="td"># 8. NX-OS version</span>
+<span class="tg">spine01#</span> <span class="tcmd">show version | include "NXOS:" </span>
+<span class="tg">  NXOS: version 10.3(4a)</span>   <span class="td">← document this version for your records</td>
+
+<span class="td"># ── Save the configuration ─────────────────────────────────────────</span>
+<span class="tg">spine01#</span> <span class="tcmd">copy running-config startup-config</span>
+<span class="tw">[########################################] 100%</span>
+<span class="tg">Copy complete, now saving to disk (please wait)...</span>
+<span class="tg">Copy complete.</span>
+<span class="td">                ↑ Config saved. The switch will boot with this config after any reboot. ✓</td>
+
+<span class="td"># ── First SSH test from your laptop ────────────────────────────────</span>
+<span class="td"># Open a new PuTTY window on your laptop</span>
+<span class="td"># Connection type: SSH | Host: 10.40.0.10 | Port: 22</span>
+<span class="tpr">admin@laptop:~$</span> <span class="tcmd">ssh admin@10.40.0.10</span>
+<span class="tw">******************************************************************</span>
+<span class="tw">* NovaCrestBank - spine01.novacrestbank.local                   *</span>
+<span class="tw">* AUTHORISED ACCESS ONLY...                                     *</span>
+<span class="tw">******************************************************************</span>
+<span class="tw">User Access Verification</span>
+<span class="tw">Password:</span> <span class="input">NovaCrest$Spine2026!</span>
+<span class="tg">spine01#</span>    <span class="td">← SSH into spine01 working via OOB network ✓
+               From this point, use SSH for all further configuration on spine01.
+               The console cable can remain connected as emergency backup but is not needed.</td></pre>
+
+      <div class="ann ok"><span class="ai">✓</span><span>spine01 base configuration is complete and verified. Hostname set, management IP working, OOB reachable, NTP synchronised, SSH working, features enabled, configuration saved. Move to spine02.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 10 — SPINE02 ════════════ -->
+<div class="page" id="page-spine02-config">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 10</div>
+  <div class="pt">spine02 — same pattern, different IPs</div>
+  <div class="ps">spine02 follows the identical procedure as spine01. This section shows only what differs — every answer is the same except the hostname and IP.</div>
+
+  <div class="device-banner db-spine">
+    <div class="db-icon" style="background:#1e40af;color:#dbeafe;">S2</div>
+    <div>
+      <div class="db-title">spine02.novacrestbank.local</div>
+      <div class="db-sub">Cisco Nexus 9504 · Management IP: 10.40.0.11 · Console cable from laptop</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">The "differences only" approach — saving time in the real world</div>
+    In a real enterprise deployment, once you have done spine01 successfully, you do not need to re-read the full wizard for spine02. You follow the exact same steps but substitute the hostname and management IP. Senior engineers keep a build sheet — a document with every device's hostname, IP, and password — and work through it systematically.
+  </div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">spine02 — setup wizard answers (only the differences from spine01)</span>
+    </div>
+    <div class="tb"><pre><span class="td"># Setup wizard — all answers identical to spine01 EXCEPT these:</span>
+
+<span class="td">  Admin password:</span>       <span class="input">NovaCrest$Spine2026!</span>   <span class="td">← same password on all spines</td>
+
+<span class="td">  Switch name:</span>          <span class="input">spine02</span>                 <span class="td">← DIFFERENT: spine02 not spine01</td>
+
+<span class="td">  Mgmt0 IPv4 address:</span>   <span class="input">10.40.0.11</span>              <span class="td">← DIFFERENT: .11 not .10</td>
+<span class="td">  Mgmt0 IPv4 netmask:</span>   <span class="input">255.255.255.0</span>           <span class="td">← same</td>
+<span class="td">  Default gateway:</span>      <span class="input">10.40.0.1</span>               <span class="td">← same (OOB switch)</td>
+
+<span class="td"># Save and exit wizard, then SSH from laptop:</span>
+<span class="tpr">admin@laptop:~$</span> <span class="tcmd">ssh admin@10.40.0.11</span>
+<span class="tw">Password:</span> <span class="input">NovaCrest$Spine2026!</span>
+<span class="tg">spine02#</span>   <span class="td">← SSH to spine02 via OOB ✓</td>
+
+<span class="td"># Post-wizard config — run ALL the same commands as spine01</span>
+<span class="td"># Substitute "spine02" everywhere "spine01" appeared in descriptions</span>
+<span class="td"># The full command set (from Sections 07 and 08) applies identically:</span>
+<span class="tg">spine02#</span> <span class="tcmd">configure terminal</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">ip name-server 10.70.0.10</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">ip name-server 10.70.0.11</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">clock timezone UTC 0 0</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">banner motd @</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">* NovaCrestBank - spine02.novacrestbank.local                   *</span>
+<span class="tcmd">* AUTHORISED ACCESS ONLY...                                     *</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">@</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">ssh key rsa 2048</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">ssh login-attempts 3</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">line vty</span>
+<span class="tg">spine02(config-line)#</span> <span class="tcmd">exec-timeout 15 0</span>
+<span class="tg">spine02(config-line)#</span> <span class="tcmd">exit</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">logging server 10.70.0.10</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">logging source-interface mgmt0</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">interface mgmt0</span>
+<span class="tg">spine02(config-if)#</span> <span class="tcmd">description oob-sw01:Gi1/0/14 — OOB management</span>
+<span class="tg">spine02(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Enable same features as spine01</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature bgp</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature ospf</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature pim</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature interface-vlan</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature lacp</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature lldp</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature nxapi</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">feature sla</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">end</span>
+
+<span class="tg">spine02#</span> <span class="tcmd">copy running-config startup-config</span>
+<span class="tg">Copy complete.</span>   <span class="td">← spine02 base config saved ✓</td>
+
+<span class="td"># Verify — LLDP should show spine01 on Eth1/10 (peer link)</span>
+<span class="tg">spine02#</span> <span class="tcmd">show lldp neighbors</span>
+<span class="tw">Device ID         Local Intf    Holdtme  Capability  Port ID</span>
+<span class="tg">leaf01            Eth1/1        120      B, R        Eth1/50</span>
+<span class="tg">leaf02            Eth1/2        120      B, R        Eth1/50</span>
+<span class="tg">leaf03            Eth1/3        120      B, R        Eth1/50</span>
+<span class="tg">spine01           Eth1/10       120      R           Eth1/10</span>
+<span class="td">   ↑ All four neighbours visible: 3 leafs + spine01 peer ✓</td></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 11 — LEAF WIZARD ════════════ -->
+<div class="page" id="page-leaf-wizard">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 11</div>
+  <div class="pt">leaf01 setup wizard — full NX-OS first boot</div>
+  <div class="ps">The leaf switch wizard — identical pattern to spine but on a Nexus 93180YC-FX (fixed port switch, not chassis)</div>
+
+  <div class="device-banner db-leaf">
+    <div class="db-icon" style="background:#065f46;color:#d1fae5;">L1</div>
+    <div>
+      <div class="db-title">leaf01.novacrestbank.local</div>
+      <div class="db-sub">Cisco Nexus 93180YC-FX · Management IP: 10.40.0.20 · Console port on front panel (RJ45)</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Nexus 93180YC-FX physical differences from the 9504</div>
+    The 93180YC-FX is a 1U fixed-port switch (not a modular chassis). The console port is on the front panel, left side, labelled CONSOLE. Unlike the 9504, there is no Supervisor module to look for — the entire switch is one piece. The NX-OS setup wizard is identical in content to the 9504 wizard. Boot time is approximately 2–3 minutes (faster than the 9504 chassis).
+  </div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">leaf01 — NX-OS setup wizard (complete)</span>
+    </div>
+    <div class="tb"><pre><span class="td">         ---- System Admin Account Setup ----</span>
+
+<span class="tw">Do you want to enforce secure password standard (yes/no) [y]:</span> <span class="input">yes</span>
+
+<span class="tw">Enter the password for "admin":</span> <span class="input">NovaCrest$Leaf2026!</span>
+<span class="tw">Confirm the password for "admin":</span> <span class="input">NovaCrest$Leaf2026!</span>
+<span class="td">↑ Note: Different password from spines. Each device tier uses a different password.
+  In production, these are stored in a PAM (Privileged Access Manager) such as CyberArk.</td>
+
+<span class="td">         ---- Basic System Configuration Dialog VDC: 1 ----</span>
+
+<span class="tw">Would you like to enter the basic configuration dialog (yes/no):</span> <span class="input">yes</span>
+
+<span class="tw">Create another login account (yes/no) [n]:</span> <span class="input">no</span>
+
+<span class="tw">Configure read-only SNMP community string (yes/no) [n]:</span> <span class="input">yes</span>
+<span class="tw">  SNMP community string:</span> <span class="input">NovaCrest-RO-2026</span>
+
+<span class="tw">Configure read-write SNMP community string (yes/no) [n]:</span> <span class="input">no</span>
+
+<span class="tw">Enter the switch name:</span> <span class="input">leaf01</span>
+
+<span class="tw">Continue with Out-of-band (mgmt0) management configuration? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tw">  Mgmt0 IPv4 address:</span> <span class="input">10.40.0.20</span>
+<span class="td">↑ leaf01 management IP — from the IP plan in Guide 1</td>
+<span class="tw">  Mgmt0 IPv4 netmask:</span> <span class="input">255.255.255.0</span>
+
+<span class="tw">Configure the default gateway? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tw">  IPv4 address of the default gateway:</span> <span class="input">10.40.0.1</span>
+
+<span class="tw">Configure advanced IP options? (yes/no) [n]:</span> <span class="input">no</span>
+
+<span class="tw">Enable the telnet service? (yes/no) [n]:</span> <span class="input">no</span>
+
+<span class="tw">Enable the ssh service? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tw">  Type of ssh key you would like to generate (dsa/rsa) [rsa]:</span> <span class="input">rsa</span>
+<span class="tw">  Number of rsa key bits &lt;1024-2048&gt; [1024]:</span> <span class="input">2048</span>
+
+<span class="tw">Configure the ntp server? (yes/no) [n]:</span> <span class="input">yes</span>
+<span class="tw">  NTP server IPv4 address:</span> <span class="input">216.239.35.0</span>
+
+<span class="tw">Configure CoPP system profile (strict/moderate/lenient/dense) [strict]:</span> <span class="input">strict</span>
+
+<span class="tw">Would you like to edit the configuration? (yes/no) [n]:</span> <span class="input">no</span>
+
+<span class="tw">Use this configuration and save it? (yes/no) [y]:</span> <span class="input">yes</span>
+<span class="tg">[########################################] 100%</span>
+<span class="tg">Copy complete, now saving to disk (please wait)...</span>
+<span class="tg">Copy complete.</span>
+
+<span class="tg">leaf01#</span>    <span class="td">← leaf01 wizard complete ✓</td></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 12 — LEAF POST WIZARD ════════════ -->
+<div class="page" id="page-leaf-post">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 12</div>
+  <div class="pt">leaf01 post-wizard configuration</div>
+  <div class="ps">Domain, DNS, banner, SSH hardening, logging, and interface descriptions for all 48+6 ports</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">leaf01 — post-wizard (same pattern as spines + interface descriptions)</span>
+    </div>
+    <div class="tb"><pre><span class="tg">leaf01#</span> <span class="tcmd">configure terminal</span>
+
+<span class="td"># Domain, DNS, timezone, banner, SSH — identical to spines</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">ip name-server 10.70.0.10</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">ip name-server 10.70.0.11</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">clock timezone UTC 0 0</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">banner motd @</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">* NovaCrestBank - leaf01.novacrestbank.local                    *</span>
+<span class="tcmd">* AUTHORISED ACCESS ONLY. All activity is monitored and logged. *</span>
+<span class="tcmd">******************************************************************</span>
+<span class="tcmd">@</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">ssh key rsa 2048</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">ssh login-attempts 3</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">line vty</span>
+<span class="tg">leaf01(config-line)#</span> <span class="tcmd">exec-timeout 15 0</span>
+<span class="tg">leaf01(config-line)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">logging server 10.70.0.10</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">logging source-interface mgmt0</span>
+
+<span class="td"># ── Interface descriptions — this is where leaf01 differs from spines ─</span>
+<span class="td"># Leaf01 has 48 × 25G downlinks to servers and 6 × 100G uplinks to spines</span>
+<span class="td"># We document every port that is currently connected</span>
+
+<span class="td"># ESXi01 — ports 1-6 (6 NICs)</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/1</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi01:vmnic0 — Mgmt NIC A (VLAN10/70)</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/2</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi01:vmnic1 — Mgmt NIC B (VLAN10/70)</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/3</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi01:vmnic2 — VM+VXLAN NIC A (VLAN20/30/50/60)</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/4</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi01:vmnic3 — VM+VXLAN NIC B (VLAN20/30/50/60)</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/5</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi01:vmnic4 — vSAN NIC A (VLAN25)</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/6</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi01:vmnic5 — vSAN NIC B (VLAN25)</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># ESXi02 — ports 7-12</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/7</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi02:vmnic0 — Mgmt NIC A</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/8</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi02:vmnic1 — Mgmt NIC B</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/9</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi02:vmnic2 — VM+VXLAN NIC A</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/10</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi02:vmnic3 — VM+VXLAN NIC B</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/11</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi02:vmnic4 — vSAN NIC A</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/12</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description esxi02:vmnic5 — vSAN NIC B</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># 100G uplink ports — spine connections (ports 49-54)</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/49</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description spine01:Eth1/1 — 100G uplink to spine01</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface Ethernet1/50</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description spine02:Eth1/1 — 100G uplink to spine02</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span>
+
+<span class="td"># Management interface description</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">interface mgmt0</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">description oob-sw01:Gi1/0/10 — OOB management</span>
+<span class="tg">leaf01(config-if)#</span> <span class="tcmd">exit</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 13 — LEAF FEATURES ════════════ -->
+<div class="page" id="page-leaf01-features">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 13</div>
+  <div class="pt">leaf01 feature enablement</div>
+  <div class="ps">Leaf switches need additional features beyond what the spines need — vPC and spanning-tree are leaf-specific</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">leaf01 — feature enablement (more features than spines)</span>
+    </div>
+    <div class="tb"><pre><span class="tg">leaf01(config)#</span>   <span class="td">← still in configure terminal from Section 12</td>
+
+<span class="td"># Same features as spines</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature bgp</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature ospf</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature interface-vlan</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature lacp</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature lldp</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature nxapi</span>
+
+<span class="td"># Leaf-specific features (not on spines)</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature vpc</span>
+<span class="td">↑ vPC = virtual Port Channel. Allows two leaf switches to appear as one logical switch</span>
+<span class="td">  to a connected device (like an ESXi host with dual NICs). Configured fully in Guide 5.</span>
+
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature dhcp</span>
+<span class="td">↑ DHCP relay — leaf switches relay DHCP requests to the Windows DC's DHCP server</span>
+
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature hsrp</span>
+<span class="td">↑ HSRP = Hot Standby Router Protocol. Used for gateway redundancy (if configured).</span>
+
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature pim</span>
+<span class="td">↑ PIM multicast — needed if applications use multicast (some Oracle RAC configurations do)</td>
+
+<span class="tg">leaf01(config)#</span> <span class="tcmd">feature sla</span>
+
+<span class="td"># Spanning Tree — leaf switches run STP on Layer 2 downlinks to servers</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">spanning-tree mode rapid-pvst</span>
+<span class="td">↑ Rapid PVST+ = the standard spanning tree mode for Cisco Catalyst/Nexus</td>
+<span class="td">  "Rapid" = converges in seconds (vs 30-50 seconds for original STP)</td>
+<span class="td">  "PVST+" = Per-VLAN Spanning Tree — one STP instance per VLAN</td>
+
+<span class="tg">leaf01(config)#</span> <span class="tcmd">spanning-tree vlan 1-4094 priority 4096</span>
+<span class="td">↑ Make leaf01 the STP root bridge for ALL VLANs.</td>
+<span class="td">  Lower priority = preferred root. Default is 32768. 4096 is much lower = wins election.</td>
+<span class="td">  This matters because ESXi hosts connected to leaf01 should not have their own STP opinion.</td>
+
+<span class="td"># Verify features</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">end</span>
+<span class="tg">leaf01#</span> <span class="tcmd">show feature | grep enabled</span>
+<span class="tg">bgp                         1         enabled</span>
+<span class="tg">dhcp                        1         enabled</span>
+<span class="tg">hsrp                        1         enabled</span>
+<span class="tg">interface-vlan              1         enabled</span>
+<span class="tg">lacp                        1         enabled</span>
+<span class="tg">lldp                        1         enabled</span>
+<span class="tg">nxapi                       1         enabled</span>
+<span class="tg">ospf                        1         enabled</span>
+<span class="tg">pim                         1         enabled</span>
+<span class="tg">sla                         1         enabled</span>
+<span class="tg">vpc                         1         enabled</span>
+<span class="td">                                      ↑ All 11 features enabled ✓</td>
+
+<span class="td"># LLDP verification — leaf01 should see both spines and both ESXi hosts</span>
+<span class="tg">leaf01#</span> <span class="tcmd">show lldp neighbors</span>
+<span class="tw">Device ID         Local Intf    Holdtme  Capability  Port ID</span>
+<span class="tg">spine01           Eth1/49       120      R           Eth1/1</span>
+<span class="tg">spine02           Eth1/50       120      R           Eth1/1</span>
+<span class="ty">esxi01            Eth1/1        120      S           vmnic0</span>
+<span class="ty">esxi01            Eth1/2        120      S           vmnic1</span>
+<span class="ty">esxi01            Eth1/3        120      S           vmnic2</span>
+<span class="ty">esxi01            Eth1/4        120      S           vmnic3</span>
+<span class="ty">esxi01            Eth1/5        120      S           vmnic4</span>
+<span class="ty">esxi01            Eth1/6        120      S           vmnic5</span>
+<span class="tgr">esxi02            Eth1/7        120      S           vmnic0</span>
+<span class="tgr">esxi02            Eth1/8        120      S           vmnic1</span>
+<span class="tgr">esxi02            Eth1/9        120      S           vmnic2</span>
+<span class="tgr">esxi02            Eth1/10       120      S           vmnic3</span>
+<span class="tgr">esxi02            Eth1/11       120      S           vmnic4</span>
+<span class="tgr">esxi02            Eth1/12       120      S           vmnic5</span>
+<span class="td">   ↑ Both spines AND both ESXi hosts visible via LLDP
+     This confirms all 14 cables on leaf01 are correctly connected ✓
+     LLDP has verified your physical cabling before a single routing protocol runs</td></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 14 — LEAF VERIFY ════════════ -->
+<div class="page" id="page-leaf01-verify">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 14</div>
+  <div class="pt">leaf01 verification and save</div>
+  <div class="ps">Full verification then save — exactly as with the spines</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">leaf01 — verification and save</span>
+    </div>
+    <div class="tb"><pre><span class="tg">leaf01#</span> <span class="tcmd">show hostname</span>
+<span class="tg">leaf01</span>   <span class="td">← ✓</td>
+
+<span class="tg">leaf01#</span> <span class="tcmd">show interface mgmt0 | include IP</span>
+<span class="tg">    IP address: 10.40.0.20/24</span>   <span class="td">← ✓</td>
+
+<span class="tg">leaf01#</span> <span class="tcmd">ping 10.40.0.1 vrf management count 4</span>
+<span class="tg">4 packets transmitted, 4 packets received, 0.00% packet loss</span>   <span class="td">← OOB reachable ✓</td>
+
+<span class="tg">leaf01#</span> <span class="tcmd">show ntp status | include synchronized</span>
+<span class="tg">Clock is synchronized, stratum 2, reference: 216.239.35.0</span>   <span class="td">← NTP synced ✓</td>
+
+<span class="tg">leaf01#</span> <span class="tcmd">show spanning-tree summary | include "Root bridge"</span>
+<span class="tg">Root bridge for: VLAN0001, VLAN0010, VLAN0020, VLAN0025...</span>
+<span class="td">    ↑ leaf01 is the STP root bridge ✓</td>
+
+<span class="tg">leaf01#</span> <span class="tcmd">copy running-config startup-config</span>
+<span class="tg">Copy complete.</span>   <span class="td">← leaf01 saved ✓</td>
+
+<span class="td"># SSH test from laptop via OOB</span>
+<span class="tpr">admin@laptop:~$</span> <span class="tcmd">ssh admin@10.40.0.20</span>
+<span class="tw">Password:</span> <span class="input">NovaCrest$Leaf2026!</span>
+<span class="tg">leaf01#</span>   <span class="td">← SSH working ✓</td></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 15 — LEAF02 LEAF03 ════════════ -->
+<div class="page" id="page-leaf02-leaf03">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 15</div>
+  <div class="pt">leaf02 and leaf03 — differences only</div>
+  <div class="ps">Follow the identical process as leaf01 — these are the only values that change</div>
+
+  <div class="card" style="border-top:3px solid var(--green);">
+    <h3>leaf02 — what changes from leaf01</h3>
+    <div class="spec-row"><span class="spec-label">Hostname</span><span class="spec-val">leaf02</span></div>
+    <div class="spec-row"><span class="spec-label">Management IP</span><span class="spec-val">10.40.0.21/24</span></div>
+    <div class="spec-row"><span class="spec-label">Banner</span><span class="spec-val">leaf02.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">mgmt0 description</span><span class="spec-val">oob-sw01:Gi1/0/11 — OOB management</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/1–6</span><span class="spec-val">esxi03:vmnic0–vmnic5 (not esxi01)</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/7–12</span><span class="spec-val">esxi04:vmnic0–vmnic5 (not esxi02)</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/49</span><span class="spec-val">description: spine01:Eth1/2 — 100G uplink to spine01</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/50</span><span class="spec-val">description: spine02:Eth1/2 — 100G uplink to spine02</span></div>
+    <div class="spec-row"><span class="spec-label">All other config</span><span class="spec-val">Identical to leaf01</span></div>
+  </div>
+
+  <div class="card" style="border-top:3px solid var(--green);">
+    <h3>leaf03 — what changes from leaf01</h3>
+    <div class="spec-row"><span class="spec-label">Hostname</span><span class="spec-val">leaf03</span></div>
+    <div class="spec-row"><span class="spec-label">Management IP</span><span class="spec-val">10.40.0.22/24</span></div>
+    <div class="spec-row"><span class="spec-label">Banner</span><span class="spec-val">leaf03.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">mgmt0 description</span><span class="spec-val">oob-sw01:Gi1/0/12 — OOB management</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/1–6</span><span class="spec-val">esxi05:vmnic0–vmnic5 (only one ESXi host on this leaf currently)</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/13–14</span><span class="spec-val">NetApp AFF A400 NFS connections (25G, VLAN 30)</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/13 description</span><span class="spec-val">netapp-aff-a400:e0c — NAS NFS port A (VLAN30)</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/14 description</span><span class="spec-val">netapp-aff-a400:e0d — NAS NFS port B (VLAN30)</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/49</span><span class="spec-val">description: spine01:Eth1/3 — 100G uplink to spine01</span></div>
+    <div class="spec-row"><span class="spec-label">Eth1/50</span><span class="spec-val">description: spine02:Eth1/3 — 100G uplink to spine02</span></div>
+    <div class="spec-row"><span class="spec-label">All other config</span><span class="spec-val">Identical to leaf01</span></div>
+  </div>
+
+  <div class="callout success">
+    <div class="cl">After completing leaf02 and leaf03</div>
+    All 5 Nexus switches (spine01, spine02, leaf01, leaf02, leaf03) are configured with base settings, SSH enabled, features loaded, and saved. The OOB switch is also complete. All 6 devices are reachable via SSH from the jump host through the OOB network.
+  </div>
+</div>
+
+<!-- ════════════ 16 — SSH VERIFY ════════════ -->
+<div class="page" id="page-ssh-verify">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 16</div>
+  <div class="pt">SSH to every device from the jump host</div>
+  <div class="ps">The first time you manage all 5 Nexus switches simultaneously — proving OOB is fully working</div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">jumphost.novacrestbank.local — SSH reachability test to all switches</span>
+    </div>
+    <div class="tb"><pre><span class="td"># From the jump host — test SSH to every switch in one script</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">for device in 10.40.0.1 10.40.0.10 10.40.0.11 10.40.0.20 10.40.0.21 10.40.0.22; do
+  result=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no \
+    admin@${device} "show hostname" 2>/dev/null)
+  echo "${device} → ${result}"
+done</span>
+
+<span class="tg">10.40.0.1  → oob-sw01</span>    <span class="td">← Catalyst 9200 OOB switch ✓</td>
+<span class="tg">10.40.0.10 → spine01</span>     <span class="td">← Nexus 9504 spine01 ✓</td>
+<span class="tg">10.40.0.11 → spine02</span>     <span class="td">← Nexus 9504 spine02 ✓</td>
+<span class="tg">10.40.0.20 → leaf01</span>      <span class="td">← Nexus 93180YC-FX leaf01 ✓</td>
+<span class="tg">10.40.0.21 → leaf02</span>      <span class="td">← Nexus 93180YC-FX leaf02 ✓</td>
+<span class="tg">10.40.0.22 → leaf03</span>      <span class="td">← Nexus 93180YC-FX leaf03 ✓</td>
+<span class="td">
+   ↑ All 6 devices respond to SSH via the OOB network.
+     From this point forward, all further configuration work is done via SSH from the jump host.
+     Console cables remain connected to each device as emergency-only access.
+     You no longer need to be physically in the data center to manage the network.</td>
+
+<span class="td"># Verify LLDP topology matches the cabling matrix from Guide 1</span>
+<span class="td"># Run this on spine01 — it should see all 3 leaf switches and spine02</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">ssh admin@10.40.0.10 "show lldp neighbors"</span>
+<span class="tw">Password:</span> <span class="input">NovaCrest$Spine2026!</span>
+<span class="tw">Device ID         Local Intf    Holdtme  Capability  Port ID</span>
+<span class="tg">leaf01            Eth1/1        120      B, R        Eth1/49</span>   <span class="td">← ✓ cabling matches Guide 1</td>
+<span class="tg">leaf02            Eth1/2        120      B, R        Eth1/49</span>   <span class="td">← ✓</td>
+<span class="tg">leaf03            Eth1/3        120      B, R        Eth1/49</span>   <span class="td">← ✓</td>
+<span class="tg">spine02           Eth1/10       120      R           Eth1/10</span>   <span class="td">← ✓ peer link</td></pre>
+
+      <div class="ann ok"><span class="ai">✓</span><span>OOB management is fully operational. All 6 network devices are SSH-accessible from the jump host. LLDP confirms physical cabling matches the design. The console cables remain as emergency backup but are not needed for day-to-day work.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 17 — NTP VERIFY ════════════ -->
+<div class="page" id="page-ntp-verify">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 17</div>
+  <div class="pt">NTP synchronisation verification across all devices</div>
+  <div class="ps">Confirming every switch shows "Clock is synchronized" before any protocols are configured</div>
+
+  <div class="callout warn">
+    <div class="cl">Why NTP must be verified before anything else</div>
+    BGP, TLS certificates, logging timestamps, and audit records all depend on accurate time. A switch that is 5 minutes off in time will have logging that does not correlate with other devices. A certificate that is checked by a switch with wrong time may appear expired when it is not, or valid when it is. NTP must be synchronised and verified on every device before Guide 3 begins.
+  </div>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">jumphost — NTP verification on all 5 Nexus switches</span>
+    </div>
+    <div class="tb"><pre><span class="td"># Check NTP status on all switches at once</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">for device in spine01:10.40.0.10 spine02:10.40.0.11 leaf01:10.40.0.20 leaf02:10.40.0.21 leaf03:10.40.0.22; do
+  name=$(echo $device | cut -d: -f1)
+  ip=$(echo $device | cut -d: -f2)
+  status=$(ssh -o ConnectTimeout=5 admin@${ip} \
+    "show ntp status | grep Clock" 2>/dev/null)
+  echo "${name} (${ip}): ${status}"
+done</span>
+
+<span class="tg">spine01 (10.40.0.10): Clock is synchronized, stratum 2, reference: 216.239.35.0</span>
+<span class="tg">spine02 (10.40.0.11): Clock is synchronized, stratum 2, reference: 216.239.35.0</span>
+<span class="tg">leaf01  (10.40.0.20): Clock is synchronized, stratum 2, reference: 216.239.35.0</span>
+<span class="tg">leaf02  (10.40.0.21): Clock is synchronized, stratum 2, reference: 216.239.35.0</span>
+<span class="tg">leaf03  (10.40.0.22): Clock is synchronized, stratum 2, reference: 216.239.35.0</span>
+<span class="td">                                              ↑ ALL showing "Clock is synchronized" ✓
+                                                All at stratum 2 (one hop from Google NTP)
+                                                All referencing the same NTP server</td>
+
+<span class="td"># Verify time is consistent across all devices</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">for device in spine01:10.40.0.10 leaf01:10.40.0.20; do
+  name=$(echo $device | cut -d: -f1)
+  ip=$(echo $device | cut -d: -f2)
+  time=$(ssh -o ConnectTimeout=5 admin@${ip} \
+    "show clock" 2>/dev/null)
+  echo "${name}: ${time}"
+done</span>
+
+<span class="tg">spine01: 09:42:51.483 UTC Mon Apr 13 2026</span>
+<span class="tg">leaf01:  09:42:51.821 UTC Mon Apr 13 2026</span>
+<span class="td">         ↑ Both show identical time (within milliseconds) ✓
+           All devices are time-synchronised and ready for protocol configuration</td>
+
+<span class="td"># What to do if a device shows "Clock is unsynchronised"</span>
+<span class="td"># 1. Check if the device can reach the NTP server</span>
+<span class="tg">spine01#</span> <span class="tcmd">ping 216.239.35.0 vrf management count 4</span>
+<span class="td">   → If ping fails: NTP server unreachable from management VRF
+     → Check that the OOB switch has a route to the internet (via Palo Alto)
+     → Temporary workaround: use the OOB switch IP as NTP source (it is synchronised)</td>
+<span class="td"># 2. Force NTP to re-sync immediately</span>
+<span class="tg">spine01#</span> <span class="tcmd">configure terminal</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">no ntp server 216.239.35.0</span>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ntp server 216.239.35.0</span>
+<span class="td">   → Removing and re-adding the NTP server forces immediate re-synchronisation attempt</td></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 18 — GUIDE 2 SUMMARY ════════════ -->
+<div class="page" id="page-guide2-summary">
+  <div class="ey">Cisco Fabric · Guide 2 · Section 18</div>
+  <div class="pt">Guide 2 complete — what you now have</div>
+  <div class="ps">The state of every device, the evidence you have produced, and exactly what Guide 3 begins with</div>
+
+  <div class="callout success">
+    <div class="cl">Guide 2 complete — six switches, all configured, all verified</div>
+    Every network device in NovaCrestBank's data center now has a base configuration. NX-OS features are loaded. SSH is working. NTP is synchronised. LLDP has verified the physical cabling. All devices are reachable from the jump host. The physical console cables can remain connected as emergency backup — you will not need them again unless something goes very wrong.
+  </div>
+
+  <h2>State of every device after Guide 2</h2>
+  <table>
+    <thead><tr><th>Device</th><th>Hostname</th><th>Mgmt IP</th><th>SSH</th><th>NTP</th><th>Features</th><th>Saved</th></tr></thead>
+    <tbody>
+      <tr><td>OOB switch</td><td>oob-sw01</td><td>10.40.0.1</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td>IOS-XE standard</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>Spine 1</td><td>spine01</td><td>10.40.0.10</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td>BGP, LACP, LLDP, NX-API</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>Spine 2</td><td>spine02</td><td>10.40.0.11</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td>BGP, LACP, LLDP, NX-API</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>Leaf 1</td><td>leaf01</td><td>10.40.0.20</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td>BGP, LACP, LLDP, vPC, DHCP, STP-root</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>Leaf 2</td><td>leaf02</td><td>10.40.0.21</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td>BGP, LACP, LLDP, vPC, DHCP, STP-root</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>Leaf 3</td><td>leaf03</td><td>10.40.0.22</td><td><span class="badge bg">✓</span></td><td><span class="badge bg">✓</span></td><td>BGP, LACP, LLDP, vPC, DHCP, STP-root</td><td><span class="badge bg">✓</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>What is NOT yet configured — Guide 3 onward</h2>
+  <table>
+    <thead><tr><th>Topic</th><th>Covered in</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>OOB switch — port VLANs confirmed, iLO connectivity tested</td><td>Guide 3</td><td>Verify every iLO IP is reachable, test console server access</td></tr>
+      <tr><td>Spine interfaces — BGP config, routed links to leafs</td><td>Guide 4</td><td>Makes the spine-leaf routing work — packets can flow between VLANs</td></tr>
+      <tr><td>Leaf interfaces — VLAN trunk config, SVI gateways</td><td>Guide 5</td><td>VLANs on downlinks, IP gateways for each subnet</td></tr>
+      <tr><td>vPC configuration — leaf01 ↔ leaf02 peer link</td><td>Guide 5</td><td>Dual-homed ESXi uplinks, no single point of failure</td></tr>
+      <tr><td>DHCP relay on leafs — forward requests to Windows DC</td><td>Guide 5</td><td>VMs and ESXi hosts get IPs from Windows DHCP</td></tr>
+    </tbody>
+  </table>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">Guide 2 final state — what your jump host can now do</span>
+    </div>
+    <div class="tb"><pre><span class="td"># You can now SSH to any network device from the jump host at any time:</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">ssh admin@10.40.0.10   # spine01</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">ssh admin@10.40.0.11   # spine02</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">ssh admin@10.40.0.20   # leaf01</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">ssh admin@10.40.0.21   # leaf02</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">ssh admin@10.40.0.22   # leaf03</span>
+
+<span class="td"># You can check all devices are up with one command:</span>
+<span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">for ip in 10.40.0.10 10.40.0.11 10.40.0.20 10.40.0.21 10.40.0.22; do
+  ping -c 1 -W 2 $ip > /dev/null 2>&1 && echo "$ip UP" || echo "$ip DOWN"
+done</span>
+<span class="tg">10.40.0.10 UP</span>
+<span class="tg">10.40.0.11 UP</span>
+<span class="tg">10.40.0.20 UP</span>
+<span class="tg">10.40.0.21 UP</span>
+<span class="tg">10.40.0.22 UP</span>
+<span class="td">            ↑ All 5 Nexus switches reachable via OOB ✓
+              Guide 3 begins next — OOB verification and iLO connectivity testing</td></pre>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  var page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    var dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--accent)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Win-01 — DC1 and DC2 · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --win-blue:#0078d4;--win-dark:#003366;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--win-blue);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .nav-group{padding:4px 0;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--win-blue);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--win-blue);}
+
+  /* ── MAIN ── */
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1040px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--win-blue);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--win-blue);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--win-blue);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.why) .cl{color:var(--win-blue);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:22px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--win-blue);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+
+  /* ── DECISION BOX ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:200px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ══════════════════════════════════════════════
+     WINDOWS SERVER GUI MOCKUPS
+     The visual language for all Windows guides
+  ══════════════════════════════════════════════ */
+
+  /* vCenter New VM wizard */
+  .vc-wizard{background:#fff;border:1px solid #c8d8e8;border-radius:6px;
+    overflow:hidden;margin:18px 0;box-shadow:0 2px 12px rgba(0,0,0,.1);}
+  .vc-wiz-header{background:#1e3a5c;padding:12px 20px;}
+  .vc-wiz-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;}
+  .vc-wiz-sub{font-size:11.5px;color:#8ab8d8;}
+  .vc-wiz-body{display:flex;min-height:260px;}
+  .vc-wiz-nav{width:185px;flex-shrink:0;background:#f5f8fc;
+    border-right:1px solid #c8d8e8;padding:10px 0;}
+  .vc-wiz-step{display:flex;align-items:center;gap:9px;
+    padding:6px 14px;font-size:12.5px;color:#6c757d;}
+  .vc-wiz-step.active{color:#1e6eb5;background:#e8f2fc;}
+  .vc-wiz-step.done{color:#28a745;}
+  .vc-wiz-dot{width:18px;height:18px;border-radius:50%;
+    border:1.5px solid currentColor;display:flex;align-items:center;
+    justify-content:center;font-size:9px;flex-shrink:0;}
+  .vc-wiz-step.active .vc-wiz-dot{background:#1e6eb5;border-color:#1e6eb5;color:#fff;}
+  .vc-wiz-step.done .vc-wiz-dot{background:#28a745;border-color:#28a745;color:#fff;}
+  .vc-wiz-content{flex:1;padding:18px 22px;}
+  .vc-wiz-section{font-size:13px;font-weight:700;color:#1a2a3a;
+    margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e0e8f0;}
+  .vc-field{margin-bottom:12px;}
+  .vc-label{font-size:11.5px;color:#5a7090;margin-bottom:4px;}
+  .vc-input{width:100%;border:1px solid #c8d8e8;border-radius:4px;
+    padding:6px 10px;font-size:13px;color:#1a2a3a;}
+  .vc-input.filled{border-color:#28a745;background:#f8fff8;}
+  .vc-select{width:100%;border:1px solid #c8d8e8;border-radius:4px;
+    padding:6px 10px;font-size:13px;color:#1a2a3a;background:#fff;}
+  .vc-hint{font-size:11px;color:#8090a0;margin-top:3px;}
+  .vc-wiz-footer{background:#f5f8fc;padding:10px 20px;
+    display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #c8d8e8;}
+  .vc-btn{padding:6px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;}
+  .vc-btn.secondary{background:#fff;color:#6c757d;border:1px solid #c8d8e8;}
+  .vc-btn.primary{background:#1e6eb5;color:#fff;border:none;}
+  .vc-btn.finish{background:#28a745;color:#fff;border:none;}
+
+  /* Windows Server Setup screen mockup */
+  .win-setup{background:#1a1a2e;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #2a2a4e;
+    box-shadow:0 4px 20px rgba(0,0,0,.35);
+    font-family:"Segoe UI",-apple-system,sans-serif;}
+  .win-setup-bar{background:#0e0e20;padding:9px 16px;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid #2a2a4e;}
+  .wsd{width:10px;height:10px;border-radius:50%;}
+  .wsd.r{background:#e05252;}.wsd.y{background:#d4a331;}.wsd.g{background:#5ccb6f;}
+  .win-setup-label{font-size:11px;color:#6a6a9a;margin-left:6px;}
+  .win-setup-body{padding:24px 32px;}
+  .win-logo{font-size:28px;font-weight:700;color:#0078d4;margin-bottom:4px;
+    font-family:"Segoe UI",sans-serif;}
+  .win-logo span{font-weight:300;}
+  .win-setup-title{font-size:17px;font-weight:600;color:#e8e8f8;margin-bottom:16px;}
+  .win-field{margin-bottom:14px;}
+  .win-field-label{font-size:12px;color:#9090c0;margin-bottom:5px;}
+  .win-field-input{background:#2a2a4e;border:1px solid #4a4a7e;
+    border-radius:4px;padding:8px 12px;font-size:13px;
+    color:#c8c8e8;width:100%;font-family:inherit;}
+  .win-field-input.filled{border-color:#0078d4;color:#7bc4f8;}
+  .win-dropdown{background:#2a2a4e;border:1px solid #4a4a7e;
+    border-radius:4px;padding:8px 12px;font-size:13px;color:#c8c8e8;width:100%;}
+  .win-hint{font-size:11px;color:#6a6a9a;margin-top:4px;}
+  .win-btn-row{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .win-btn{padding:8px 20px;border-radius:4px;font-size:13px;
+    font-weight:600;cursor:pointer;border:none;}
+  .win-btn.back{background:transparent;color:#9090c0;border:1px solid #4a4a7e;}
+  .win-btn.next{background:#0078d4;color:#fff;}
+  .win-btn.install{background:#107c10;color:#fff;}
+
+  /* Windows Server Manager / GUI mockup */
+  .win-mgr{background:#f0f0f0;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #c0c0c0;
+    box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:13px;}
+  .win-mgr-bar{background:#2d2d2d;padding:6px 12px;display:flex;
+    align-items:center;gap:8px;font-size:12px;color:#c0c0c0;}
+  .win-mgr-title{background:#1a3a5c;padding:10px 16px;
+    font-size:14px;font-weight:700;color:#fff;
+    display:flex;align-items:center;gap:10px;}
+  .win-mgr-nav{background:#2c5282;padding:0;display:flex;}
+  .win-mgr-tab{padding:8px 16px;font-size:12.5px;color:#a0c4e8;cursor:pointer;}
+  .win-mgr-tab.active{background:#1a3a5c;color:#fff;border-bottom:2px solid #0078d4;}
+  .win-mgr-body{padding:16px 20px;background:#fff;}
+  .win-mgr-section{font-size:12px;font-weight:700;color:#1a3a5c;
+    text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;
+    padding-bottom:4px;border-bottom:2px solid #0078d4;}
+  .win-mgr-row{display:flex;gap:12px;align-items:baseline;
+    padding:5px 0;border-bottom:0.5px solid #e8e8e8;font-size:13px;}
+  .win-mgr-row:last-child{border-bottom:none;}
+  .win-mgr-label{color:#5a5a5a;min-width:200px;flex-shrink:0;}
+  .win-mgr-val{color:#1a1a1a;font-weight:500;}
+  .win-mgr-val.ok{color:#107c10;font-weight:700;}
+  .win-mgr-val.warn{color:#d4a331;font-weight:700;}
+
+  /* Windows wizard panels (Add Roles wizard, ADUC, etc.) */
+  .win-wizard{background:#fff;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #c8c8c8;
+    box-shadow:0 2px 14px rgba(0,0,0,.12);}
+  .ww-header{background:#1a3a5c;padding:12px 20px;
+    display:flex;align-items:center;gap:12px;}
+  .ww-icon{width:28px;height:28px;border-radius:4px;
+    background:#0078d4;display:flex;align-items:center;
+    justify-content:center;font-size:14px;color:#fff;flex-shrink:0;}
+  .ww-title{font-size:14px;font-weight:700;color:#fff;}
+  .ww-sub{font-size:11.5px;color:#8ab8d8;margin-top:1px;}
+  .ww-body{display:flex;min-height:300px;}
+  .ww-nav{width:200px;flex-shrink:0;background:#f5f5f5;
+    border-right:1px solid #e0e0e0;padding:10px 0;}
+  .ww-step{padding:8px 16px;font-size:12.5px;color:#5a5a5a;cursor:default;
+    display:flex;align-items:center;gap:8px;}
+  .ww-step.active{background:#e6f0fa;color:#1e6eb5;font-weight:600;
+    border-left:3px solid #0078d4;padding-left:13px;}
+  .ww-step.done{color:#107c10;}
+  .ww-step-num{width:18px;height:18px;border-radius:50%;
+    border:1.5px solid currentColor;display:flex;align-items:center;
+    justify-content:center;font-size:9px;flex-shrink:0;}
+  .ww-step.active .ww-step-num{background:#0078d4;border-color:#0078d4;color:#fff;}
+  .ww-step.done .ww-step-num{background:#107c10;border-color:#107c10;color:#fff;}
+  .ww-content{flex:1;padding:20px 26px;overflow-y:auto;}
+  .ww-section-title{font-size:15px;font-weight:700;color:#1a2a3a;
+    margin-bottom:4px;}
+  .ww-section-sub{font-size:12.5px;color:#5a5a5a;margin-bottom:16px;}
+  .ww-text{font-size:13px;color:#333;margin-bottom:10px;line-height:1.6;}
+  .ww-checkbox{display:flex;align-items:flex-start;gap:9px;
+    margin-bottom:10px;font-size:13px;color:#333;}
+  .ww-cb{width:14px;height:14px;border:1.5px solid #0078d4;
+    border-radius:2px;background:#0078d4;flex-shrink:0;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+  .ww-cb.empty{background:#fff;border-color:#aaa;}
+  .ww-role{background:#f5f8fc;border:1px solid #d0dce8;border-radius:5px;
+    padding:10px 14px;margin-bottom:8px;cursor:pointer;}
+  .ww-role.selected{background:#e6f0fa;border-color:#0078d4;}
+  .ww-role-name{font-size:13px;font-weight:600;color:#1a2a3a;margin-bottom:2px;}
+  .ww-role-desc{font-size:11.5px;color:#5a5a5a;}
+  .ww-field{margin-bottom:12px;}
+  .ww-label{font-size:12px;color:#5a5a5a;margin-bottom:4px;}
+  .ww-input{width:100%;border:1px solid #c0c0c0;border-radius:3px;
+    padding:6px 10px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .ww-input.filled{border-color:#107c10;background:#f8fff8;}
+  .ww-warn-box{background:#fff3e0;border:1px solid #ffb74d;
+    border-radius:4px;padding:10px 14px;margin:10px 0;
+    font-size:12.5px;color:#e65100;}
+  .ww-info-box{background:#e8f4fe;border:1px solid #90caf9;
+    border-radius:4px;padding:10px 14px;margin:10px 0;
+    font-size:12.5px;color:#0d47a1;}
+  .ww-footer{background:#f5f5f5;padding:10px 20px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid #e0e0e0;}
+  .ww-footer-btns{display:flex;gap:8px;}
+  .ww-btn{padding:6px 18px;border-radius:3px;font-size:13px;
+    font-weight:600;cursor:pointer;}
+  .ww-btn.back{background:#fff;color:#333;border:1px solid #c0c0c0;}
+  .ww-btn.next{background:#0078d4;color:#fff;border:none;}
+  .ww-btn.install{background:#107c10;color:#fff;border:none;}
+  .ww-btn.close{background:#fff;color:#333;border:1px solid #c0c0c0;}
+
+  /* Screen annotation */
+  .screen-ann{display:flex;gap:9px;background:#1a2030;
+    border-left:3px solid #d4a331;padding:7px 13px;margin:0 0 8px;
+    border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;
+    font-size:12px;color:#c8d8e8;line-height:1.5;}
+  .screen-ann.ok{border-left-color:#5ccb6f;}
+  .screen-ann.info{border-left-color:#4da8da;}
+  .screen-ann.danger{border-left-color:#e05252;}
+  .sai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--win-blue);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* PowerShell terminal */
+  .psh{background:#012456;border-radius:var(--r);overflow:hidden;
+    margin:16px 0;border:1px solid #013a7a;
+    font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .psh-bar{background:#001a3a;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #013a7a;}
+  .psh-dot{width:10px;height:10px;border-radius:50%;}
+  .psh-dot.r{background:#e05252;}.psh-dot.y{background:#d4a331;}.psh-dot.g{background:#5ccb6f;}
+  .psh-label{font-size:11px;color:#4a7ab0;margin-left:6px;}
+  .psh-body{padding:14px 18px;overflow-x:auto;}
+  .psh-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;
+    color:#cccccc;white-space:pre;}
+  .ps{color:#eeedf0;} /* normal output */
+  .pp{color:#f1c40f;font-weight:700;} /* prompt */
+  .pc{color:#61c5eb;} /* command */
+  .pv{color:#b5cea8;} /* value/string */
+  .pk{color:#c586c0;} /* keyword */
+  .pg{color:#4ccd99;} /* success */
+  .pw{color:#cca700;} /* warning */
+  .pd{color:#608b7a;} /* comment/dim */
+  .pann{display:flex;gap:9px;background:#001a3a;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-family:-apple-system,sans-serif;font-size:12px;color:#cccccc;line-height:1.5;}
+  .pann.ok{border-left-color:#4ccd99;}.pann.info{border-left-color:#61c5eb;}
+  .pai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Windows Server</div>
+    <h1>Win-01 — DC1 and DC2</h1>
+    <p>AD DS · DNS · Sites &amp; Services · NTP</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Concepts and planning</div>
+    <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — What DC1 and DC2 do</div>
+    <div class="ni" onclick="show('ad-concepts')"><div class="nd"></div>02 — AD DS concepts — forest, domain, DC</div>
+    <div class="ni" onclick="show('planning')"><div class="nd"></div>03 — Planning — names, IPs, specs</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Create the VM in vCenter</div>
+    <div class="ni" onclick="show('create-vm')"><div class="nd"></div>04 — Create the DC1 VM in vCenter</div>
+    <div class="ni" onclick="show('vm-hardware')"><div class="nd"></div>05 — VM hardware — CPU, RAM, disk</div>
+    <div class="ni" onclick="show('vm-network')"><div class="nd"></div>06 — VM network — VLAN 70 port group</div>
+    <div class="ni" onclick="show('vm-iso')"><div class="nd"></div>07 — Attach the Windows Server ISO</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Windows Server installation</div>
+    <div class="ni" onclick="show('ws-boot')"><div class="nd"></div>08 — Boot the VM and start setup</div>
+    <div class="ni" onclick="show('ws-language')"><div class="nd"></div>09 — Language and regional settings</div>
+    <div class="ni" onclick="show('ws-edition')"><div class="nd"></div>10 — Edition selection — Standard vs Datacenter</div>
+    <div class="ni" onclick="show('ws-partition')"><div class="nd"></div>11 — Disk partitioning</div>
+    <div class="ni" onclick="show('ws-password')"><div class="nd"></div>12 — Administrator password</div>
+    <div class="ni" onclick="show('ws-postinstall')"><div class="nd"></div>13 — Post-install — rename, IP, join workgroup</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Add roles — AD DS and DNS</div>
+    <div class="ni" onclick="show('roles-open')"><div class="nd"></div>14 — Open Server Manager — Add Roles</div>
+    <div class="ni" onclick="show('roles-before')"><div class="nd"></div>15 — Before you begin screen</div>
+    <div class="ni" onclick="show('roles-type')"><div class="nd"></div>16 — Role-based installation</div>
+    <div class="ni" onclick="show('roles-server')"><div class="nd"></div>17 — Select the destination server</div>
+    <div class="ni" onclick="show('roles-select')"><div class="nd"></div>18 — Select AD DS and DNS Server roles</div>
+    <div class="ni" onclick="show('roles-features')"><div class="nd"></div>19 — Features screen</div>
+    <div class="ni" onclick="show('roles-confirm')"><div class="nd"></div>20 — Confirmation and install</div>
+    <div class="ni" onclick="show('roles-progress')"><div class="nd"></div>21 — Installation progress</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Promote to Domain Controller</div>
+    <div class="ni" onclick="show('promote-start')"><div class="nd"></div>22 — The promotion notification</div>
+    <div class="ni" onclick="show('promote-deployment')"><div class="nd"></div>23 — Deployment configuration — new forest</div>
+    <div class="ni" onclick="show('promote-domain')"><div class="nd"></div>24 — Domain name — novacrestbank.local</div>
+    <div class="ni" onclick="show('promote-options')"><div class="nd"></div>25 — Domain controller options</div>
+    <div class="ni" onclick="show('promote-dns')"><div class="nd"></div>26 — DNS options screen</div>
+    <div class="ni" onclick="show('promote-netbios')"><div class="nd"></div>27 — NetBIOS domain name</div>
+    <div class="ni" onclick="show('promote-paths')"><div class="nd"></div>28 — AD DS database paths</div>
+    <div class="ni" onclick="show('promote-review')"><div class="nd"></div>29 — Review options and prerequisites check</div>
+    <div class="ni" onclick="show('promote-install')"><div class="nd"></div>30 — Install and reboot</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Post-promotion configuration</div>
+    <div class="ni" onclick="show('post-login')"><div class="nd"></div>31 — First login after promotion</div>
+    <div class="ni" onclick="show('dns-zones')"><div class="nd"></div>32 — DNS — verify AD-integrated zones</div>
+    <div class="ni" onclick="show('dns-records')"><div class="nd"></div>33 — DNS — add infrastructure A records</div>
+    <div class="ni" onclick="show('ntp-config')"><div class="nd"></div>34 — NTP — configure DC1 as stratum 2</div>
+    <div class="ni" onclick="show('sites-services')"><div class="nd"></div>35 — Sites and Services — match physical topology</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">DC2 — second domain controller</div>
+    <div class="ni" onclick="show('dc2-create')"><div class="nd"></div>36 — Create DC2 VM and install Windows</div>
+    <div class="ni" onclick="show('dc2-join')"><div class="nd"></div>37 — Join DC2 to the domain</div>
+    <div class="ni" onclick="show('dc2-promote')"><div class="nd"></div>38 — Promote DC2 — additional DC wizard</div>
+    <div class="ni" onclick="show('dc2-verify')"><div class="nd"></div>39 — Verify replication — AD and DNS</div>
+    <div class="ni" onclick="show('final-verify')"><div class="nd"></div>40 — Final verification checklist</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 OVERVIEW ══════ -->
+<div class="page active" id="page-overview">
+  <div class="ey">Windows Server · Win-01 · Section 01</div>
+  <div class="pt">What DC1 and DC2 do — the foundation everything else depends on</div>
+  <div class="ps">Active Directory Domain Controllers are not just "Windows servers." They are the identity fabric for NovaCrestBank's entire infrastructure — every system that authenticates uses them.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Cisco<br/>fabric</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>ESXi<br/>install</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>vCenter<br/>deploy</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>vDS<br/>Phase 1</div>
+    <div class="pt-step active"><span class="pt-n">→</span>Windows<br/>DC/DNS</div>
+    <div class="pt-step"><span class="pt-n">6</span>AD CS<br/>PKI</div>
+    <div class="pt-step"><span class="pt-n">7+</span>vSAN<br/>HA/DRS</div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Why DC1 and DC2 must exist before almost everything else</div>
+    Domain Controllers provide four services that every other system in NovaCrestBank depends on: <strong>Authentication</strong> (Kerberos and NTLM — vCenter AD login, OpenShift LDAP IDP, Windows machine logins), <strong>DNS</strong> (name resolution — vcenter.novacrestbank.local, esxi01.novacrestbank.local, every service FQDN), <strong>NTP</strong> (time synchronisation — ESXi hosts, Cisco switches, and Palo Alto all point to the DC for time), and <strong>DHCP</strong> (IP address assignment for VMs — configured in Win-02). Until DCs exist, none of these services are operational.
+  </div>
+
+  <h2>What DC1 and DC2 provide — the complete service list</h2>
+  <table>
+    <thead><tr><th>Service</th><th>Provided by</th><th>Who depends on it</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Active Directory Domain Services (AD DS)</strong></td>
+        <td>DC1 (primary), DC2 (redundant)</td>
+        <td>vCenter SSO AD integration, OpenShift LDAP IDP, all Windows machines, ESXi AD auth (optional), CyberArk PAM</td>
+      </tr>
+      <tr>
+        <td><strong>DNS (AD-integrated)</strong></td>
+        <td>DC1 (primary), DC2 (secondary)</td>
+        <td>Every device on the network — name resolution for all FQDNs. ESXi hosts, vCenter, OCP nodes, AD CS, all VMs</td>
+      </tr>
+      <tr>
+        <td><strong>NTP (Network Time Protocol)</strong></td>
+        <td>DC1 (stratum 2), DC2 (stratum 2)</td>
+        <td>ESXi hosts (vmk0 NTP client), Cisco switches (mgmt VRF NTP client), Palo Alto, all Windows VMs</td>
+      </tr>
+      <tr>
+        <td><strong>Kerberos Key Distribution Centre (KDC)</strong></td>
+        <td>Built into AD DS on every DC</td>
+        <td>vCenter AD SSO, OpenShift AD auth, Windows machine authentication</td>
+      </tr>
+      <tr>
+        <td><strong>Global Catalog</strong></td>
+        <td>DC1 and DC2 (both hold a GC copy)</td>
+        <td>Universal group membership resolution — required for cross-domain lookups if a multi-domain forest is ever added</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>DC1 vs DC2 — which one does what</h2>
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--win-blue);">
+      <h3 style="color:var(--win-blue);">DC1 (dc01.novacrestbank.local)</h3>
+      <p style="font-size:13.5px">10.70.0.10 · Primary Domain Controller. Holds all five FSMO roles initially. Primary DNS server. PDC Emulator (primary NTP source). The first DC in the forest — creates the domain. All other DCs replicate FROM DC1 initially.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <h3 style="color:var(--accent2);">DC2 (dc02.novacrestbank.local)</h3>
+      <p style="font-size:13.5px">10.70.0.11 · Additional Domain Controller. Replicates all AD data from DC1. Secondary DNS server. Provides redundancy — if DC1 fails, DC2 handles all authentication and DNS automatically. In the same AD site as DC1 (one physical location).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 02 AD CONCEPTS ══════ -->
+<div class="page" id="page-ad-concepts">
+  <div class="ey">Windows Server · Win-01 · Section 02</div>
+  <div class="pt">AD DS concepts — forest, domain, domain controller</div>
+  <div class="ps">The vocabulary and hierarchy of Active Directory — understanding these terms before the wizard asks them</div>
+
+  <div class="decision">
+    <div class="decision-label">Forest, domain, and domain controller — what each one is</div>
+    <div class="decision-q">The promotion wizard uses all three terms. What is the difference between a forest, a domain, and a domain controller?</div>
+    <div class="decision-a">
+      <strong>Forest</strong> — the outermost boundary of an Active Directory deployment. A forest contains one or more domains and defines the trust boundary. NovaCrestBank has one forest. All DCs in the forest share a common schema (the definition of every object type that can exist in AD). The forest name is typically the name of the root domain.<br/><br/>
+      <strong>Domain</strong> — a partition within the forest. NovaCrestBank has one domain: <code>novacrestbank.local</code>. The domain stores user accounts, computer accounts, groups, and policies. It defines the Kerberos authentication boundary — all machines in the domain trust each other's authentication.<br/><br/>
+      <strong>Domain Controller (DC)</strong> — a Windows Server with the AD DS role installed and promoted to serve the domain. The DC stores a writable copy of the domain database (ntds.dit) and runs the authentication services. You can have multiple DCs for the same domain — they replicate automatically. NovaCrestBank has two DCs (DC1 and DC2) both serving the same <code>novacrestbank.local</code> domain.
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">FSMO roles — what they are and why DC1 holds them all initially</div>
+    <div class="decision-q">The wizard mentions FSMO roles. What are they and do you need to configure them manually?</div>
+    <div class="decision-a">
+      <strong>FSMO (Flexible Single Master Operation) roles</strong> are five special roles within Active Directory that only one DC can hold at a time. They handle operations that require a single authoritative source:<br/><br/>
+      <strong>Schema Master</strong> — controls changes to the AD schema (what types of objects and attributes exist). NovaCrestBank will not change the schema.<br/>
+      <strong>Domain Naming Master</strong> — controls adding and removing domains from the forest.<br/>
+      <strong>RID Master</strong> — issues pools of Relative IDs used to create new AD objects (users, computers, groups).<br/>
+      <strong>PDC Emulator</strong> — handles password changes, account lockouts, and is the authoritative NTP time source for the domain.<br/>
+      <strong>Infrastructure Master</strong> — maintains references between objects in different domains.<br/><br/>
+      <strong>You do not need to configure FSMO roles manually.</strong> When you promote the first DC in a new forest, Windows automatically assigns all five FSMO roles to DC1. DC2 promotion does not take any FSMO roles — DC1 holds all five until you explicitly transfer them. For a two-DC single-domain environment, this is fine — FSMO roles only become a concern if DC1 is taken offline for an extended period.
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why ".local" domain — not ".com" or ".novacrestbank.com"</div>
+    <div class="decision-q">NovaCrestBank has a public domain (novacrestbank.com). Should the internal AD domain use the same name?</div>
+    <div class="decision-a">
+      <strong>NovaCrestBank uses <code>novacrestbank.local</code> — a non-routable internal namespace — for clear separation from the public DNS name.</strong><br/><br/>
+      Using <code>novacrestbank.com</code> as the internal AD domain creates a DNS split-brain problem: all internal machines resolve <code>novacrestbank.com</code> via the internal AD DNS — but external clients and internet systems also use <code>novacrestbank.com</code>. Without careful split-horizon DNS configuration, internal machines may fail to reach public services (like cloud APIs) because internal DNS gives different answers from public DNS for the same name.<br/><br/>
+      Using <code>novacrestbank.local</code> is clean: this namespace only exists internally, it is never registered in public DNS, and there is no ambiguity between internal and external resolution. The one limitation: <code>.local</code> can conflict with Bonjour/mDNS on some client networks — not a concern in a data center environment.<br/><br/>
+      Microsoft's current guidance (since Windows Server 2012) actually recommends using a subdomain of the public DNS name (e.g., <code>corp.novacrestbank.com</code>) to avoid the .local limitation on modern clients. NovaCrestBank chooses <code>novacrestbank.local</code> for operational simplicity — it is a bank data center with no end-user devices, not a corporate desktop environment where .local limitations matter.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 03 PLANNING ══════ -->
+<div class="page" id="page-planning">
+  <div class="ey">Windows Server · Win-01 · Section 03</div>
+  <div class="pt">Planning — names, IP addresses, VM specifications</div>
+  <div class="ps">Everything decided before the first wizard screen opens — so no decisions are made under pressure mid-install</div>
+
+  <h2>DC1 and DC2 specifications</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>DC1 — dc01.novacrestbank.local</h3>
+      <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">dc01.novacrestbank.local</span></div>
+      <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">DC01</span></div>
+      <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.10 / 255.255.255.0</span></div>
+      <div class="spec-row"><span class="spec-label">Default gateway</span><span class="spec-val">10.70.0.1 (leaf01 VLAN 70 SVI)</span></div>
+      <div class="spec-row"><span class="spec-label">DNS (before promotion)</span><span class="spec-val">127.0.0.1 (points to itself)</span></div>
+      <div class="spec-row"><span class="spec-label">DNS (after promotion)</span><span class="spec-val">10.70.0.10 (itself), 10.70.0.11 (DC2)</span></div>
+      <div class="spec-row"><span class="spec-label">vCenter port group</span><span class="spec-val">PG-VLAN70-Windows</span></div>
+      <div class="spec-row"><span class="spec-label">Deployed on ESXi host</span><span class="spec-val">esxi01 (10.10.0.11)</span></div>
+    </div>
+    <div class="card">
+      <h3>DC2 — dc02.novacrestbank.local</h3>
+      <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">dc02.novacrestbank.local</span></div>
+      <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">DC02</span></div>
+      <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.11 / 255.255.255.0</span></div>
+      <div class="spec-row"><span class="spec-label">Default gateway</span><span class="spec-val">10.70.0.1</span></div>
+      <div class="spec-row"><span class="spec-label">DNS (before promotion)</span><span class="spec-val">10.70.0.10 (DC1)</span></div>
+      <div class="spec-row"><span class="spec-label">DNS (after promotion)</span><span class="spec-val">10.70.0.11 (itself), 10.70.0.10 (DC1)</span></div>
+      <div class="spec-row"><span class="spec-label">vCenter port group</span><span class="spec-val">PG-VLAN70-Windows</span></div>
+      <div class="spec-row"><span class="spec-label">Deployed on ESXi host</span><span class="spec-val">esxi02 (10.10.0.12) — different host from DC1</span></div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why DC2 runs on esxi02 — not esxi01</div>
+    <div class="decision-q">Why does it matter which ESXi host each DC runs on?</div>
+    <div class="decision-a"><strong>Host anti-affinity — the two DCs must be on different physical hosts so a single host failure does not take both DCs offline simultaneously.</strong><br/><br/>
+    If DC1 and DC2 both run on esxi01 and esxi01 has a hardware failure, both Domain Controllers fail. Authentication fails for every machine in the domain — vCenter cannot authenticate AD users, ESXi hosts cannot validate Kerberos tickets, OpenShift cannot verify LDAP credentials. The entire infrastructure loses its identity fabric simultaneously.<br/><br/>
+    By running DC1 on esxi01 and DC2 on esxi02, a failure of either host takes down only one DC. The remaining DC handles all authentication alone — users and services are unaffected. This is the fundamental availability design principle for AD: always separate DCs onto different physical hardware.<br/><br/>
+    In Phase 2 (after vSAN and HA are configured), a DRS anti-affinity rule will be created in vCenter to enforce this separation automatically — if someone tries to vMotion DC2 onto esxi01, DRS will refuse. For now, it is enforced by initial placement.</div>
+  </div>
+
+  <h2>VM hardware specifications</h2>
+  <table>
+    <thead><tr><th>Resource</th><th>DC1 and DC2</th><th>Reasoning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>vCPUs</strong></td><td>2</td><td>AD DS is not CPU-intensive in a small environment. 2 vCPUs is sufficient for authentication, DNS resolution, and NTP for NovaCrestBank's scale.</td></tr>
+      <tr><td><strong>RAM</strong></td><td>4 GB</td><td>Windows Server 2022 needs 2 GB minimum. AD DS adds overhead for the ntds.dit cache. 4 GB provides comfortable headroom with no performance degradation.</td></tr>
+      <tr><td><strong>OS Disk</strong></td><td>60 GB thin provisioned</td><td>Windows Server 2022 installation uses ~15 GB. Additional space for patches, logs, and the AD database (ntds.dit). 60 GB is generous for a DC VM.</td></tr>
+      <tr><td><strong>Network adapter</strong></td><td>VMXNET3</td><td>VMXNET3 is VMware's paravirtualised NIC — better performance and CPU efficiency than emulated E1000. Always use VMXNET3 for Windows VMs on vSphere.</td></tr>
+      <tr><td><strong>OS Edition</strong></td><td>Windows Server 2022 Standard (Desktop Experience)</td><td>Standard edition has GUI — required for Server Manager and GUI-based administration. Datacenter edition is only needed for unlimited Windows Server VMs under Hyper-V licensing.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Credentials plan</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Local Administrator (during install):  <strong style="color:var(--win-blue);">NovaCrest$DC2026!</strong></div>
+    <div style="margin-top:5px;">DSRM password (set during promotion):  <strong style="color:var(--win-blue);">NovaCrest$DSRM2026!</strong></div>
+    <div style="margin-top:5px;">Domain Administrator (post-promotion):  <strong style="color:var(--win-blue);">NOVACRESTBANK\Administrator / NovaCrest$Domain2026!</strong></div>
+    <div style="margin-top:8px;color:#8090a0;"># All stored in CyberArk before use</div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">DSRM password — what it is and why it matters</div>
+    The Directory Services Restore Mode (DSRM) password is a special local administrator password used to boot a Domain Controller into recovery mode — outside of Active Directory. If AD becomes corrupted and the DC cannot boot normally, DSRM allows you to access the server and restore the AD database. This password is separate from the domain Administrator password. It is set once during DC promotion and then essentially never used — until the one moment you desperately need it. It goes in CyberArk immediately. Do not lose it.
+  </div>
+</div>
+
+<!-- ══════ 04 CREATE VM ══════ -->
+<div class="page" id="page-create-vm">
+  <div class="ey">Windows Server · Win-01 · Section 04</div>
+  <div class="pt">Create the DC1 VM in vCenter</div>
+  <div class="ps">Building the virtual machine that will become DC1 — using the New Virtual Machine wizard in vCenter</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter, right-click NovaCrestBank-Cluster01 → New Virtual Machine</div>
+        <p style="font-size:13.5px">Open the vSphere Client at https://10.10.0.100/ui. Log in as administrator@vsphere.local. In the left inventory tree (Hosts and Clusters view), right-click <strong>NovaCrestBank-Cluster01</strong>. Click <strong>New Virtual Machine</strong>. The New Virtual Machine wizard opens.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Virtual Machine</div>
+      <div class="vc-wiz-sub">Step 1 of 8 — Select a creation type</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Creation type</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">2</div>Name and folder</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">3</div>Compute resource</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">4</div>Storage</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">5</div>Compatibility</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">6</div>Guest OS</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">7</div>Customize hardware</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Select a creation type</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#e8f2fc;border:1px solid #1e6eb5;border-radius:5px;cursor:pointer;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#1e6eb5;flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a2a3a;">Create a new virtual machine</div>
+              <div style="font-size:11.5px;color:#6c757d;">Configure new VM hardware and install a guest OS.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #c8d8e8;border-radius:5px;cursor:pointer;opacity:.6;">
+            <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #c8d8e8;flex-shrink:0;"></div>
+            <div style="font-size:13px;color:#6c757d;">Deploy from template</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #c8d8e8;border-radius:5px;cursor:pointer;opacity:.6;">
+            <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #c8d8e8;flex-shrink:0;"></div>
+            <div style="font-size:13px;color:#6c757d;">Clone an existing virtual machine</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">Cancel</div>
+      <div class="vc-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <p>Select <strong>"Create a new virtual machine"</strong> and click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 05 VM HARDWARE ══════ -->
+<div class="page" id="page-vm-hardware">
+  <div class="ey">Windows Server · Win-01 · Section 05</div>
+  <div class="pt">VM name, folder, compute resource, storage, and hardware</div>
+  <div class="ps">Working through wizard steps 2–7 — name, where the VM runs, where it stores its data, and its hardware configuration</div>
+
+  <h2>Step 2 — Name and folder</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>VM name:   <strong style="color:var(--win-blue);">dc01.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;color:#8090a0;"># Type this in the "Virtual machine name" field</div>
+    <div style="margin-top:8px;color:#8090a0;"># Folder: leave as NovaCrestBank-DC1 (the default datacenter folder)</div>
+  </div>
+  <p>Click <strong>Next</strong>.</p>
+
+  <h2>Step 3 — Compute resource</h2>
+  <p>The tree shows: NovaCrestBank-DC1 → NovaCrestBank-Cluster01 → esxi01, esxi02, esxi03, esxi04, esxi05. Click <strong>esxi01 (10.10.0.11)</strong> to select it as the host for DC1. A green compatibility tick appears. Click <strong>Next</strong>.</p>
+
+  <div class="decision">
+    <div class="decision-label">Why select a specific host rather than the cluster</div>
+    <div class="decision-q">You could select NovaCrestBank-Cluster01 and let DRS choose the host. Why pick esxi01 explicitly?</div>
+    <div class="decision-a"><strong>Because DRS is not yet enabled.</strong> DRS requires vSAN (shared storage) which does not exist yet. Without DRS, if you select the cluster, vCenter places the VM on whichever host it thinks is best — which may or may not be esxi01. For DC1, you must explicitly guarantee it lands on esxi01 so DC2 can be placed on esxi02. Explicit placement during the build phase is the correct approach. After vSAN and DRS are enabled, an anti-affinity rule will enforce the separation automatically going forward.</div>
+  </div>
+
+  <h2>Step 4 — Storage</h2>
+  <p>The storage list shows <strong>datastore1</strong> on esxi01 (the M.2 RAID-1 VMFS volume). Select <strong>datastore1</strong>. For Virtual disk format, select <strong>Thin Provision</strong>. Click <strong>Next</strong>.</p>
+
+  <h2>Step 5 — Compatibility</h2>
+  <p>Leave as <strong>ESXi 8.0 and later (VM version 20)</strong>. This is the latest hardware compatibility level — it enables all modern virtual hardware features. Click <strong>Next</strong>.</p>
+
+  <h2>Step 6 — Guest OS</h2>
+  <div class="card" style="font-size:13.5px;">
+    <div class="spec-row"><span class="spec-label">Guest OS family</span><span class="spec-val">Windows</span></div>
+    <div class="spec-row"><span class="spec-label">Guest OS version</span><span class="spec-val">Microsoft Windows Server 2022 (64-bit)</span></div>
+  </div>
+  <p>Selecting the correct guest OS type enables vCenter to optimise virtual hardware defaults for Windows Server 2022 — including the VMXNET3 NIC, the PVSCSI storage controller, and the correct BIOS/EFI settings. Click <strong>Next</strong>.</p>
+
+  <h2>Step 7 — Customize hardware</h2>
+  <p>This is the main hardware configuration screen. Configure each item:</p>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⚙</div>
+      <div><div class="ww-title">Customize Hardware</div><div class="ww-sub">dc01.novacrestbank.local</div></div>
+    </div>
+    <div class="ww-body" style="min-height:260px;">
+      <div class="ww-content" style="padding:18px 24px;">
+        <table style="font-size:13px;">
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;min-width:180px;border-bottom:0.5px solid #e8e8e8;">CPU</td>
+            <td style="padding:7px 12px;font-weight:600;border-bottom:0.5px solid #e8e8e8;">2 vCPUs</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;border-bottom:0.5px solid #e8e8e8;">Sockets: 1, Cores per socket: 2</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">Memory</td>
+            <td style="padding:7px 12px;font-weight:600;border-bottom:0.5px solid #e8e8e8;">4096 MB (4 GB)</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;border-bottom:0.5px solid #e8e8e8;">Type value in MB: 4096</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">New Hard disk</td>
+            <td style="padding:7px 12px;font-weight:600;border-bottom:0.5px solid #e8e8e8;">60 GB</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;border-bottom:0.5px solid #e8e8e8;">Disk provisioning: Thin Provision</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">SCSI controller</td>
+            <td style="padding:7px 12px;font-weight:600;border-bottom:0.5px solid #e8e8e8;">VMware Paravirtual</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;border-bottom:0.5px solid #e8e8e8;">PVSCSI — best performance for Windows on vSphere</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">Network adapter</td>
+            <td style="padding:7px 12px;font-weight:600;border-bottom:0.5px solid #e8e8e8;">VMXNET3</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;border-bottom:0.5px solid #e8e8e8;">Connect at power on: ✓ checked</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">Network — port group</td>
+            <td style="padding:7px 12px;font-weight:600;color:#1e6eb5;border-bottom:0.5px solid #e8e8e8;">PG-VLAN70-Windows</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;border-bottom:0.5px solid #e8e8e8;">Click the dropdown and select this port group</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;color:#5a5a5a;">CD/DVD Drive</td>
+            <td style="padding:7px 12px;font-weight:600;">Datastore ISO file</td>
+            <td style="padding:7px 0;font-size:11.5px;color:#8090a0;">Upload the Windows Server ISO first (next section)</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 06 VM NETWORK ══════ -->
+<div class="page" id="page-vm-network">
+  <div class="ey">Windows Server · Win-01 · Section 06</div>
+  <div class="pt">VM network — connecting DC1 to VLAN 70</div>
+  <div class="ps">Setting the correct vDS port group on the VM NIC — VLAN 70 is where all Windows infrastructure VMs live</div>
+
+  <div class="decision">
+    <div class="decision-label">Why PG-VLAN70-Windows — not PG-VLAN10-Management</div>
+    <div class="decision-q">Domain Controllers serve the entire infrastructure. Why are they not on the management VLAN (VLAN 10) with ESXi and vCenter?</div>
+    <div class="decision-a"><strong>Because Domain Controllers are a workload — not infrastructure management devices.</strong><br/><br/>
+    VLAN 10 (ESXi Management) is for VMware infrastructure management traffic: the ESXi vmk0 VMkernel adapters and the vCenter appliance. These devices are the VMware management plane. They are administered by the VMware/infrastructure team.<br/><br/>
+    VLAN 70 (Windows Infrastructure) is for the Windows-based identity and certificate infrastructure: Domain Controllers, DHCP servers, and CA servers. These are administered by the Windows/identity team. The separation means: a problem on VLAN 70 (such as a DNS storm caused by a misconfigured DC) does not affect VLAN 10 connectivity. The ESXi hosts and vCenter remain manageable even if the Windows infrastructure has an issue.<br/><br/>
+    The communication between VLAN 10 and VLAN 70 that is needed (vCenter querying AD LDAP on port 389, ESXi hosts resolving DNS from DC) is allowed by the Cisco leaf inter-VLAN routing and Palo Alto firewall rules. Separation does not mean no communication — it means controlled, inspectable communication.</div>
+  </div>
+
+  <h2>Setting the port group in the hardware wizard</h2>
+  <p>In the Customize Hardware wizard screen, find the <strong>Network adapter 1</strong> row. There is a dropdown next to the adapter type (VMXNET3) that currently shows "VM Network" or a blank. Click this dropdown. A list of available port groups appears — you will see all 7 port groups from NCB-vDS-01 plus any standard vSwitch port groups. Select <strong>PG-VLAN70-Windows</strong>. The dropdown shows the selected port group. Ensure the checkbox <strong>"Connect at power on"</strong> is ticked.</p>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>The DC1 VM's NIC is now configured to connect to VLAN 70 (10.70.0.0/24) when powered on. The static IP address (10.70.0.10) will be configured inside Windows after installation — the VM itself does not know about IP addresses at this layer.</span></div>
+</div>
+
+<!-- ══════ 07 VM ISO ══════ -->
+<div class="page" id="page-vm-iso">
+  <div class="ey">Windows Server · Win-01 · Section 07</div>
+  <div class="pt">Attach the Windows Server ISO</div>
+  <div class="ps">Uploading the Windows Server 2022 ISO to the ESXi datastore so the VM can boot from it</div>
+
+  <h2>Upload the ISO to the datastore</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Get the Windows Server 2022 ISO</div>
+        <p style="font-size:13.5px">Download the Windows Server 2022 ISO from the Microsoft Volume Licensing Service Centre (VLSC) or Microsoft Evaluation Centre. The filename is typically <code>SERVER_EVAL_x64FRE_en-us.iso</code> (evaluation) or a licenced version from VLSC. File size: approximately 5.4 GB.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter, go to the Storage view → datastore1 on esxi01</div>
+        <p style="font-size:13.5px">In the vSphere Client, click the <strong>Storage</strong> icon in the left navigation (or Menu → Storage). In the inventory tree, click <strong>datastore1</strong> (on esxi01). The datastore file browser appears in the main panel.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Click "Upload Files" and upload the ISO</div>
+        <p style="font-size:13.5px">In the datastore file browser, click <strong>Upload Files</strong> (the upload icon in the toolbar). A file browser dialog opens on your laptop. Navigate to the Windows Server 2022 ISO file and click Open. The upload begins — it takes 3–8 minutes depending on your network speed. Progress is shown in the Tasks panel at the bottom. When complete, the ISO file appears in the datastore file browser.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Attach the ISO to the DC1 VM</div>
+        <p style="font-size:13.5px">Go back to the VM hardware configuration (in the Customize Hardware screen of the New VM wizard, or via Edit Settings if the VM is already created). Find the <strong>CD/DVD Drive 1</strong> row. Click the dropdown — it currently shows "Client Device" or "No media". Select <strong>Datastore ISO file</strong>. A browse dialog opens showing the datastore contents. Navigate to and select the Windows Server 2022 ISO file. Tick <strong>"Connect at power on"</strong>. Click <strong>OK</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Complete the VM creation wizard</h2>
+  <p>Click <strong>Next</strong> on the Customize Hardware screen. The <strong>Ready to complete</strong> screen shows a summary of the VM configuration. Review it — VM name dc01.novacrestbank.local, 2 vCPUs, 4 GB RAM, 60 GB disk on datastore1, VMXNET3 NIC on PG-VLAN70-Windows, ISO attached. Click <strong>Finish</strong>. The VM is created and appears in the cluster inventory.</p>
+</div>
+
+<!-- ══════ 08 WS BOOT ══════ -->
+<div class="page" id="page-ws-boot">
+  <div class="ey">Windows Server · Win-01 · Section 08</div>
+  <div class="pt">Boot the VM and start Windows Setup</div>
+  <div class="ps">Powering on the DC1 VM and watching it boot from the Windows Server 2022 ISO</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Power on DC1 — right-click the VM → Power → Power On</div>
+        <p style="font-size:13.5px">In the vCenter inventory, right-click <strong>dc01.novacrestbank.local</strong>. Hover over <strong>Power</strong>. Click <strong>Power On</strong>. The VM powers on.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Open the VM console</div>
+        <p style="font-size:13.5px">Click the <strong>VM Console</strong> button in the VM's Summary tab (it looks like a monitor icon). Select <strong>Open browser console</strong>. A new browser window opens showing the VM's screen. You will see the VM booting — initially a black screen, then BIOS/EFI POST messages, then the Windows Setup screen.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">"Press any key to boot from CD or DVD..." — click in the console and press a key</div>
+        <p style="font-size:13.5px">When the message <strong>"Press any key to boot from CD or DVD..."</strong> appears (it flashes for only 3–5 seconds), click anywhere inside the console window to give it keyboard focus, then press any key (spacebar works). If you miss it, the VM tries to boot from the empty disk, shows an error, and reboots — press any key on the next attempt. After pressing the key, the Windows Setup screen loads.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>The Windows Setup loading screen appears — a progress bar with the Windows logo on a dark background. This takes about 60 seconds as Setup loads its files. When it finishes, the first configuration screen appears.</span></div>
+</div>
+
+<!-- ══════ 09 WS LANGUAGE ══════ -->
+<div class="page" id="page-ws-language">
+  <div class="ey">Windows Server · Win-01 · Section 09</div>
+  <div class="pt">Windows Setup — Language and regional settings</div>
+  <div class="ps">The first screen of Windows Setup — selecting language, time format, and keyboard layout</div>
+
+  <div class="win-setup">
+    <div class="win-setup-bar">
+      <div class="wsd r"></div><div class="wsd y"></div><div class="wsd g"></div>
+      <span class="win-setup-label">Windows Setup — dc01.novacrestbank.local — vCenter Console</span>
+    </div>
+    <div class="win-setup-body">
+      <div class="win-logo">Windows <span>Server 2022</span></div>
+      <div class="win-setup-title">Language to install</div>
+      <div class="win-field">
+        <div class="win-field-label">Language to install</div>
+        <div class="win-dropdown">English (United Kingdom) ▾</div>
+      </div>
+      <div class="win-field">
+        <div class="win-field-label">Time and currency format</div>
+        <div class="win-dropdown">English (United Kingdom) ▾</div>
+      </div>
+      <div class="win-field">
+        <div class="win-field-label">Keyboard or input method</div>
+        <div class="win-dropdown">United Kingdom ▾</div>
+      </div>
+      <div class="win-btn-row">
+        <div class="win-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What to select</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Language to install:          <strong style="color:var(--win-blue);">English (United Kingdom)</strong></div>
+    <div style="margin-top:4px;">Time and currency format:      <strong style="color:var(--win-blue);">English (United Kingdom)</strong></div>
+    <div style="margin-top:4px;">Keyboard or input method:      <strong style="color:var(--win-blue);">United Kingdom</strong></div>
+    <div style="margin-top:8px;color:#8090a0;"># NovaCrestBank is a UK bank — use UK regional settings</div>
+    <div style="color:#8090a0;"># This affects date formats (DD/MM/YYYY), currency symbol (£), and keyboard layout</div>
+  </div>
+
+  <p>Click <strong>Next</strong>. The next screen shows a large blue <strong>Install now</strong> button. Click <strong>Install now</strong>.</p>
+</div>
+
+<!-- ══════ 10 WS EDITION ══════ -->
+<div class="page" id="page-ws-edition">
+  <div class="ey">Windows Server · Win-01 · Section 10</div>
+  <div class="pt">Edition selection — Standard with Desktop Experience</div>
+  <div class="ps">Choosing exactly which edition of Windows Server to install — a decision with long-term consequences</div>
+
+  <div class="win-setup">
+    <div class="win-setup-bar">
+      <div class="wsd r"></div><div class="wsd y"></div><div class="wsd g"></div>
+      <span class="win-setup-label">Windows Setup — Select the operating system you want to install</span>
+    </div>
+    <div class="win-setup-body">
+      <div class="win-setup-title">Select the operating system you want to install</div>
+      <div style="background:#1a1a3e;border-radius:4px;overflow:hidden;margin:12px 0;">
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:0.5px solid #2a2a5e;cursor:pointer;opacity:.6;">
+          <div style="width:12px;height:12px;border:1.5px solid #4a4a8e;border-radius:50%;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:13px;color:#c0c0e0;">Windows Server 2022 Standard</div>
+            <div style="font-size:11px;color:#6a6a9a;">No GUI — command line only</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:0.5px solid #2a2a5e;background:#1e2a5e;cursor:pointer;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;border:1.5px solid #0078d4;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#7bc4f8;">Windows Server 2022 Standard (Desktop Experience)</div>
+            <div style="font-size:11px;color:#9090c0;">Full graphical interface — Server Manager, GUI tools ← Select this</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:0.5px solid #2a2a5e;cursor:pointer;opacity:.6;">
+          <div style="width:12px;height:12px;border:1.5px solid #4a4a8e;border-radius:50%;flex-shrink:0;"></div>
+          <div style="font-size:13px;color:#c0c0e0;">Windows Server 2022 Datacenter</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 14px;cursor:pointer;opacity:.6;">
+          <div style="width:12px;height:12px;border:1.5px solid #4a4a8e;border-radius:50%;flex-shrink:0;"></div>
+          <div style="font-size:13px;color:#c0c0e0;">Windows Server 2022 Datacenter (Desktop Experience)</div>
+        </div>
+      </div>
+      <div class="win-btn-row">
+        <div class="win-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why Standard (Desktop Experience) — not Server Core</div>
+    <div class="decision-q">Server Core (no GUI) is more secure and uses less RAM. Why use Desktop Experience for domain controllers?</div>
+    <div class="decision-a"><strong>Because this guide is for learning — and GUI tools are the fastest way to build and understand Active Directory configuration for the first time.</strong><br/><br/>
+    Server Core requires all AD DS configuration to be done via PowerShell and command-line tools. This is the production-hardened approach and reduces the attack surface (no GUI processes, no IE, no Windows Explorer). However, it requires familiarity with AD PowerShell cmdlets and has a steeper learning curve.<br/><br/>
+    Desktop Experience provides: Server Manager (the central configuration hub), Active Directory Users and Computers (ADUC), DNS Manager, Active Directory Sites and Services, Group Policy Management — all with graphical interfaces. Every action in this guide can be seen, clicked, and verified visually.<br/><br/>
+    <strong>For NovaCrestBank in a production environment:</strong> Server Core is the correct long-term choice. After this guide series is complete and the candidate is comfortable with the concepts, the DCs should be rebuilt as Server Core and managed via Remote Server Administration Tools (RSAT) from a management workstation. For now, Desktop Experience is the right choice for learning.</div>
+  </div>
+
+  <p>Click <strong>Windows Server 2022 Standard (Desktop Experience)</strong> to highlight it. Click <strong>Next</strong>.</p>
+
+  <h2>The licence agreement screen</h2>
+  <p>The Microsoft Software Licence Terms screen appears — a long EULA in a scrollable text box. Tick the checkbox <strong>"I accept the Microsoft Software Licence Terms. If an organisation is licensing it, I am authorised to bind the organisation."</strong> Click <strong>Next</strong>.</p>
+
+  <h2>The installation type screen</h2>
+  <p>The next screen asks: <strong>Which type of installation do you want?</strong> Two options appear: <strong>Upgrade</strong> and <strong>Custom: Install Microsoft Server Operating System only (advanced)</strong>. Click <strong>Custom</strong> — this is a new installation, not an upgrade. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 11 WS PARTITION ══════ -->
+<div class="page" id="page-ws-partition">
+  <div class="ey">Windows Server · Win-01 · Section 11</div>
+  <div class="pt">Disk partitioning — the simplest correct configuration</div>
+  <div class="ps">Where to install Windows — selecting the virtual disk and letting Setup create the partitions automatically</div>
+
+  <div class="win-setup">
+    <div class="win-setup-bar">
+      <div class="wsd r"></div><div class="wsd y"></div><div class="wsd g"></div>
+      <span class="win-setup-label">Windows Setup — Where do you want to install the operating system?</span>
+    </div>
+    <div class="win-setup-body">
+      <div class="win-setup-title">Where do you want to install the operating system?</div>
+      <div style="background:#1a1a3e;border-radius:4px;overflow:hidden;margin:12px 0;">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#1e2a5e;cursor:pointer;border:1px solid #0078d4;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#7bc4f8;">Drive 0 Unallocated Space — 61.0 GB</div>
+            <div style="font-size:11px;color:#9090c0;">VMware Virtual Disk — the 60 GB disk attached in vCenter</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#9090c0;margin-top:8px;">Tip: The setup program will create the required partitions automatically.</div>
+      <div class="win-btn-row">
+        <div class="win-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Only one disk is available: the 60 GB virtual disk you configured in vCenter. It shows as <strong>"Drive 0 Unallocated Space — 61.0 GB"</strong> (60 GB rounds up slightly). Click on this disk to select it. Click <strong>Next</strong>.</p>
+  <p>Windows Setup automatically creates the required partitions: a 100 MB EFI System Partition, a 16 MB Microsoft Reserved Partition, and the remaining space (~59.8 GB) as the primary Windows partition. You do not need to create these manually. The installation begins immediately.</p>
+
+  <div class="callout">
+    <div class="cl">What happens during installation — no clicks needed</div>
+    Windows Setup copies files, expands files, installs features, installs updates, and completes installation. This takes approximately 5–15 minutes. The VM reboots automatically when complete. After the reboot, Windows Server boots into the initial configuration screen asking you to set the Administrator password. Do not interact with the Setup screens during this process — just watch the progress.
+  </div>
+</div>
+
+<!-- ══════ 12 WS PASSWORD ══════ -->
+<div class="page" id="page-ws-password">
+  <div class="ey">Windows Server · Win-01 · Section 12</div>
+  <div class="pt">Set the Administrator password</div>
+  <div class="ps">The first interactive screen after Windows installs — setting the local Administrator account password</div>
+
+  <div class="win-setup">
+    <div class="win-setup-bar">
+      <div class="wsd r"></div><div class="wsd y"></div><div class="wsd g"></div>
+      <span class="win-setup-label">Windows Server 2022 — Customise settings</span>
+    </div>
+    <div class="win-setup-body">
+      <div class="win-setup-title">Customise settings</div>
+      <div style="font-size:13px;color:#a0a0c0;margin-bottom:16px;">Type a password for the built-in administrator account that you can use to sign in to this computer.</div>
+      <div class="win-field">
+        <div class="win-field-label">Password</div>
+        <div class="win-field-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+      </div>
+      <div class="win-field">
+        <div class="win-field-label">Reenter password</div>
+        <div class="win-field-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+      </div>
+      <div class="win-btn-row">
+        <div class="win-btn next">Finish →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Password:         <strong style="color:var(--win-blue);">NovaCrest$DC2026!</strong></div>
+    <div style="margin-top:4px;">Reenter password: <strong style="color:var(--win-blue);">NovaCrest$DC2026!</strong></div>
+    <div style="margin-top:8px;color:#8090a0;"># This is the LOCAL Administrator password — used before domain promotion</div>
+    <div style="color:#8090a0;"># After promotion, domain administrator credentials are used instead</div>
+    <div style="color:#8090a0;"># Store in CyberArk immediately</div>
+  </div>
+
+  <p>Type the password in both fields. Click <strong>Finish</strong>. Windows locks the screen and shows the Ctrl+Alt+Delete prompt. In the vCenter VM console, press <strong>Ctrl+Alt+Delete</strong> using the keyboard shortcut in the console toolbar (usually a button labelled "Send Ctrl+Alt+Del" or a keyboard icon). The login screen appears. Type the password and press Enter. The Windows Server 2022 desktop loads — you will see the Server Manager application open automatically.</p>
+</div>
+
+<!-- ══════ 13 WS POSTINSTALL ══════ -->
+<div class="page" id="page-ws-postinstall">
+  <div class="ey">Windows Server · Win-01 · Section 13</div>
+  <div class="pt">Post-install — rename the computer, set static IP, configure DNS</div>
+  <div class="ps">Before adding any roles, the server needs its permanent name and network configuration — these must be correct before domain promotion</div>
+
+  <div class="callout warn">
+    <div class="cl">Rename the computer BEFORE promoting to a domain controller</div>
+    Once a server is promoted to a Domain Controller, renaming it is a complex multi-step operation that involves demoting it, renaming it, and re-promoting it. The hostname is embedded in Kerberos service tickets, DNS records, and AD replication metadata. Always set the permanent hostname before promotion. The hostname for DC1 is DC01.
+  </div>
+
+  <h2>Step 1 — Rename the computer</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open Server Manager → Local Server → Computer name</div>
+        <p style="font-size:13.5px">Server Manager is already open (it starts automatically after login). In the left panel click <strong>Local Server</strong>. The main panel shows local server properties. The first row shows <strong>Computer name</strong> — it displays a random generated name like <code>WIN-AB12CD34EF</code>. Click this name — it is a hyperlink. The <strong>System Properties</strong> dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click "Change..." to rename the computer</div>
+        <p style="font-size:13.5px">In the System Properties dialog, the <strong>Computer Name</strong> tab is selected by default. You see the current name and a description area. Click the <strong>Change...</strong> button. The Computer Name/Domain Changes dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Type the new computer name: DC01</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header" style="padding:10px 16px;">
+            <div class="ww-icon">💻</div>
+            <div><div class="ww-title">Computer Name/Domain Changes</div></div>
+          </div>
+          <div class="ww-body" style="min-height:160px;">
+            <div class="ww-content" style="padding:16px 20px;">
+              <div class="ww-text">You can change the name and the membership of this computer. Changes might affect access to network resources.</div>
+              <div class="ww-field">
+                <div class="ww-label">Computer name:</div>
+                <div class="ww-input filled">DC01</div>
+                <div style="font-size:11.5px;color:#5a5a5a;margin-top:3px;">Full computer name: DC01</div>
+              </div>
+              <div class="ww-field" style="margin-top:12px;">
+                <div class="ww-label">Member of:</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px;">
+                  <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+                  <span>Workgroup: WORKGROUP</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ww-footer">
+            <div></div>
+            <div class="ww-footer-btns">
+              <div class="ww-btn back">Cancel</div>
+              <div class="ww-btn next">OK</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Clear the current name. Type <strong>DC01</strong>. Leave "Member of" set to Workgroup (do not join a domain yet — the domain does not exist). Click <strong>OK</strong>. A dialog says "You must restart your computer to apply these changes." Click <strong>OK</strong>. Click <strong>Close</strong> on System Properties. Click <strong>Restart Now</strong>. The server reboots. After reboot, log back in as Administrator.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Step 2 — Configure the static IP address</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Open Network Connections via Server Manager</div>
+        <p style="font-size:13.5px">In Server Manager → Local Server, find the <strong>Ethernet</strong> row. The current value shows "IPv4 address assigned by DHCP, IPv6 enabled" — there is no DHCP server yet so the address is likely 169.254.x.x (APIPA). Click the Ethernet hyperlink. The Network Connections window opens showing the VMXNET3 adapter.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Right-click the Ethernet adapter → Properties</div>
+        <p style="font-size:13.5px">Right-click <strong>Ethernet0</strong> (the VMXNET3 adapter — it may be named "Ethernet" or "Ethernet0"). Click <strong>Properties</strong>. The adapter Properties dialog opens with a list of items including "Internet Protocol Version 4 (TCP/IPv4)".</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Double-click "Internet Protocol Version 4 (TCP/IPv4)"</div>
+        <p style="font-size:13.5px">Double-click <strong>Internet Protocol Version 4 (TCP/IPv4)</strong> in the list. The IPv4 Properties dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <div class="step-title">Select "Use the following IP address" and fill in all fields</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header" style="padding:10px 16px;">
+            <div class="ww-icon">🌐</div>
+            <div><div class="ww-title">Internet Protocol Version 4 (TCP/IPv4) Properties</div></div>
+          </div>
+          <div class="ww-body" style="min-height:200px;">
+            <div class="ww-content" style="padding:16px 20px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;">
+                <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+                <strong>Use the following IP address:</strong>
+              </div>
+              <div class="ww-field">
+                <div class="ww-label">IP address:</div>
+                <div class="ww-input filled">10.70.0.10</div>
+              </div>
+              <div class="ww-field">
+                <div class="ww-label">Subnet mask:</div>
+                <div class="ww-input filled">255.255.255.0</div>
+              </div>
+              <div class="ww-field">
+                <div class="ww-label">Default gateway:</div>
+                <div class="ww-input filled">10.70.0.1</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin:12px 0;font-size:13px;">
+                <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+                <strong>Use the following DNS server addresses:</strong>
+              </div>
+              <div class="ww-field">
+                <div class="ww-label">Preferred DNS server:</div>
+                <div class="ww-input filled">127.0.0.1</div>
+                <div style="font-size:11px;color:#8090a0;margin-top:3px;">Points to itself — DC1 will BE the DNS server after promotion</div>
+              </div>
+              <div class="ww-field">
+                <div class="ww-label">Alternate DNS server:</div>
+                <div class="ww-input">10.70.0.11</div>
+                <div style="font-size:11px;color:#8090a0;margin-top:3px;">DC2 — not built yet, enter for later use</div>
+              </div>
+            </div>
+          </div>
+          <div class="ww-footer">
+            <div></div>
+            <div class="ww-footer-btns">
+              <div class="ww-btn back">Cancel</div>
+              <div class="ww-btn next">OK</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>OK</strong>. Click <strong>OK</strong> on the adapter Properties dialog. Close the Network Connections window. The adapter now has the static IP 10.70.0.10.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">8</div>
+      <div class="step-content">
+        <div class="step-title">Verify connectivity — ping the gateway</div>
+        <p style="font-size:13.5px">Open a Command Prompt: press <strong>Windows key + R</strong>, type <code>cmd</code>, press Enter. Type <code>ping 10.70.0.1</code> and press Enter. You should see four replies from 10.70.0.1 (the leaf01 VLAN 70 SVI). If you see "Request timed out" — check the IP, subnet mask, and gateway are entered correctly in the adapter settings.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 14 ROLES OPEN ══════ -->
+<div class="page" id="page-roles-open">
+  <div class="ey">Windows Server · Win-01 · Section 14</div>
+  <div class="pt">Open Server Manager — Add Roles and Features</div>
+  <div class="ps">Launching the Add Roles and Features Wizard — the gateway to installing AD DS and DNS on this server</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In Server Manager, click "Add roles and features"</div>
+        <p style="font-size:13.5px">Server Manager is open (if it closed, click the Server Manager icon in the taskbar — it looks like a small server rack). On the Dashboard page (the first page you see after login), there is a panel called "Configure this local server" with a link that says <strong>"Add roles and features"</strong>. Click it. The Add Roles and Features Wizard opens.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⊕</div>
+      <div>
+        <div class="ww-title">Add Roles and Features Wizard</div>
+        <div class="ww-sub">DC01 · Windows Server 2022</div>
+      </div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step active"><div class="ww-step-num">→</div>Before you begin</div>
+        <div class="ww-step"><div class="ww-step-num">2</div>Installation type</div>
+        <div class="ww-step"><div class="ww-step-num">3</div>Server selection</div>
+        <div class="ww-step"><div class="ww-step-num">4</div>Server roles</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Features</div>
+        <div class="ww-step"><div class="ww-step-num">6</div>AD DS</div>
+        <div class="ww-step"><div class="ww-step-num">7</div>DNS Server</div>
+        <div class="ww-step"><div class="ww-step-num">8</div>Confirmation</div>
+        <div class="ww-step"><div class="ww-step-num">9</div>Results</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Before you begin</div>
+        <div class="ww-section-sub">This wizard helps you install roles, role services, or features</div>
+        <div class="ww-text">The Add Roles and Features Wizard helps you install roles, role services, and features. You determine which roles, role services, or features to install based on the computing needs of your organisation, such as sharing documents or hosting a website.</div>
+        <div class="ww-info-box">Before you continue, verify that the following have been completed:<br/>
+        ✓ The Administrator account has a strong password<br/>
+        ✓ Network settings such as static IP addresses are configured<br/>
+        ✓ The latest security updates from Windows Update are installed</div>
+        <div class="ww-text">To skip this page in the future, select "Skip this page by default".</div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div style="font-size:12px;color:#5a5a5a;">DC01</div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Read the "Before you begin" page. The three prerequisites listed should all be met: the Administrator password is strong, the static IP is configured (10.70.0.10), and Windows Update will be run after promotion. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 15-17 ROLES SCREENS ══════ -->
+<div class="page" id="page-roles-before">
+  <div class="ey">Windows Server · Win-01 · Section 15</div>
+  <div class="pt">Installation type and server selection</div>
+  <div class="ps">The next two wizard screens before role selection</div>
+
+  <h2>Screen: Installation Type</h2>
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⊕</div>
+      <div><div class="ww-title">Add Roles and Features — Installation Type</div></div>
+    </div>
+    <div class="ww-body" style="min-height:180px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Select installation type</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+          <div class="ww-role selected">
+            <div class="ww-role-name">● Role-based or feature-based installation</div>
+            <div class="ww-role-desc">Configure a single server by adding roles, role services, and features.</div>
+          </div>
+          <div class="ww-role">
+            <div class="ww-role-name">○ Remote Desktop Services installation</div>
+            <div class="ww-role-desc">For deploying Virtual Desktop Infrastructure or session-based desktops.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Select <strong>Role-based or feature-based installation</strong> (it should already be selected). Click <strong>Next</strong>.</p>
+</div>
+
+<div class="page" id="page-roles-type">
+  <div class="ey">Windows Server · Win-01 · Section 16</div>
+  <div class="pt">Role-based installation — confirmed</div>
+  <div class="ps">This screen was covered in Section 15 — click Next to continue to Server Selection</div>
+  <p>Select <strong>Role-based or feature-based installation</strong> and click <strong>Next</strong>.</p>
+</div>
+
+<div class="page" id="page-roles-server">
+  <div class="ey">Windows Server · Win-01 · Section 17</div>
+  <div class="pt">Select the destination server</div>
+  <div class="ps">Choosing which server the roles will be installed on — there is only one server in the pool</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⊕</div>
+      <div><div class="ww-title">Add Roles and Features — Server Selection</div></div>
+    </div>
+    <div class="ww-body" style="min-height:180px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Select a server or virtual hard disk</div>
+        <div style="margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+            <strong>Select a server from the server pool</strong>
+          </div>
+          <div style="background:#f5f8fc;border:1px solid #d0dce8;border-radius:4px;overflow:hidden;">
+            <div style="background:#1a3a5c;padding:6px 12px;display:flex;gap:20px;font-size:11px;font-weight:700;color:#8ab8d8;text-transform:uppercase;letter-spacing:.04em;">
+              <span style="min-width:100px;">Name</span>
+              <span style="min-width:100px;">IP Address</span>
+              <span>OS</span>
+            </div>
+            <div style="padding:8px 12px;display:flex;gap:20px;font-size:13px;background:#e8f2fc;border:1px solid #1e6eb5;">
+              <span style="min-width:100px;font-weight:600;color:#1e6eb5;">DC01</span>
+              <span style="min-width:100px;">10.70.0.10</span>
+              <span style="font-size:12px;color:#5a5a5a;">Windows Server 2022 Standard</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <p>DC01 (10.70.0.10) is automatically selected — it is the only server in the pool. The "Server Pool" contains servers that have been added to Server Manager (local server is always included). Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 18 ROLES SELECT ══════ -->
+<div class="page" id="page-roles-select">
+  <div class="ey">Windows Server · Win-01 · Section 18</div>
+  <div class="pt">Select server roles — AD DS and DNS Server</div>
+  <div class="ps">Choosing which roles to install — the critical screen where you select both Active Directory Domain Services and DNS Server</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⊕</div>
+      <div><div class="ww-title">Add Roles and Features — Server Roles</div></div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Before you begin</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Installation type</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Server selection</div>
+        <div class="ww-step active"><div class="ww-step-num">→</div>Server roles</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Features</div>
+        <div class="ww-step"><div class="ww-step-num">6</div>AD DS</div>
+        <div class="ww-step"><div class="ww-step-num">7</div>DNS Server</div>
+        <div class="ww-step"><div class="ww-step-num">8</div>Confirmation</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Select server roles</div>
+        <div class="ww-section-sub">Select one or more roles to install on the selected server</div>
+        <div style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:4px;
+            max-height:220px;overflow-y:auto;margin-top:8px;">
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;
+              border-bottom:0.5px solid #e8e8e8;">□ Active Directory Certificate Services</div>
+          <div style="padding:6px 12px;font-size:12.5px;background:#e6f0fa;
+              border-bottom:0.5px solid #e8e8e8;display:flex;align-items:center;gap:8px;color:#1e6eb5;font-weight:600;">
+            <div style="width:13px;height:13px;background:#0078d4;border-radius:2px;
+                display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;">✓</div>
+            Active Directory Domain Services
+          </div>
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">□ Active Directory Federation Services</div>
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">□ Active Directory Lightweight Directory Services</div>
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">□ Active Directory Rights Management Services</div>
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">□ DHCP Server</div>
+          <div style="padding:6px 12px;font-size:12.5px;background:#e6f0fa;
+              border-bottom:0.5px solid #e8e8e8;display:flex;align-items:center;gap:8px;color:#1e6eb5;font-weight:600;">
+            <div style="width:13px;height:13px;background:#0078d4;border-radius:2px;
+                display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;">✓</div>
+            DNS Server
+          </div>
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;border-bottom:0.5px solid #e8e8e8;">□ File and Storage Services (installed)</div>
+          <div style="padding:6px 12px;font-size:12.5px;color:#5a5a5a;">□ Web Server (IIS)</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What to tick and what to leave unticked</h2>
+  <p>Scroll through the roles list. Tick <strong>Active Directory Domain Services</strong> — a dialog pops up asking to add required features (like Group Policy Management, .NET Framework features). Click <strong>Add Features</strong>. The checkbox is now ticked.</p>
+  <p>Scroll down and tick <strong>DNS Server</strong> — another dialog pops up asking to add required features. Click <strong>Add Features</strong>. The checkbox is ticked.</p>
+
+  <div class="decision">
+    <div class="decision-label">Why DNS is installed together with AD DS — not separately</div>
+    <div class="decision-q">DNS Server is a separate role from AD DS. Why install them simultaneously rather than adding DNS later?</div>
+    <div class="decision-a"><strong>Because AD DS requires DNS to function, and AD DS installs best when DNS is already present on the same server.</strong><br/><br/>
+    When you promote a server to a Domain Controller, the AD DS promotion wizard looks for a DNS server that can host the AD DS DNS zones. If no DNS server is available, the wizard offers to install DNS and create the zones as part of promotion. This is fine — but installing DNS before AD DS gives you cleaner control over DNS setup.<br/><br/>
+    More importantly: AD-integrated DNS (where DNS zones are stored in the AD database and replicated automatically between DCs) is the only correct DNS configuration for an enterprise AD environment. It provides: automatic DNS replication between DCs (no manual zone transfers), dynamic DNS registration (clients and servers register their own A records automatically), secure-only dynamic updates (only domain-joined machines can register records), and the DNS zone surviving any single DC failure. Installing DNS alongside AD DS ensures this integration happens automatically during promotion.</div>
+  </div>
+
+  <p>Do not tick any other roles. Leave everything else unchecked. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 19-21 ROLES COMPLETE ══════ -->
+<div class="page" id="page-roles-features">
+  <div class="ey">Windows Server · Win-01 · Section 19</div>
+  <div class="pt">Features screen — leave defaults and continue</div>
+  <div class="ps">The Features screen appears after roles — no additional features need to be selected</div>
+
+  <p>The Features screen shows additional Windows features that can be installed. All required features for AD DS and DNS were added automatically when you ticked the role checkboxes (the "Add Features" dialogs). You do not need to tick anything additional here. Click <strong>Next</strong>.</p>
+  <p>Two informational screens follow: one about AD DS (explaining what AD DS is and its requirements) and one about DNS Server. Read them briefly. Click <strong>Next</strong> through each. You arrive at the Confirmation screen.</p>
+</div>
+
+<div class="page" id="page-roles-confirm">
+  <div class="ey">Windows Server · Win-01 · Section 20</div>
+  <div class="pt">Confirmation — review and install</div>
+  <div class="ps">The summary screen before role installation begins</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⊕</div>
+      <div><div class="ww-title">Add Roles and Features — Confirm installation selections</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Confirm installation selections</div>
+        <div class="ww-info-box">To install the following roles, role services, or features on the selected server, click Install.</div>
+        <div style="margin-top:12px;font-size:13px;">
+          <div style="padding:6px 0;border-bottom:0.5px solid #e8e8e8;font-weight:600;color:#1a2a3a;">Active Directory Domain Services</div>
+          <div style="padding:6px 0 6px 16px;border-bottom:0.5px solid #e8e8e8;font-size:12.5px;color:#5a5a5a;">Group Policy Management, Remote Server Administration Tools for AD DS</div>
+          <div style="padding:6px 0;font-weight:600;color:#1a2a3a;">DNS Server</div>
+        </div>
+        <div class="ww-checkbox" style="margin-top:14px;">
+          <div class="ww-cb">✓</div>
+          <span>Restart the destination server automatically if required</span>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn install">Install</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Review the list: <strong>Active Directory Domain Services</strong> and <strong>DNS Server</strong> are listed. Tick <strong>"Restart the destination server automatically if required"</strong>. Click <strong>Install</strong>.</p>
+</div>
+
+<div class="page" id="page-roles-progress">
+  <div class="ey">Windows Server · Win-01 · Section 21</div>
+  <div class="pt">Installation progress — watching roles install</div>
+  <div class="ps">What the progress screen shows while AD DS and DNS are installed</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">⊕</div>
+      <div><div class="ww-title">Add Roles and Features — Installation Progress</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Installation progress</div>
+        <div style="margin-top:12px;">
+          <div style="background:#e8e8e8;border-radius:4px;overflow:hidden;height:18px;margin-bottom:10px;">
+            <div style="background:#0078d4;height:100%;width:75%;display:flex;align-items:center;padding-left:8px;font-size:10px;color:#fff;font-weight:600;">75%</div>
+          </div>
+          <div style="font-size:13px;color:#1a2a3a;margin-bottom:6px;">Feature installation</div>
+          <div style="font-size:12.5px;color:#5a5a5a;line-height:1.7;">
+            <div style="color:#107c10;">✓ Active Directory Domain Services installed</div>
+            <div style="color:#107c10;">✓ Group Policy Management installed</div>
+            <div style="color:#107c10;">✓ Remote Server Administration Tools for AD DS installed</div>
+            <div style="color:#0078d4;">→ DNS Server installing...</div>
+          </div>
+          <div class="ww-warn-box" style="margin-top:12px;">
+            ⚠ Configuration required: Active Directory Domain Services requires additional steps to function. Click the notification flag in Server Manager to promote this server to a domain controller.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn close">Close</div>
+      </div>
+    </div>
+  </div>
+
+  <p>The progress bar moves through each component. Installation takes approximately 3–5 minutes. When it says "Installation succeeded on DC01" — the roles are installed but AD DS is not yet configured. The warning at the bottom says "Configuration required: Active Directory Domain Services requires additional steps." This is expected — the AD DS role is installed but the server has not yet been promoted to a Domain Controller. Click <strong>Close</strong>. The next step is the AD DS promotion.</p>
+</div>
+
+<!-- ══════ 22 PROMOTE START ══════ -->
+<div class="page" id="page-promote-start">
+  <div class="ey">Windows Server · Win-01 · Section 22</div>
+  <div class="pt">The promotion notification — "Promote this server to a domain controller"</div>
+  <div class="ps">How to launch the AD DS Configuration Wizard — the promotion wizard that creates the domain</div>
+
+  <div class="callout">
+    <div class="cl">Role installed vs domain controller promoted — an important distinction</div>
+    Installing the AD DS role installs the software that allows this server to become a Domain Controller. The server is not yet a DC — it is just a server with the AD DS binaries installed. Promotion is the process of actually creating or joining the domain and converting this server into a functioning DC. This is a two-step process by design: install the role first (can be done offline, during maintenance), then promote (requires network connectivity and all pre-requisites met).
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Look for the yellow flag notification in Server Manager</div>
+        <p style="font-size:13.5px">In Server Manager, look at the top menu bar. You will see a yellow flag icon (⚑) with a number badge. Click it. A notification panel drops down showing: <strong>"Configuration required for Active Directory Domain Services at DC01"</strong> and below it a blue hyperlink: <strong>"Promote this server to a domain controller"</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click "Promote this server to a domain controller"</div>
+        <p style="font-size:13.5px">Click the hyperlink. The Active Directory Domain Services Configuration Wizard opens — a dark-themed wizard with a left panel showing all the steps. This is the wizard that creates the domain and converts DC01 into the first Domain Controller in NovaCrestBank's forest.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 23 PROMOTE DEPLOYMENT ══════ -->
+<div class="page" id="page-promote-deployment">
+  <div class="ey">Windows Server · Win-01 · Section 23</div>
+  <div class="pt">Deployment configuration — adding a new forest</div>
+  <div class="ps">The first decision in the promotion wizard — the most consequential screen in the entire guide</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🏛</div>
+      <div>
+        <div class="ww-title">Active Directory Domain Services Configuration Wizard</div>
+        <div class="ww-sub">Deployment Configuration — DC01</div>
+      </div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step active"><div class="ww-step-num">→</div>Deployment config</div>
+        <div class="ww-step"><div class="ww-step-num">2</div>DC Options</div>
+        <div class="ww-step"><div class="ww-step-num">3</div>DNS Options</div>
+        <div class="ww-step"><div class="ww-step-num">4</div>Additional options</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Paths</div>
+        <div class="ww-step"><div class="ww-step-num">6</div>Review Options</div>
+        <div class="ww-step"><div class="ww-step-num">7</div>Prerequisites</div>
+        <div class="ww-step"><div class="ww-step-num">8</div>Installation</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Deployment configuration</div>
+        <div class="ww-section-sub">Specify the deployment configuration for this operation</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+          <div class="ww-role">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="ww-cb empty"></div>
+              <div class="ww-role-name">Add a domain controller to an existing domain</div>
+            </div>
+            <div class="ww-role-desc" style="margin-left:22px;">The domain already exists — add this server as an additional DC.</div>
+          </div>
+          <div class="ww-role">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="ww-cb empty"></div>
+              <div class="ww-role-name">Add a new domain to an existing forest</div>
+            </div>
+            <div class="ww-role-desc" style="margin-left:22px;">Add a child or tree domain to an existing forest.</div>
+          </div>
+          <div class="ww-role selected">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="ww-cb">✓</div>
+              <div class="ww-role-name" style="color:#1e6eb5;">Add a new forest ← Select this</div>
+            </div>
+            <div class="ww-role-desc" style="margin-left:22px;">Creates a brand new Active Directory forest — this is the first DC in a new environment.</div>
+          </div>
+        </div>
+        <div class="ww-field" style="margin-top:16px;">
+          <div class="ww-label">Root domain name <span style="color:#e05252;">*</span></div>
+          <div class="ww-input filled">novacrestbank.local</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What to select and type</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Select:          <strong style="color:var(--win-blue);">Add a new forest</strong></div>
+    <div style="margin-top:4px;">Root domain name: <strong style="color:var(--win-blue);">novacrestbank.local</strong></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why "Add a new forest" — not "Add a domain controller to an existing domain"</div>
+    <div class="decision-q">There are three options. Why "Add a new forest"?</div>
+    <div class="decision-a"><strong>Because this is the first Domain Controller in NovaCrestBank's environment — there is no existing domain or forest to join.</strong><br/><br/>
+    "Add a domain controller to an existing domain" — used for DC2, which joins the already-existing <code>novacrestbank.local</code> domain.<br/>
+    "Add a new domain to an existing forest" — used in multi-domain forests (e.g., adding a <code>europe.novacrestbank.local</code> child domain).<br/>
+    "Add a new forest" — creates everything from scratch: the forest, the first domain, and the first DC in one operation. This is the correct choice for DC1, the founding DC of a new environment.</div>
+  </div>
+
+  <p>Select <strong>Add a new forest</strong>. In the "Root domain name" field type <strong>novacrestbank.local</strong>. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 24-25 PROMOTE OPTIONS ══════ -->
+<div class="page" id="page-promote-domain">
+  <div class="ey">Windows Server · Win-01 · Section 24</div>
+  <div class="pt">Domain name confirmed — proceeding to DC options</div>
+  <div class="ps">After typing the domain name and clicking Next, the wizard validates the name and proceeds to Domain Controller Options</div>
+  <p>After clicking Next on the Deployment Configuration screen, the wizard briefly validates the domain name <code>novacrestbank.local</code> (checking it is a valid DNS name format). It then advances to the Domain Controller Options screen — covered in Section 25.</p>
+</div>
+
+<div class="page" id="page-promote-options">
+  <div class="ey">Windows Server · Win-01 · Section 25</div>
+  <div class="pt">Domain Controller Options — functional levels and DSRM password</div>
+  <div class="ps">The second most important screen in the promotion wizard — three decisions: functional levels, Global Catalog, and DSRM password</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🏛</div>
+      <div><div class="ww-title">AD DS Configuration — Domain Controller Options</div></div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Deployment config</div>
+        <div class="ww-step active"><div class="ww-step-num">→</div>DC Options</div>
+        <div class="ww-step"><div class="ww-step-num">3</div>DNS Options</div>
+        <div class="ww-step"><div class="ww-step-num">4</div>Additional options</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Paths</div>
+        <div class="ww-step"><div class="ww-step-num">6</div>Review Options</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Domain Controller Options</div>
+        <div class="ww-field">
+          <div class="ww-label">Forest functional level</div>
+          <div style="border:1px solid #c0c0c0;border-radius:3px;padding:6px 10px;font-size:13px;background:#f8fff8;border-color:#107c10;">Windows Server 2016</div>
+          <div class="vc-hint">Highest level supported by all DCs in the forest. With all DCs at 2022, set to Windows Server 2016 minimum — the wizard allows setting to the current OS.</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Domain functional level</div>
+          <div style="border:1px solid #c0c0c0;border-radius:3px;padding:6px 10px;font-size:13px;background:#f8fff8;border-color:#107c10;">Windows Server 2016</div>
+        </div>
+        <div style="margin:12px 0;">
+          <div class="ww-checkbox"><div class="ww-cb">✓</div><span>Domain Name System (DNS) server</span></div>
+          <div class="ww-checkbox"><div class="ww-cb">✓</div><span>Global Catalog (GC)</span></div>
+          <div class="ww-checkbox"><div class="ww-cb empty"></div><span>Read only domain controller (RODC)</span></div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Directory Services Restore Mode (DSRM) password <span style="color:#e05252;">*</span></div>
+          <div class="ww-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Confirm password</div>
+          <div class="ww-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What to configure on this screen</h2>
+
+  <div class="decision">
+    <div class="decision-label">Forest and Domain functional levels — Windows Server 2016</div>
+    <div class="decision-q">The dropdown offers Windows Server 2012, 2012 R2, 2016, and 2019/2022. Why select Windows Server 2016?</div>
+    <div class="decision-a"><strong>Because Windows Server 2016 functional level unlocks all features available in Server 2022 without any compatibility constraints — and NovaCrestBank will never need to add a pre-2016 domain controller.</strong><br/><br/>
+    Functional levels define the minimum capabilities that all DCs in the domain/forest must support. Choosing 2016 means: (1) all DCs must be running Windows Server 2016 or later (NovaCrestBank's DCs run 2022 — this is fine), (2) all features introduced in Server 2016 are available (including Privileged Access Workstations, PAM trust, and enhanced Kerberos enforcement).<br/><br/>
+    Why not Windows Server 2022? At the time of writing, setting the functional level to 2022 is supported but adds no significant new features over 2016 for NovaCrestBank's use case. Windows Server 2016 functional level is the conservative-correct choice for a new deployment: all current features, maximum forward compatibility.</div>
+  </div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Forest functional level:  <strong style="color:var(--win-blue);">Windows Server 2016</strong></div>
+    <div style="margin-top:4px;">Domain functional level:  <strong style="color:var(--win-blue);">Windows Server 2016</strong></div>
+    <div style="margin-top:4px;">DNS server:               <strong style="color:var(--win-blue);">✓ Checked</strong>  (leave ticked)</div>
+    <div style="margin-top:4px;">Global Catalog:           <strong style="color:var(--win-blue);">✓ Checked</strong>  (leave ticked — first DC always holds GC)</div>
+    <div style="margin-top:4px;">Read only DC (RODC):      <strong style="color:var(--win-blue);">☐ Unchecked</strong>  (leave unticked)</div>
+    <div style="margin-top:4px;">DSRM password:            <strong style="color:var(--win-blue);">NovaCrest$DSRM2026!</strong></div>
+    <div style="margin-top:4px;">Confirm password:         <strong style="color:var(--win-blue);">NovaCrest$DSRM2026!</strong></div>
+  </div>
+
+  <p>Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 26 PROMOTE DNS ══════ -->
+<div class="page" id="page-promote-dns">
+  <div class="ey">Windows Server · Win-01 · Section 26</div>
+  <div class="pt">DNS Options screen — the yellow warning is expected</div>
+  <div class="ps">This screen shows a warning about DNS delegation — it is expected and harmless for an internal-only domain</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🌐</div>
+      <div><div class="ww-title">AD DS Configuration — DNS Options</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-nav">
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Deployment config</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>DC Options</div>
+        <div class="ww-step active"><div class="ww-step-num">→</div>DNS Options</div>
+        <div class="ww-step"><div class="ww-step-num">4</div>Additional options</div>
+        <div class="ww-step"><div class="ww-step-num">5</div>Paths</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">DNS Options</div>
+        <div class="ww-warn-box">
+          ⚠ A delegation for this DNS server cannot be created because the authoritative parent zone cannot be found or it does not run Windows DNS server. If you are integrating with an existing DNS infrastructure, you should manually create a delegation to this DNS server in the parent zone to ensure reliable name resolution from outside the domain "novacrestbank.local".
+        </div>
+        <div class="ww-text" style="margin-top:12px;">You can specify DNS delegation options below.</div>
+        <div class="ww-checkbox">
+          <div class="ww-cb empty"></div>
+          <span>Create DNS delegation</span>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">The yellow DNS delegation warning — why it appears and what to do</div>
+    <div class="decision-q">The wizard shows a yellow warning about DNS delegation. Is this a problem?</div>
+    <div class="decision-a"><strong>No — this warning is expected and correct for NovaCrestBank's design. Leave "Create DNS delegation" unticked and click Next.</strong><br/><br/>
+    DNS delegation means: in the parent DNS zone (the zone above "novacrestbank.local" — which would be the ".local" top-level domain or the public DNS zone for "novacrestbank.com"), there would be an NS record pointing to DC01 as the authoritative DNS server for the "novacrestbank.local" subdomain.<br/><br/>
+    For NovaCrestBank's internal domain, there is no parent zone to delegate from: ".local" is not a real internet TLD and has no DNS zone anywhere. The warning is the wizard saying "I tried to find a parent zone to create a delegation in, and I couldn't find one." For an internal-only .local domain, this is the correct and expected result. The delegation is not needed — all internal clients will be configured to use DC01 (10.70.0.10) as their DNS server directly, without needing to traverse any delegation chain.</div>
+  </div>
+
+  <p>Leave <strong>"Create DNS delegation"</strong> unticked. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 27 NETBIOS ══════ -->
+<div class="page" id="page-promote-netbios">
+  <div class="ey">Windows Server · Win-01 · Section 27</div>
+  <div class="pt">NetBIOS domain name</div>
+  <div class="ps">The pre-Windows 2000 domain name — automatically derived from the domain name</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🏛</div>
+      <div><div class="ww-title">AD DS Configuration — Additional Options</div></div>
+    </div>
+    <div class="ww-body" style="min-height:160px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Additional options</div>
+        <div class="ww-field">
+          <div class="ww-label">The NetBIOS domain name</div>
+          <div class="ww-input filled">NOVACRESTBANK</div>
+          <div class="vc-hint">Automatically derived from "novacrestbank.local" — truncated to 15 characters, uppercased.</div>
+        </div>
+        <div class="ww-text" style="margin-top:10px;font-size:12.5px;color:#5a5a5a;">The NetBIOS domain name is used by older clients and applications for authentication. It appears in domain login prompts as the domain prefix: NOVACRESTBANK\username.</div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <p>The wizard automatically fills in <strong>NOVACRESTBANK</strong> as the NetBIOS domain name — derived from the DNS domain name by removing the ".local" suffix and uppercasing. This is correct and no change is needed. The NetBIOS name is used in legacy authentication (e.g., <code>NOVACRESTBANK\administrator</code> format login). Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 28 PATHS ══════ -->
+<div class="page" id="page-promote-paths">
+  <div class="ey">Windows Server · Win-01 · Section 28</div>
+  <div class="pt">AD DS database, log files, and SYSVOL paths</div>
+  <div class="ps">Where Active Directory stores its database, transaction logs, and shared folder — leave the defaults</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🏛</div>
+      <div><div class="ww-title">AD DS Configuration — Paths</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Specify the location of the AD DS database, log files, and SYSVOL</div>
+        <div class="ww-field">
+          <div class="ww-label">Database folder</div>
+          <div class="ww-input filled">C:\Windows\NTDS</div>
+          <div class="vc-hint">The ntds.dit database file — the Active Directory database itself.</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Log files folder</div>
+          <div class="ww-input filled">C:\Windows\NTDS</div>
+          <div class="vc-hint">Transaction logs for the ntds.dit database — critical for recovery.</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">SYSVOL folder</div>
+          <div class="ww-input filled">C:\Windows\SYSVOL</div>
+          <div class="vc-hint">Shared folder replicated between all DCs — contains Group Policy templates and login scripts.</div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn next">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why the defaults are correct for NovaCrestBank</div>
+    <div class="decision-q">Some AD administrators put the database and logs on separate disks for performance. Should NovaCrestBank do this?</div>
+    <div class="decision-a"><strong>No — the default C:\Windows\NTDS path is correct for NovaCrestBank's VM-based DC.</strong><br/><br/>
+    Separating the AD database (ntds.dit) from its log files onto different physical disks was important in the physical-server era. Transaction logs need to be written sequentially — if the database and log files competed for the same disk I/O, performance degraded. On separate disks, the sequential log writes did not compete with random database reads/writes.<br/><br/>
+    On a virtual machine running on vSAN (once vSAN is configured), all disk I/O is distributed across the cluster's NVMe SSDs and is effectively handled by a very fast, distributed storage backend. The performance difference between single-disk and separated-disk configurations for a DC handling authentication for 50 VMs is immeasurable. The default paths are correct and keep the configuration simple.</div>
+  </div>
+
+  <p>Leave all three paths as defaults. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 29 REVIEW ══════ -->
+<div class="page" id="page-promote-review">
+  <div class="ey">Windows Server · Win-01 · Section 29</div>
+  <div class="pt">Review options and prerequisites check</div>
+  <div class="ps">The summary and the automatic prerequisites check — the final gate before promotion begins</div>
+
+  <h2>Review Options screen</h2>
+  <p>The wizard shows a summary of all the choices made. Verify:</p>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
+    <div>Operation:              <strong style="color:var(--win-blue);">Install a new Active Directory forest</strong></div>
+    <div style="margin-top:4px;">Domain name:            <strong style="color:var(--win-blue);">novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">Forest functional level: <strong style="color:var(--win-blue);">Windows Server 2016</strong></div>
+    <div style="margin-top:4px;">Domain functional level: <strong style="color:var(--win-blue);">Windows Server 2016</strong></div>
+    <div style="margin-top:4px;">Domain controller type:  <strong style="color:var(--win-blue);">DNS server, Global Catalog</strong></div>
+    <div style="margin-top:4px;">NetBIOS name:           <strong style="color:var(--win-blue);">NOVACRESTBANK</strong></div>
+    <div style="margin-top:4px;">Database path:          <strong style="color:var(--win-blue);">C:\Windows\NTDS</strong></div>
+    <div style="margin-top:4px;">SYSVOL path:            <strong style="color:var(--win-blue);">C:\Windows\SYSVOL</strong></div>
+  </div>
+  <p>Click <strong>Next</strong>. The wizard runs the prerequisites check.</p>
+
+  <h2>Prerequisites Check screen</h2>
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🏛</div>
+      <div><div class="ww-title">AD DS Configuration — Prerequisites Check</div></div>
+    </div>
+    <div class="ww-body" style="min-height:200px;">
+      <div class="ww-content">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:#107c10;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0;">✓</div>
+          <div style="font-size:14px;font-weight:700;color:#107c10;">All prerequisite checks passed successfully.</div>
+        </div>
+        <div style="font-size:12.5px;color:#5a5a5a;line-height:1.8;">
+          <div style="color:#107c10;">✓ Verified that the current domain is not running in NT4 compatibility mode</div>
+          <div style="color:#107c10;">✓ Verified that the user (Administrator) has the required administrative rights</div>
+          <div style="color:#107c10;">✓ Verified that static IP address is assigned</div>
+          <div style="color:#cca700;">⚠ Windows Server 2022 domain controllers have a default for the security setting "Allow cryptography algorithms compatible with Windows NT 4.0" that prevents weaker cryptography algorithms. This is not a blocking error.</div>
+          <div style="color:#107c10;">✓ DNS server service will be installed and configured</div>
+        </div>
+        <div class="ww-info-box" style="margin-top:14px;">Click Install to begin the domain controller promotion. The server will restart automatically when promotion is complete.</div>
+      </div>
+    </div>
+    <div class="ww-footer">
+      <div></div>
+      <div class="ww-footer-btns">
+        <div class="ww-btn back">← Back</div>
+        <div class="ww-btn install">Install</div>
+      </div>
+    </div>
+  </div>
+
+  <p>The prerequisites check should show green ticks for all critical checks. One yellow warning about "NT4 compatibility" cryptography is normal and not a blocking issue — it means stronger Kerberos encryption will be enforced (this is correct for a new domain). If all green ticks appear, click <strong>Install</strong>.</p>
+</div>
+
+<!-- ══════ 30 PROMOTE INSTALL ══════ -->
+<div class="page" id="page-promote-install">
+  <div class="ey">Windows Server · Win-01 · Section 30</div>
+  <div class="pt">Installation — promotion in progress and automatic reboot</div>
+  <div class="ps">Watching DC1's promotion complete — what happens and what to expect after the reboot</div>
+
+  <p>After clicking Install, the promotion progress screen appears. Unlike the role installation progress (which had a progress bar), the AD DS promotion shows a text log of actions being performed. You will see messages like:</p>
+  <ul>
+    <li><em>Configuring Active Directory Domain Services...</em></li>
+    <li><em>Creating the NTDS database...</em></li>
+    <li><em>Creating DNS zones for novacrestbank.local...</em></li>
+    <li><em>Configuring SYSVOL share...</em></li>
+    <li><em>Configuring service settings...</em></li>
+  </ul>
+  <p>This takes approximately 3–5 minutes. When complete, a dialog says <strong>"This computer must be restarted to complete the operation."</strong> Click <strong>Close</strong>. The server restarts automatically.</p>
+
+  <div class="callout success">
+    <div class="cl">After the reboot — DC01 is a Domain Controller</div>
+    After the reboot, DC01 logs in differently. The login screen shows: <strong>NOVACRESTBANK\Administrator</strong> at the top — the domain prefix appears. The server is now a Domain Controller for the novacrestbank.local domain. Log in with the domain Administrator credentials: username <code>Administrator</code> or <code>NOVACRESTBANK\Administrator</code>, password <code>NovaCrest$Domain2026!</code>. Note: after promotion, the local Administrator account and the domain Administrator account share the same password (they are the same account — the domain Administrator account was created from the local Administrator account during promotion).
+  </div>
+</div>
+
+<!-- ══════ 31 POST LOGIN ══════ -->
+<div class="page" id="page-post-login">
+  <div class="ey">Windows Server · Win-01 · Section 31</div>
+  <div class="pt">First login after promotion — confirming DC01 is working</div>
+  <div class="ps">What you see after logging back in to the newly promoted DC — and the quick checks that confirm everything is healthy</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Log in as NOVACRESTBANK\Administrator</div>
+        <p style="font-size:13.5px">In the vCenter VM console for dc01, press Ctrl+Alt+Delete (via the console toolbar button). The login screen shows "NOVACRESTBANK\Administrator" — this confirms the domain prefix is being shown. Type the password <code>NovaCrest$Domain2026!</code> and press Enter.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Server Manager opens — check the AD DS and DNS rows</div>
+        <p style="font-size:13.5px">Server Manager opens automatically. In the left panel you now see new items: <strong>AD DS</strong> and <strong>DNS</strong> have appeared. Click <strong>AD DS</strong> in the left panel. The main area shows DC01 listed with a green indicator. Click <strong>DNS</strong> in the left panel. DC01 appears in the DNS servers list with a green indicator.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Open Active Directory Users and Computers</div>
+        <p style="font-size:13.5px">In Server Manager, click <strong>Tools</strong> in the top menu bar. A dropdown list appears showing all the admin tools. Click <strong>Active Directory Users and Computers</strong>. A window opens showing the AD domain tree. You should see: <strong>novacrestbank.local</strong> at the top, with child containers including: Builtin, Computers, Domain Controllers, ForeignSecurityPrincipals, Users. Under Domain Controllers, you see <strong>DC01</strong> listed. This confirms AD DS is functioning.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Verify DNS is working — open a Command Prompt and test</div>
+        <div class="psh" style="margin-top:8px;">
+          <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt — DC01</span></div>
+          <div class="psh-body"><pre><span class="pp">C:\Users\Administrator></span> <span class="pc">nslookup novacrestbank.local</span>
+<span class="ps">Server:  dc01.novacrestbank.local
+Address:  127.0.0.1
+
+Name:    novacrestbank.local
+Address:  10.70.0.10</span>
+<span class="pd">
+↑ DNS is resolving the domain name to DC01's IP ✓
+  The DNS server is dc01 itself (127.0.0.1)
+  The domain novacrestbank.local resolves to 10.70.0.10</span>
+
+<span class="pp">C:\Users\Administrator></span> <span class="pc">nslookup dc01.novacrestbank.local</span>
+<span class="ps">Server:  dc01.novacrestbank.local
+Address:  127.0.0.1
+
+Name:    dc01.novacrestbank.local
+Address:  10.70.0.10</span>
+<span class="pd">↑ DC01's A record resolves correctly ✓</span></pre>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 32 DNS ZONES ══════ -->
+<div class="page" id="page-dns-zones">
+  <div class="ey">Windows Server · Win-01 · Section 32</div>
+  <div class="pt">DNS — verify AD-integrated zones were created</div>
+  <div class="ps">Confirming the DNS zones that Active Directory created automatically during promotion</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open DNS Manager — Server Manager → Tools → DNS</div>
+        <p style="font-size:13.5px">In Server Manager, click <strong>Tools</strong> → <strong>DNS</strong>. The DNS Manager window opens. In the left panel you see: DNS → DC01 → Forward Lookup Zones, Reverse Lookup Zones, Trust Points, Conditional Forwarders.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Expand Forward Lookup Zones — verify zones present</div>
+        <p style="font-size:13.5px">Click the arrow next to <strong>Forward Lookup Zones</strong> to expand it. You should see two zones:</p>
+        <div class="win-mgr" style="margin-top:10px;">
+          <div class="win-mgr-bar">
+            <span>DNS Manager — DC01</span>
+          </div>
+          <div class="win-mgr-body">
+            <div class="win-mgr-section">Forward Lookup Zones</div>
+            <div class="win-mgr-row">
+              <span class="win-mgr-label">📁 _msdcs.novacrestbank.local</span>
+              <span class="win-mgr-val ok">Active Directory-Integrated · Primary</span>
+            </div>
+            <div class="win-mgr-row">
+              <span class="win-mgr-label">📁 novacrestbank.local</span>
+              <span class="win-mgr-val ok">Active Directory-Integrated · Primary</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="decision">
+    <div class="decision-label">Why there are two zones — what _msdcs.novacrestbank.local is</div>
+    <div class="decision-q">Two DNS zones were created. What is _msdcs.novacrestbank.local and why does it exist?</div>
+    <div class="decision-a"><strong>_msdcs (Microsoft Domain Controller Services) is a special DNS zone that Windows clients use to locate domain controllers and global catalog servers.</strong><br/><br/>
+    When a Windows computer needs to authenticate, it does not know which server is a DC by IP — it asks DNS. Specifically, it queries for SRV records in the _msdcs zone: <code>_ldap._tcp._msdcs.novacrestbank.local</code> returns the list of DCs. <code>_kerberos._tcp._msdcs.novacrestbank.local</code> returns the DCs that offer Kerberos. These SRV records are created automatically when AD DS is promoted and are updated automatically when DCs are added or removed.<br/><br/>
+    The _msdcs zone being AD-integrated means it replicates between DC1 and DC2 automatically — no manual zone transfer configuration needed. If DC1 is unavailable, clients query DC2's DNS and still find the SRV records they need.</div>
+  </div>
+
+  <p>Both zones should show <strong>"Active Directory-Integrated"</strong> in the Type column. This is the most important confirmation — it means DNS zones are stored in the AD database and will replicate automatically to DC2 when it is promoted. Standard (file-based) zones would show just "Primary" — if you see that, something went wrong during promotion and DNS was not set up as AD-integrated.</p>
+</div>
+
+<!-- ══════ 33 DNS RECORDS ══════ -->
+<div class="page" id="page-dns-records">
+  <div class="ey">Windows Server · Win-01 · Section 33</div>
+  <div class="pt">DNS — add infrastructure A records for all key services</div>
+  <div class="ps">Adding DNS records for every IP-addressed device in the data center so all systems can resolve each other by name</div>
+
+  <div class="callout">
+    <div class="cl">Why you add these records manually now</div>
+    ESXi hosts, vCenter, the Cisco switches, and Palo Alto do not join the AD domain — they do not auto-register their DNS records. Only domain-joined Windows machines auto-register. Everything else must be added manually. Adding these records now ensures every future system can immediately resolve all infrastructure names.
+  </div>
+
+  <h2>How to add an A record in DNS Manager</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In DNS Manager, right-click "novacrestbank.local" → New Host (A or AAAA)</div>
+        <p style="font-size:13.5px">In DNS Manager, expand <strong>Forward Lookup Zones</strong> → click <strong>novacrestbank.local</strong>. The right panel shows existing records (SOA, NS, and a few auto-created A records for DC01). Right-click <strong>novacrestbank.local</strong> in the left panel. Click <strong>New Host (A or AAAA)...</strong>. A dialog opens with two fields: Name and IP address.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Fill in the name and IP — click "Add Host" — repeat for each record</div>
+        <p style="font-size:13.5px">Type the hostname (short name — not the full FQDN) in the Name field and the IP address in the IP address field. Click <strong>Add Host</strong>. A dialog says "The host record dc01.novacrestbank.local was successfully created." Click <strong>OK</strong>. The record appears in the zone. Repeat for each entry in the table below.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>All DNS A records to create</h2>
+  <table>
+    <thead><tr><th>Name (short)</th><th>IP address</th><th>FQDN result</th><th>What this is</th></tr></thead>
+    <tbody>
+      <tr><td><code>vcenter</code></td><td>10.10.0.100</td><td>vcenter.novacrestbank.local</td><td>vCenter Server Appliance</td></tr>
+      <tr><td><code>esxi01</code></td><td>10.10.0.11</td><td>esxi01.novacrestbank.local</td><td>ESXi host 1</td></tr>
+      <tr><td><code>esxi02</code></td><td>10.10.0.12</td><td>esxi02.novacrestbank.local</td><td>ESXi host 2</td></tr>
+      <tr><td><code>esxi03</code></td><td>10.10.0.13</td><td>esxi03.novacrestbank.local</td><td>ESXi host 3</td></tr>
+      <tr><td><code>esxi04</code></td><td>10.10.0.14</td><td>esxi04.novacrestbank.local</td><td>ESXi host 4</td></tr>
+      <tr><td><code>esxi05</code></td><td>10.10.0.15</td><td>esxi05.novacrestbank.local</td><td>ESXi host 5</td></tr>
+      <tr><td><code>dc01</code></td><td>10.70.0.10</td><td>dc01.novacrestbank.local</td><td>DC1 (auto-created — verify it exists)</td></tr>
+      <tr><td><code>dc02</code></td><td>10.70.0.11</td><td>dc02.novacrestbank.local</td><td>DC2 (add now — server built shortly)</td></tr>
+      <tr><td><code>issuingca</code></td><td>10.70.0.21</td><td>issuingca.novacrestbank.local</td><td>AD CS Issuing CA (built in Win-04)</td></tr>
+      <tr><td><code>spine01</code></td><td>10.40.0.10</td><td>spine01.novacrestbank.local</td><td>Nexus 9504 spine 1</td></tr>
+      <tr><td><code>spine02</code></td><td>10.40.0.11</td><td>spine02.novacrestbank.local</td><td>Nexus 9504 spine 2</td></tr>
+      <tr><td><code>leaf01</code></td><td>10.40.0.20</td><td>leaf01.novacrestbank.local</td><td>Nexus leaf 1</td></tr>
+      <tr><td><code>leaf02</code></td><td>10.40.0.21</td><td>leaf02.novacrestbank.local</td><td>Nexus leaf 2</td></tr>
+      <tr><td><code>leaf03</code></td><td>10.40.0.22</td><td>leaf03.novacrestbank.local</td><td>Nexus leaf 3</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="cl">Also create the Reverse Lookup Zone and PTR records</div>
+    In DNS Manager, right-click <strong>Reverse Lookup Zones</strong> → <strong>New Zone</strong>. Create zones for: 10.10.0.0/24 (ESXi management), 10.70.0.0/24 (Windows infrastructure). For each A record created above, tick "Create associated pointer (PTR) record" in the New Host dialog — this creates the reverse DNS entry automatically. Reverse DNS is used by Kerberos for hostname verification and by some security tools.
+  </div>
+</div>
+
+<!-- ══════ 34 NTP CONFIG ══════ -->
+<div class="page" id="page-ntp-config">
+  <div class="ey">Windows Server · Win-01 · Section 34</div>
+  <div class="pt">NTP — configure DC1 as stratum 2 time source</div>
+  <div class="ps">Making DC1 the authoritative NTP server for NovaCrestBank's entire infrastructure — the Windows Time service configuration</div>
+
+  <div class="callout">
+    <div class="cl">The NTP hierarchy — why DC1 is stratum 2</div>
+    NTP stratum numbers indicate distance from an accurate time source. Stratum 1 = directly connected to a hardware clock (GPS, atomic clock). Stratum 2 = synchronised to a stratum 1 source. DC1 syncs to public NTP servers (stratum 1) over the internet — making DC1 stratum 2. All ESXi hosts, Cisco switches, and other infrastructure sync to DC1 — making them stratum 3. This hierarchy ensures all devices in NovaCrestBank have the same time, which is essential for Kerberos authentication (which fails if clocks are more than 5 minutes apart), for certificate validation (certificates have validity periods), and for log correlation.
+  </div>
+
+  <h2>Configure DC1 to sync with external NTP servers</h2>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt (Run as Administrator) — DC01</span></div>
+    <div class="psh-body"><pre><span class="pd"># The PDC Emulator is the authoritative time source for the domain</span>
+<span class="pd"># All other DCs sync from the PDC Emulator</span>
+<span class="pd"># All domain members sync from any DC</span>
+<span class="pd"># DC01 holds the PDC Emulator FSMO role — configure it to sync externally</span>
+
+<span class="pp">C:\></span> <span class="pc">w32tm /config /manualpeerlist:"pool.ntp.org time.windows.com time.cloudflare.com" /syncfromflags:MANUAL /reliable:YES /update</span>
+<span class="pg">The command completed successfully.</span>
+
+<span class="pp">C:\></span> <span class="pc">net stop w32tm && net start w32tm</span>
+<span class="ps">The Windows Time service is stopping.
+The Windows Time service was stopped successfully.
+The Windows Time service is starting.
+The Windows Time service has started successfully.</span>
+
+<span class="pd"># Force immediate sync and verify</span>
+<span class="pp">C:\></span> <span class="pc">w32tm /resync /force</span>
+<span class="pg">Sending resync command to local computer
+The command completed successfully.</span>
+
+<span class="pp">C:\></span> <span class="pc">w32tm /query /status</span>
+<span class="ps">Leap Indicator: 0(no warning)
+Stratum: 2 (secondary reference - synced by (S)NTP)
+Precision: -23 (119.209ns per tick)
+Root Delay: 0.0312500s
+Root Dispersion: 7.8125000s
+ReferenceId: 0xD8EF2310 (source IP:  pool.ntp.org)
+Last Successful Sync Time: 13/04/2026 09:15:44
+Source: pool.ntp.org
+Poll Interval: 17 (131072s)</span>
+<span class="pd">
+↑ Stratum: 2 ✓ — DC01 is now a stratum 2 time source
+  Source: pool.ntp.org ✓ — syncing from internet NTP
+  Last Successful Sync Time shows a recent timestamp ✓</span></pre>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why configure this via command line rather than GUI</div>
+    <div class="decision-q">The Windows Time service has some GUI configuration in services.msc and registry editor. Why use the command line?</div>
+    <div class="decision-a"><strong>Because w32tm commands are precise, scriptable, and unambiguous — there is no GUI for all NTP settings in Windows Server.</strong><br/><br/>
+    The Windows Time service GUI (when available) only shows a subset of settings. Some critical parameters — like the /reliable:YES flag (which tells the service to advertise itself as a reliable time source to clients) and /syncfromflags:MANUAL (which overrides the default domain hierarchy and forces external sync on the PDC Emulator) — are only configurable via command line or group policy. Using w32tm commands directly ensures all parameters are set correctly without relying on GUI controls that may not expose all options.</div>
+  </div>
+</div>
+
+<!-- ══════ 35 SITES SERVICES ══════ -->
+<div class="page" id="page-sites-services">
+  <div class="ey">Windows Server · Win-01 · Section 35</div>
+  <div class="pt">Active Directory Sites and Services — match the physical topology</div>
+  <div class="ps">Configuring AD Sites so replication traffic follows the physical network — and understanding why Sites matter</div>
+
+  <div class="decision">
+    <div class="decision-label">What AD Sites are and why they must match the physical topology</div>
+    <div class="decision-q">Active Directory automatically created a site called "Default-First-Site-Name". What is a Site and why configure it?</div>
+    <div class="decision-a"><strong>An AD Site represents a physical or logical network location with reliable high-speed connectivity between its members. Sites control two things: DC-to-DC replication and client-to-DC authentication locality.</strong><br/><br/>
+    <strong>Replication control:</strong> DCs within the same site replicate changes immediately (within 15 seconds). DCs in different sites replicate on a schedule (typically every 3 hours or on a configured interval). NovaCrestBank has all DCs in one physical location — all in the same site — so replication is immediate.<br/><br/>
+    <strong>Client locality:</strong> When a Windows machine authenticates, it queries DNS for a DC in its "closest" site. If sites match the physical network, clients find DCs they can reach efficiently. If sites are misconfigured, a machine in London might authenticate against a DC in Sydney — working but slow.<br/><br/>
+    For NovaCrestBank: all infrastructure is in one data center — one AD site is correct. The configuration task is simply renaming "Default-First-Site-Name" to something meaningful, adding the subnets, and confirming both DCs are in the site.</div>
+  </div>
+
+  <h2>Configure Sites and Services — step by step</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open Active Directory Sites and Services</div>
+        <p style="font-size:13.5px">In Server Manager → <strong>Tools</strong> → <strong>Active Directory Sites and Services</strong>. The Sites and Services console opens showing a tree on the left: Sites → Default-First-Site-Name → Servers → DC01.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Rename "Default-First-Site-Name" to "NovaCrestBank-London-DC1"</div>
+        <p style="font-size:13.5px">Right-click <strong>Default-First-Site-Name</strong> → <strong>Rename</strong>. Type <strong>NovaCrestBank-London-DC1</strong> and press Enter. The site is renamed.</p>
+        <div class="decision" style="margin-top:10px;">
+          <div class="decision-label">Why this naming convention</div>
+          <div class="decision-q">Why "NovaCrestBank-London-DC1" — what does each part mean?</div>
+          <div class="decision-a"><strong>Organisation (NovaCrestBank) — City (London) — data center identifier (DC1 = Data Center 1, not Domain Controller 1).</strong> This naming convention supports future expansion: if NovaCrestBank opens a second data center or a DR site, it becomes NovaCrestBank-London-DC2 or NovaCrestBank-Manchester-DC1. Each site name immediately identifies the organisation, location, and facility — without any lookup.</div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Add subnets to the site</div>
+        <p style="font-size:13.5px">In the left panel, right-click <strong>Subnets</strong> → <strong>New Subnet</strong>. For each subnet NovaCrestBank uses, add it here so AD knows these subnets belong to this site:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
+          <div>10.10.0.0/24  — VLAN 10 ESXi Management  → Site: NovaCrestBank-London-DC1</div>
+          <div style="margin-top:3px;">10.20.0.0/24  — VLAN 20 vMotion          → Site: NovaCrestBank-London-DC1</div>
+          <div style="margin-top:3px;">10.25.0.0/24  — VLAN 25 vSAN             → Site: NovaCrestBank-London-DC1</div>
+          <div style="margin-top:3px;">10.30.0.0/24  — VLAN 30 NAS              → Site: NovaCrestBank-London-DC1</div>
+          <div style="margin-top:3px;">10.50.0.0/24  — VLAN 50 OCP Nodes        → Site: NovaCrestBank-London-DC1</div>
+          <div style="margin-top:3px;">10.60.0.0/24  — VLAN 60 VM Production     → Site: NovaCrestBank-London-DC1</div>
+          <div style="margin-top:3px;">10.70.0.0/24  — VLAN 70 Windows Infra     → Site: NovaCrestBank-London-DC1</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">For each subnet: right-click Subnets → New Subnet → type the prefix (e.g., 10.10.0.0/24) → select NovaCrestBank-London-DC1 from the site dropdown → click OK.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 36 DC2 CREATE ══════ -->
+<div class="page" id="page-dc2-create">
+  <div class="ey">Windows Server · Win-01 · Section 36</div>
+  <div class="pt">DC2 — create VM, install Windows, set hostname and IP</div>
+  <div class="ps">DC2 follows the same process as DC1 — these are the differences</div>
+
+  <div class="callout">
+    <div class="cl">DC2 mirrors DC1 — only the values that differ are listed here</div>
+    The process for DC2 is identical to DC1 (Sections 04–13): create VM in vCenter, install Windows Server 2022 Standard Desktop Experience, set the Administrator password, rename the computer, configure the static IP. The only differences are listed below.
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--win-blue);">
+      <h3 style="color:var(--win-blue);">DC1 values (reference)</h3>
+      <div class="spec-row"><span class="spec-label">VM placed on</span><span class="spec-val">esxi01 (10.10.0.11)</span></div>
+      <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">DC01</span></div>
+      <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.10</span></div>
+      <div class="spec-row"><span class="spec-label">Preferred DNS</span><span class="spec-val">127.0.0.1 (before promotion)</span></div>
+      <div class="spec-row"><span class="spec-label">Alternate DNS</span><span class="spec-val">10.70.0.11</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <h3 style="color:var(--accent2);">DC2 values — what changes</h3>
+      <div class="spec-row"><span class="spec-label">VM placed on</span><span class="spec-val"><strong>esxi02 (10.10.0.12)</strong> — different host!</span></div>
+      <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val"><strong>DC02</strong></span></div>
+      <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val"><strong>10.70.0.11</strong></span></div>
+      <div class="spec-row"><span class="spec-label">Preferred DNS</span><span class="spec-val"><strong>10.70.0.10</strong> (DC1 — already running)</span></div>
+      <div class="spec-row"><span class="spec-label">Alternate DNS</span><span class="spec-val"><strong>127.0.0.1</strong> (itself — after promotion)</span></div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">DC2 must point to DC1 for DNS BEFORE joining the domain</div>
+    When DC2 is a standalone server and you set its DNS to 10.70.0.10 (DC1), DC2 can resolve novacrestbank.local DNS queries — which is required for domain join. If DC2 points to itself (127.0.0.1) before promotion, there is no DNS server running on DC2 yet and name resolution fails. The order is: set DNS to DC1 → join domain → promote to DC → then change DNS to prefer itself.
+  </div>
+
+  <p>Follow Sections 04–13 for DC2, substituting the DC2-specific values above. When DC2 has Windows Server installed, renamed to DC02, IP set to 10.70.0.11, and DNS pointing to 10.70.0.10 — proceed to Section 37 to join it to the domain.</p>
+</div>
+
+<!-- ══════ 37 DC2 JOIN ══════ -->
+<div class="page" id="page-dc2-join">
+  <div class="ey">Windows Server · Win-01 · Section 37</div>
+  <div class="pt">Join DC2 to the novacrestbank.local domain</div>
+  <div class="ps">Before promoting DC2, it must join the domain as a member server — then be promoted to an additional DC</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">On DC02: Server Manager → Local Server → Workgroup → Change</div>
+        <p style="font-size:13.5px">In Server Manager on DC02, click <strong>Local Server</strong>. Find the <strong>Workgroup</strong> row (it shows "WORKGROUP"). Click the hyperlink. The System Properties dialog opens. Click <strong>Change...</strong>. The Computer Name/Domain Changes dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Select "Domain" and type novacrestbank.local</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header" style="padding:10px 16px;">
+            <div class="ww-icon">💻</div>
+            <div><div class="ww-title">Computer Name/Domain Changes</div></div>
+          </div>
+          <div class="ww-body" style="min-height:180px;">
+            <div class="ww-content" style="padding:16px 20px;">
+              <div class="ww-field">
+                <div class="ww-label">Computer name:</div>
+                <div class="ww-input filled">DC02</div>
+              </div>
+              <div class="ww-field" style="margin-top:14px;">
+                <div class="ww-label">Member of:</div>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                    <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #aaa;flex-shrink:0;"></div>
+                    <span>Workgroup:</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                    <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
+                    <strong>Domain:</strong>
+                  </div>
+                  <div class="ww-input filled" style="margin-left:22px;">novacrestbank.local</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">Cancel</div><div class="ww-btn next">OK</div></div></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Select the <strong>Domain</strong> radio button. Type <strong>novacrestbank.local</strong> in the Domain field. Click <strong>OK</strong>. A credentials dialog appears: Windows needs domain admin credentials to authorise the join. Type <code>Administrator</code> and <code>NovaCrest$Domain2026!</code>. Click <strong>OK</strong>. A dialog says "Welcome to the novacrestbank.local domain." Click <strong>OK</strong>. Click <strong>OK</strong> on System Properties. Click <strong>Restart Now</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">After reboot — log in as NOVACRESTBANK\Administrator</div>
+        <p style="font-size:13.5px">After DC02 reboots, the login screen now shows the domain option. Log in as <code>NOVACRESTBANK\Administrator</code> with <code>NovaCrest$Domain2026!</code>. DC02 is now a domain member. In Active Directory Users and Computers on DC01, you will see DC02 listed under the Computers container (not yet under Domain Controllers — it joins that container after promotion).</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 38 DC2 PROMOTE ══════ -->
+<div class="page" id="page-dc2-promote">
+  <div class="ey">Windows Server · Win-01 · Section 38</div>
+  <div class="pt">Promote DC2 — additional domain controller wizard</div>
+  <div class="ps">The AD DS promotion wizard for DC2 — different from DC1 because the domain already exists</div>
+
+  <div class="callout">
+    <div class="cl">DC2 promotion is shorter — the domain already exists</div>
+    DC2 promotion uses "Add a domain controller to an existing domain" — not "Add a new forest." The wizard is shorter because most decisions were already made when the domain was created on DC1. DC2 simply replicates the existing domain data and adds itself as a redundant DC.
+  </div>
+
+  <h2>The DC2 promotion wizard — every screen</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Install the AD DS and DNS roles on DC02 — same as DC1 (Sections 14–21)</div>
+        <p style="font-size:13.5px">On DC02, open Server Manager → Add roles and features. Select both <strong>Active Directory Domain Services</strong> and <strong>DNS Server</strong>. Install them. Click the yellow flag notification → "Promote this server to a domain controller."</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Deployment Configuration — "Add a domain controller to an existing domain"</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>Select:          <strong style="color:var(--win-blue);">Add a domain controller to an existing domain</strong></div>
+          <div style="margin-top:4px;">Domain:          <strong style="color:var(--win-blue);">novacrestbank.local</strong>  (auto-filled from domain membership)</div>
+          <div style="margin-top:4px;">Credentials:     <strong style="color:var(--win-blue);">NOVACRESTBANK\Administrator / NovaCrest$Domain2026!</strong></div>
+          <div style="margin-top:4px;">                 Click "Change..." to supply credentials if not already filled</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">The domain field should be pre-filled with novacrestbank.local. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Domain Controller Options — same settings as DC1</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>DNS server:    <strong style="color:var(--win-blue);">✓ Checked</strong></div>
+          <div style="margin-top:4px;">Global Catalog: <strong style="color:var(--win-blue);">✓ Checked</strong></div>
+          <div style="margin-top:4px;">RODC:          <strong style="color:var(--win-blue);">☐ Unchecked</strong></div>
+          <div style="margin-top:4px;">Site name:      <strong style="color:var(--win-blue);">NovaCrestBank-London-DC1</strong>  (select from dropdown)</div>
+          <div style="margin-top:4px;">DSRM password:  <strong style="color:var(--win-blue);">NovaCrest$DSRM2026!</strong>  (same DSRM password as DC1)</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Additional options — replicate from DC01</div>
+        <p style="font-size:13.5px">A screen asks "Specify the domain controller to replicate from." The dropdown shows "Any Domain Controller" or specifically DC01. Select <strong>DC01.novacrestbank.local</strong>. This ensures DC2 gets its initial AD database copy directly from DC1 — using a known-good source rather than any available DC (useful if there were multiple DCs with varying replication lag). Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Paths — leave defaults. Review — check summary. Prerequisites check — click Install.</div>
+        <p style="font-size:13.5px">Leave paths as defaults (C:\Windows\NTDS and C:\Windows\SYSVOL). Review the summary. Prerequisites check shows green ticks. Click <strong>Install</strong>. DC02 replicates the AD database from DC01, configures DNS, and reboots. After reboot, DC02 is a fully functioning Domain Controller.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 39 DC2 VERIFY ══════ -->
+<div class="page" id="page-dc2-verify">
+  <div class="ey">Windows Server · Win-01 · Section 39</div>
+  <div class="pt">Verify replication — AD and DNS are synchronised between DC1 and DC2</div>
+  <div class="ps">Confirming that DC2 has received all the AD data from DC1 and that DNS zones are replicating correctly</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt (Run as Administrator) — DC01 or DC02</span></div>
+    <div class="psh-body"><pre><span class="pd"># ── Verify AD replication between DC01 and DC02 ──────────────────────</span>
+<span class="pp">C:\></span> <span class="pc">repadmin /replsummary</span>
+
+<span class="ps">Replication Summary Start Time: 2026-04-13 09:30:22</span>
+
+<span class="ps">Beginning data collection for replication summary, this may take awhile:</span>
+<span class="ps">  .......</span>
+
+<span class="ps">Source DSA          largest delta    fails/total %%   error</span>
+<span class="pg"> DC01                    00h:00m:22s    0 /   5    0
+ DC02                    00h:00m:31s    0 /   5    0</span>
+<span class="pd">
+   ↑ 0 failures for both DC01 and DC02 ✓
+     Replication is healthy — no errors, no backlogs</span>
+
+<span class="pd"># ── Check DNS zones have replicated to DC02 ──────────────────────────</span>
+<span class="pd"># Run this on DC02 after promotion</span>
+<span class="pp">C:\></span> <span class="pc">dnscmd DC02 /enumzones</span>
+
+<span class="ps">Enumerated zone list:</span>
+<span class="pg">        Zone count = 3</span>
+
+<span class="pg"> Zone name                            Type       Storage   Properties</span>
+
+<span class="pg"> .                                    Cache      RAM
+ _msdcs.novacrestbank.local           Primary    AD-Forest  Secure
+ novacrestbank.local                  Primary    AD-Domain  Secure</span>
+<span class="pd">
+   ↑ Both DNS zones present on DC02 ✓
+     Type: Primary, Storage: AD-Domain (AD-integrated) ✓
+     The zones replicated automatically via AD replication</span>
+
+<span class="pd"># ── Verify FSMO roles remain on DC01 ─────────────────────────────────</span>
+<span class="pp">C:\></span> <span class="pc">netdom query fsmo</span>
+
+<span class="pg">Schema master               DC01.novacrestbank.local
+Domain naming master        DC01.novacrestbank.local
+PDC                         DC01.novacrestbank.local
+RID pool manager            DC01.novacrestbank.local
+Infrastructure master       DC01.novacrestbank.local</span>
+<span class="pg">The command completed successfully.</span>
+<span class="pd">
+   ↑ All 5 FSMO roles are on DC01 ✓ — as expected
+     DC02 promotion does not move FSMO roles</span></pre>
+      <div class="pann ok"><span class="pai">✓</span><span>AD replication is healthy (0 failures). Both DNS zones are present on DC02 and are AD-integrated (replicated automatically). FSMO roles remain on DC01. DC1 and DC2 are both functioning domain controllers for novacrestbank.local.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 40 FINAL VERIFY ══════ -->
+<div class="page" id="page-final-verify">
+  <div class="ey">Windows Server · Win-01 · Section 40</div>
+  <div class="pt">Final verification checklist</div>
+  <div class="ps">Every check that must pass before moving to Win-02 (DHCP) and Win-03 (Root CA)</div>
+
+  <div class="callout success">
+    <div class="cl">Win-01 complete — the identity fabric is in place</div>
+    DC1 and DC2 are both running. novacrestbank.local domain is established. DNS is AD-integrated and replicating. NTP is configured with DC1 as stratum 2. AD Sites and Services reflects the physical topology. All infrastructure A records and PTR records are in DNS. FSMO roles are on DC1. Replication between DC1 and DC2 is healthy.
+  </div>
+
+  <h2>Verification checklist — all items before handoff</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">DC01 accessible at 10.70.0.10</span><span class="spec-val badge bg">✓ Ping responds</span></div>
+    <div class="spec-row"><span class="spec-label">DC02 accessible at 10.70.0.11</span><span class="spec-val badge bg">✓ Ping responds</span></div>
+    <div class="spec-row"><span class="spec-label">Domain: novacrestbank.local</span><span class="spec-val badge bg">✓ Visible in ADUC</span></div>
+    <div class="spec-row"><span class="spec-label">DC01 in Domain Controllers OU</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DC02 in Domain Controllers OU</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DNS zone: novacrestbank.local (AD-integrated)</span><span class="spec-val badge bg">✓ On both DCs</span></div>
+    <div class="spec-row"><span class="spec-label">DNS zone: _msdcs.novacrestbank.local</span><span class="spec-val badge bg">✓ On both DCs</span></div>
+    <div class="spec-row"><span class="spec-label">A record: vcenter.novacrestbank.local → 10.10.0.100</span><span class="spec-val badge bg">✓ Resolves</span></div>
+    <div class="spec-row"><span class="spec-label">A records: all ESXi hosts (esxi01–05)</span><span class="spec-val badge bg">✓ Created</span></div>
+    <div class="spec-row"><span class="spec-label">All subnets added to NovaCrestBank-London-DC1 site</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NTP: DC01 stratum 2 (w32tm /query /status)</span><span class="spec-val badge bg">✓ Syncing to internet</span></div>
+    <div class="spec-row"><span class="spec-label">AD replication healthy (repadmin /replsummary)</span><span class="spec-val badge bg">✓ 0 failures</span></div>
+    <div class="spec-row"><span class="spec-label">FSMO roles: all 5 on DC01</span><span class="spec-val badge bg">✓ netdom query fsmo</span></div>
+    <div class="spec-row"><span class="spec-label">ESXi hosts NTP updated to DC01 (10.70.0.10)</span><span class="spec-val badge ba">⚠ Update in Host Client for each host</span></div>
+    <div class="spec-row"><span class="spec-label">Cisco switches NTP updated to DC01</span><span class="spec-val badge ba">⚠ Update ntp server 10.70.0.10 on all switches</span></div>
+    <div class="spec-row"><span class="spec-label">CyberArk: DSRM and domain admin credentials stored</span><span class="spec-val badge ba">⚠ Do before next guide</span></div>
+  </div>
+
+  <h2>What comes next in the build sequence</h2>
+  <table>
+    <thead><tr><th>Next guide</th><th>What it does</th><th>Why now</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Win-02 — DHCP</strong></td><td>Configure DHCP scopes for all VLANs on DC1. DHCP options include DNS server (DC1/DC2), default gateway per VLAN, NTP server.</td><td>VMs need IP addresses. Without DHCP, every VM must be manually configured with a static IP before it can communicate.</td></tr>
+      <tr><td><strong>Win-03 — Root CA</strong></td><td>Build the offline Root CA VM. Configure certificate policy. Issue the Issuing CA certificate. Power off Root CA permanently.</td><td>The PKI chain starts here. No certificates can be issued until the Root CA signs the Issuing CA.</td></tr>
+      <tr><td><strong>Win-04 — Issuing CA</strong></td><td>Online subordinate CA. Configure certificate templates. Enable auto-enrolment.</td><td>The Issuing CA is what signs vCenter certificates, ESXi certificates, and OCP wildcard certificates.</td></tr>
+      <tr><td><strong>vSphere-03 — vCenter AD integration</strong></td><td>Join vCenter to novacrestbank.local. Map AD groups to vCenter roles. Replace self-signed TLS certs with AD CS-signed certs.</td><td>Requires both DC1/DC2 (for LDAP) and the Issuing CA (for certificates) to be operational first.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--win-blue)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
