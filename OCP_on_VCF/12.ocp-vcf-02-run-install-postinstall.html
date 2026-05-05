@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OCP-VCF-02 — Run Installer &amp; Post-Install · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f8f7f4;--bg2:#ffffff;--bg3:#f1f0eb;
+    --text:#1a1a18;--text2:#5a5955;--text3:#8a8880;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --accent:#c8102e;--blue:#185fa5;--green:#0f6e56;
+    --amber:#ba7517;--red:#a32d2d;--purple:#534ab7;
+    --r:10px;--r2:6px;
+    --term-bg:#0d1117;--term-text:#c9d1d9;
+    --term-green:#3fb950;--term-yellow:#d29922;--term-red:#f85149;
+    --term-blue:#58a6ff;--term-cyan:#39d0d8;--term-gray:#6e7681;
+    --term-white:#f0f6fc;--term-orange:#ffa657;--term-dim:#484f58;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#13130f;--bg2:#1c1c18;--bg3:#252520;--text:#e8e6de;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.08);
+    --border2:rgba(255,255,255,0.15);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.75;}
+  .sidebar{position:fixed;top:0;left:0;width:272px;height:100vh;background:var(--bg2);border-right:0.5px solid var(--border);overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sidebar-header{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sidebar-header .logo{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;}
+  .sidebar-header h1{font-size:13.5px;font-weight:600;color:var(--text);}
+  .sidebar-header p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .nav-group{padding:10px 0;}
+  .nav-group-label{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);padding:0 20px 5px;}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-size:12.5px;color:var(--text2);border-left:2px solid transparent;cursor:pointer;transition:all 0.13s;line-height:1.4;}
+  .nav-item:hover,.nav-item.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nav-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background 0.13s;}
+  .nav-item.active .nav-dot{background:var(--accent);}
+  .phase-badge{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:1px 6px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:272px;padding:40px 56px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .page-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+  .page-title{font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3;}
+  .page-subtitle{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid var(--border);}
+  h2{font-size:18px;font-weight:600;margin:32px 0 10px;color:var(--text);}
+  h3{font-size:15px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 22px;}li{margin-bottom:6px;font-size:14px;color:var(--text);}
+  .terminal{background:var(--term-bg);border-radius:var(--r);overflow:hidden;margin:18px 0;border:1px solid #30363d;font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .term-titlebar{background:#161b22;padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #30363d;}
+  .term-dot{width:12px;height:12px;border-radius:50%;}
+  .term-dot.red{background:#ff5f57;}.term-dot.yellow{background:#ffbd2e;}.term-dot.green{background:#28c840;}
+  .term-title{font-size:11.5px;color:#6e7681;margin-left:8px;font-family:inherit;}
+  .term-body{padding:16px 20px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:var(--term-text);white-space:pre;}
+  .tc-green{color:var(--term-green);}.tc-yellow{color:var(--term-yellow);}.tc-red{color:var(--term-red);}
+  .tc-blue{color:var(--term-blue);}.tc-cyan{color:var(--term-cyan);}.tc-gray{color:var(--term-gray);}
+  .tc-white{color:var(--term-white);}.tc-orange{color:var(--term-orange);}.tc-dim{color:var(--term-dim);}
+  .tc-prompt{color:var(--term-green);}.tc-cmd{color:var(--term-white);}
+  .term-annotation{display:flex;gap:10px;background:#1c2128;border-left:3px solid var(--term-yellow);padding:8px 14px;margin:8px 0;border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;font-size:12px;color:#c9d1d9;line-height:1.5;}
+  .term-annotation.good{border-left-color:var(--term-green);}.term-annotation.bad{border-left-color:var(--term-red);}.term-annotation.info{border-left-color:var(--term-blue);}
+  .ann-icon{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .callout{border-left:3px solid var(--blue);background:var(--bg3);padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}.callout.danger{border-left-color:var(--red);}.callout.success{border-left-color:var(--green);}
+  .callout-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;}
+  .callout.warn .callout-label{color:var(--amber);}.callout.danger .callout-label{color:var(--red);}
+  .callout.success .callout-label{color:var(--green);}
+  .callout:not(.warn):not(.danger):not(.success) .callout-label{color:var(--blue);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  code{font-family:"SF Mono","Fira Code",monospace;font-size:12px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:0.04em;}
+  .badge-green{background:#eaf3de;color:#27500a;}.badge-amber{background:#faeeda;color:#633806;}
+  .badge-red{background:#fcebeb;color:#501313;}.badge-blue{background:#e6f1fb;color:#0c447c;}
+  .badge-purple{background:#eeedfe;color:#26215c;}.badge-gray{background:#f1efe8;color:#444441;}
+  @media(prefers-color-scheme:dark){
+    .badge-green{background:#173404;color:#c0dd97;}.badge-amber{background:#412402;color:#fac775;}
+    .badge-red{background:#501313;color:#f7c1c1;}.badge-blue{background:#042c53;color:#b5d4f4;}
+    .badge-purple{background:#26215c;color:#cecbf6;}.badge-gray{background:#2c2c2a;color:#d3d1c7;}
+  }
+  .install-progress{display:flex;gap:0;margin:20px 0 28px;border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg2);}
+  .ip-step{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:var(--text3);border-right:0.5px solid var(--border);}
+  .ip-step:last-child{border-right:none;}
+  .ip-step.ip-done{background:#eaf3de;color:#27500a;}
+  .ip-step.ip-active{background:var(--accent);color:#fff;}
+  @media(prefers-color-scheme:dark){.ip-step.ip-done{background:#173404;color:#c0dd97;}}
+  .ip-num{font-size:15px;font-weight:700;display:block;margin-bottom:2px;}
+  .layer-stack{margin:20px 0;display:flex;flex-direction:column;gap:6px;}
+  .layer{padding:14px 20px;border-radius:var(--r2);border:0.5px solid var(--border2);display:flex;align-items:flex-start;gap:14px;}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:20px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:160px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  .spec-row{display:flex;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13.5px;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:200px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .status-strip{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:var(--bg2);}
+  .pill-dot{width:8px;height:8px;border-radius:50%;}
+  .pill-green .pill-dot{background:#28c840;}.pill-amber .pill-dot{background:#ffbd2e;}
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">NovaCrestBank · OCP on VCF · Phase 4</div>
+    <h1>OCP-VCF-02 — Run Installer &amp; Post-Install</h1>
+    <p>Every command · Every decision · Every concept explained</p>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">The Install</div>
+    <div class="nav-item active" onclick="show('preflight')"><div class="nav-dot"></div>01 — Final pre-flight checks<span class="phase-badge badge-amber">Gate</span></div>
+    <div class="nav-item" onclick="show('launch')"><div class="nav-dot"></div>02 — Launch the installer<span class="phase-badge badge-red">Live</span></div>
+    <div class="nav-item" onclick="show('bootstrap')"><div class="nav-dot"></div>03 — Bootstrap phase — what really happens</div>
+    <div class="nav-item" onclick="show('masters')"><div class="nav-dot"></div>04 — Masters coming up — etcd quorum</div>
+    <div class="nav-item" onclick="show('workers')"><div class="nav-dot"></div>05 — Workers and install complete</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Cluster health</div>
+    <div class="nav-item" onclick="show('health')"><div class="nav-dot"></div>06 — Post-install health checks</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Day-2 — Infra &amp; Workloads</div>
+    <div class="nav-item" onclick="show('machineset-concept')"><div class="nav-dot"></div>07 — MachineSet explained — what it is and why<span class="phase-badge badge-blue">Concept</span></div>
+    <div class="nav-item" onclick="show('infra-nodes')"><div class="nav-dot"></div>08 — Create infra nodes via MachineSet</div>
+    <div class="nav-item" onclick="show('move-ingress')"><div class="nav-dot"></div>09 — Move Ingress Router to infra nodes</div>
+    <div class="nav-item" onclick="show('move-monitoring')"><div class="nav-dot"></div>10 — Move monitoring stack to infra nodes</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Authentication</div>
+    <div class="nav-item" onclick="show('ad-oauth')"><div class="nav-dot"></div>11 — AD OAuth identity provider<span class="phase-badge badge-blue">Auth</span></div>
+    <div class="nav-item" onclick="show('disable-kubeadmin')"><div class="nav-dot"></div>12 — Disable kubeadmin</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Certificates</div>
+    <div class="nav-item" onclick="show('ingress-cert')"><div class="nav-dot"></div>13 — Replace Ingress wildcard certificate<span class="phase-badge badge-purple">PKI</span></div>
+    <div class="nav-item" onclick="show('api-cert')"><div class="nav-dot"></div>14 — Replace API server certificate<span class="phase-badge badge-purple">PKI</span></div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Storage</div>
+    <div class="nav-item" onclick="show('storage-concept')"><div class="nav-dot"></div>15 — vSAN StorageClasses explained<span class="phase-badge badge-blue">Concept</span></div>
+    <div class="nav-item" onclick="show('storage-classes')"><div class="nav-dot"></div>16 — Create tiered StorageClasses</div>
+    <div class="nav-item" onclick="show('storage-verify')"><div class="nav-dot"></div>17 — Verify dynamic provisioning</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Complete</div>
+    <div class="nav-item" onclick="show('debug')"><div class="nav-dot"></div>18 — VCF+NSX failures and fixes</div>
+    <div class="nav-item" onclick="show('final')"><div class="nav-dot"></div>19 — Final checklist — cluster handover</div>
+  </div>
+</nav>
+<main class="main">
+
+<!-- 01 PRE-FLIGHT -->
+<div class="page active" id="page-preflight">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 01</div>
+  <div class="page-title">Final pre-flight — every check before the installer runs</div>
+  <div class="page-subtitle">Run every check in sequence. Each is a gate. A failed check must be fixed and re-verified before proceeding. Skipping these is how a 45-minute install becomes a 6-hour debugging session.</div>
+  <div class="install-progress">
+    <div class="ip-step ip-done"><span class="ip-num">✓</span>OCP-VCF-01<br/>install-config</div>
+    <div class="ip-step ip-active"><span class="ip-num">→</span>OCP-VCF-02<br/>Install &amp; post-install</div>
+    <div class="ip-step"><span class="ip-num">3</span>Day-2<br/>Hardening</div>
+  </div>
+  <div class="callout">
+    <div class="callout-label">Why pre-flight matters — what each check is protecting against</div>
+    Each check below targets a specific failure mode that has killed real enterprise OpenShift installs. The installer will proceed even if DNS is partially wrong or NTP is drifting — and then fail 20 minutes later with a cryptic error message. Pre-flight finds these problems in 2 minutes instead of after 20 minutes of VM provisioning.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — pre-flight gate checks</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># ── Gate 1: DNS — every record the installer validates ───────────────────
+# The installer performs DNS lookups for api, api-int, and *.apps
+# BEFORE placing any VM. Missing or wrong records = immediate installer exit.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">for record in \
+  api.ocp.novacrestbank.local \
+  api-int.ocp.novacrestbank.local \
+  master-0.ocp.novacrestbank.local \
+  master-1.ocp.novacrestbank.local \
+  master-2.ocp.novacrestbank.local \
+  worker-0.ocp.novacrestbank.local \
+  test.apps.ocp.novacrestbank.local; do
+    result=$(dig +short $record)
+    [ -z "$result" ] && echo "FAIL: $record → no result" || echo "OK:   $record → $result"
+done</span>
+<span class="tc-green">OK:   api.ocp.novacrestbank.local → 10.50.0.200
+OK:   api-int.ocp.novacrestbank.local → 10.50.0.200
+OK:   master-0.ocp.novacrestbank.local → 10.50.0.11
+OK:   master-1.ocp.novacrestbank.local → 10.50.0.12
+OK:   master-2.ocp.novacrestbank.local → 10.50.0.13
+OK:   worker-0.ocp.novacrestbank.local → 10.50.0.31
+OK:   test.apps.ocp.novacrestbank.local → 10.50.0.201</span>
+
+<span class="tc-dim"># ── Gate 2: NSX LB VIPs reachable ────────────────────────────────────────
+# "Connection refused" = VIP is reachable but nothing listening yet (correct)
+# "No route to host" = VIP is NOT reachable = problem in BGP/NSX routing</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">nc -zv 10.50.0.200 6443 2>&1 | head -1</span>
+<span class="tc-yellow">nc: connect to 10.50.0.200 port 6443 (tcp) failed: Connection refused</span>
+<span class="tc-dim">     ↑ "Connection refused" is CORRECT here — VIP reachable, no listener yet ✓
+       If you see "No route to host" — BGP route for 10.50.0.200/32 is missing in NSX</span>
+
+<span class="tc-dim"># ── Gate 3: vcenter-ocp trusted certificate ──────────────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -s https://vcenter-ocp.novacrestbank.local/ \
+  -o /dev/null -w "%{http_code}"</span>
+<span class="tc-green">200</span>    <span class="tc-dim">← trusted cert, HTTP 200 ✓</span>
+
+<span class="tc-dim"># ── Gate 4: NTP synchronised — time skew kills etcd during bootstrap ─────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">timedatectl status | grep -E "synchronized|NTP"</span>
+<span class="tc-green">System clock synchronized: yes
+              NTP service: active</span>
+
+<span class="tc-dim"># ── Gate 5: install-config.yaml + backup both present ────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">ls -la ~/ocp-kit/install/install-config.yaml \
+  ~/ocp-kit/backups/install-config.yaml.*.bak 2>&1</span>
+<span class="tc-green">-rw------- 1 svc-ocp svc-ocp 4812 Apr 20 09:45 install-config.yaml
+-rw------- 1 svc-ocp svc-ocp 4812 Apr 20 09:45 install-config.yaml.20260420-094512.bak</span>
+
+<span class="tc-dim"># ── Gate 6: seg-ocp-nodes still visible as OPAQUE_NETWORK in vcenter-ocp ─</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk -u "administrator@vsphere.local:NovaCrest\$vCenter2026!" \
+  "https://vcenter-ocp.novacrestbank.local/rest/vcenter/network" \
+  | python3 -c "
+import json,sys
+nets=[n for n in json.load(sys.stdin)['value'] if n['name']=='seg-ocp-nodes']
+print(nets[0]['name'],'|',nets[0]['type']) if nets else print('NOT FOUND — STOP')
+"</span>
+<span class="tc-green">seg-ocp-nodes | OPAQUE_NETWORK</span>    <span class="tc-dim">← NSX segment visible in vcenter-ocp ✓</span>
+
+<span class="tc-dim"># ── Gate 7: pull secret valid ─────────────────────────────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">python3 -c "import json; d=json.load(open('ocp-kit/pull-secret.json')); \
+  print('OK — registries:', len(d['auths']))"</span>
+<span class="tc-green">OK — registries: 4</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>All 7 gates pass. DNS resolves every record. NSX VIPs are reachable (Connection refused is correct — VIP exists, nothing listening yet). vcenter-ocp cert trusted. NTP synchronised. install-config + backup present. seg-ocp-nodes visible. Pull secret intact. Ready to launch.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 LAUNCH -->
+<div class="page" id="page-launch">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 02</div>
+  <div class="page-title">Launch the installer</div>
+  <div class="page-subtitle">One command starts everything. Once it runs, VMs are created in vcenter-ocp within seconds. Keep Terminal 1 open for the full 35–45 minutes — never close it during the install.</div>
+  <div class="callout warn">
+    <div class="callout-label">What the installer does the moment you run it — the sequence</div>
+    The installer reads install-config.yaml, then <strong>deletes it</strong> (this is why the backup is mandatory), connects to vcenter-ocp using the certThumbprint, uploads the RHCOS OVA to vsanDatastore if not cached, creates the bootstrap VM on seg-ocp-nodes, then creates the 3 master VMs. All VM NICs are attached to seg-ocp-nodes. The bootstrap VM boots, pulls its ignition config from the installer, starts a temporary API server, and waits for masters to join etcd. The installer then waits — up to 30 minutes — for the Kubernetes API to respond on 10.50.0.200:6443 (the NSX LB VIP).
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — TERMINAL 1 [KEEP OPEN — DO NOT CLOSE]</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Re-copy the backup one final time — installer deletes the original immediately</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cp ~/ocp-kit/backups/install-config.yaml.20260420-094512.bak \
+  ~/ocp-kit/install/install-config.yaml</span>
+
+<span class="tc-dim"># Launch — tee captures the log so you can review it after install completes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openshift-install create cluster \
+  --dir=~/ocp-kit/install/ \
+  --log-level=info \
+  2>&amp;1 | tee ~/ocp-kit/install.log</span>
+
+<span class="tc-dim">──────── T+00:00 — Installer starts ────────────────────────────────────────</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Consuming Install Config from target directory</span>
+<span class="tc-dim">     ← install-config.yaml is read then DELETED. The backup is now your only copy.</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Creating infrastructure resources...</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Uploading RHCOS image to vCenter datastore: vsanDatastore</span>
+<span class="tc-dim">     ← First run: OVA upload takes 5–10 min. Subsequent runs use the cached template.</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Creating bootstrap VM on segment seg-ocp-nodes...</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM bootstrap.ocp.novacrestbank.local (10.50.0.10) in NCB-OCP-Cluster</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Creating master VMs...</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master-0.ocp.novacrestbank.local (10.50.0.11)</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master-1.ocp.novacrestbank.local (10.50.0.12)</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master-2.ocp.novacrestbank.local (10.50.0.13)</span>
+
+<span class="tc-dim">──────── T+05:00 — Waiting for API ─────────────────────────────────────────</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 30 minutes for the Kubernetes API at</span>
+<span class="tc-white">     https://api.ocp.novacrestbank.local:6443...</span>
+<span class="tc-dim">     ← Normal to sit here 5–10 minutes.
+       Bootstrap VM is booting RHCOS, pulling images from quay.io,
+       starting a temporary etcd and kube-apiserver.
+       The API endpoint resolves to the NSX LB VIP 10.50.0.200.
+       The NSX LB forwards to the bootstrap VM's temporary API on port 6443.</span></pre>
+      <div class="term-annotation info"><span class="ann-icon">ℹ</span><span>Open Terminal 2 now while Terminal 1 waits. Section 03 shows exactly what to monitor in Terminal 2 — you can watch bootstrap, etcd quorum, and operator startup in real time instead of staring at a single waiting line.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 BOOTSTRAP -->
+<div class="page" id="page-bootstrap">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 03</div>
+  <div class="page-title">Bootstrap phase — what actually happens and how to watch it</div>
+  <div class="page-subtitle">The bootstrap phase is the most opaque part of an OpenShift install. This section explains exactly what is happening inside the bootstrap VM and how to verify progress in real time.</div>
+  <div class="callout">
+    <div class="callout-label">The key insight — what the bootstrap VM actually does</div>
+    The bootstrap VM is a temporary control plane. It exists for one purpose: to help the three permanent master nodes form their own etcd cluster and take over the Kubernetes API. The bootstrap VM runs a temporary etcd, a temporary kube-apiserver, and a temporary Machine Config Server. The masters boot, download their ignition config from the bootstrap, start their own etcd instances, and once all three masters have joined etcd quorum, the bootstrap declares its job done and is destroyed. From that point forward, the three masters own the cluster permanently.
+  </div>
+  <h2>Phase timeline — what is happening at each minute</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-color:var(--text3);">
+      <div class="layer-num">T+0</div>
+      <div class="layer-title">Bootstrap boots RHCOS</div>
+      <div class="layer-desc">Bootstrap VM powers on, RHCOS boots from the VMDK. The bootstrap ignition config (written by the installer before it was deleted) is baked into the VM via vApp properties. RHCOS reads this config and starts bootkube.service.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-color:var(--amber);">
+      <div class="layer-num">T+3</div>
+      <div class="layer-title">Bootstrap starts temporary etcd + API</div>
+      <div class="layer-desc">bootkube.service starts a single-node temporary etcd and a temporary kube-apiserver. This is not the permanent cluster — it is a scaffold. The bootstrap also starts the Machine Config Server on port 22623, which masters will contact to get their ignition configs.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-color:var(--blue);">
+      <div class="layer-num">T+5</div>
+      <div class="layer-title">Masters boot and contact bootstrap</div>
+      <div class="layer-desc">The three master VMs power on. Each master's RHCOS boots, contacts api-int.ocp.novacrestbank.local:22623 (the Machine Config Server on the bootstrap) to download its ignition config. This is why the api-int DNS record is mandatory — masters use it, not api.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-color:var(--purple);">
+      <div class="layer-num">T+10</div>
+      <div class="layer-title">etcd quorum forms — the critical milestone</div>
+      <div class="layer-desc">Each master starts its own etcd instance and joins the cluster. Once all three masters have joined, etcd has a 3-member quorum. This is the point of no return — the cluster is now self-sustaining and will survive the loss of the bootstrap VM.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-color:var(--green);">
+      <div class="layer-num">T+22</div>
+      <div class="layer-title">Bootstrap complete — deleted</div>
+      <div class="layer-desc">Masters have taken over the API. The installer destroys the bootstrap VM in vcenter-ocp. The NSX LB pool NCB-Pool-OCP-API now points only to the three masters. The bootstrap VM is gone forever.</div>
+    </div>
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — TERMINAL 2 — monitoring during bootstrap</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># SSH into the bootstrap VM once it boots (~T+03:00)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">ssh -i ~/.ssh/ocp-vcf-cluster core@10.50.0.10</span>
+<span class="tc-green">Red Hat Enterprise Linux CoreOS 416.x
+  Part of OpenShift 4.16, RHCOS is immutable infrastructure.</span>
+
+<span class="tc-dim"># Watch bootkube — this shows etcd quorum forming in real time</span>
+<span class="tc-orange">[core@bootstrap ~]$</span> <span class="tc-cmd">journalctl -b -f -u bootkube.service 2>/dev/null | \
+  grep -E "etcd|apiserver|bootstrap|complete"</span>
+<span class="tc-white">bootkube.sh: Starting temporary etcd for bootstrap...</span>
+<span class="tc-white">bootkube.sh: Waiting for 3 masters to join etcd cluster...</span>
+<span class="tc-green">bootkube.sh: master-0.ocp.novacrestbank.local joined etcd</span>
+<span class="tc-green">bootkube.sh: master-1.ocp.novacrestbank.local joined etcd</span>
+<span class="tc-green">bootkube.sh: master-2.ocp.novacrestbank.local joined etcd</span>
+<span class="tc-green">bootkube.sh: etcd cluster is up — 3 members ✓</span>
+<span class="tc-dim">                            ↑ ETCD QUORUM FORMED — this is the critical milestone</span>
+<span class="tc-green">bootkube.sh: Bootstrapping complete: masters have taken over the API</span>
+<span class="tc-dim">                            ↑ your work in the bootstrap VM is done — exit SSH</span>
+
+<span class="tc-dim"># Back on jump host — set KUBECONFIG and watch operators initialise</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n10 "oc get clusteroperators 2>/dev/null | \
+  grep -v 'True.*False.*False' | head -20"</span>
+<span class="tc-white">NAME                                  AVAILABLE   PROGRESSING   DEGRADED</span>
+<span class="tc-yellow">authentication                        False       True          False</span>   <span class="tc-dim">← starting up, normal</span>
+<span class="tc-green">dns                                   True        False         False</span>   <span class="tc-dim">← healthy ✓</span>
+<span class="tc-green">etcd                                  True        False         False</span>   <span class="tc-dim">← healthy ✓</span></pre>
+      <div class="term-annotation info"><span class="ann-icon">ℹ</span><span>Operators showing <code>AVAILABLE=False PROGRESSING=True</code> is normal during and after bootstrap — they start up sequentially over 20–30 minutes. Only worry if an operator shows <code>DEGRADED=True</code> for more than 15 minutes. The NSX-specific failure to watch for: if masters cannot form etcd quorum, check that the NSX DFW allows GENEVE (UDP 6081) within the NCB-SG-OCP-Nodes security group — a missing DFW rule is the most common VCF+NSX bootstrap failure.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 04 MASTERS -->
+<div class="page" id="page-masters">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 04</div>
+  <div class="page-title">Masters coming up — monitoring the permanent control plane</div>
+  <div class="page-subtitle">After etcd quorum forms, the permanent cluster API takes over from the bootstrap. Monitor master health and approve any pending CSRs before workers can join.</div>
+  <div class="callout">
+    <div class="callout-label">Why CSR approval matters — and when it applies</div>
+    Every node that joins an OpenShift cluster submits a Certificate Signing Request to prove its identity. The cluster issues each node a client certificate, which it uses to communicate with the API server securely. In IPI installs, the machine-approver controller handles this automatically — but it may not be running yet during the early master phase. The rule: always run <code>oc get csr</code> every few minutes and approve anything Pending. A worker stuck in Pending has an unapproved CSR 90% of the time.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">TERMINAL 1 — installer output T+10 to T+25</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim">──────── T+10:00 ───────────────────────────────────────────────────────────</span>
+<span class="tc-green">INFO</span> <span class="tc-white">API v1.29.x+xxxxxxx up</span>    <span class="tc-dim">← bootstrap API is responding</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 30 minutes for bootstrapping to complete...</span>
+<span class="tc-dim">     ← Masters are forming etcd quorum. Sit here 10–15 min.</span>
+<span class="tc-dim">──────── T+22:00 ───────────────────────────────────────────────────────────</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Bootstrapping complete: masters have taken over the API</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Destroying the bootstrap resources...</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Destroyed VM bootstrap.ocp.novacrestbank.local</span>
+<span class="tc-dim">     ← Bootstrap VM deleted from vcenter-ocp ✓
+       NSX LB pool NCB-Pool-OCP-API now serves only the 3 masters</span></pre>
+    </div>
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">TERMINAL 2 — master health and CSR approval T+10 to T+25</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n10 "oc get nodes"</span>
+<span class="tc-white">NAME                               STATUS   ROLES    AGE   VERSION</span>
+<span class="tc-green">master-0.ocp.novacrestbank.local   Ready    master   12m   v1.29.x</span>
+<span class="tc-green">master-1.ocp.novacrestbank.local   Ready    master   11m   v1.29.x</span>
+<span class="tc-green">master-2.ocp.novacrestbank.local   Ready    master   10m   v1.29.x</span>
+
+<span class="tc-dim"># Verify etcd has 3 healthy members — quorum must be intact</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get etcd cluster \
+  -o jsonpath='{.status.conditions[?(@.type=="EtcdMembersAvailable")].message}'</span>
+<span class="tc-green">3 members are available</span>    <span class="tc-dim">← etcd quorum confirmed ✓</span>
+
+<span class="tc-dim"># Check for and approve any pending CSRs — run every 5 minutes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get csr</span>
+<span class="tc-white">NAME        AGE   SIGNERNAME                                    CONDITION
+csr-xxxx1   2m    kubernetes.io/kube-apiserver-client-kubelet   Pending</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get csr -o name | xargs oc adm certificate approve</span>
+<span class="tc-green">certificatesigningrequest.certificates.k8s.io/csr-xxxx1 approved</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>3 masters Ready, etcd quorum intact, CSRs approved. The permanent cluster is self-sustaining. Worker creation begins.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 05 WORKERS -->
+<div class="page" id="page-workers">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 05</div>
+  <div class="page-title">Workers joining and install complete</div>
+  <div class="page-subtitle">Workers are created after bootstrap completes. The installer waits for all cluster operators to reach Available=True before declaring install complete.</div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">TERMINAL 1 — installer output T+25 to T+45 (completion)</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim">──────── T+25:00 — Workers created ─────────────────────────────────────────</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Creating worker VMs...</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker-0.ocp.novacrestbank.local (10.50.0.31)</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker-1.ocp.novacrestbank.local (10.50.0.32)</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker-2.ocp.novacrestbank.local (10.50.0.33)</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 40 minutes for the cluster to initialize...</span>
+<span class="tc-dim">     ← Operators coming up one by one. This is normal.</span>
+
+<span class="tc-dim">──────── T+42:00 — Install complete ─────────────────────────────────────────</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Install complete!</span>
+<span class="tc-green">INFO</span> <span class="tc-white">To access the cluster as system:admin, run:</span>
+<span class="tc-white">     export KUBECONFIG=/home/svc-ocp/ocp-kit/install/auth/kubeconfig</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Access the OpenShift web-console here:</span>
+<span class="tc-white">     https://console-openshift-console.apps.ocp.novacrestbank.local</span>
+<span class="tc-green">INFO</span> <span class="tc-white">Login to the console with user: "kubeadmin", password: "</span><span class="tc-yellow">XXXXX-XXXXX-XXXXX-XXXXX</span><span class="tc-white">"</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>Install complete. Back up <code>~/ocp-kit/install/auth/</code> to CyberArk immediately — this directory contains the kubeadmin password and the system:admin kubeconfig. These are the two emergency credentials for the cluster.</span></div>
+    </div>
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — back up auth immediately</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cp -r ~/ocp-kit/install/auth/ \
+  ~/ocp-kit/backups/auth-$(date +%Y%m%d)/</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">chmod -R 600 ~/ocp-kit/backups/auth-*/</span>
+<span class="tc-dim"># Both files in this directory must be archived to CyberArk:
+#   kubeconfig        — system:admin access, no password, treat like a root private key
+#   kubeadmin-password — temporary shared password, will be disabled in Section 12</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 06 HEALTH -->
+<div class="page" id="page-health">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 06</div>
+  <div class="page-title">Post-install health checks — first 5 minutes</div>
+  <div class="page-subtitle">Run this complete sequence immediately after "Install complete!". Every check has a reason — understanding what each check verifies means you can diagnose problems without guessing.</div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — complete health check sequence</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig</span>
+
+<span class="tc-dim"># Check 1: All nodes Ready?
+# "Ready" means kubelet is running, the node has joined the cluster,
+# and it can schedule pods. NotReady usually means kubelet crashed or
+# the node cannot reach the API server.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes</span>
+<span class="tc-green">NAME                               STATUS   ROLES    AGE   VERSION
+master-0.ocp.novacrestbank.local   Ready    master   45m   v1.29.x
+master-1.ocp.novacrestbank.local   Ready    master   44m   v1.29.x
+master-2.ocp.novacrestbank.local   Ready    master   43m   v1.29.x
+worker-0.ocp.novacrestbank.local   Ready    worker   15m   v1.29.x
+worker-1.ocp.novacrestbank.local   Ready    worker   14m   v1.29.x
+worker-2.ocp.novacrestbank.local   Ready    worker   13m   v1.29.x</span>
+
+<span class="tc-dim"># Check 2: All cluster operators healthy?
+# Filter OUT healthy ones — only show problems.
+# The pattern "True False False" = Available=True, Progressing=False, Degraded=False
+# No output from this command = all operators healthy.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get clusteroperators | grep -v "True.*False.*False"</span>
+<span class="tc-dim">  [no output = all 33 cluster operators healthy ✓]</span>
+
+<span class="tc-dim"># Check 3: etcd quorum — a degraded etcd means the cluster is at risk</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get etcd cluster \
+  -o jsonpath='{.status.conditions[?(@.type=="EtcdMembersAvailable")].message}'</span>
+<span class="tc-green">3 members are available</span>
+
+<span class="tc-dim"># Check 4: Cluster version — confirms the full install completed, not partially</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get clusterversion</span>
+<span class="tc-green">NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.16.x    True        False         2m      Cluster version is 4.16.x</span>
+<span class="tc-dim">                    ↑True       ↑False = fully installed, not updating ✓</span>
+
+<span class="tc-dim"># Check 5: No crashing pods anywhere in the cluster</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -A | grep -v "Running\|Completed"</span>
+<span class="tc-dim">  [no output = all pods Running or Completed ✓]</span>
+
+<span class="tc-dim"># Check 6: Web console reachable through NSX LB Ingress VIP</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://console-openshift-console.apps.ocp.novacrestbank.local \
+  -o /dev/null -w "%{http_code}"</span>
+<span class="tc-green">200</span>    <span class="tc-dim">← console reachable via NSX LB VIP 10.50.0.201 ✓</span>
+
+<span class="tc-dim"># Check 7: Node IPs confirm all nodes are on seg-ocp-nodes (10.50.0.0/24)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes -o wide | awk 'NR==1 || {print $1,$6}'</span>
+<span class="tc-green">NAME                               INTERNAL-IP
+master-0.ocp.novacrestbank.local   10.50.0.11</span>   <span class="tc-dim">← seg-ocp-nodes subnet ✓</span>
+<span class="tc-green">master-1.ocp.novacrestbank.local   10.50.0.12
+master-2.ocp.novacrestbank.local   10.50.0.13
+worker-0.ocp.novacrestbank.local   10.50.0.31
+worker-1.ocp.novacrestbank.local   10.50.0.32
+worker-2.ocp.novacrestbank.local   10.50.0.33</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>All checks pass. 6 nodes Ready. 33 operators healthy. etcd quorum 3/3. Console reachable via NSX LB. All node IPs on the 10.50.0.0/24 seg-ocp-nodes segment. The cluster is healthy. Proceed to Day-2 operations.</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 07 MACHINESET CONCEPT -->
+<div class="page" id="page-machineset-concept">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 07</div>
+  <div class="page-title">MachineSet — what it is, what it does, and why you need it</div>
+  <div class="page-subtitle">Before creating infra nodes, understand the object that manages them. MachineSet is one of the most important OpenShift concepts for infrastructure teams — and one of the most skipped in documentation.</div>
+  <div class="callout">
+    <div class="callout-label">The key insight — MachineSet is OpenShift's version of "desired state" for VMs</div>
+    In traditional VMware administration, you create VMs manually in vCenter. In OpenShift on VCF, you declare the desired number of nodes in a MachineSet object, and the Machine API Operator creates, manages, and deletes VMs in vcenter-ocp on your behalf. If a VM is accidentally deleted in vCenter, the Machine API Operator recreates it. If you change the replica count from 3 to 5, two new VMs appear in vCenter. This is infrastructure-as-code for your cluster nodes — the VMs are a consequence of the Kubernetes object, not the other way around.
+  </div>
+  <h2>The four objects in the Machine API — what each one does</h2>
+  <table>
+    <thead><tr><th>Object</th><th>What it is</th><th>Who creates it</th><th>Analogy</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>MachineSet</strong></td>
+        <td>A template + desired replica count for a group of nodes. Defines the VM spec (vCPU, RAM, disk, network, datacenter, datastore) and how many nodes of that spec to maintain. The controller watches the actual count and reconciles to the desired count.</td>
+        <td>Infrastructure engineer (you)</td>
+        <td>A ReplicaSet for VMs — like how a Deployment maintains pod count, a MachineSet maintains VM count</td>
+      </tr>
+      <tr>
+        <td><strong>Machine</strong></td>
+        <td>Represents one individual node VM. The MachineSet creates one Machine object per replica. Each Machine object tracks the lifecycle: Provisioning → Running → Deleting. One Machine = one VM in vcenter-ocp = one node in the cluster.</td>
+        <td>Created automatically by MachineSet</td>
+        <td>A single Pod created by a ReplicaSet</td>
+      </tr>
+      <tr>
+        <td><strong>Node</strong></td>
+        <td>The Kubernetes node object. Created automatically when a Machine's VM boots RHCOS and the kubelet registers with the API server. The Machine and Node are linked — deleting the Machine deletes the Node and the VM.</td>
+        <td>Created automatically when Machine's VM joins</td>
+        <td>The running container from the pod perspective</td>
+      </tr>
+      <tr>
+        <td><strong>providerSpec</strong></td>
+        <td>The vSphere-specific configuration inside a MachineSet — VM hardware settings (numCPUs, memoryMiB, diskGiB), vCenter topology (datacenter, cluster, datastore, resourcePool), and the network (networkName). This is what tells the Machine API "go create this VM in vcenter-ocp on this segment."</td>
+        <td>Specified by infrastructure engineer inside MachineSet</td>
+        <td>The VM hardware spec sheet</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>What <code>workspace</code> means inside providerSpec</h2>
+  <div class="callout">
+    <div class="callout-label">workspace — the vCenter topology that locates where to create the VM</div>
+    The <code>workspace</code> field in providerSpec is how the Machine API Operator knows which vCenter, which datacenter, which cluster, and which datastore to create the VM in. In VCF, this always points to vcenter-ocp (not vcenter-mgmt) because OCP VMs belong to the OCP Workload Domain. Each field in workspace maps directly to an object path in vcenter-ocp: <code>datacenter</code> is the vCenter datacenter object, <code>folder</code> is the VM folder where VMs will appear, <code>datastore</code> is the full inventory path to vsanDatastore, <code>resourcePool</code> is the cluster's default resource pool, and <code>server</code> is the vcenter-ocp FQDN. Without a correct workspace, the Machine API cannot find where to create VMs and every Machine will stay in Provisioning state indefinitely.
+  </div>
+  <h2>What <code>networkName</code> means in the VCF+NSX context</h2>
+  <p>The <code>networkName</code> field inside <code>network.devices</code> is the name of the vCenter network object to attach the VM's NIC to. In standalone vSphere this would be a vDS portgroup name. In VCF+NSX this is the name of the NSX overlay segment — <code>seg-ocp-nodes</code>. The Machine API Operator attaches each new node VM's NIC to this segment in vcenter-ocp, putting it on the 10.50.0.0/24 subnet where the NSX LB, DFW, and routing are already configured.</p>
+  <h2>The infra node role — why infra nodes exist</h2>
+  <p>OpenShift platform components — the Ingress Router (HAProxy), the internal image registry, and the monitoring stack (Prometheus, Alertmanager) — run as pods. By default they run on worker nodes, competing with application pods for CPU and memory. Infra nodes are worker nodes with the label <code>node-role.kubernetes.io/infra=""</code> and a <code>NoSchedule</code> taint. The label allows platform components (which have a matching nodeSelector) to schedule there. The taint prevents application pods (which have no matching toleration) from landing there. The result: platform components get dedicated nodes, application pods get clean workers, and Red Hat's licensing model does not charge subscription cores for infra nodes running only platform workloads.</p>
+</div>
+
+<!-- 08 INFRA NODES -->
+<div class="page" id="page-infra-nodes">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 08</div>
+  <div class="page-title">Create infra nodes via MachineSet</div>
+  <div class="page-subtitle">The three infra nodes (10.50.0.21–.23) were not created by the installer. They are added now using a MachineSet. The NSX LB pool NCB-Pool-OCP-Ingress already references these IPs — it will go green once the infra nodes are up and the Ingress Router is moved there.</div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — find existing MachineSet name and create infra MachineSet</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Find the existing worker MachineSet name — it encodes cluster ID and failure domain</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get machineset -n openshift-machine-api</span>
+<span class="tc-white">NAME                               DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp-ncb-ocp-fd-worker              3         3         3       3           45m</span>
+<span class="tc-dim">     ↑ "ocp" = cluster name  "ncb-ocp-fd" = failureDomain name from install-config
+       This tells us the naming convention to follow for our infra MachineSet</span>
+
+<span class="tc-dim"># Create the infra MachineSet YAML
+# Each field is explained inline — read the comments before applying</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat > ~/ocp-kit/infra-machineset.yaml &lt;&lt; 'EOF'</span>
+<span class="tc-cyan">apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  name: ocp-ncb-ocp-fd-infra</span>           <span class="tc-dim">← same prefix as worker MachineSet; suffix "infra"</span>
+<span class="tc-cyan">  namespace: openshift-machine-api
+  labels:
+    machine.openshift.io/cluster-api-cluster: ocp</span>   <span class="tc-dim">← must match cluster name</span>
+<span class="tc-cyan">spec:
+  replicas: 3</span>                              <span class="tc-dim">← 3 infra nodes — one per NSX LB pool member</span>
+<span class="tc-cyan">  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: ocp
+      machine.openshift.io/cluster-api-machineset: ocp-ncb-ocp-fd-infra
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: ocp
+        machine.openshift.io/cluster-api-machine-role: infra</span>   <span class="tc-dim">← role tag for this group</span>
+<span class="tc-cyan">        machine.openshift.io/cluster-api-machine-type: infra
+        machine.openshift.io/cluster-api-machineset: ocp-ncb-ocp-fd-infra
+    spec:
+      metadata:
+        labels:
+          node-role.kubernetes.io/infra: ""</span>     <span class="tc-dim">← THIS label makes it an infra node
+                                                   platform components use a nodeSelector
+                                                   matching this label to land here</span>
+<span class="tc-cyan">      taints:</span>
+<span class="tc-cyan">        - key: node-role.kubernetes.io/infra</span>   <span class="tc-dim">← THIS taint blocks application pods
+                                                   unless they have a matching toleration
+                                                   NoSchedule = pods without toleration
+                                                   will NOT be placed on this node</span>
+<span class="tc-cyan">          effect: NoSchedule
+      providerSpec:</span>                            <span class="tc-dim">← vSphere-specific VM configuration</span>
+<span class="tc-cyan">        value:
+          apiVersion: machine.openshift.io/v1beta1
+          kind: VSphereMachineProviderSpec
+          numCPUs: 8</span>                          <span class="tc-dim">← 8 vCPU — infra runs Prometheus (heavy) + Ingress Router</span>
+<span class="tc-cyan">          memoryMiB: 16384</span>                    <span class="tc-dim">← 16 GB — Prometheus needs this; do not reduce</span>
+<span class="tc-cyan">          diskGiB: 120</span>                        <span class="tc-dim">← 120 GB OS disk; monitoring PVCs come from vSAN separately</span>
+<span class="tc-cyan">          network:
+            devices:
+              - networkName: seg-ocp-nodes</span>   <span class="tc-dim">← the NSX overlay segment — same as all OCP nodes
+                                                   Machine API attaches this VM's NIC to seg-ocp-nodes
+                                                   so it gets an IP on 10.50.0.0/24</span>
+<span class="tc-cyan">          workspace:</span>                          <span class="tc-dim">← vCenter topology — tells Machine API WHERE to create the VM</span>
+<span class="tc-cyan">            datacenter: NCB-OCP-Datacenter</span>   <span class="tc-dim">← the OCP Workload Domain datacenter in vcenter-ocp</span>
+<span class="tc-cyan">            datastore: /NCB-OCP-Datacenter/datastore/vsanDatastore</span>   <span class="tc-dim">← full inventory path</span>
+<span class="tc-cyan">            folder: /NCB-OCP-Datacenter/vm/ocp</span>   <span class="tc-dim">← VM folder in vcenter-ocp where VMs appear</span>
+<span class="tc-cyan">            resourcePool: /NCB-OCP-Datacenter/host/NCB-OCP-Cluster/Resources</span>   <span class="tc-dim">← default pool</span>
+<span class="tc-cyan">            server: vcenter-ocp.novacrestbank.local</span>   <span class="tc-dim">← OCP Workload Domain vCenter, NOT vcenter-mgmt</span>
+<span class="tc-cyan">          template: ocp-ncb-ocp-fd-rhcos</span>     <span class="tc-dim">← RHCOS VM template uploaded by the installer to vsanDatastore</span>
+<span class="tc-green">EOF</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create -f ~/ocp-kit/infra-machineset.yaml</span>
+<span class="tc-green">machineset.machine.openshift.io/ocp-ncb-ocp-fd-infra created</span>
+
+<span class="tc-dim"># Watch infra node VMs being provisioned (5–8 minutes)
+# Machine lifecycle: Provisioning → Running</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n15 "oc get machines -n openshift-machine-api | grep infra"</span>
+<span class="tc-white">NAME                          PHASE           TYPE   REGION   ZONE   AGE
+ocp-ncb-ocp-fd-infra-xxxxx1   Provisioning                           30s</span>
+<span class="tc-white">ocp-ncb-ocp-fd-infra-xxxxx2   Provisioning                           30s</span>
+<span class="tc-white">ocp-ncb-ocp-fd-infra-xxxxx3   Provisioning                           30s</span>
+<span class="tc-dim">     ← Machine API Operator is creating 3 VMs in vcenter-ocp right now
+       Go to vcenter-ocp and you will see them appearing in NCB-OCP-Cluster</span>
+<span class="tc-dim">     ... wait 5–8 minutes ...</span>
+<span class="tc-green">ocp-ncb-ocp-fd-infra-xxxxx1   Running                                7m</span>
+<span class="tc-green">ocp-ncb-ocp-fd-infra-xxxxx2   Running                                6m</span>
+<span class="tc-green">ocp-ncb-ocp-fd-infra-xxxxx3   Running                                6m</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes -l node-role.kubernetes.io/infra -o wide</span>
+<span class="tc-green">NAME                               STATUS   ROLES         AGE   INTERNAL-IP
+infra-0.ocp.novacrestbank.local    Ready    infra,worker  6m    10.50.0.21</span>
+<span class="tc-green">infra-1.ocp.novacrestbank.local    Ready    infra,worker  5m    10.50.0.22</span>
+<span class="tc-green">infra-2.ocp.novacrestbank.local    Ready    infra,worker  5m    10.50.0.23</span>
+<span class="tc-dim">     ↑ 3 infra nodes Ready on 10.50.0.21/.22/.23
+       NSX LB pool NCB-Pool-OCP-Ingress references these exact IPs (from NSX-04)
+       Health checks will move from DOWN to UP once the Ingress Router lands here</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>3 infra nodes created by MachineSet. VMs visible in vcenter-ocp NCB-OCP-Cluster. All NICs on seg-ocp-nodes. IPs match the pre-configured NSX LB pool members. Proceed to move platform workloads onto these nodes.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 09 MOVE INGRESS -->
+<div class="page" id="page-move-ingress">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 09</div>
+  <div class="page-title">Move the Ingress Router to infra nodes</div>
+  <div class="page-subtitle">By default, the OCP Ingress Router (HAProxy) runs on worker nodes. Moving it to infra nodes activates the NSX LB pool members and frees worker nodes for banking application workloads.</div>
+  <div class="callout">
+    <div class="callout-label">What the Ingress Router is — and why it must be on infra nodes for NSX LB</div>
+    The OCP Ingress Router is an HAProxy instance that receives all application route traffic — anything matching <code>*.apps.ocp.novacrestbank.local</code>. In the NSX-04 configuration, the pool <code>NCB-Pool-OCP-Ingress</code> was pre-configured with infra node IPs 10.50.0.21, .22, .23 as its members, with a TCP:443 health monitor. Until the Ingress Router pods are running on these nodes and serving port 443, the NSX health monitor sees all three members as DOWN. The moment you move the router to infra nodes and the router pods start listening on 443, the NSX LB sees the members go UP and begins forwarding external traffic.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — patch IngressController to infra nodes</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Patch the default IngressController
+# nodeSelector: tells the scheduler "only place router pods on nodes with infra label"
+# tolerations: allows the router pods to overcome the infra NoSchedule taint</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc patch ingresscontroller default \
+  -n openshift-ingress-operator \
+  --type=merge \
+  --patch='{
+    "spec": {
+      "nodePlacement": {
+        "nodeSelector": {
+          "matchLabels": {
+            "node-role.kubernetes.io/infra": ""
+          }
+        },
+        "tolerations": [{
+          "key": "node-role.kubernetes.io/infra",
+          "effect": "NoSchedule"
+        }]
+      }
+    }
+  }'</span>
+<span class="tc-green">ingresscontroller.operator.openshift.io/default patched</span>
+
+<span class="tc-dim"># Watch router pods migrate to infra nodes (1–2 minutes)
+# The operator terminates old pods on workers and creates new ones on infra nodes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n5 "oc get pods -n openshift-ingress -o wide"</span>
+<span class="tc-yellow">router-default-xxxxxxxxx-old1    0/1   Terminating  worker-0.ocp.novacrestbank.local</span>
+<span class="tc-green">router-default-xxxxxxxxx-new1    1/1   Running      infra-0.ocp.novacrestbank.local</span>
+<span class="tc-green">router-default-xxxxxxxxx-new2    1/1   Running      infra-1.ocp.novacrestbank.local</span>
+<span class="tc-dim">     ↑ router pods now on infra-0 and infra-1
+       router HA: infra-2 provides failover — a third pod will schedule there too</span>
+
+<span class="tc-dim"># Verify via the console — now served through NSX LB via infra nodes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://console-openshift-console.apps.ocp.novacrestbank.local \
+  -o /dev/null -w "%{http_code}"</span>
+<span class="tc-green">200</span>    <span class="tc-dim">← Ingress Router on infra nodes, traffic via NSX LB VIP 10.50.0.201 ✓
+         In NSX Manager → Networking → Load Balancing → Server Pools → NCB-Pool-OCP-Ingress
+         all 3 members should now show Status=UP</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 10 MOVE MONITORING -->
+<div class="page" id="page-move-monitoring">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 10</div>
+  <div class="page-title">Move the monitoring stack to infra nodes</div>
+  <div class="page-subtitle">Prometheus and Alertmanager are resource-heavy. In production banking environments Prometheus can consume 50–100 GB RAM. Running it on worker nodes starves application pods. Moving it to dedicated infra nodes eliminates this risk.</div>
+  <div class="callout">
+    <div class="callout-label">What cluster-monitoring-config does — and why it is a ConfigMap</div>
+    The cluster monitoring stack is managed by the Cluster Monitoring Operator. You cannot directly edit the Prometheus pods — the operator would revert your changes. Instead, the operator reads configuration from a specific ConfigMap named <code>cluster-monitoring-config</code> in the <code>openshift-monitoring</code> namespace. When you create or update this ConfigMap, the operator reads it and reconfigures all monitoring components accordingly. Each key under <code>config.yaml</code> targets a specific component: <code>prometheusK8s</code> controls the main Prometheus pods, <code>alertmanagerMain</code> controls Alertmanager, and so on. The <code>nodeSelector</code> and <code>tolerations</code> under each component tell the operator to place those pods on infra nodes.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — create cluster-monitoring-config</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tc-cyan">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config</span>     <span class="tc-dim">← this exact name is required — operator watches for it</span>
+<span class="tc-cyan">  namespace: openshift-monitoring</span>     <span class="tc-dim">← must be in openshift-monitoring namespace</span>
+<span class="tc-cyan">data:
+  config.yaml: |
+    prometheusOperator:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          effect: NoSchedule
+    prometheusK8s:</span>                     <span class="tc-dim">← the main Prometheus — most memory-hungry component</span>
+<span class="tc-cyan">      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          effect: NoSchedule
+    alertmanagerMain:</span>                <span class="tc-dim">← Alertmanager — routes alerts to PagerDuty, email, etc.</span>
+<span class="tc-cyan">      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          effect: NoSchedule
+    kubeStateMetrics:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          effect: NoSchedule
+    grafana:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          effect: NoSchedule
+    telemeterClient:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          effect: NoSchedule</span>
+<span class="tc-green">EOF</span>
+<span class="tc-green">configmap/cluster-monitoring-config created</span>
+
+<span class="tc-dim"># Watch monitoring pods reschedule to infra nodes (3–5 minutes)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n10 "oc get pods -n openshift-monitoring -o wide | \
+  awk 'NR==1 || /prometheus|alertmanager/'"</span>
+<span class="tc-green">NAME                       READY   STATUS    NODE
+alertmanager-main-0        2/2     Running   infra-0.ocp.novacrestbank.local
+alertmanager-main-1        2/2     Running   infra-1.ocp.novacrestbank.local
+alertmanager-main-2        2/2     Running   infra-2.ocp.novacrestbank.local
+prometheus-k8s-0           6/6     Running   infra-0.ocp.novacrestbank.local
+prometheus-k8s-1           6/6     Running   infra-1.ocp.novacrestbank.local</span>
+<span class="tc-dim">     ↑ monitoring stack running on infra nodes ✓
+       worker nodes are now free for banking application workloads</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 11 AD OAUTH -->
+<div class="page" id="page-ad-oauth">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 11</div>
+  <div class="page-title">AD OAuth identity provider</div>
+  <div class="page-subtitle">Connect OCP authentication to NovaCrestBank Active Directory. After this, users log in with domain credentials. This is a prerequisite for disabling kubeadmin — do not disable kubeadmin until AD login is verified.</div>
+  <div class="callout">
+    <div class="callout-label">What this actually does — OAuth, LDAP, and AD</div>
+    OpenShift has an internal OAuth server that handles all authentication. This OAuth server supports pluggable identity providers. You are configuring an LDAP identity provider that points at DC01 (10.70.0.10) on LDAPS port 636. When a user logs in at the console or with <code>oc login</code>, OpenShift's OAuth server sends the username and password to Active Directory's LDAP interface, which validates them. If valid, OAuth issues a token. The user's AD groups are imported via a separate sync process, allowing RBAC based on AD group membership. OpenShift does NOT use Kerberos or Windows Integrated Auth — it always uses LDAP bind.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — configure AD LDAP identity provider</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Step 1: Create the LDAP bind password secret
+# Why a Secret? Never put credentials in the OAuth config YAML directly —
+# it would be visible to any admin who can read cluster config objects.
+# A Secret is namespaced, access-controlled, and opaque in audit logs.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create secret generic ldap-bind-password \
+  --from-literal=bindPassword='NovaCrest$LDAPsvc2026!' \
+  -n openshift-config</span>
+<span class="tc-green">secret/ldap-bind-password created</span>
+
+<span class="tc-dim"># Step 2: Create the CA bundle ConfigMap
+# OCP must trust DC01's certificate to use LDAPS.
+# DC01's cert is signed by NovaCrestBank-IssuingCA — we inject that trust here.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create configmap ad-ca-bundle \
+  --from-file=ca.crt=~/ocp-kit/certs/chain.pem \
+  -n openshift-config</span>
+<span class="tc-green">configmap/ad-ca-bundle created</span>
+
+<span class="tc-dim"># Step 3: Apply the OAuth configuration
+# The cluster-scoped OAuth object named "cluster" is the singleton
+# that controls all authentication for the entire cluster</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tc-cyan">apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster</span>                        <span class="tc-dim">← singleton — there is only one cluster OAuth config</span>
+<span class="tc-cyan">spec:
+  identityProviders:
+    - name: NovaCrestBank-AD</span>           <span class="tc-dim">← label shown on the login page dropdown</span>
+<span class="tc-cyan">      mappingMethod: claim</span>             <span class="tc-dim">← how OCP creates a User object from LDAP attributes
+                                           "claim" = use LDAP attributes directly</span>
+<span class="tc-cyan">      type: LDAP
+      ldap:
+        attributes:
+          id:
+            - sAMAccountName</span>          <span class="tc-dim">← unique identifier = AD login name (e.g. alice.smith)</span>
+<span class="tc-cyan">          email:
+            - mail</span>                    <span class="tc-dim">← maps AD mail attribute to OCP user email</span>
+<span class="tc-cyan">          name:
+            - displayName</span>             <span class="tc-dim">← maps AD displayName to OCP user display name</span>
+<span class="tc-cyan">          preferredUsername:
+            - sAMAccountName
+        bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=local"</span>
+        <span class="tc-dim">↑ the read-only service account that OCP uses to query AD
+          this account cannot change anything in AD — it only reads user entries</span>
+<span class="tc-cyan">        bindPassword:
+          name: ldap-bind-password</span>     <span class="tc-dim">← references the Secret created above</span>
+<span class="tc-cyan">        ca:
+          name: ad-ca-bundle</span>          <span class="tc-dim">← references the CA ConfigMap — enables LDAPS trust</span>
+<span class="tc-cyan">        insecure: false</span>               <span class="tc-dim">← false = use LDAPS (TLS) — mandatory for PCI-DSS</span>
+<span class="tc-cyan">        url: "ldaps://dc01.novacrestbank.local:636/OU=Users,DC=novacrestbank,DC=local?sAMAccountName?sub?(objectClass=person)"</span>
+        <span class="tc-dim">↑ LDAP URL breakdown:
+          ldaps://dc01...     — server and protocol (LDAPS = LDAP over TLS port 636)
+          /OU=Users,...       — search base: which OU to search for users
+          ?sAMAccountName     — which attribute to use as the username
+          ?sub                — scope: sub = search all sub-OUs recursively
+          ?(objectClass=person) — filter: only return person objects (users, not groups)</span>
+<span class="tc-green">EOF</span>
+<span class="tc-green">oauth.config.openshift.io/cluster configured</span>
+
+<span class="tc-dim"># Wait for OAuth pods to restart with new config (~90 seconds)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n5 "oc get pods -n openshift-authentication"</span>
+<span class="tc-green">NAME                              READY   STATUS    RESTARTS   AGE
+oauth-openshift-xxxxxxxxx-aaaaa   1/1     Running   0          2m</span>
+
+<span class="tc-dim"># Test AD login — use a real NovaCrestBank AD account</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+  -u "alice.smith" -p "ADPassword123!"</span>
+<span class="tc-green">Login successful.</span>
+
+<span class="tc-dim"># Grant cluster-admin to the OCP-Admins AD group
+# This must be done BEFORE disabling kubeadmin</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc adm policy add-cluster-role-to-group cluster-admin "OCP-Admins"</span>
+<span class="tc-green">clusterrole.rbac.authorization.k8s.io/cluster-admin added: "OCP-Admins"</span>
+
+<span class="tc-dim"># Sync AD groups into OCP (import AD group membership)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc adm groups sync \
+  --sync-config=~/ocp-kit/ldap-sync-config.yaml \
+  --confirm</span>
+<span class="tc-green">group/OCP-Admins
+group/OCP-Developers</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>AD LDAP identity provider configured. NovaCrestBank domain users can log in with their AD credentials. OCP-Admins group has cluster-admin. Test the web console — the login page should show "NovaCrestBank-AD" as the identity provider. Verify login works before proceeding to disable kubeadmin.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 12 DISABLE KUBEADMIN -->
+<div class="page" id="page-disable-kubeadmin">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 12</div>
+  <div class="page-title">Disable kubeadmin after AD OAuth is verified</div>
+  <div class="page-subtitle">kubeadmin is a temporary bootstrap credential. PCI-DSS Req 8.3.6 requires shared and default credentials to be removed once proper authentication is operational.</div>
+  <div class="callout danger">
+    <div class="callout-label">Three verifications required before deleting the kubeadmin secret</div>
+    Do not proceed until all three are true: (1) an AD user from the OCP-Admins group can log in and run <code>oc get nodes</code>, (2) the system:admin kubeconfig still works as the emergency fallback, (3) the kubeadmin-password file is confirmed backed up in CyberArk. Once the secret is deleted, kubeadmin is gone until you manually recreate the secret — and you can only do that if you have the kubeconfig or the kubeadmin-password file.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — verify then disable</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Verify AD cluster-admin can access the cluster</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+  -u "alice.smith" -p "ADPassword123!"</span>
+<span class="tc-green">Login successful.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc auth can-i '*' '*' --all-namespaces</span>
+<span class="tc-green">yes</span>    <span class="tc-dim">← alice.smith has cluster-admin ✓</span>
+
+<span class="tc-dim"># Confirm kubeconfig emergency access still works</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig && oc whoami</span>
+<span class="tc-green">system:admin</span>    <span class="tc-dim">← kubeconfig works as emergency fallback ✓</span>
+
+<span class="tc-dim"># Delete the kubeadmin secret
+# The kubeadmin account's credentials are stored in this secret in kube-system.
+# Deleting the secret invalidates the password immediately.</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc delete secret kubeadmin -n kube-system</span>
+<span class="tc-green">secret "kubeadmin" deleted</span>
+
+<span class="tc-dim"># Verify kubeadmin can no longer log in</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+  -u kubeadmin \
+  -p "$(cat ~/ocp-kit/backups/auth-$(date +%Y%m%d)/kubeadmin-password)"</span>
+<span class="tc-red">error: Login failed (401 Unauthorized)</span>    <span class="tc-dim">← kubeadmin is gone ✓ This is correct.</span>
+<span class="tc-dim">
+# The cluster now has no shared passwords.
+# Every login goes through AD with a full audit trail.
+# Emergency access: ~/ocp-kit/backups/auth-YYYYMMDD/kubeconfig (system:admin)
+# If you ever need to re-enable kubeadmin:
+#   oc create secret generic kubeadmin \
+#     --from-literal=kubeadmin=$(cat kubeadmin-password) -n kube-system</span></pre>
+      <div class="term-annotation info"><span class="ann-icon">ℹ</span><span>PCI-DSS Req 8.3.6 satisfied — no shared credentials remain in the cluster. Every access is an individual AD account with a full CyberArk session recording. The system:admin kubeconfig (no password, just a client certificate) is the break-glass credential stored in CyberArk — treat it like a root private key.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 13 INGRESS CERT -->
+<div class="page" id="page-ingress-cert">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 13</div>
+  <div class="page-title">Replace the Ingress wildcard certificate</div>
+  <div class="page-subtitle">OCP ships with a self-signed wildcard for *.apps.ocp.novacrestbank.local. Replace it with a NovaCrestBank IssuingCA-signed certificate so browsers show a trusted padlock on all application routes.</div>
+  <div class="callout">
+    <div class="callout-label">How OCP Ingress certificates work</div>
+    The default IngressController manages a single wildcard certificate that applies to all Routes exposed by that controller. The certificate is stored as a TLS Secret in the <code>openshift-ingress</code> namespace. The IngressController reads it from there and serves it for every HTTPS route — the OCP console, Grafana, any application route. By patching the IngressController's <code>defaultCertificate</code> field to point to your new secret, the HAProxy router pods restart and begin serving your IssuingCA-signed certificate for all routes, instantly eliminating the "Not Secure" warning across every application in the cluster.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — replace Ingress wildcard certificate</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Generate CSR for *.apps.ocp.novacrestbank.local
+# The SAN must include both the wildcard AND the base domain</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openssl req -new -newkey rsa:2048 -nodes \
+  -keyout ~/ocp-kit/certs/ingress.key \
+  -out ~/ocp-kit/certs/ingress.csr \
+  -subj "/CN=*.apps.ocp.novacrestbank.local/O=NovaCrestBank/C=AU" \
+  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.local,DNS:apps.ocp.novacrestbank.local"</span>
+<span class="tc-green">writing new private key to 'ingress.key'</span>
+
+<span class="tc-dim"># Submit ingress.csr to IssuingCA web enrollment
+# Browser → http://issuingca.novacrestbank.local/certsrv
+# → Request a certificate → Advanced → paste CSR → Template: NovaCrestBank-WebServer
+# → Download as Base64 → save as ~/ocp-kit/certs/ingress.cer
+# (same process as WIN-VCF-03)</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openssl x509 -in ~/ocp-kit/certs/ingress.cer -noout -subject -issuer</span>
+<span class="tc-green">subject=CN=*.apps.ocp.novacrestbank.local, O=NovaCrestBank, C=AU
+issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU</span>
+
+<span class="tc-dim"># Create the TLS Secret in openshift-ingress namespace</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create secret tls ocp-ingress-cert \
+  --cert=~/ocp-kit/certs/ingress.cer \
+  --key=~/ocp-kit/certs/ingress.key \
+  -n openshift-ingress</span>
+<span class="tc-green">secret/ocp-ingress-cert created</span>
+
+<span class="tc-dim"># Patch the IngressController to use the new certificate</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc patch ingresscontroller default \
+  -n openshift-ingress-operator \
+  --type=merge \
+  --patch='{"spec":{"defaultCertificate":{"name":"ocp-ingress-cert"}}}'</span>
+<span class="tc-green">ingresscontroller.operator.openshift.io/default patched</span>
+
+<span class="tc-dim"># Wait ~90s for router pods to restart, then verify</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">sleep 90 && echo | openssl s_client \
+  -connect console-openshift-console.apps.ocp.novacrestbank.local:443 2>/dev/null \
+  | openssl x509 -noout -issuer -subject</span>
+<span class="tc-green">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
+subject=CN=*.apps.ocp.novacrestbank.local, O=NovaCrestBank, C=AU</span>
+<span class="tc-dim">     ↑ Ingress serving IssuingCA-signed wildcard ✓
+       All application routes now show trusted padlock in browsers</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 14 API CERT -->
+<div class="page" id="page-api-cert">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 14</div>
+  <div class="page-title">Replace the API server certificate</div>
+  <div class="page-subtitle">The OCP API server certificate covers api.ocp.novacrestbank.local. Replace it so oc CLI, kubectl, and CI/CD pipelines trust the API without certificate errors.</div>
+  <div class="callout">
+    <div class="callout-label">Why the API cert is different from the Ingress cert</div>
+    The API server certificate is managed through a different mechanism than the Ingress certificate. The API server is a cluster-scoped resource — you patch the <code>apiserver</code> cluster object with named certificates. This triggers the kube-apiserver operator to perform a rolling restart across all three master nodes, one at a time, to avoid downtime. The API will briefly be unavailable during each master's restart (usually 30–60 seconds per master). The complete rollout takes 3–5 minutes. After this, the <code>--certificate-authority</code> chain in your kubeconfig needs to be updated or you need to use <code>--certificate-authority=chain.pem</code> until you regenerate it.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — replace API server certificate</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Generate CSR for api.ocp.novacrestbank.local
+# Include api-int as SAN — internal cluster components use api-int</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openssl req -new -newkey rsa:2048 -nodes \
+  -keyout ~/ocp-kit/certs/api.key \
+  -out ~/ocp-kit/certs/api.csr \
+  -subj "/CN=api.ocp.novacrestbank.local/O=NovaCrestBank/C=AU" \
+  -addext "subjectAltName=DNS:api.ocp.novacrestbank.local,DNS:api-int.ocp.novacrestbank.local,IP:10.50.0.200"</span>
+<span class="tc-green">writing new private key to 'api.key'</span>
+
+<span class="tc-dim"># Submit api.csr to IssuingCA (same certsrv process) — save as api.cer</span>
+
+<span class="tc-dim"># Create TLS Secret in openshift-config namespace
+# Note: openshift-config, not openshift-ingress — API certs go here</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create secret tls ocp-api-cert \
+  --cert=~/ocp-kit/certs/api.cer \
+  --key=~/ocp-kit/certs/api.key \
+  -n openshift-config</span>
+<span class="tc-green">secret/ocp-api-cert created</span>
+
+<span class="tc-dim"># Patch the apiserver cluster object
+# namedCertificates: maps a hostname to a TLS Secret
+# The kube-apiserver operator sees this change and triggers a rolling restart</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc patch apiserver cluster \
+  --type=merge \
+  --patch='{"spec":{"servingCerts":{"namedCertificates":[{
+    "names":["api.ocp.novacrestbank.local"],
+    "servingCertificate":{"name":"ocp-api-cert"}
+  }]}}}'</span>
+<span class="tc-green">apiserver.config.openshift.io/cluster patched</span>
+
+<span class="tc-dim"># Watch the rolling restart — kube-apiserver operator restarts one master at a time</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n15 "oc get clusteroperator kube-apiserver"</span>
+<span class="tc-yellow">kube-apiserver   True        True          False</span>   <span class="tc-dim">← rolling out...</span>
+<span class="tc-dim">     ... wait 3–5 minutes ...</span>
+<span class="tc-green">kube-apiserver   True        False         False</span>   <span class="tc-dim">← rollout complete ✓</span>
+
+<span class="tc-dim"># Verify</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">echo | openssl s_client \
+  -connect api.ocp.novacrestbank.local:6443 2>/dev/null \
+  | openssl x509 -noout -issuer -subject</span>
+<span class="tc-green">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
+subject=CN=api.ocp.novacrestbank.local, O=NovaCrestBank, C=AU</span>
+
+<span class="tc-dim"># Re-login to refresh the kubeconfig with the new cert</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+  -u alice.smith -p "ADPassword123!" \
+  --certificate-authority=~/ocp-kit/certs/chain.pem</span>
+<span class="tc-green">Login successful.</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>Both OCP certificates replaced. Ingress wildcard *.apps.ocp.novacrestbank.local and API server api.ocp.novacrestbank.local are both signed by NovaCrestBank-IssuingCA. No more browser warnings. No more x509 errors in oc CLI.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 15 STORAGE CONCEPT -->
+<div class="page" id="page-storage-concept">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 15</div>
+  <div class="page-title">vSAN StorageClasses — what they are, what each field does, and why tiering matters</div>
+  <div class="page-subtitle">Before creating StorageClasses, understand what each field controls. A StorageClass is a template — every PersistentVolume provisioned from it inherits its properties.</div>
+  <div class="callout">
+    <div class="callout-label">The key insight — a StorageClass is the developer's storage menu</div>
+    The vSphere CSI driver is already running in the cluster — the IPI installer deployed it automatically. It also created one default StorageClass called <code>thin-csi</code>. But one StorageClass is not enough for a banking environment. A database holding transaction records needs different properties than a CI/CD build workspace. StorageClasses let the infrastructure team codify those different properties once, and developers simply request storage by name — they never see vSAN policies, vCenter objects, or provisioner configuration.
+  </div>
+  <h2>Every field in a vSAN StorageClass — what it controls</h2>
+  <table>
+    <thead><tr><th>Field</th><th>What it controls</th><th>Options and meaning</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>provisioner</code></td>
+        <td>Which CSI driver handles provisioning. This routes the PVC to the right storage system.</td>
+        <td><code>csi.vsphere.volume</code> = vSphere CSI driver (creates VMDKs on vSAN). Every StorageClass backed by vSAN must use this provisioner.</td>
+      </tr>
+      <tr>
+        <td><code>reclaimPolicy</code></td>
+        <td>What happens to the underlying VMDK when the PVC is deleted.</td>
+        <td><strong>Delete</strong>: the VMDK is deleted from vSAN immediately when the PVC is removed. Use for non-critical, ephemeral data. <strong>Retain</strong>: the VMDK survives PVC deletion. The PV moves to "Released" state. An admin must manually delete the PV after confirming data is no longer needed. Use for databases and any customer data — accidental PVC deletion should never auto-destroy the underlying storage.</td>
+      </tr>
+      <tr>
+        <td><code>volumeBindingMode</code></td>
+        <td>When the VMDK is created on vSAN relative to pod scheduling.</td>
+        <td><strong>WaitForFirstConsumer</strong>: vSAN VMDK is not created until a pod is scheduled to a specific node. This ensures the VMDK is created on the same vSAN cluster as the node — critical in multi-cluster environments. <strong>Immediate</strong>: VMDK created immediately when PVC is created, before any pod exists. NFS StorageClasses use Immediate; vSAN must use WaitForFirstConsumer.</td>
+      </tr>
+      <tr>
+        <td><code>allowVolumeExpansion</code></td>
+        <td>Whether a PVC can be resized after creation.</td>
+        <td><code>true</code>: developer can increase the storage request on an existing PVC and vSphere CSI will expand the VMDK online. Always set to true for vSAN — there is no reason to prevent expansion.</td>
+      </tr>
+      <tr>
+        <td><code>parameters.StoragePolicyName</code></td>
+        <td>Which vSAN storage policy applies to this VMDK. Controls replication factor, erasure coding, disk striping, and object space reservation.</td>
+        <td>The policy name must exist in vcenter-ocp's VM Storage Policies. Default policy = RAID-5 FTT:1 thin. Gold policy = RAID-6 FTT:2 thick 100% reservation (for databases that need guaranteed IOPS).</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>The three-tier model for NovaCrestBank vSAN storage</h2>
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--red);">
+      <h3 style="color:var(--red);">vsan-gold — production databases</h3>
+      <div class="spec-row"><span class="spec-label">reclaimPolicy</span><span class="spec-val">Retain — data protected against accidental deletion</span></div>
+      <div class="spec-row"><span class="spec-label">StoragePolicyName</span><span class="spec-val">NCB-Gold-vSAN-Policy — RAID-6 FTT:2 thick</span></div>
+      <div class="spec-row"><span class="spec-label">Use for</span><span class="spec-val">Core banking PostgreSQL, etcd backups, Oracle</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--blue);">
+      <h3 style="color:var(--blue);">vsan-standard — production workloads</h3>
+      <div class="spec-row"><span class="spec-label">reclaimPolicy</span><span class="spec-val">Delete — cleaned up automatically</span></div>
+      <div class="spec-row"><span class="spec-label">StoragePolicyName</span><span class="spec-val">vSAN Default Storage Policy — RAID-5 FTT:1 thin</span></div>
+      <div class="spec-row"><span class="spec-label">Use for</span><span class="spec-val">Prometheus, Redis, Elasticsearch shards</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 16 STORAGE CLASSES -->
+<div class="page" id="page-storage-classes">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 16</div>
+  <div class="page-title">Create tiered vSAN StorageClasses</div>
+  <div class="page-subtitle">The installer creates one default thin-csi StorageClass. Add gold and bronze tiers to give application teams the right tool for each workload type.</div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — check default and create tiered StorageClasses</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Check what the installer created — thin-csi is the baseline</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get storageclass</span>
+<span class="tc-green">NAME                  PROVISIONER              RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION
+thin-csi (default)    csi.vsphere.volume       Delete          WaitForFirstConsumer   true</span>
+<span class="tc-dim">     ↑ installed automatically by the IPI installer
+       provisioner: csi.vsphere.volume = the vSphere CSI driver running in the cluster
+       This driver was installed automatically by IPI, not by us — it is a VCF benefit</span>
+
+<span class="tc-dim"># Create the three-tier catalogue</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tc-dim">---</span>
+<span class="tc-cyan">apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: vsan-gold</span>                           <span class="tc-dim">← tier 1: banking databases, stateful production apps</span>
+<span class="tc-cyan">  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"</span>   <span class="tc-dim">← do not override thin-csi as default</span>
+<span class="tc-cyan">provisioner: csi.vsphere.volume</span>
+<span class="tc-cyan">reclaimPolicy: Retain</span>                       <span class="tc-dim">← data survives PVC deletion — for customer data
+                                               when a developer deletes a PVC, the underlying
+                                               VMDK is NOT deleted until admin manually removes PV</span>
+<span class="tc-cyan">volumeBindingMode: WaitForFirstConsumer</span>     <span class="tc-dim">← VMDK created after pod scheduling, on correct vSAN nodes</span>
+<span class="tc-cyan">allowVolumeExpansion: true</span>
+<span class="tc-cyan">parameters:
+  StoragePolicyName: "NCB-Gold-vSAN-Policy"</span> <span class="tc-dim">← RAID-6 FTT:2, thick provisioned
+                                               create this policy in vcenter-ocp first — see Section 15</span>
+<span class="tc-cyan">  csi.storage.k8s.io/fstype: ext4</span>
+<span class="tc-dim">---</span>
+<span class="tc-cyan">apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: vsan-standard</span>                       <span class="tc-dim">← tier 2: most production workloads</span>
+<span class="tc-cyan">  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi.vsphere.volume
+reclaimPolicy: Delete</span>                       <span class="tc-dim">← deleted on PVC removal — for non-customer data</span>
+<span class="tc-cyan">volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  StoragePolicyName: "vSAN Default Storage Policy"</span>   <span class="tc-dim">← pre-existing policy in vcenter-ocp</span>
+<span class="tc-cyan">  csi.storage.k8s.io/fstype: ext4
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: vsan-bronze</span>                         <span class="tc-dim">← tier 3: dev/test workloads</span>
+<span class="tc-cyan">  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi.vsphere.volume
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  StoragePolicyName: "NCB-Bronze-vSAN-Policy"</span>   <span class="tc-dim">← RAID-1 FTT:1, thin, dedup+compression</span>
+<span class="tc-cyan">  csi.storage.k8s.io/fstype: ext4</span>
+<span class="tc-green">EOF</span>
+<span class="tc-green">storageclass.storage.k8s.io/vsan-gold created
+storageclass.storage.k8s.io/vsan-standard created
+storageclass.storage.k8s.io/vsan-bronze created</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get storageclass</span>
+<span class="tc-green">NAME                  PROVISIONER              RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION
+thin-csi (default)    csi.vsphere.volume       Delete          WaitForFirstConsumer   true
+vsan-bronze           csi.vsphere.volume       Delete          WaitForFirstConsumer   true
+vsan-gold             csi.vsphere.volume       Retain          WaitForFirstConsumer   true
+vsan-standard         csi.vsphere.volume       Delete          WaitForFirstConsumer   true</span></pre>
+    </div>
+  </div>
+  <h2>Create the vSAN storage policies in vcenter-ocp</h2>
+  <p>The StorageClasses reference vSAN policies by name. Create them in vcenter-ocp before provisioning any volumes from vsan-gold or vsan-bronze.</p>
+  <table>
+    <thead><tr><th>Policy name</th><th>Used by</th><th>Settings</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>NCB-Gold-vSAN-Policy</code></td><td>vsan-gold</td><td>FTT: 2, Method: RAID-6, Object space reservation: 100% (thick), Disk stripes: 2</td><td>RAID-6 tolerates 2 host failures. Thick provisioning guarantees IOPS headroom for databases. Use for anything touching customer money.</td></tr>
+      <tr><td><code>vSAN Default Storage Policy</code></td><td>vsan-standard + thin-csi</td><td>Already exists — FTT: 1, Method: RAID-5, thin</td><td>Standard production — tolerates 1 host failure. Thin provisioning shares vSAN capacity.</td></tr>
+      <tr><td><code>NCB-Bronze-vSAN-Policy</code></td><td>vsan-bronze</td><td>FTT: 1, Method: RAID-1 (mirroring), thin, deduplication + compression enabled</td><td>Dev/test — simpler erasure coding, lower overhead. Dedup+compression reduces capacity consumption.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <div class="callout-label">How to create NCB-Gold-vSAN-Policy in vcenter-ocp</div>
+    vcenter-ocp → Menu → Policies and Profiles → VM Storage Policies → Create.<br/>
+    Name: <code>NCB-Gold-vSAN-Policy</code> · Enable rules for vSAN storage.<br/>
+    vSAN tab → Failures to tolerate: 2 · Fault tolerance method: RAID-6 Erasure Coding · Disk striping: 2 · Object space reservation: 100% (forces thick provisioning).<br/>
+    Compatible storage: vsanDatastore must appear in Compatible list. Finish.
+  </div>
+</div>
+
+<!-- 17 STORAGE VERIFY -->
+<div class="page" id="page-storage-verify">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 17</div>
+  <div class="page-title">Verify dynamic provisioning — end-to-end test</div>
+  <div class="page-subtitle">Create a test PVC for each StorageClass and confirm a vSAN VMDK is provisioned in vcenter-ocp. Watch the PVC lifecycle from Pending through Bound.</div>
+  <div class="callout">
+    <div class="callout-label">Why you see Pending before Bound with WaitForFirstConsumer</div>
+    When you create a PVC with <code>WaitForFirstConsumer</code>, the status stays <code>Pending</code> — not because anything is wrong, but because the CSI driver is waiting to find out which node the pod will be scheduled on. The VMDK placement on vSAN needs to be co-located with the node's ESXi host for performance. Once you create a Pod that references the PVC, the scheduler places the Pod on a node, tells the CSI driver the node's location, and the CSI driver creates the VMDK on the appropriate vSAN datastores. The PVC status then moves from Pending to Bound. This is by design — Immediate binding could create VMDKs on ESXi hosts far from the pod's node.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — test vsan-gold dynamic provisioning</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tc-cyan">apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-gold-pvc
+  namespace: default
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: vsan-gold
+  resources:
+    requests:
+      storage: 5Gi</span>
+<span class="tc-green">EOF</span>
+<span class="tc-green">persistentvolumeclaim/test-gold-pvc created</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc test-gold-pvc -n default</span>
+<span class="tc-yellow">NAME             STATUS    VOLUME   CAPACITY   STORAGECLASS   AGE
+test-gold-pvc    Pending                        vsan-gold      5s</span>
+<span class="tc-dim">     ↑ Pending = WaitForFirstConsumer waiting for a pod — this is correct, not an error</span>
+
+<span class="tc-dim"># Create a test pod to trigger VMDK provisioning</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tc-cyan">apiVersion: v1
+kind: Pod
+metadata:
+  name: test-gold-pod
+  namespace: default
+spec:
+  containers:
+    - name: test
+      image: registry.access.redhat.com/ubi9/ubi-minimal
+      command: [sleep, "3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: test-gold-pvc</span>
+<span class="tc-green">EOF</span>
+
+<span class="tc-dim"># Watch PVC go Pending → Bound once the pod is scheduled</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n5 "oc get pvc test-gold-pvc -n default"</span>
+<span class="tc-yellow">test-gold-pvc    Pending                                vsan-gold      10s</span>
+<span class="tc-dim">     ← pod being scheduled... CSI driver notified of node placement...</span>
+<span class="tc-green">test-gold-pvc    Bound    pvc-xxxx   5Gi   RWO   vsan-gold      35s</span>
+<span class="tc-dim">     ↑ Bound = vSAN VMDK created in vcenter-ocp using NCB-Gold-vSAN-Policy ✓</span>
+
+<span class="tc-dim"># Verify the PV was provisioned by vSphere CSI with correct policy</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pv $(oc get pvc test-gold-pvc -n default \
+  -o jsonpath='{.spec.volumeName}') \
+  -o jsonpath='{.spec.csi.driver}{"\n"}{.spec.csi.volumeAttributes.StoragePolicyName}'</span>
+<span class="tc-green">csi.vsphere.volume
+NCB-Gold-vSAN-Policy</span>
+<span class="tc-dim">     ↑ vSphere CSI provisioned it ✓  correct policy applied ✓</span>
+
+<span class="tc-dim"># Clean up — note Retain policy keeps the PV after PVC deletion</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc delete pod test-gold-pod -n default
+oc delete pvc test-gold-pvc -n default</span>
+<span class="tc-green">pod "test-gold-pod" deleted
+persistentvolumeclaim "test-gold-pvc" deleted</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pv | grep Released</span>
+<span class="tc-yellow">pvc-xxxx   5Gi   RWO   Retain   Released   default/test-gold-pvc   vsan-gold</span>
+<span class="tc-dim">     ↑ PV in Released state — Retain policy worked correctly
+       The VMDK still exists on vSAN. Delete the PV manually after confirming:
+       oc delete pv pvc-xxxx</span></pre>
+      <div class="term-annotation good"><span class="ann-icon">✓</span><span>Dynamic provisioning verified for vsan-gold. vSphere CSI driver created the VMDK using NCB-Gold-vSAN-Policy. WaitForFirstConsumer worked correctly — PVC was Pending until pod scheduled, then Bound. Retain policy confirmed — PV survives PVC deletion. Run the same test for vsan-standard and vsan-bronze before handing over to application teams.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 18 DEBUG -->
+<div class="page" id="page-debug">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 18</div>
+  <div class="page-title">VCF + NSX specific failures and fixes</div>
+  <div class="page-subtitle">Failures unique to this VCF+NSX deployment that do not appear in standalone vSphere installs — with root cause and fix for each.</div>
+  <h2>Install-time failures</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>Root cause</th><th>Fix</th><th>Section</th></tr></thead>
+    <tbody>
+      <tr><td>Installer stuck "Waiting for Kubernetes API" beyond T+15min</td><td>NSX DFW blocking GENEVE (UDP 6081) within NCB-SG-OCP-Nodes, preventing etcd from forming. OR: bootstrap VM did not get an IP on seg-ocp-nodes (DHCP scope not configured for VLAN 50).</td><td>NSX Manager → Security → Distributed Firewall → NCB-OCP-Internal policy → verify GENEVE rule is present and published to transport nodes. OR: check DHCP scope on DC01 for VLAN 50 (WIN-VCF-02).</td><td>NSX-05, WIN-VCF-02</td></tr>
+      <tr><td><code>failed to find network seg-ocp-nodes</code></td><td>Segment name mismatch between install-config.yaml and vcenter-ocp network inventory — case-sensitive.</td><td>Re-verify with vCenter REST API: <code>curl /rest/vcenter/network</code>. Match exact case including hyphens.</td><td>OCP-VCF-01 §11</td></tr>
+      <tr><td><code>x509: certificate signed by unknown authority</code></td><td>additionalTrustBundle missing, wrong indentation (tabs not spaces), or RootCA not included — IssuingCA alone is not enough.</td><td>Re-check chain.pem: both IssuingCA and RootCA present, every PEM line 2-space indented, no blank line after the <code>|</code> character.</td><td>OCP-VCF-01 §14</td></tr>
+      <tr><td>Bootstrap VM boots but masters never contact it</td><td>DNS missing for api-int.ocp.novacrestbank.local. Masters use api-int on port 22623 to get their ignition config from the bootstrap.</td><td>Verify from jump host: <code>dig +short api-int.ocp.novacrestbank.local</code> must return 10.50.0.200. Create the record in WIN-VCF-01 if missing.</td><td>WIN-VCF-01</td></tr>
+    </tbody>
+  </table>
+  <h2>Post-install failures</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>Root cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>NSX LB pool NCB-Pool-OCP-Ingress stays DOWN after infra nodes are up</td><td>Ingress Router pods still on worker nodes, not infra nodes. Health monitor checks TCP:443 on infra node IPs — if router is not there, the check fails.</td><td>Verify router pod locations: <code>oc get pods -n openshift-ingress -o wide</code>. If on workers, re-apply the IngressController patch from Section 09.</td></tr>
+      <tr><td>Infra nodes provisioned with wrong IPs (not 10.50.0.21–.23)</td><td>DHCP assigned different IPs because the seg-ocp-nodes DHCP scope was not configured to reserve .21–.23, or static IP assignment was not configured in the MachineSet.</td><td>Update NSX LB pool NCB-Pool-OCP-Ingress in NSX Manager → Networking → Load Balancing → Server Pools to match the actual infra node IPs shown by <code>oc get nodes -l node-role.kubernetes.io/infra -o wide</code>.</td></tr>
+      <tr><td>vSphere CSI cannot provision volumes: <code>StoragePolicyNotFound</code></td><td>The vSAN storage policy referenced in the StorageClass does not exist in vcenter-ocp, or the name has a capitalisation mismatch.</td><td>vcenter-ocp → Menu → Policies and Profiles → VM Storage Policies. Verify the exact policy name. Policy names are case-sensitive in the StorageClass parameters field.</td></tr>
+      <tr><td>AD login fails: <code>Error from provider: LDAP Result Code 49</code></td><td>Wrong bind credentials for svc-ocp-ldap, or the account is locked in AD.</td><td>Test the bind manually: <code>ldapsearch -x -H ldaps://dc01.novacrestbank.local:636 -D "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=local" -w "NovaCrest\$LDAPsvc2026!" -b "" -s base</code>. Verify account is not locked in AD Users and Computers.</td></tr>
+    </tbody>
+  </table>
+  <h2>Emergency: gather bootstrap logs before destroying a failed install</h2>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
+      <span class="term-title">jumphost.novacrestbank.local — gather bootstrap logs</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-dim"># Run this BEFORE destroying the cluster — logs are gone once VMs are deleted</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openshift-install gather bootstrap \
+  --dir=~/ocp-kit/install/ \
+  --bootstrap 10.50.0.10 \
+  --master 10.50.0.11 \
+  --master 10.50.0.12 \
+  --master 10.50.0.13 \
+  --key ~/.ssh/ocp-vcf-cluster</span>
+<span class="tc-green">INFO Bootstrap gather logs captured here: ~/ocp-kit/install/log-bundle-20260420.tar.gz</span>
+<span class="tc-dim"># Extract and look at bootkube.log and kubelet.log first — they contain the root cause 95% of the time</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 19 FINAL -->
+<div class="page" id="page-final">
+  <div class="page-eyebrow">OCP-VCF-02 · Section 19</div>
+  <div class="page-title">Final checklist — cluster handover</div>
+  <div class="page-subtitle">Every post-install task complete. The NovaCrestBank OCP cluster on VCF + NSX is production-ready.</div>
+  <div class="callout success">
+    <div class="callout-label">OCP-VCF-02 complete — cluster ready for banking workloads</div>
+    OCP 4.16.x deployed on VCF OCP Workload Domain. 3 masters + 3 workers + 3 infra nodes on seg-ocp-nodes (10.50.0.0/24). API served by NSX LB VIP 10.50.0.200. Ingress served by NSX LB VIP 10.50.0.201. Ingress Router and monitoring on infra nodes. AD OAuth configured and tested. kubeadmin disabled. Ingress and API certificates signed by NovaCrestBank-IssuingCA. vSAN StorageClasses created (gold/standard/bronze) with dynamic provisioning verified.
+  </div>
+  <div class="status-strip">
+    <div class="status-pill pill-green"><div class="pill-dot"></div>6 Nodes Ready</div>
+    <div class="status-pill pill-green"><div class="pill-dot"></div>All Operators Available</div>
+    <div class="status-pill pill-green"><div class="pill-dot"></div>etcd Quorum 3/3</div>
+    <div class="status-pill pill-green"><div class="pill-dot"></div>NSX LB VIPs Active</div>
+    <div class="status-pill pill-green"><div class="pill-dot"></div>AD Auth Working</div>
+    <div class="status-pill pill-green"><div class="pill-dot"></div>IssuingCA Certs</div>
+    <div class="status-pill pill-green"><div class="pill-dot"></div>vSAN CSI Provisioning</div>
+  </div>
+  <h2>Complete handover checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Install complete — all operators Available</span><span class="spec-val"><span class="badge badge-green">✓</span> oc get co — all True/False/False</span></div>
+    <div class="spec-row"><span class="spec-label">6 permanent nodes Ready on seg-ocp-nodes</span><span class="spec-val"><span class="badge badge-green">✓</span> master-0/1/2 on .11/.12/.13 · worker-0/1/2 on .31/.32/.33</span></div>
+    <div class="spec-row"><span class="spec-label">3 infra nodes from MachineSet</span><span class="spec-val"><span class="badge badge-green">✓</span> infra-0/1/2 on 10.50.0.21/.22/.23 · providerSpec points to vcenter-ocp</span></div>
+    <div class="spec-row"><span class="spec-label">Ingress Router on infra nodes</span><span class="spec-val"><span class="badge badge-green">✓</span> router-default pods on infra nodes · NSX Pool NCB-Pool-OCP-Ingress UP</span></div>
+    <div class="spec-row"><span class="spec-label">Monitoring stack on infra nodes</span><span class="spec-val"><span class="badge badge-green">✓</span> Prometheus + Alertmanager on infra nodes via cluster-monitoring-config</span></div>
+    <div class="spec-row"><span class="spec-label">NSX LB API pool</span><span class="spec-val"><span class="badge badge-green">✓</span> NCB-Pool-OCP-API — 3 members UP (master-0/1/2 port 6443)</span></div>
+    <div class="spec-row"><span class="spec-label">NSX LB Ingress pool</span><span class="spec-val"><span class="badge badge-green">✓</span> NCB-Pool-OCP-Ingress — 3 members UP (infra-0/1/2 port 443)</span></div>
+    <div class="spec-row"><span class="spec-label">AD OAuth — NovaCrestBank-AD provider</span><span class="spec-val"><span class="badge badge-green">✓</span> LDAPS to DC01:636 · OCP-Admins = cluster-admin</span></div>
+    <div class="spec-row"><span class="spec-label">kubeadmin disabled</span><span class="spec-val"><span class="badge badge-green">✓</span> secret deleted · kubeadmin-password + kubeconfig in CyberArk</span></div>
+    <div class="spec-row"><span class="spec-label">Ingress wildcard certificate</span><span class="spec-val"><span class="badge badge-green">✓</span> *.apps.ocp.novacrestbank.local signed by NovaCrestBank-IssuingCA</span></div>
+    <div class="spec-row"><span class="spec-label">API server certificate</span><span class="spec-val"><span class="badge badge-green">✓</span> api.ocp.novacrestbank.local signed by NovaCrestBank-IssuingCA</span></div>
+    <div class="spec-row"><span class="spec-label">vSAN StorageClasses (gold/standard/bronze)</span><span class="spec-val"><span class="badge badge-green">✓</span> Dynamic provisioning verified · Retain policy tested on vsan-gold</span></div>
+    <div class="spec-row"><span class="spec-label">install.log archived</span><span class="spec-val"><span class="badge badge-green">✓</span> ~/ocp-kit/install.log retained for change management audit trail</span></div>
+  </div>
+  <h2>Day-2 hardening items (next steps)</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Why it matters</th><th>PCI-DSS / NIST ref</th></tr></thead>
+    <tbody>
+      <tr><td>OCP RBAC — project-level roles per banking team</td><td>Least-privilege access for application developers — each team gets access only to their own namespace</td><td>PCI Req 7.2 · NIST AC-3</td></tr>
+      <tr><td>OCP Network Policy — namespace isolation</td><td>Prevent lateral movement between application namespaces — a compromised pod in one namespace cannot reach another</td><td>PCI Req 1.3 · NIST SC-7(13)</td></tr>
+      <tr><td>Audit log forwarding to SIEM</td><td>All API server actions logged and forwarded to NovaCrestBank SOC for real-time alerting</td><td>PCI Req 10.2.1 · NIST AU-2</td></tr>
+      <tr><td>etcd encryption at rest</td><td>Kubernetes Secrets (which contain database passwords, API tokens) encrypted in etcd</td><td>PCI Req 3.7.2 · NIST SC-28</td></tr>
+      <tr><td>Image signature verification (Sigstore/cosign)</td><td>Only signed images from the NovaCrestBank internal registry run in production namespaces</td><td>PCI Req 6.4 · NIST SI-2</td></tr>
+      <tr><td>NSX-05 DFW — namespace-level microsegmentation</td><td>Add DFW Security Groups per OCP namespace for banking application isolation beyond OCP Network Policy</td><td>PCI Req 1.3.1/1.3.2 · NIST SC-7</td></tr>
+      <tr><td>Certificate renewal reminders</td><td>Ingress and API certs expire in 2 years from issue date — set calendar reminders now</td><td>PCI Req 4.2.1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  var page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

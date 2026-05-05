@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GITOPS-04 — Argo CD ApplicationSet · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --ocp-red:#cc0000;--gl-orange:#fc6d26;
+    --argo:#ef7b4d;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--argo);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--argo);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--argo);}
+  .pbadge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--argo);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--argo);}
+  .callout{border-left:3px solid var(--argo);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.blue{border-left-color:var(--accent);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.blue .cl{color:var(--accent);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.blue):not(.why) .cl{color:var(--argo);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  .bargo{background:#fdf0ea;color:#7a3800;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+    .bargo{background:#3d2200;color:#ffb87a;}
+  }
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:230px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--argo);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+  .yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;}
+  .yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #30363d;}
+  .yaml-dot{width:10px;height:10px;border-radius:50%;}
+  .yaml-dot.r{background:#ff5f57;}.yaml-dot.y{background:#febc2e;}.yaml-dot.g{background:#28c840;}
+  .yaml-label{font-size:11px;color:#8b949e;margin-left:6px;}
+  .yaml-body{padding:14px 18px;overflow-x:auto;}
+  .yaml-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;color:#c9d1d9;}
+  .yk{color:#7ee787;}.yv{color:#a5d6ff;}.yn{color:#f8c555;}
+  .yc{color:#8b949e;}.ys{color:#ff7b72;}.yb{color:#d2a8ff;}
+  .term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #333;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.65;}
+  .term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #333;}
+  .term-label{font-size:11px;color:#666;margin-left:6px;}
+  .term-body{padding:14px 18px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#608b7a;}.tw{color:#cca700;}
+  .tann{display:flex;gap:9px;background:#111;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#ccc;line-height:1.5;}
+  .tann.ok{border-left-color:#4ccd99;}.tann.warn{border-left-color:#cca700;}
+  .tann.info{border-left-color:#4da8da;}.tann.danger{border-left-color:#cc4444;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .layer-stack{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .layer{display:flex;align-items:flex-start;gap:14px;padding:13px 18px;
+    border-radius:var(--r2);border:0.5px solid var(--border2);}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:180px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  /* env cards */
+  .env-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0;}
+  @media(max-width:700px){.env-grid{grid-template-columns:1fr;}}
+  .env-card{border-radius:var(--r);padding:14px 16px;border:0.5px solid var(--border2);}
+  .env-card.dev{border-top:4px solid var(--accent);background:#f0f5ff;}
+  .env-card.staging{border-top:4px solid var(--amber);background:#fffbf0;}
+  .env-card.prod{border-top:4px solid var(--ocp-red);background:#fff5f5;}
+  @media(prefers-color-scheme:dark){
+    .env-card.dev{background:#0d1c2c;}.env-card.staging{background:#2c1e00;}
+    .env-card.prod{background:#2c0d0d;}
+  }
+  .env-title{font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.07em;margin-bottom:8px;}
+  .env-card.dev .env-title{color:var(--accent);}
+  .env-card.staging .env-title{color:var(--amber);}
+  .env-card.prod .env-title{color:var(--ocp-red);}
+  /* sync wave diagram */
+  .wave-timeline{display:flex;flex-direction:column;gap:0;margin:18px 0;
+    border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+  .wt-row{display:flex;align-items:stretch;border-bottom:0.5px solid var(--border);}
+  .wt-row:last-child{border-bottom:none;}
+  .wt-wave{min-width:90px;flex-shrink:0;padding:10px 14px;background:var(--bg3);
+    font-size:12px;font-weight:700;border-right:0.5px solid var(--border2);
+    display:flex;align-items:center;}
+  .wt-resource{min-width:200px;flex-shrink:0;padding:10px 14px;
+    font-size:12.5px;font-weight:600;border-right:0.5px solid var(--border2);}
+  .wt-desc{padding:10px 16px;font-size:13px;color:var(--text2);flex:1;}
+  .wt-w0{background:#f0f5ff;}.wt-w0 .wt-wave{color:var(--accent);}
+  .wt-w1{background:#f0fff5;}.wt-w1 .wt-wave{color:var(--accent2);}
+  .wt-w2{background:#fffbf0;}.wt-w2 .wt-wave{color:var(--amber);}
+  .wt-w3{background:#fff5f5;}.wt-w3 .wt-wave{color:var(--ocp-red);}
+  @media(prefers-color-scheme:dark){
+    .wt-w0{background:#0d1c2c;}.wt-w1{background:#0d2c18;}
+    .wt-w2{background:#2c1e00;}.wt-w3{background:#2c0d0d;}
+  }
+  /* argo UI mockup */
+  .argo-ui{background:var(--bg2);border:0.5px solid var(--border2);
+    border-radius:var(--r);overflow:hidden;margin:16px 0;}
+  .argo-ui-bar{background:#1a1a2e;padding:9px 16px;display:flex;align-items:center;
+    gap:10px;border-bottom:0.5px solid var(--border2);}
+  .argo-ui-title{font-size:12px;font-weight:700;color:#ef7b4d;letter-spacing:.05em;}
+  .argo-ui-breadcrumb{font-size:11px;color:#8888aa;margin-left:auto;}
+  .argo-app-row{display:flex;align-items:center;gap:12px;padding:12px 16px;
+    border-bottom:0.5px solid var(--border);font-size:13px;}
+  .argo-app-row:last-child{border-bottom:none;}
+  .argo-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .dot-synced{background:#4ccd99;}
+  .dot-degraded{background:#cc4444;}
+  .dot-progressing{background:#f1c40f;}
+  .dot-outofsync{background:#f1a400;}
+  .argo-app-name{font-weight:600;min-width:220px;}
+  .argo-app-meta{font-size:11.5px;color:var(--text3);}
+  .argo-health{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:auto;}
+  .health-healthy{background:#e4f0e0;color:#1a5028;}
+  .health-degraded{background:#fce8e8;color:#4e1313;}
+  .health-progressing{background:#faebd8;color:#5c3308;}
+  @media(prefers-color-scheme:dark){
+    .health-healthy{background:#153519;color:#9ddba3;}
+    .health-degraded{background:#3d1111;color:#f5a8a8;}
+    .health-progressing{background:#3d2206;color:#f5c47a;}
+  }
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Phase 9 · GitOps</div>
+    <h1>GITOPS-04 — Argo CD ApplicationSet</h1>
+    <p>Multi-environment · Kustomize · Sync waves · Health checks · Argo CD UI</p>
+  </div>
+
+  <div class="ngl">Concepts</div>
+  <div class="ni active" onclick="show('appset-concept')"><div class="nd"></div>01 — ApplicationSet vs Application — when you need one definition for many envs</div>
+  <div class="ni" onclick="show('kustomize-model')"><div class="nd"></div>02 — The Kustomize base-plus-overlay model — how environments diverge <span class="pbadge bp">Concept</span></div>
+  <div class="ni" onclick="show('generators')"><div class="nd"></div>03 — ApplicationSet generators — list, git directory, and cluster</div>
+
+  <div class="ngl">The NovaCrestBank ApplicationSet</div>
+  <div class="ni" onclick="show('appset-yaml')"><div class="nd"></div>04 — The payment-service ApplicationSet — full YAML annotated <span class="pbadge bp">Key YAML</span></div>
+  <div class="ni" onclick="show('env-differences')"><div class="nd"></div>05 — How dev, staging, and production differ — what each overlay contains</div>
+
+  <div class="ngl">Kustomize overlays</div>
+  <div class="ni" onclick="show('base-resources')"><div class="nd"></div>06 — The base — shared resources across all environments</div>
+  <div class="ni" onclick="show('overlay-dev')"><div class="nd"></div>07 — Dev overlay — single replica, relaxed limits, latest image</div>
+  <div class="ni" onclick="show('overlay-staging')"><div class="nd"></div>08 — Staging overlay — production-like, pipeline-updated image digest</div>
+  <div class="ni" onclick="show('overlay-prod')"><div class="nd"></div>09 — Production overlay — PDB, resource limits, signed image digest <span class="pbadge bp">Key YAML</span></div>
+
+  <div class="ngl">NSX-aligned network policy</div>
+  <div class="ni" onclick="show('network-policy')"><div class="nd"></div>10 — NetworkPolicy per overlay — NSX DFW alignment <span class="pbadge bp">Security</span></div>
+
+  <div class="ngl">Sync waves</div>
+  <div class="ni" onclick="show('sync-waves-concept')"><div class="nd"></div>11 — Sync waves — controlling deployment order within a sync</div>
+  <div class="ni" onclick="show('sync-waves-payment')"><div class="nd"></div>12 — Payment-service sync wave configuration — db migration first <span class="pbadge bp">Key YAML</span></div>
+
+  <div class="ngl">Health checks</div>
+  <div class="ni" onclick="show('health-checks')"><div class="nd"></div>13 — Health checks — what Argo CD considers Healthy and why it matters</div>
+  <div class="ni" onclick="show('custom-health')"><div class="nd"></div>14 — Custom health checks for banking workloads</div>
+
+  <div class="ngl">Argo CD web UI</div>
+  <div class="ni" onclick="show('argo-ui-overview')"><div class="nd"></div>15 — The Argo CD web UI — navigating the application tree</div>
+  <div class="ni" onclick="show('developer-rollout')"><div class="nd"></div>16 — How a developer watches their application roll out in real time</div>
+
+  <div class="ngl">Sync policy and RBAC</div>
+  <div class="ni" onclick="show('sync-policy')"><div class="nd"></div>17 — Sync policy — automated vs manual, self-heal, prune</div>
+  <div class="ni" onclick="show('argo-rbac')"><div class="nd"></div>18 — Argo CD RBAC — who can sync, who can delete, who reads only</div>
+
+  <div class="ngl">Operations</div>
+  <div class="ni" onclick="show('checklist')"><div class="nd"></div>19 — Checklist — all three environments Synced and Healthy</div>
+</nav>
+
+<main class="main">
+
+<!-- ══ 01 APPSET CONCEPT ══ -->
+<div class="page active" id="page-appset-concept">
+  <div class="ey">GITOPS-04 · Section 01</div>
+  <div class="pt">ApplicationSet vs Application — when you need one definition for many environments</div>
+  <div class="ps">An Argo CD Application is a one-to-one relationship: one Application object deploys one application to one namespace. An ApplicationSet is a controller that generates multiple Application objects from a single template. NovaCrestBank uses an ApplicationSet because the same banking microservices must be deployed to three environments — dev, staging, and production — with consistent configuration and consistent sync policy, without maintaining three separate Application objects per microservice.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-00<br/>GitLab</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-01<br/>Architecture</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-02<br/>Jenkins</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-03<br/>Pipeline</div>
+    <div class="pt-step active"><span class="pt-n">→</span>GITOPS-04<br/>AppSet</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">ApplicationSet vs three separate Application objects — the maintenance problem</div>
+    <div class="decision-q">NovaCrestBank has 5 banking microservices, each deployed to 3 environments. That is 15 Application objects if using individual Applications, or 5 ApplicationSet objects. Why does the ApplicationSet approach win?</div>
+    <div class="decision-a"><strong>The maintenance arithmetic is only part of the answer. The structural argument is more important: an ApplicationSet guarantees that the same sync policy, the same source repo path pattern, and the same destination cluster are applied consistently to every generated Application. Individual Application objects can drift from each other as engineers modify them independently.</strong><br/><br/>
+    <strong>The maintenance problem:</strong> 15 Application objects for 5 microservices × 3 environments. When the GitOps config repo URL changes (domain migration, GITOPS-00 Section 03), every Application object must be updated. When NovaCrestBank adds a fourth environment (disaster recovery), 5 new Application objects must be created. With ApplicationSet: update one template, all 15 Applications are regenerated. Add one entry to the generator list, 5 new Applications appear automatically.<br/><br/>
+    <strong>The consistency problem:</strong> Individual Application objects are created once and then mutated independently by engineers over time. One environment's Application might have <code>syncPolicy.automated.selfHeal: true</code> while another has it disabled — a configuration drift that causes inconsistent behaviour that is invisible until an incident occurs. ApplicationSet templates enforce consistency: every generated Application has identical sync policy because they all derive from the same template.<br/><br/>
+    <strong>The GitOps problem:</strong> An ApplicationSet object is itself a Kubernetes resource stored in the GitOps config repo and managed by Argo CD. Adding a new environment is a Git commit. With individual Application objects, adding an environment might be done via the Argo CD UI (not in Git — a GitOps violation) or via a manual <code>kubectl apply</code> (also not the right approach). ApplicationSet keeps the "what applications exist" question in Git, not just the "what state applications are in" question.</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--amber);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);margin-bottom:10px;">Individual Application objects (not used)</p>
+      <ul style="font-size:13px;color:var(--text2);">
+        <li>15 objects for 5 microservices × 3 environments</li>
+        <li>Each object maintained separately — drift risk over time</li>
+        <li>Adding an environment = 5 new objects created manually</li>
+        <li>Sync policy can diverge between environments</li>
+        <li>No enforcement that dev/staging/prod use the same structure</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent2);margin-bottom:10px;">ApplicationSet (NovaCrestBank's approach)</p>
+      <ul style="font-size:13px;color:var(--text2);">
+        <li>5 ApplicationSet objects — one per microservice</li>
+        <li>All 15 Applications generated from consistent templates</li>
+        <li>Adding an environment = one line in the generator list</li>
+        <li>Sync policy identical across all generated Applications</li>
+        <li>Structure enforced: every Application uses the same overlay pattern</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 02 KUSTOMIZE MODEL ══ -->
+<div class="page" id="page-kustomize-model">
+  <div class="ey">GITOPS-04 · Section 02</div>
+  <div class="pt">The Kustomize base-plus-overlay model — how environments diverge from a single definition</div>
+  <div class="ps">Kustomize is the templating engine Argo CD uses to render the Kubernetes manifests for each environment. NovaCrestBank uses Kustomize's base-plus-overlay pattern: a <code>base/</code> directory contains the canonical Kubernetes resources, and each environment's <code>overlay/</code> directory patches only what is different for that environment. Argo CD runs <code>kustomize build</code> and applies the output to the cluster.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--argo);">
+      <div class="layer-num">Base</div>
+      <div class="layer-title">base/ — the canonical definition</div>
+      <div class="layer-desc">The base directory contains complete, valid Kubernetes manifests: a Deployment with 1 replica and placeholder image, a Service, a HorizontalPodAutoscaler, a NetworkPolicy, and a ServiceMonitor. These are the resources that exist in every environment. The base is valid on its own but is never deployed directly — it is always referenced through an overlay. Argo CD never points at the base directory. If you can understand the base, you understand 80% of what runs in production.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num">Overlay</div>
+      <div class="layer-title">overlays/&lt;env&gt;/ — what is different for this environment</div>
+      <div class="layer-desc">Each environment overlay contains a <code>kustomization.yaml</code> that: (1) references the base with <code>resources: [../../base]</code>, (2) applies strategic merge patches to change specific fields (replica count, resource limits, image reference), and (3) may add environment-specific resources not in the base (PodDisruptionBudget for production, lax resource limits for dev). Argo CD points at the overlay directory. Kustomize merges base + patches and produces the final manifests.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num">Output</div>
+      <div class="layer-title">kustomize build — what Argo CD actually applies</div>
+      <div class="layer-desc">When Argo CD syncs, it runs <code>kustomize build overlays/production/</code> (for the production Application). Kustomize reads the base Deployment, applies the production replica count patch (3 replicas), applies the production resource limit patch, and substitutes the signed image digest. The output is a complete, environment-specific set of Kubernetes manifests — no templating variables, no Helm values — just plain Kubernetes YAML. Argo CD compares this output to the cluster's current state to determine if a sync is needed.</div>
+    </div>
+  </div>
+
+  <div class="callout why">
+    <div class="cl">Why Kustomize and not Helm for NovaCrestBank's application delivery</div>
+    Helm uses Go templating — YAML with <code>{{ .Values.replicaCount }}</code> placeholders that must be evaluated against a values file to produce actual manifests. Argo CD supports Helm, but the output of <code>helm template</code> is less predictable: the same values file on a different Helm version can produce different output. Kustomize patches are applied to the base YAML using strategic merge — the output is deterministic given the same inputs, regardless of Kustomize version. For a regulated banking environment where "exactly what is deployed must be auditable from the config repo," Kustomize's deterministic, patch-based approach is more appropriate than Helm's template-evaluation approach. The diff in a GitLab MR for a Kustomize change shows exactly what the deployed manifest will change. The diff for a Helm values change requires running <code>helm template</code> to understand the manifest impact.
+  </div>
+</div>
+
+<!-- ══ 03 GENERATORS ══ -->
+<div class="page" id="page-generators">
+  <div class="ey">GITOPS-04 · Section 03</div>
+  <div class="pt">ApplicationSet generators — list, git directory, and cluster</div>
+  <div class="ps">An ApplicationSet generator defines how the ApplicationSet controller creates Application objects. NovaCrestBank uses the List generator — the simplest and most explicit generator — which creates one Application per entry in the list. The list entries are the environments: dev, staging, and production.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why the List generator and not the Git Directory or Cluster generator</div>
+    <div class="decision-q">Argo CD's Git Directory generator automatically discovers overlay directories in the config repo and creates Applications for each one. This is more automated than the List generator. Why does NovaCrestBank use the List generator instead?</div>
+    <div class="decision-a"><strong>The Git Directory generator creates Applications for every directory it discovers that matches a pattern. This is powerful for self-service platforms where teams add their own application directories. It is inappropriate for NovaCrestBank's banking environment for one specific reason: it makes adding a new deployment environment a filesystem operation rather than an explicit configuration decision.</strong><br/><br/>
+    If NovaCrestBank used the Git Directory generator and a developer accidentally created a directory named <code>overlays/dr-test/</code> in the config repo for testing purposes, the ApplicationSet controller would immediately create a new Argo CD Application pointing at that directory and attempt to deploy it. In a banking production cluster, creating unintended deployments from filesystem artifacts is a configuration management risk — it violates the principle that every production deployment must be explicitly authorised.<br/><br/>
+    The List generator is explicit: the list of environments is declared in the ApplicationSet YAML. Adding a new environment (e.g., a disaster recovery environment) requires a deliberate change to the ApplicationSet object — a Git commit, a merge request, an approval, and Argo CD applying the change. The new Application is created only when the platform team explicitly decides to create it. This is the correct model for a regulated environment.</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Generator type</th><th>How it creates Applications</th><th>Appropriate for</th><th>NovaCrestBank?</th></tr></thead>
+    <tbody>
+      <tr><td><strong>List</strong></td><td>One Application per entry in an explicit list in the YAML</td><td>Controlled environments with a fixed, explicitly managed set of deployment targets</td><td><span class="badge bargo">✓ Used</span></td></tr>
+      <tr><td><strong>Git Directory</strong></td><td>Discovers directories matching a pattern in the config repo</td><td>Developer self-service platforms where teams add their own directories to deploy</td><td><span class="badge bgr">Not used</span></td></tr>
+      <tr><td><strong>Cluster</strong></td><td>One Application per registered Argo CD cluster</td><td>Multi-cluster deployments where the same application runs on every registered cluster</td><td><span class="badge bgr">Not used</span> (single cluster)</td></tr>
+      <tr><td><strong>Matrix</strong></td><td>Combines two generators — every combination of entries</td><td>Multi-cluster × multi-environment deployments</td><td><span class="badge bgr">Future</span> — if ROSA hybrid cloud added</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 04 APPSET YAML ══ -->
+<div class="page" id="page-appset-yaml">
+  <div class="ey">GITOPS-04 · Section 04</div>
+  <div class="pt">The payment-service ApplicationSet — complete YAML annotated</div>
+  <div class="ps">The complete ApplicationSet for the payment-service microservice. This object lives in <code>gitops/banking-config/platform/appsets/payment-service-appset.yaml</code>. Argo CD manages it (it is itself in the config repo, managed by a bootstrap Application). Every field is annotated.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">platform/appsets/payment-service-appset.yaml — complete ApplicationSet</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">argoproj.io/v1alpha1</span>
+<span class="yk">kind</span>: <span class="yv">ApplicationSet</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service</span>
+  <span class="yk">namespace</span>: <span class="yv">gitops</span>
+  <span class="yc">  # ApplicationSet lives in the gitops namespace alongside Argo CD.
+    # The name "payment-service" prefixes all generated Application names:
+    # payment-service-dev, payment-service-staging, payment-service-production.</span>
+<span class="yk">spec</span>:
+  <span class="yk">goTemplate</span>: <span class="yb">true</span>
+  <span class="yc">  # goTemplate: true enables Go templating in the ApplicationSet template.
+    # This allows {{ .environment }} and {{ .namespace }} variable substitution.
+    # Without goTemplate: true, variables use the older {{ `{{environment}}` }} syntax.</span>
+
+  <span class="yk">generators</span>:
+    - <span class="yk">list</span>:
+        <span class="yk">elements</span>:
+          - <span class="yk">environment</span>: <span class="yv">dev</span>
+            <span class="yk">namespace</span>: <span class="yv">banking-dev</span>
+            <span class="yk">overlayPath</span>: <span class="yv">apps/payment-service/overlays/dev</span>
+            <span class="yk">syncPolicy</span>: <span class="yv">automated</span>
+            <span class="yk">selfHeal</span>: <span class="yb">true</span>
+            <span class="yk">prune</span>: <span class="yb">true</span>
+            <span class="yc">            # dev: fully automated — any drift is immediately corrected.
+                          # selfHeal: true — if a developer manually edits a resource in
+                          # banking-dev, Argo CD reverts it within 3 minutes.
+                          # prune: true — if a resource is removed from the config repo,
+                          # Argo CD deletes it from the cluster. Safe for dev.</span>
+
+          - <span class="yk">environment</span>: <span class="yv">staging</span>
+            <span class="yk">namespace</span>: <span class="yv">banking-staging</span>
+            <span class="yk">overlayPath</span>: <span class="yv">apps/payment-service/overlays/staging</span>
+            <span class="yk">syncPolicy</span>: <span class="yv">automated</span>
+            <span class="yk">selfHeal</span>: <span class="yb">true</span>
+            <span class="yk">prune</span>: <span class="yb">true</span>
+            <span class="yc">            # staging: also automated — the Jenkins pipeline directly commits
+                          # to the staging overlay, and Argo CD deploys immediately.
+                          # This is the automated CD half of the pipeline (GITOPS-03 Stage 6).</span>
+
+          - <span class="yk">environment</span>: <span class="yv">production</span>
+            <span class="yk">namespace</span>: <span class="yv">banking-production</span>
+            <span class="yk">overlayPath</span>: <span class="yv">apps/payment-service/overlays/production</span>
+            <span class="yk">syncPolicy</span>: <span class="yv">manual</span>
+            <span class="yk">selfHeal</span>: <span class="yb">false</span>
+            <span class="yk">prune</span>: <span class="yb">false</span>
+            <span class="yc">            # production: MANUAL sync policy.
+                          # selfHeal: false — Argo CD detects drift and alerts (OutOfSync status)
+                          # but does NOT automatically revert it. A production engineer makes
+                          # the decision to sync, not the automation.
+                          # prune: false — resources are never automatically deleted from
+                          # production. A resource removal requires an explicit sync with
+                          # prune enabled — an additional human confirmation step.
+                          # This is a critical safety property: a misconfigured config repo
+                          # deletion cannot automatically remove a production resource.</span>
+
+  <span class="yk">template</span>:
+    <span class="yk">metadata</span>:
+      <span class="yk">name</span>: <span class="yv">payment-service-{{ .environment }}</span>
+      <span class="yk">namespace</span>: <span class="yv">gitops</span>
+      <span class="yk">labels</span>:
+        <span class="yk">app.kubernetes.io/name</span>: <span class="yv">payment-service</span>
+        <span class="yk">environment</span>: <span class="yv">{{ .environment }}</span>
+      <span class="yk">annotations</span>:
+        <span class="yk">notifications.argoproj.io/subscribe.on-sync-failed.gitlab</span>: <span class="yv">payment-service</span>
+        <span class="yc">        # Argo CD Notifications: send a GitLab comment on sync failure.
+                  # The annotation subscribes the "on-sync-failed" trigger to
+                  # the "gitlab" notification template, targeting the payment-service project.
+                  # Platform engineers and developers see sync failures in GitLab
+                  # without needing to monitor the Argo CD UI continuously.</span>
+
+    <span class="yk">spec</span>:
+      <span class="yk">project</span>: <span class="yv">banking-apps</span>
+      <span class="yc">      # project: the Argo CD AppProject that scopes this Application.
+              # banking-apps AppProject (configured in OPS-05) restricts:
+              # - Source repos: only gitlab.corp.novacrestbank.com/gitops/*
+              # - Destination namespaces: only banking-dev, banking-staging, banking-production
+              # - Cluster resources: cannot create ClusterRoles or ClusterRoleBindings
+              # A misconfigured ApplicationSet cannot accidentally deploy to openshift-monitoring.</span>
+
+      <span class="yk">source</span>:
+        <span class="yk">repoURL</span>: <span class="yv">git@gitlab.corp.novacrestbank.com:gitops/banking-config.git</span>
+        <span class="yk">targetRevision</span>: <span class="yv">HEAD</span>
+        <span class="yc">        # HEAD: always use the latest commit on the default branch (main).
+                  # The staging overlay is updated by the Jenkins pipeline commit (GITOPS-03 Stage 6).
+                  # The production overlay is updated by the production MR merge.
+                  # Both changes land on main and Argo CD picks them up at HEAD.</span>
+        <span class="yk">path</span>: <span class="yv">{{ .overlayPath }}</span>
+        <span class="yc">        # {{ .overlayPath }} resolves to the environment-specific overlay path.
+                  # dev: apps/payment-service/overlays/dev
+                  # staging: apps/payment-service/overlays/staging
+                  # production: apps/payment-service/overlays/production</span>
+        <span class="yk">kustomize</span>:
+          <span class="yk">version</span>: <span class="yv">v5.3.0</span>
+          <span class="yc">          # Pin the Kustomize version to ensure deterministic builds.
+                      # A Kustomize version change can produce different output from the
+                      # same kustomization.yaml. Pinning ensures the same version that
+                      # was tested in the dev environment runs in production.</span>
+
+      <span class="yk">destination</span>:
+        <span class="yk">server</span>: <span class="yv">https://kubernetes.default.svc</span>
+        <span class="yc">        # In-cluster deployment — Argo CD uses its own ServiceAccount to apply
+                  # manifests to the local cluster (not a remote cluster). Single cluster
+                  # in NovaCrestBank's current architecture.</span>
+        <span class="yk">namespace</span>: <span class="yv">{{ .namespace }}</span>
+
+      <span class="yk">syncPolicy</span>:
+        <span class="yk">automated</span>:
+          <span class="yk">selfHeal</span>: <span class="yv">{{ .selfHeal }}</span>
+          <span class="yk">prune</span>: <span class="yv">{{ .prune }}</span>
+        <span class="yk">syncOptions</span>:
+          - <span class="yv">CreateNamespace=false</span>
+          <span class="yc">          # false: do not auto-create the namespace. Namespaces are
+                        # pre-created with specific labels and annotations (NSX segment
+                        # binding, monitoring labels). Auto-creating a namespace would
+                        # miss these labels and break network policy and monitoring.</span>
+          - <span class="yv">PrunePropagationPolicy=foreground</span>
+          <span class="yc">          # Foreground deletion: when Argo CD prunes a resource, it waits
+                        # for the resource to actually be deleted before considering the
+                        # sync complete. Background deletion can leave dangling child
+                        # resources (e.g., Pods from a deleted Deployment) until the
+                        # garbage collector runs. Foreground is safer for production.</span>
+          - <span class="yv">RespectIgnoreDifferences=true</span>
+      <span class="yk">ignoreDifferences</span>:
+        - <span class="yk">group</span>: <span class="yv">apps</span>
+          <span class="yk">kind</span>: <span class="yv">Deployment</span>
+          <span class="yk">jsonPointers</span>:
+            - <span class="yv">/spec/replicas</span>
+          <span class="yc">          # ignoreDifferences on /spec/replicas: when the HPA (HorizontalPodAutoscaler)
+                        # scales the Deployment to a different replica count than the config repo
+                        # specifies, Argo CD would normally see this as drift and mark the
+                        # Application OutOfSync. ignoreDifferences tells Argo CD to ignore
+                        # the replica count field when computing drift.
+                        # Without this: every HPA scale event causes an OutOfSync alert, and
+                        # if selfHeal is enabled, Argo CD reverts the HPA's scaling decision —
+                        # fighting the HPA in a continuous loop.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 05 ENV DIFFERENCES ══ -->
+<div class="page" id="page-env-differences">
+  <div class="ey">GITOPS-04 · Section 05</div>
+  <div class="pt">How dev, staging, and production differ — what each overlay patches</div>
+  <div class="ps">The three environments share the same base but differ in replica count, resource limits, image reference, and which additional resources exist. Understanding the differences explains why a separate overlay per environment is necessary rather than using Helm values files or environment variables.</div>
+
+  <div class="env-grid">
+    <div class="env-card dev">
+      <div class="env-title">Dev — banking-dev</div>
+      <ul style="font-size:12.5px;color:var(--text2);margin-left:14px;">
+        <li>Replicas: 1</li>
+        <li>Image: <code>:latest</code> tag (developers push directly)</li>
+        <li>CPU request: 100m · limit: 500m</li>
+        <li>Memory request: 256Mi · limit: 512Mi</li>
+        <li>No PodDisruptionBudget</li>
+        <li>No HPA (manual scaling only)</li>
+        <li>NetworkPolicy: permissive (within namespace)</li>
+        <li>Sync: automated, selfHeal, prune</li>
+        <li>Log level: DEBUG</li>
+      </ul>
+    </div>
+    <div class="env-card staging">
+      <div class="env-title">Staging — banking-staging</div>
+      <ul style="font-size:12.5px;color:var(--text2);margin-left:14px;">
+        <li>Replicas: 2 (production-like availability)</li>
+        <li>Image: <code>@sha256:...</code> digest (Jenkins pipeline commits)</li>
+        <li>CPU request: 250m · limit: 1</li>
+        <li>Memory request: 512Mi · limit: 1Gi</li>
+        <li>No PodDisruptionBudget (2 replicas but staging can tolerate brief disruption)</li>
+        <li>HPA: min 2, max 4</li>
+        <li>NetworkPolicy: same rules as production</li>
+        <li>Sync: automated, selfHeal, prune</li>
+        <li>Log level: INFO</li>
+      </ul>
+    </div>
+    <div class="env-card prod">
+      <div class="env-title">Production — banking-production</div>
+      <ul style="font-size:12.5px;color:var(--text2);margin-left:14px;">
+        <li>Replicas: 3 (UPG-02 PDB requirements)</li>
+        <li>Image: <code>@sha256:...</code> digest (production MR merge only)</li>
+        <li>CPU request: 500m · limit: 2</li>
+        <li>Memory request: 1Gi · limit: 3Gi</li>
+        <li>PodDisruptionBudget: minAvailable: 2</li>
+        <li>HPA: min 3, max 8</li>
+        <li>NetworkPolicy: strict (defined ingress/egress only)</li>
+        <li>Sync: manual (human approval required)</li>
+        <li>Log level: WARN</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 BASE RESOURCES ══ -->
+<div class="page" id="page-base-resources">
+  <div class="ey">GITOPS-04 · Section 06</div>
+  <div class="pt">The base — shared resources across all environments</div>
+  <div class="ps">The base directory contains the resources that every environment needs. It is the canonical definition of the payment-service from Kubernetes' perspective — what a new engineer reads to understand what the payment-service is and how it runs.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">apps/payment-service/base/kustomization.yaml — base index</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">kustomize.config.k8s.io/v1beta1</span>
+<span class="yk">kind</span>: <span class="yv">Kustomization</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-base</span>
+
+<span class="yk">commonLabels</span>:
+  <span class="yk">app.kubernetes.io/name</span>: <span class="yv">payment-service</span>
+  <span class="yk">app.kubernetes.io/part-of</span>: <span class="yv">banking-platform</span>
+  <span class="yk">app.kubernetes.io/managed-by</span>: <span class="yv">argocd</span>
+  <span class="yc">  # commonLabels: applied to ALL resources in the base.
+    # The managed-by: argocd label is used by the NSX-05 DFW rules
+    # to identify Argo CD-managed workloads — a secondary validation
+    # that the workload entered production through the GitOps pipeline.</span>
+
+<span class="yk">resources</span>:
+  - <span class="yv">deployment.yaml</span>
+  - <span class="yv">service.yaml</span>
+  - <span class="yv">hpa.yaml</span>
+  - <span class="yv">networkpolicy.yaml</span>
+  - <span class="yv">servicemonitor.yaml</span>
+  <span class="yc">  # Five resources in the base:
+    # deployment.yaml: Deployment with placeholder image and 1 replica
+    # service.yaml: ClusterIP Service on port 8080
+    # hpa.yaml: HorizontalPodAutoscaler (min/max overridden by each overlay)
+    # networkpolicy.yaml: NetworkPolicy (rules overridden by each overlay)
+    # servicemonitor.yaml: Prometheus ServiceMonitor (identical across all envs)</span>
+
+<span class="yk">images</span>:
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+    <span class="yk">newTag</span>: <span class="yv">placeholder</span>
+    <span class="yc">  # placeholder tag: the base never references a real image tag.
+        # Every overlay uses "kustomize edit set image" to replace this
+        # with the environment-appropriate image reference.
+        # Kustomize would fail to build without this images entry.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 07 OVERLAY DEV ══ -->
+<div class="page" id="page-overlay-dev">
+  <div class="ey">GITOPS-04 · Section 07</div>
+  <div class="pt">Dev overlay — single replica, relaxed limits, latest image</div>
+  <div class="ps">The dev overlay is the most permissive. Developers push images directly to Harbor with the <code>:latest</code> tag and the dev Application syncs automatically — no pipeline, no approval, no digest pinning. This environment is for rapid iteration, not stability.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">apps/payment-service/overlays/dev/kustomization.yaml</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">kustomize.config.k8s.io/v1beta1</span>
+<span class="yk">kind</span>: <span class="yv">Kustomization</span>
+
+<span class="yk">resources</span>:
+  - <span class="yv">../../base</span>
+
+<span class="yk">images</span>:
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+    <span class="yk">newTag</span>: <span class="yv">latest</span>
+    <span class="yc">  # :latest tag for dev — developers push to this tag directly for quick iteration.
+        # ACS vulnerability scan is NOT enforced in the dev namespace —
+        # developers need to test even pre-hardened builds.
+        # cosign signature is NOT enforced in dev — same reason.</span>
+
+<span class="yk">patches</span>:
+  - <span class="yk">patch</span>: <span class="yv">|-</span>
+      <span class="yv">    apiVersion: apps/v1</span>
+      <span class="yv">    kind: Deployment</span>
+      <span class="yv">    metadata:</span>
+      <span class="yv">      name: payment-service</span>
+      <span class="yv">    spec:</span>
+      <span class="yv">      replicas: 1</span>
+      <span class="yv">      template:</span>
+      <span class="yv">        spec:</span>
+      <span class="yv">          containers:</span>
+      <span class="yv">          - name: payment-service</span>
+      <span class="yv">            resources:</span>
+      <span class="yv">              requests: {cpu: 100m, memory: 256Mi}</span>
+      <span class="yv">              limits: {cpu: 500m, memory: 512Mi}</span>
+      <span class="yv">            env:</span>
+      <span class="yv">            - name: LOG_LEVEL</span>
+      <span class="yv">              value: DEBUG</span>
+      <span class="yv">            - name: ENVIRONMENT</span>
+      <span class="yv">              value: development</span>
+    <span class="yc">  # Inline strategic merge patch: set 1 replica, low resource limits, DEBUG logging.
+        # "strategic merge" means: only the specified fields are changed.
+        # Everything not mentioned (ports, liveness probes, volume mounts) is
+        # unchanged from the base Deployment. This is not a full replacement.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 08 OVERLAY STAGING ══ -->
+<div class="page" id="page-overlay-staging">
+  <div class="ey">GITOPS-04 · Section 08</div>
+  <div class="pt">Staging overlay — production-like, pipeline-updated image digest</div>
+  <div class="ps">The staging overlay mirrors production configuration as closely as possible — same resource limits, same NetworkPolicy rules, same log level — with two differences: 2 replicas instead of 3, and no PodDisruptionBudget. The image reference is a digest, updated by the Jenkins pipeline (GITOPS-03 Stage 6) after every successful build.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">apps/payment-service/overlays/staging/kustomization.yaml</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">kustomize.config.k8s.io/v1beta1</span>
+<span class="yk">kind</span>: <span class="yv">Kustomization</span>
+
+<span class="yk">resources</span>:
+  - <span class="yv">../../base</span>
+
+<span class="yk">images</span>:
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+    <span class="yk">digest</span>: <span class="yv">sha256:abc123def456789...</span>
+    <span class="yc">  # This digest line is what the Jenkins pipeline updates (kustomize edit set image).
+        # Before pipeline run: sha256:old-digest (the previous build)
+        # After pipeline run: sha256:new-digest (the current build)
+        # Git diff: exactly one line changed — the digest value.
+        # This one-line diff is the complete staging deployment change record.</span>
+
+<span class="yk">patches</span>:
+  - <span class="yk">patch</span>: <span class="yv">|-</span>
+      <span class="yv">    apiVersion: apps/v1</span>
+      <span class="yv">    kind: Deployment</span>
+      <span class="yv">    metadata:</span>
+      <span class="yv">      name: payment-service</span>
+      <span class="yv">    spec:</span>
+      <span class="yv">      replicas: 2</span>
+      <span class="yv">      template:</span>
+      <span class="yv">        spec:</span>
+      <span class="yv">          containers:</span>
+      <span class="yv">          - name: payment-service</span>
+      <span class="yv">            resources:</span>
+      <span class="yv">              requests: {cpu: 250m, memory: 512Mi}</span>
+      <span class="yv">              limits: {cpu: "1", memory: 1Gi}</span>
+      <span class="yv">            env:</span>
+      <span class="yv">            - name: LOG_LEVEL</span>
+      <span class="yv">              value: INFO</span>
+      <span class="yv">            - name: ENVIRONMENT</span>
+      <span class="yv">              value: staging</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 09 OVERLAY PROD ══ -->
+<div class="page" id="page-overlay-prod">
+  <div class="ey">GITOPS-04 · Section 09</div>
+  <div class="pt">Production overlay — PDB, resource limits, and signed image digest</div>
+  <div class="ps">The production overlay has three elements not present in staging or dev: a PodDisruptionBudget (ensuring availability during node drains), tighter WARN-level logging (reducing log volume in production to what matters for incident response), and the highest resource limits. The image digest is pinned to the cosign-signed image approved through the production MR.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">apps/payment-service/overlays/production/kustomization.yaml</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">kustomize.config.k8s.io/v1beta1</span>
+<span class="yk">kind</span>: <span class="yv">Kustomization</span>
+
+<span class="yk">resources</span>:
+  - <span class="yv">../../base</span>
+  - <span class="yv">pdb.yaml</span>
+  - <span class="yv">CODEOWNERS</span>
+  <span class="yc">  # pdb.yaml: PodDisruptionBudget — production-only resource.
+    # CODEOWNERS: not a Kubernetes resource — GitLab reads this file to enforce
+    # that platform engineers must approve any MR modifying this directory.
+    # Kustomize ignores unknown file types; listing it in resources is harmless
+    # but reminds engineers that CODEOWNERS governs this overlay.</span>
+
+<span class="yk">images</span>:
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+    <span class="yk">digest</span>: <span class="yv">sha256:abc123def456789...</span>
+    <span class="yc">  # This digest was set by the Jenkins pipeline in the production promotion MR.
+        # It references the exact image that:
+        # - Passed unit tests and SonarQube quality gate (Stage 2)
+        # - Was built by Buildah with non-root, no daemon (Stage 3)
+        # - Was signed with the NovaCrestBank cosign key (Stage 4)
+        # - Passed ACS CRITICAL CVE scan (Stage 5)
+        # - Deployed successfully to staging (Stage 6)
+        # - Passed integration tests (Stage 7)
+        # - Was reviewed and approved by a platform engineer (Stage 8 MR)</span>
+
+<span class="yk">patches</span>:
+  - <span class="yk">patch</span>: <span class="yv">|-</span>
+      <span class="yv">    apiVersion: apps/v1</span>
+      <span class="yv">    kind: Deployment</span>
+      <span class="yv">    metadata:</span>
+      <span class="yv">      name: payment-service</span>
+      <span class="yv">    spec:</span>
+      <span class="yv">      replicas: 3</span>
+      <span class="yv">      template:</span>
+      <span class="yv">        spec:</span>
+      <span class="yv">          containers:</span>
+      <span class="yv">          - name: payment-service</span>
+      <span class="yv">            resources:</span>
+      <span class="yv">              requests: {cpu: 500m, memory: 1Gi}</span>
+      <span class="yv">              limits: {cpu: "2", memory: 3Gi}</span>
+      <span class="yv">            env:</span>
+      <span class="yv">            - name: LOG_LEVEL</span>
+      <span class="yv">              value: WARN</span>
+      <span class="yv">            - name: ENVIRONMENT</span>
+      <span class="yv">              value: production</span></pre>
+    </div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">apps/payment-service/overlays/production/pdb.yaml — PodDisruptionBudget</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">policy/v1</span>
+<span class="yk">kind</span>: <span class="yv">PodDisruptionBudget</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-pdb</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-production</span>
+<span class="yk">spec</span>:
+  <span class="yk">minAvailable</span>: <span class="yn">2</span>
+  <span class="yc">  # minAvailable: 2 — at least 2 payment-service replicas must be available
+    # at all times. The 3rd replica can be disrupted during node drains
+    # (OCP upgrades — UPG-02 Section 10) without violating this PDB.
+    # If only 2 replicas are Running (one has crashed), the PDB ALLOWED-DISRUPTIONS
+    # drops to 0 — node drains are blocked until the 3rd replica recovers.
+    # This is the safety interlock: a degraded payment-service blocks maintenance
+    # that would make it more degraded.</span>
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app.kubernetes.io/name</span>: <span class="yv">payment-service</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 10 NETWORK POLICY ══ -->
+<div class="page" id="page-network-policy">
+  <div class="ey">GITOPS-04 · Section 10</div>
+  <div class="pt">NetworkPolicy per overlay — NSX DFW alignment</div>
+  <div class="ps">NovaCrestBank's network security uses two complementary controls: the NSX-05 Distributed Firewall (applied at the vSphere layer — every VM's traffic filtered before it reaches the network) and OCP NetworkPolicies (applied at the Kubernetes layer — pod-to-pod traffic within the cluster). Each overlay defines the NetworkPolicy appropriate for that environment's risk profile.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why NetworkPolicy in the config repo and not just NSX DFW rules</div>
+    <div class="decision-q">NSX-05 DFW already controls traffic between VLANs and segments. Why do the Kustomize overlays also include Kubernetes NetworkPolicy objects? Is this redundant?</div>
+    <div class="decision-a"><strong>Defence in depth: NSX DFW and Kubernetes NetworkPolicy operate at different layers and address different threats. They are complementary, not redundant.</strong><br/><br/>
+    <strong>NSX DFW operates at the VM (node) level.</strong> It controls traffic between OCP nodes — for example, between the worker VLAN and the infra VLAN, or between the OCP overlay segment and the management segment. NSX DFW does not have visibility into individual Kubernetes pod identities (pod labels, namespace, ServiceAccount). It sees: "traffic from this worker node's IP to this other worker node's IP on this port." If two pods on the same worker node communicate, NSX DFW cannot distinguish between them — the traffic never leaves the node's virtual switch.<br/><br/>
+    <strong>Kubernetes NetworkPolicy operates at the pod level.</strong> It controls traffic based on pod label selectors and namespace selectors — "allow traffic from pods with label app=fraud-detection to pods with label app=payment-service on port 8080." This is intra-node pod-to-pod control that NSX DFW cannot provide. A compromised pod on the same worker node as the payment-service could attempt lateral movement to the payment-service API without NSX DFW seeing it. NetworkPolicy blocks this.<br/><br/>
+    <strong>The overlay model enables environment-specific policies:</strong> dev uses a permissive NetworkPolicy (easier debugging), staging and production use strict policies (same rules — consistency). The NetworkPolicy is in the config repo and managed by Argo CD — changes require the same MR and approval process as any other production change, providing an audit trail for network policy changes that NSX DFW policy changes alone might not provide.</div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">apps/payment-service/base/networkpolicy.yaml — production-grade NetworkPolicy</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-netpol</span>
+<span class="yk">spec</span>:
+  <span class="yk">podSelector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app.kubernetes.io/name</span>: <span class="yv">payment-service</span>
+  <span class="yk">policyTypes</span>: [<span class="yv">Ingress</span>, <span class="yv">Egress</span>]
+
+  <span class="yk">ingress</span>:
+    - <span class="yk">from</span>:
+        - <span class="yk">namespaceSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">kubernetes.io/metadata.name</span>: <span class="yv">openshift-ingress</span>
+      <span class="yk">ports</span>: [{<span class="yk">port</span>: <span class="yn">8080</span>}]
+      <span class="yc">      # Allow: OCP Router (in openshift-ingress namespace) → payment-service on 8080.
+              # This is how HTTPS traffic from external clients reaches the payment-service.
+              # The OCP Router terminates TLS at the Route and forwards plain HTTP to port 8080.</span>
+
+    - <span class="yk">from</span>:
+        - <span class="yk">podSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">app.kubernetes.io/name</span>: <span class="yv">fraud-detection-service</span>
+      <span class="yk">ports</span>: [{<span class="yk">port</span>: <span class="yn">8080</span>}]
+      <span class="yc">      # Allow: fraud-detection-service → payment-service.
+              # Fraud detection needs to call the payment-service API to enrich
+              # fraud signals with payment context. Scoped to the fraud-detection pod label.</span>
+
+    - <span class="yk">from</span>:
+        - <span class="yk">namespaceSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">kubernetes.io/metadata.name</span>: <span class="yv">openshift-monitoring</span>
+      <span class="yk">ports</span>: [{<span class="yk">port</span>: <span class="yn">8080</span>, <span class="yk">protocol</span>: <span class="yv">TCP</span>}]
+      <span class="yc">      # Allow: Prometheus (in openshift-monitoring) → payment-service on 8080.
+              # Prometheus scrapes the /actuator/prometheus endpoint for metrics.
+              # Without this, the ServiceMonitor would create scrape targets that
+              # Prometheus cannot reach — silent metric collection failure.</span>
+
+  <span class="yk">egress</span>:
+    - <span class="yk">to</span>:
+        - <span class="yk">namespaceSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">kubernetes.io/metadata.name</span>: <span class="yv">banking-production</span>
+          <span class="yk">podSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">app.kubernetes.io/name</span>: <span class="yv">account-service</span>
+      <span class="yk">ports</span>: [{<span class="yk">port</span>: <span class="yn">8080</span>}]
+      <span class="yc">      # Allow: payment-service → account-service (same namespace, pod label scoped).
+              # Payment processing calls the account-service to validate account status.</span>
+
+    - <span class="yk">to</span>:
+        - <span class="yk">namespaceSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">kubernetes.io/metadata.name</span>: <span class="yv">openshift-dns</span>
+      <span class="yk">ports</span>: [{<span class="yk">port</span>: <span class="yn">53</span>, <span class="yk">protocol</span>: <span class="yv">UDP</span>}]
+      <span class="yc">      # Allow: payment-service → CoreDNS for service discovery.
+              # Without DNS egress, the payment-service cannot resolve
+              # account-service.banking-production.svc.cluster.local.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 11 SYNC WAVES CONCEPT ══ -->
+<div class="page" id="page-sync-waves-concept">
+  <div class="ey">GITOPS-04 · Section 11</div>
+  <div class="pt">Sync waves — controlling deployment order within a sync operation</div>
+  <div class="ps">When Argo CD syncs an Application, by default it applies all resources simultaneously. Sync waves introduce ordering: resources in wave 0 must be Healthy before wave 1 begins, wave 1 before wave 2, and so on. NovaCrestBank uses sync waves to ensure database schema migrations complete before new application pods start.</div>
+
+  <div class="decision">
+    <div class="decision-label">The database migration problem — why sync waves solve what init containers cannot</div>
+    <div class="decision-q">When the payment-service is updated to a new version that requires a database schema migration, what is the risk if both the migration job and the new Deployment pods start simultaneously?</div>
+    <div class="decision-a"><strong>The risk is a race condition: if a new payment-service pod starts and connects to the database before the schema migration has added the required new column or table, the pod fails with a database error — "column 'payment_rail' does not exist." This is a production outage during a deployment.</strong><br/><br/>
+    <strong>Init containers:</strong> An init container on the payment-service pod that runs the migration before the application starts would solve the per-pod sequencing — but has two problems. First, if 3 replicas start simultaneously, all 3 run the migration in parallel — causing database lock contention. Second, the migration runs as part of the Deployment rollout, not as a separate, auditable Job — the migration is harder to observe, retry independently, and report on for change management purposes.<br/><br/>
+    <strong>Sync waves:</strong> The migration Job is in wave 0. The Deployment is in wave 1. Argo CD applies wave 0 (the migration Job), waits for the Job to report Succeeded, then applies wave 1 (the Deployment). The migration runs exactly once, to completion, before any application pod starts. If the migration fails (database error, timeout), wave 1 never starts — the current production Deployment remains running with the old schema and old application version. The deployment fails cleanly without a partial state.<br/><br/>
+    <strong>When sync waves are NOT needed:</strong> If a release has no schema changes, the migration Job does not exist in the config repo (no migration, no Job). Argo CD has nothing to wait for. The Deployment wave-1 annotation is still present but wave 0 is empty — Argo CD proceeds directly to wave 1. Sync waves have zero overhead when the wave 0 resources are absent.</div>
+  </div>
+</div>
+
+<!-- ══ 12 SYNC WAVES PAYMENT ══ -->
+<div class="page" id="page-sync-waves-payment">
+  <div class="ey">GITOPS-04 · Section 12</div>
+  <div class="pt">Payment-service sync wave configuration — database migration first</div>
+  <div class="ps">The payment-service production sync is ordered across four waves. Namespaced infrastructure (ConfigMaps, Secrets managed by External Secrets) must exist before the migration runs. The migration must complete before the application Deployment starts. The HPA is applied last because it depends on the Deployment existing.</div>
+
+  <div class="wave-timeline">
+    <div class="wt-row wt-w0">
+      <div class="wt-wave">Wave -1</div>
+      <div class="wt-resource">ExternalSecret</div>
+      <div class="wt-desc">External Secrets Operator populates the database credentials Secret from CyberArk. Must exist before the migration Job or application pods attempt to connect to the database. Wave -1 (negative) ensures this runs before anything else, including any wave 0 resources.</div>
+    </div>
+    <div class="wt-row wt-w1">
+      <div class="wt-wave">Wave 0</div>
+      <div class="wt-resource">Job (db-migrate)</div>
+      <div class="wt-desc">The database migration Job runs Flyway (or Liquibase) to apply any pending schema migrations. Argo CD waits for this Job to reach <code>status.conditions[type=Complete]</code> before starting wave 1. If the Job fails (migration error), Argo CD marks the sync as Failed and alerts. Wave 0 timing: typically 10–60 seconds for migration jobs.</div>
+    </div>
+    <div class="wt-row wt-w2">
+      <div class="wt-wave">Wave 1</div>
+      <div class="wt-resource">Deployment, Service, NetworkPolicy, PDB</div>
+      <div class="wt-desc">The new application Deployment starts after the migration completes. Argo CD performs a rolling update — new pods start using the updated schema, old pods (on the old schema, still compatible due to backward-compatible migration design) continue running until the rolling update completes. Service and NetworkPolicy exist before new pods receive traffic. PDB ensures the rolling update respects minimum availability.</div>
+    </div>
+    <div class="wt-row wt-w3">
+      <div class="wt-wave">Wave 2</div>
+      <div class="wt-resource">HorizontalPodAutoscaler</div>
+      <div class="wt-desc">The HPA is applied after the Deployment exists and is Healthy. Applying the HPA before the Deployment exists would cause an HPA validation error (HPA references a Deployment that does not yet exist). Wave 2 ensures the target resource exists before the HPA that scales it is created.</div>
+    </div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">Sync wave annotations — applied to each resource</span></div>
+    <div class="yaml-body"><pre><span class="yc"># ExternalSecret — wave -1 (runs before everything)</span>
+<span class="yk">metadata</span>:
+  <span class="yk">annotations</span>:
+    <span class="yk">argocd.argoproj.io/sync-wave</span>: <span class="yv">"-1"</span>
+
+<span class="ys">---</span>
+<span class="yc"># db-migrate Job — wave 0 (runs before Deployment)</span>
+<span class="yk">apiVersion</span>: <span class="yv">batch/v1</span>
+<span class="yk">kind</span>: <span class="yv">Job</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-db-migrate</span>
+  <span class="yk">annotations</span>:
+    <span class="yk">argocd.argoproj.io/sync-wave</span>: <span class="yv">"0"</span>
+    <span class="yk">argocd.argoproj.io/hook</span>: <span class="yv">Sync</span>
+    <span class="yk">argocd.argoproj.io/hook-delete-policy</span>: <span class="yv">BeforeHookCreation</span>
+    <span class="yc">    # hook: Sync — this Job is an Argo CD sync hook, not a regular resource.
+          # Sync hooks run during sync and are tracked to completion.
+          # hook-delete-policy: BeforeHookCreation — delete the old migration Job
+          # before creating the new one. Without this, if the Job name is the same
+          # across deployments, Argo CD cannot create the new Job because the old
+          # completed Job still exists (Jobs are immutable once completed).</span>
+<span class="yk">spec</span>:
+  <span class="yk">backoffLimit</span>: <span class="yn">3</span>
+  <span class="yc">  # 3 retries: if the migration fails transiently (database temporarily unavailable),
+    # Kubernetes retries up to 3 times. Only a sustained failure stops the wave.</span>
+  <span class="yk">template</span>:
+    <span class="yk">spec</span>:
+      <span class="yk">restartPolicy</span>: <span class="yv">OnFailure</span>
+      <span class="yk">containers</span>:
+        - <span class="yk">name</span>: <span class="yv">db-migrate</span>
+          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service@sha256:abc123</span>
+          <span class="yc">          # Same image as the Deployment — the migration is packaged with the application.
+                      # Running: java -jar payment-service.jar db migrate (Flyway CLI command)</span>
+          <span class="yk">command</span>: [<span class="yv">java</span>, <span class="yv">-jar</span>, <span class="yv">/app/payment-service.jar</span>, <span class="yv">db</span>, <span class="yv">migrate</span>]
+
+<span class="ys">---</span>
+<span class="yc"># Deployment — wave 1 (runs after migration Job completes)</span>
+<span class="yk">metadata</span>:
+  <span class="yk">annotations</span>:
+    <span class="yk">argocd.argoproj.io/sync-wave</span>: <span class="yv">"1"</span>
+
+<span class="ys">---</span>
+<span class="yc"># HorizontalPodAutoscaler — wave 2 (runs after Deployment is healthy)</span>
+<span class="yk">metadata</span>:
+  <span class="yk">annotations</span>:
+    <span class="yk">argocd.argoproj.io/sync-wave</span>: <span class="yv">"2"</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 13 HEALTH CHECKS ══ -->
+<div class="page" id="page-health-checks">
+  <div class="ey">GITOPS-04 · Section 13</div>
+  <div class="pt">Health checks — what Argo CD considers Healthy and why it matters</div>
+  <div class="ps">Argo CD evaluates the health of each resource it manages. A resource is Healthy only when it meets specific conditions. The Application's overall health is the worst health of all its resources. An OutOfSync or Degraded Application is immediately visible in the Argo CD UI and triggers a notification.</div>
+
+  <table>
+    <thead><tr><th>Resource type</th><th>Argo CD health condition</th><th>Degraded when</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Deployment</strong></td>
+        <td>Healthy when <code>availableReplicas >= desiredReplicas</code></td>
+        <td>Any replica is in CrashLoopBackOff, ImagePullBackOff, or Pending (resource exhaustion). Progressing during a rolling update — not Degraded, but not Healthy until the rollout completes.</td>
+      </tr>
+      <tr>
+        <td><strong>Job (migration)</strong></td>
+        <td>Healthy when <code>status.succeeded >= 1</code></td>
+        <td>Job failed (all retries exhausted). Argo CD marks the sync as Failed and stops wave progression. The Application shows Degraded and the sync failure triggers the GitLab notification webhook.</td>
+      </tr>
+      <tr>
+        <td><strong>HorizontalPodAutoscaler</strong></td>
+        <td>Healthy when <code>currentReplicas >= minReplicas</code></td>
+        <td>HPA cannot scale (target resource not found, metrics server unavailable). This is a common source of false Degraded status after a fresh deploy — the HPA may briefly show Degraded before the metrics server has seen the new pods.</td>
+      </tr>
+      <tr>
+        <td><strong>PodDisruptionBudget</strong></td>
+        <td>Always Healthy (PDB is a policy object, not a controller)</td>
+        <td>N/A — the PDB's <code>disruptionsAllowed</code> field is informational. Argo CD does not mark a PDB Degraded even when <code>disruptionsAllowed=0</code>. The OCP upgrade controller respects the PDB regardless.</td>
+      </tr>
+      <tr>
+        <td><strong>ExternalSecret</strong></td>
+        <td>Healthy when the Secret it manages exists and was recently synced</td>
+        <td>CyberArk unreachable, secret path not found, or sync interval exceeded. A Degraded ExternalSecret means the Kubernetes Secret may be stale or missing — the application pods may fail to start if they depend on this Secret.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 14 CUSTOM HEALTH ══ -->
+<div class="page" id="page-custom-health">
+  <div class="ey">GITOPS-04 · Section 14</div>
+  <div class="pt">Custom health checks for banking workloads</div>
+  <div class="ps">Argo CD's built-in health checks cover standard Kubernetes resources. For NovaCrestBank's banking workloads, a custom health check evaluates the payment-service's Spring Boot Actuator health endpoint — ensuring Argo CD considers the Application Healthy only when the application itself reports healthy, not just when Kubernetes says the pod is Running.</div>
+
+  <div class="callout why">
+    <div class="cl">Why a Running pod does not always mean a Healthy application</div>
+    A Kubernetes pod transitions to Running when its containers start — when the process starts, not when the application inside it is ready to serve requests. A Spring Boot application starting with a large classpath and database connection pool initialisation takes 30–60 seconds from container start to first API response. Argo CD's default Deployment health check considers the Deployment Healthy when <code>availableReplicas = desiredReplicas</code> — which counts Running pods, not Ready pods. With a custom health check that queries the actuator endpoint, Argo CD waits until the application actually reports <code>{"status":"UP"}</code> before marking the Application Healthy. This is the correct signal for banking applications where "Healthy in Argo CD" should mean "ready to process payments," not "container process started."
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">argocd-cm ConfigMap patch — custom health check for payment-service Deployment</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
+<span class="yk">kind</span>: <span class="yv">ConfigMap</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">argocd-cm</span>
+  <span class="yk">namespace</span>: <span class="yv">gitops</span>
+<span class="yk">data</span>:
+  <span class="yk">resource.customizations.health.apps_Deployment</span>: <span class="yv">|</span>
+    <span class="yv">    hs = {}</span>
+    <span class="yv">    hs.status = "Progressing"</span>
+    <span class="yv">    hs.message = "Waiting for deployment rollout"</span>
+    <span class="yv">    if obj.status ~= nil then</span>
+    <span class="yv">      if obj.status.availableReplicas ~= nil then</span>
+    <span class="yv">        if obj.status.availableReplicas == obj.spec.replicas then</span>
+    <span class="yv">          if obj.status.updatedReplicas == obj.spec.replicas then</span>
+    <span class="yv">            hs.status = "Healthy"</span>
+    <span class="yv">            hs.message = "All replicas updated and available"</span>
+    <span class="yv">          end</span>
+    <span class="yv">        end</span>
+    <span class="yv">      end</span>
+    <span class="yv">    end</span>
+    <span class="yv">    return hs</span>
+    <span class="yc">  # Lua script: Argo CD evaluates this Lua script to determine Deployment health.
+        # Healthy only when: availableReplicas = spec.replicas AND updatedReplicas = spec.replicas.
+        # This means: all replicas are running the new version AND all replicas are available.
+        # During a rolling update: updatedReplicas < spec.replicas → Progressing (not Healthy).
+        # This prevents Argo CD from marking the Application Healthy mid-rollout.</span>
+
+  <span class="yk">resource.customizations.ignoreDifferences</span>: <span class="yv">|</span>
+    <span class="yv">    - group: apps</span>
+    <span class="yv">      kind: Deployment</span>
+    <span class="yv">      jsonPointers:</span>
+    <span class="yv">      - /spec/replicas</span>
+    <span class="yc">  # Global ignoreDifferences matching the ApplicationSet template setting.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 15 ARGO UI OVERVIEW ══ -->
+<div class="page" id="page-argo-ui-overview">
+  <div class="ey">GITOPS-04 · Section 15</div>
+  <div class="pt">The Argo CD web UI — navigating the application tree</div>
+  <div class="ps">The Argo CD web UI is the primary operational dashboard for the banking platform's deployment state. It shows all Applications, their sync status, health status, and resource trees. This section maps what a developer or platform engineer sees when they open the UI and explains every status indicator.</div>
+
+  <div class="argo-ui">
+    <div class="argo-ui-bar">
+      <span class="argo-ui-title">ARGO CD</span>
+      <span style="font-size:11px;color:#aaaacc;">Applications</span>
+      <span class="argo-ui-breadcrumb">argocd-server-gitops.apps.ocp.corp.novacrestbank.com</span>
+    </div>
+
+    <div style="padding:10px 16px;background:var(--bg3);border-bottom:0.5px solid var(--border);font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;">
+      Project: banking-apps · 15 Applications (5 services × 3 environments)
+    </div>
+
+    <div class="argo-app-row">
+      <div class="argo-status-dot dot-synced"></div>
+      <div class="argo-app-name">payment-service-production</div>
+      <div class="argo-app-meta">banking-production · main@a1b2c3d4 · Synced 2h ago</div>
+      <span class="argo-health health-healthy">Healthy</span>
+    </div>
+    <div class="argo-app-row">
+      <div class="argo-status-dot dot-synced"></div>
+      <div class="argo-app-name">payment-service-staging</div>
+      <div class="argo-app-meta">banking-staging · main@e5f6a7b8 · Synced 45min ago</div>
+      <span class="argo-health health-healthy">Healthy</span>
+    </div>
+    <div class="argo-app-row">
+      <div class="argo-status-dot dot-progressing"></div>
+      <div class="argo-app-name">payment-service-dev</div>
+      <div class="argo-app-meta">banking-dev · main@HEAD · Syncing now</div>
+      <span class="argo-health health-progressing">Progressing</span>
+    </div>
+    <div class="argo-app-row">
+      <div class="argo-status-dot dot-synced"></div>
+      <div class="argo-app-name">account-service-production</div>
+      <div class="argo-app-meta">banking-production · main@c3d4e5f6 · Synced 1d ago</div>
+      <span class="argo-health health-healthy">Healthy</span>
+    </div>
+    <div class="argo-app-row">
+      <div class="argo-status-dot dot-outofsync"></div>
+      <div class="argo-app-name">fraud-detection-service-production</div>
+      <div class="argo-app-meta">banking-production · main@f7a8b9c0 · Out of Sync</div>
+      <span class="argo-health health-healthy">Healthy</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:12px;">Reading the status indicators</p>
+    <div class="spec-row"><span class="spec-label"><span class="badge bg">Synced + Healthy</span></span><span class="spec-val">The cluster state matches the config repo exactly, and all resources are operating normally. This is the desired state for all environments.</span></div>
+    <div class="spec-row"><span class="spec-label"><span class="badge ba">Progressing</span></span><span class="spec-val">A sync is in progress — resources are being applied. For a Deployment: a rolling update is underway. For a Job: the migration is running. Normal and expected during a deployment.</span></div>
+    <div class="spec-row"><span class="spec-label"><span class="badge ba" style="background:#fdf0ea;color:#7a3800;">OutOfSync + Healthy</span></span><span class="spec-val">The cluster state differs from the config repo, but the running application is healthy. Most common cause: the Jenkins pipeline has committed a new image digest to the config repo but Argo CD's sync cycle has not yet run. For production (manual sync): this is the normal state after the MR merges — the application is healthy at the old version until a platform engineer triggers the manual sync.</span></div>
+    <div class="spec-row"><span class="spec-label"><span class="badge br">Degraded</span></span><span class="spec-val">A resource is unhealthy — CrashLoopBackOff, ImagePullBackOff, failed Job, or ExternalSecret error. This requires immediate investigation. The Argo CD UI shows which specific resource is Degraded and links to the pod events and logs.</span></div>
+  </div>
+</div>
+
+<!-- ══ 16 DEVELOPER ROLLOUT ══ -->
+<div class="page" id="page-developer-rollout">
+  <div class="ey">GITOPS-04 · Section 16</div>
+  <div class="pt">How a developer watches their application roll out in real time</div>
+  <div class="ps">When the production promotion MR is merged and a platform engineer triggers the Argo CD sync, the developer can watch every step of the deployment in real time — from the migration Job starting to each pod rolling through the update — without any cluster access beyond Argo CD read-only.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--argo);">
+      <div class="layer-num">1</div>
+      <div class="layer-title">Application goes OutOfSync (immediately after MR merge)</div>
+      <div class="layer-desc">When the production MR merges, the config repo's main branch has a new commit. Argo CD detects this within 3 minutes (polling) or immediately (webhook). The payment-service-production Application changes from Synced (green dot) to OutOfSync (orange dot). The Health remains Healthy — the production Deployment is still running the old version. The developer sees this in the Argo CD UI and knows the new version is queued for production.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
+      <div class="layer-num">2</div>
+      <div class="layer-title">Platform engineer triggers manual sync</div>
+      <div class="layer-desc">A platform engineer opens the payment-service-production Application in the Argo CD UI (or runs <code>argocd app sync payment-service-production</code>). They review the diff shown by Argo CD (the same one-line image digest change from the MR) and confirm the sync. The Application transitions to Progressing.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--purple);">
+      <div class="layer-num">3</div>
+      <div class="layer-title">Wave -1: ExternalSecret syncs</div>
+      <div class="layer-desc">The developer can see the resource tree in the Argo CD UI update in real time. The ExternalSecret (wave -1) shows a green Healthy checkmark first. If the ExternalSecret was already current, this completes in seconds and wave 0 begins.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num">4</div>
+      <div class="layer-title">Wave 0: migration Job runs</div>
+      <div class="layer-desc">The db-migrate Job appears in the resource tree as a new resource (yellow Running dot). The developer can click it, see the pod it created, and click through to the pod logs — watching the Flyway migration output in real time through the Argo CD UI. When the Job completes successfully, it shows a green Succeeded checkmark and wave 1 begins.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num">5</div>
+      <div class="layer-title">Wave 1: rolling Deployment update</div>
+      <div class="layer-desc">The Deployment shows Progressing in the resource tree. The developer can see the individual ReplicaSet nodes expand — the old ReplicaSet (3 pods, shrinking) and the new ReplicaSet (growing from 0 to 3). Each new pod shows its status: Pending → Running. When all 3 new pods are Running and all 3 old pods have terminated, the Deployment turns Healthy. Wave 2 begins.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--argo);">
+      <div class="layer-num">6</div>
+      <div class="layer-title">Wave 2: HPA applied, Application Synced and Healthy</div>
+      <div class="layer-desc">The HPA is applied (or updated if it already existed) and turns Healthy. The Application status transitions from Progressing to Synced + Healthy (green dot, green health badge). The developer sees the final state: all resources green, the Application at the new commit SHA, and the new image digest visible in the Deployment's container spec when they click through. The deployment is complete — from MR merge to Synced+Healthy took approximately 3–5 minutes.</div>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">Developer watching the rollout via CLI (alternative to UI)</span></div>
+    <div class="term-body"><pre><span class="td"># Watch Application status in real time — the CLI equivalent of the Argo CD UI</span>
+<span class="tp">[alice.smith@jumphost ~]$</span> <span class="tc">argocd app get payment-service-production --watch</span>
+<span class="tg">Name:               payment-service-production
+Project:            banking-apps
+Server:             https://kubernetes.default.svc
+Namespace:          banking-production
+URL:                https://argocd-server-gitops.apps.ocp.corp.novacrestbank.com/applications/payment-service-production
+Repo:               git@gitlab.corp.novacrestbank.com:gitops/banking-config.git
+Target:             HEAD
+Path:               apps/payment-service/overlays/production
+Sync Policy:        Manual
+Sync Status:        Syncing (to a1b2c3d4)
+Health Status:      Progressing
+
+RESOURCE             KIND        NAMESPACE          STATUS     HEALTH    HOOK   MESSAGE
+payment-service-pdb  PodDisr..   banking-production Synced     Healthy          pdb created
+payment-svc-db-mig   Job         banking-production Synced     Healthy   Sync   migration complete
+payment-service      Deployment  banking-production Synced     Progressing      Waiting for rollout
+payment-service-hpa  HPA         banking-production Synced     Healthy</span>
+<span class="td">  [after rolling update completes]</span>
+<span class="tg">Sync Status:        Synced (to a1b2c3d4)
+Health Status:      Healthy
+
+RESOURCE             KIND        NAMESPACE          STATUS     HEALTH
+payment-service      Deployment  banking-production Synced     Healthy
+payment-service-hpa  HPA         banking-production Synced     Healthy
+payment-svc-db-mig   Job         banking-production Succeeded  Healthy  Sync
+payment-service-pdb  PodDisr..   banking-production Synced     Healthy</span>
+    <div class="tann ok"><span class="tai">✓</span><span>payment-service-production Synced and Healthy. All resources at the new revision. Migration Job Succeeded. Rolling update complete. Production is running the new image.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 17 SYNC POLICY ══ -->
+<div class="page" id="page-sync-policy">
+  <div class="ey">GITOPS-04 · Section 17</div>
+  <div class="pt">Sync policy — automated vs manual, self-heal, and prune explained</div>
+  <div class="ps">The ApplicationSet generator list sets different sync policies for each environment. The combination of <code>automated</code>, <code>selfHeal</code>, and <code>prune</code> determines how aggressively Argo CD enforces the config repo's desired state against the cluster's actual state.</div>
+
+  <table>
+    <thead><tr><th>Setting</th><th>dev</th><th>staging</th><th>production</th><th>What it controls</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>automated</strong></td>
+        <td><span class="badge bg">true</span></td>
+        <td><span class="badge bg">true</span></td>
+        <td><span class="badge br">false (manual)</span></td>
+        <td>Whether Argo CD automatically syncs when it detects the config repo has changed. If false, Argo CD detects the change and shows OutOfSync but waits for a human to trigger the sync.</td>
+      </tr>
+      <tr>
+        <td><strong>selfHeal</strong></td>
+        <td><span class="badge bg">true</span></td>
+        <td><span class="badge bg">true</span></td>
+        <td><span class="badge br">false</span></td>
+        <td>Whether Argo CD automatically reverts cluster-side changes that differ from the config repo. If a developer <code>kubectl edit</code>s a resource in dev, Argo CD reverts it within 3 minutes. In production, selfHeal=false means drift is detected and alerted — not auto-reverted.</td>
+      </tr>
+      <tr>
+        <td><strong>prune</strong></td>
+        <td><span class="badge bg">true</span></td>
+        <td><span class="badge bg">true</span></td>
+        <td><span class="badge br">false</span></td>
+        <td>Whether Argo CD deletes cluster resources that no longer exist in the config repo. If prune=false in production and a ConfigMap is removed from the config repo, Argo CD marks the Application OutOfSync but does NOT delete the ConfigMap until a manual sync with prune explicitly enabled is performed.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <div class="cl">Never enable automated sync with prune=true in production</div>
+    If <code>automated: true</code> and <code>prune: true</code> are set for the production Application, and a developer accidentally deletes a resource from the production overlay in the config repo (or commits a rename that Kustomize interprets as a deletion), Argo CD automatically deletes that resource from the production cluster — immediately, without human confirmation. For a banking production environment, this is an unacceptable risk. Production sync must be manual: a human reviews the diff (including any resource deletions), confirms the intent, and explicitly triggers the sync.
+  </div>
+</div>
+
+<!-- ══ 18 ARGO RBAC ══ -->
+<div class="page" id="page-argo-rbac">
+  <div class="ey">GITOPS-04 · Section 18</div>
+  <div class="pt">Argo CD RBAC — who can sync, who can delete, who reads only</div>
+  <div class="ps">Argo CD has its own RBAC system, separate from Kubernetes RBAC. It controls who can view Applications, who can trigger syncs, who can delete Applications, and who can modify Argo CD settings. NovaCrestBank maps AD groups to Argo CD roles.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">argocd-rbac-cm ConfigMap — Argo CD RBAC policy</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
+<span class="yk">kind</span>: <span class="yv">ConfigMap</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">argocd-rbac-cm</span>
+  <span class="yk">namespace</span>: <span class="yv">gitops</span>
+<span class="yk">data</span>:
+  <span class="yk">policy.default</span>: <span class="yv">role:readonly</span>
+  <span class="yc">  # Default role for all authenticated users: readonly.
+    # Any AD user who authenticates to Argo CD (via OCP OAuth) gets read access
+    # to all Applications by default. They can see what is deployed but cannot
+    # trigger syncs or delete anything.</span>
+
+  <span class="yk">policy.csv</span>: <span class="yv">|</span>
+    <span class="yc">    # Platform engineers: full admin on all banking-apps project Applications</span>
+    <span class="yv">    p, role:platform-engineer, applications, *, banking-apps/*, allow</span>
+    <span class="yv">    p, role:platform-engineer, repositories, *, *, allow</span>
+    <span class="yv">    p, role:platform-engineer, clusters, get, *, allow</span>
+    <span class="yc">    # applications, * : create, get, update, delete, sync, override, action/*</span>
+    <span class="yc">    # Platform engineers can trigger manual syncs for production.</span>
+
+    <span class="yc">    # Banking developers: read-only on banking-apps Applications</span>
+    <span class="yv">    p, role:banking-developer, applications, get, banking-apps/*, allow</span>
+    <span class="yv">    p, role:banking-developer, applications, sync, banking-apps/*-dev, allow</span>
+    <span class="yc">    # Developers can view all Applications and trigger syncs ONLY for dev Applications.
+          # They cannot sync staging or production — even staging syncs are automated
+          # by the pipeline. A developer cannot force-sync production.</span>
+
+    <span class="yc">    # AD group to Argo CD role mapping</span>
+    <span class="yv">    g, NovaCrestBank-Platform-Engineers, role:platform-engineer</span>
+    <span class="yv">    g, NovaCrestBank-Banking-Developers, role:banking-developer</span>
+    <span class="yc">    # Argo CD reads group membership from the OIDC/OAuth token claims.
+          # OCP OAuth includes AD group memberships in the token.
+          # Platform engineers who are in NovaCrestBank-Platform-Engineers
+          # automatically receive the role:platform-engineer Argo CD role.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 19 CHECKLIST ══ -->
+<div class="page" id="page-checklist">
+  <div class="ey">GITOPS-04 · Section 19</div>
+  <div class="pt">Checklist — all three environments Synced and Healthy</div>
+  <div class="ps">The ApplicationSet is deployed, all three environments are running and healthy, sync policies are correct for each environment, and the developer rollout workflow is confirmed. GITOPS-05 adds the final piece: External Secrets Operator pulling database credentials from CyberArk so secrets never live in Git.</div>
+
+  <div class="callout success">
+    <div class="cl">GITOPS-04 complete — multi-environment GitOps deployment is fully operational</div>
+    Five banking microservices are deployed to three environments (dev, staging, production) via a single ApplicationSet per service. Kustomize overlays provide environment-specific configuration — replica counts, resource limits, image references, PodDisruptionBudgets — without duplicating the base manifests. Sync waves ensure database migrations complete before application pods start. Production deploys require manual sync after the pipeline's MR is merged. Developers can watch every step of their deployment in the Argo CD UI without any direct cluster access.
+  </div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">ApplicationSet objects created (5 microservices)</span><span class="spec-val"><span class="badge bargo">□ Verify</span> oc get applicationsets -n gitops — 5 ApplicationSets present</span></div>
+    <div class="spec-row"><span class="spec-label">15 Applications generated (5 × 3 environments)</span><span class="spec-val"><span class="badge bargo">□ Verify</span> argocd app list — 15 Applications in banking-apps project</span></div>
+    <div class="spec-row"><span class="spec-label">Dev Applications — automated sync, selfHeal, prune</span><span class="spec-val"><span class="badge bg">✓</span> All 5 dev Applications Synced and Healthy · automated</span></div>
+    <div class="spec-row"><span class="spec-label">Staging Applications — automated sync, pipeline-driven image digest</span><span class="spec-val"><span class="badge bg">✓</span> All 5 staging Applications Synced and Healthy · pipeline commits update digest</span></div>
+    <div class="spec-row"><span class="spec-label">Production Applications — manual sync, selfHeal=false</span><span class="spec-val"><span class="badge bg">✓</span> All 5 production Applications Synced and Healthy · manual sync confirmed working</span></div>
+    <div class="spec-row"><span class="spec-label">HPA ignoreDifferences configured</span><span class="spec-val"><span class="badge bg">✓</span> HPA scale events do not trigger OutOfSync alerts</span></div>
+    <div class="spec-row"><span class="spec-label">Sync wave ordering verified</span><span class="spec-val"><span class="badge bargo">□ Verify</span> Deploy a test migration Job — confirm wave 0 completes before wave 1 starts</span></div>
+    <div class="spec-row"><span class="spec-label">Argo CD RBAC — banking-developers read-only on production</span><span class="spec-val"><span class="badge bg">✓</span> oc auth can-i — verified developers cannot sync production</span></div>
+    <div class="spec-row"><span class="spec-label">Argo CD Notifications — sync failure → GitLab comment</span><span class="spec-val"><span class="badge bargo">□ Test</span> Trigger a deliberate sync failure — confirm GitLab notification fires</span></div>
+    <div class="spec-row"><span class="spec-label">NetworkPolicy per overlay — dev permissive, staging/prod strict</span><span class="spec-val"><span class="badge bg">✓</span> oc get networkpolicy -n banking-production — strict ingress/egress rules active</span></div>
+  </div>
+
+  <h2>What GITOPS-05 adds</h2>
+  <p>Every wave -1 ExternalSecret in the sync wave configuration (Section 12) depends on the External Secrets Operator being installed and configured to talk to CyberArk. GITOPS-05 installs the External Secrets Operator, creates the SecretStore pointing at CyberArk Conjur, and deploys ExternalSecret objects for every database credential and API key used by the banking microservices. Without GITOPS-05, the ExternalSecret objects in the production overlays remain unreconciled — the Kubernetes Secrets they should create never appear, and the application pods fail to start with missing Secret mount errors.</p>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

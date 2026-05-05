@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OCP-OPS-02 — Cert-Manager Operator · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --ocp-red:#cc0000;--ocp-red-bg:#fff0f0;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ocp-red);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--ocp-red);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--ocp-red);}
+  .pbadge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ocp-red);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--ocp-red);}
+  .callout{border-left:3px solid var(--ocp-red);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.blue{border-left-color:var(--accent);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.blue .cl{color:var(--accent);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.blue):not(.why) .cl{color:var(--ocp-red);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:22px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--ocp-red);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:230px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--ocp-red);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+  .yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;}
+  .yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #30363d;}
+  .yaml-dot{width:10px;height:10px;border-radius:50%;}
+  .yaml-dot.r{background:#ff5f57;}.yaml-dot.y{background:#febc2e;}.yaml-dot.g{background:#28c840;}
+  .yaml-label{font-size:11px;color:#8b949e;margin-left:6px;}
+  .yaml-body{padding:14px 18px;overflow-x:auto;}
+  .yaml-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;color:#c9d1d9;}
+  .yk{color:#7ee787;}.yv{color:#a5d6ff;}.yn{color:#f8c555;}
+  .yc{color:#8b949e;}.ys{color:#ff7b72;}.yb{color:#d2a8ff;}
+  .term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #333;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.65;}
+  .term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #333;}
+  .term-label{font-size:11px;color:#666;margin-left:6px;}
+  .term-body{padding:14px 18px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#608b7a;}.tw{color:#cca700;}
+  .tann{display:flex;gap:9px;background:#111;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#ccc;line-height:1.5;}
+  .tann.ok{border-left-color:#4ccd99;}.tann.info{border-left-color:#4da8da;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .layer-stack{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .layer{display:flex;align-items:flex-start;gap:14px;padding:13px 18px;
+    border-radius:var(--r2);border:0.5px solid var(--border2);}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:180px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  .flow-row{display:flex;align-items:center;gap:0;margin:20px 0;flex-wrap:wrap;}
+  .flow-box{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--r2);
+    padding:10px 14px;font-size:12px;font-weight:600;text-align:center;min-width:100px;}
+  .flow-box.hi{background:var(--ocp-red);color:#fff;border-color:var(--ocp-red);}
+  .flow-box.hl{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .flow-box.hg{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+  .flow-arrow{color:var(--text3);font-size:16px;padding:0 5px;flex-shrink:0;}
+  .cert-lifecycle{display:flex;flex-direction:column;gap:0;margin:18px 0;
+    border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+  .cl-row{display:flex;align-items:stretch;border-bottom:0.5px solid var(--border);}
+  .cl-row:last-child{border-bottom:none;}
+  .cl-time{min-width:130px;flex-shrink:0;padding:11px 14px;background:var(--bg3);
+    font-size:11px;font-weight:700;color:var(--text3);border-right:0.5px solid var(--border);}
+  .cl-event{padding:11px 16px;font-size:13.5px;flex:1;}
+  .cl-event strong{color:var(--text);}
+  .cl-event span{color:var(--text2);}
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Phase 6 · Operators</div>
+    <h1>OCP-OPS-02 — Cert-Manager</h1>
+    <p>Automatic certificate lifecycle · IssuingCA integration · Every CRD explained</p>
+  </div>
+  <div class="ngl">Concepts</div>
+  <div class="ni active" onclick="show('why-cert-manager')"><div class="nd"></div>01 — Why cert-manager — the certificate problem at scale</div>
+  <div class="ni" onclick="show('how-it-works')"><div class="nd"></div>02 — How cert-manager works — the complete lifecycle</div>
+  <div class="ni" onclick="show('crd-overview')"><div class="nd"></div>03 — The four CRDs — ClusterIssuer, Issuer, Certificate, CertificateRequest <span class="pbadge bp">CRDs</span></div>
+  <div class="ngl">Installation</div>
+  <div class="ni" onclick="show('prereqs')"><div class="nd"></div>04 — Prerequisites and namespace preparation</div>
+  <div class="ni" onclick="show('install-operator')"><div class="nd"></div>05 — Install via OLM — Subscription and InstallPlan</div>
+  <div class="ni" onclick="show('verify-install')"><div class="nd"></div>06 — Verify — CSV, pods, CRDs, and webhook</div>
+  <div class="ngl">Connecting to NovaCrestBank-IssuingCA</div>
+  <div class="ni" onclick="show('adcs-issuer-concept')"><div class="nd"></div>07 — How cert-manager connects to Windows ADCS <span class="pbadge bp">Concept</span></div>
+  <div class="ni" onclick="show('adcs-secret')"><div class="nd"></div>08 — Create the credential Secret for IssuingCA</div>
+  <div class="ni" onclick="show('cluster-issuer')"><div class="nd"></div>09 — Create the ClusterIssuer — every field explained <span class="pbadge bp">Key YAML</span></div>
+  <div class="ni" onclick="show('verify-issuer')"><div class="nd"></div>10 — Verify the ClusterIssuer is Ready</div>
+  <div class="ngl">Issuing certificates</div>
+  <div class="ni" onclick="show('certificate-crd')"><div class="nd"></div>11 — Certificate CRD — every field explained <span class="pbadge bp">Key YAML</span></div>
+  <div class="ni" onclick="show('first-certificate')"><div class="nd"></div>12 — Issue the first certificate — Harbor internal service</div>
+  <div class="ni" onclick="show('ingress-annotation')"><div class="nd"></div>13 — Automatic certificates via Ingress annotation</div>
+  <div class="ni" onclick="show('mtls')"><div class="nd"></div>14 — Mutual TLS between banking microservices <span class="pbadge bp">Banking</span></div>
+  <div class="ngl">Renewal and operations</div>
+  <div class="ni" onclick="show('renewal')"><div class="nd"></div>15 — How automatic renewal works — the 30-day window</div>
+  <div class="ni" onclick="show('monitoring-expiry')"><div class="nd"></div>16 — Monitoring expiry — Prometheus alerts</div>
+  <div class="ni" onclick="show('rotation-zero-downtime')"><div class="nd"></div>17 — Zero-downtime rotation — how apps pick up new certs</div>
+  <div class="ni" onclick="show('troubleshooting')"><div class="nd"></div>18 — Troubleshooting — Certificate stuck Pending or False</div>
+  <div class="ni" onclick="show('checklist')"><div class="nd"></div>19 — Handover checklist</div>
+</nav>
+
+<main class="main">
+
+<!-- 01 WHY -->
+<div class="page active" id="page-why-cert-manager">
+  <div class="ey">OCP-OPS-02 · Section 01</div>
+  <div class="pt">Why cert-manager — the certificate management problem at scale</div>
+  <div class="ps">OCP-VCF-02 and WIN-VCF-03 managed certificates manually for eight infrastructure components. That approach breaks at banking application scale. This section quantifies the problem and explains why an operator is the only sustainable solution.</div>
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Harbor<br/>Registry</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>OPS-01<br/>Concepts</div>
+    <div class="pt-step active"><span class="pt-n">→</span>OPS-02<br/>Cert-Mgr</div>
+    <div class="pt-step"><span class="pt-n">4</span>OPS-03<br/>ACS</div>
+    <div class="pt-step"><span class="pt-n">5</span>OPS-04<br/>Pipelines</div>
+  </div>
+  <div class="decision">
+    <div class="decision-label">The scale problem — why manual works for 8 certs but fails at 80</div>
+    <div class="decision-q">We successfully managed certificates manually in WIN-VCF-03 and OCP-VCF-02. Why change the approach for application certificates?</div>
+    <div class="decision-a"><strong>Manual certificate management has a linear cost: each certificate requires a human action at creation and at every renewal. At 8 certificates with 2-year lifetimes, this means roughly 4 manual renewals per year — manageable with a calendar reminder. At banking application scale, the numbers change fundamentally.</strong><br/><br/>
+    Consider NovaCrestBank's application layer at production scale: 50 banking microservices, each exposing an HTTPS endpoint for internal service-to-service communication (mutual TLS — PCI-DSS Req 4.2.1 requires encryption of cardholder data in transit, which includes internal service calls). Each service needs its own certificate. That is 50 certificates. If the certificate lifetime is 1 year, that is 50 manual renewals per year. If it is 90 days (the modern best practice), it is 200 renewals per year.<br/><br/>
+    Each manual renewal requires: generating a CSR on the jump host, submitting it to the IssuingCA web enrollment (WIN-VCF-03 procedure), downloading the signed certificate, updating the Kubernetes Secret, restarting the affected pods. Conservatively 15 minutes per certificate. 200 renewals × 15 minutes = 50 hours of manual work per year. And that is if nothing goes wrong, no one is on leave, and no calendar reminder is ever missed.<br/><br/>
+    <strong>The failure mode that makes this unacceptable for banking:</strong> a certificate that expires unnoticed causes an immediate TLS handshake failure. If the payment processing service's mTLS certificate expires, calls from the API gateway to the payment service fail with <code>x509: certificate has expired or is not yet valid</code>. No payment can be processed until the certificate is manually renewed. In banking, this is not a technical incident — it is a service outage with potential regulatory consequences.<br/><br/>
+    cert-manager eliminates this class of failure entirely. Once a <code>Certificate</code> object is created, the renewal happens automatically, 30 days before expiry, without human intervention. The only human action is the initial object creation — after that, cert-manager owns the lifecycle.</div>
+  </div>
+  <h2>The certificate inventory cert-manager will own at NovaCrestBank</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Count</th><th>Renewal frequency</th><th>Managed by</th></tr></thead>
+    <tbody>
+      <tr><td>OCP platform certificates (API, Ingress wildcard)</td><td>2</td><td>2-year IssuingCA-signed — manual per OCP-VCF-02</td><td>Manual (done)</td></tr>
+      <tr><td>Banking microservice internal mTLS certificates</td><td>~50</td><td>1-year — cert-manager renews 30 days before expiry</td><td><span class="badge bg">cert-manager</span></td></tr>
+      <tr><td>Application Ingress routes (HTTPS for each app)</td><td>~20</td><td>1-year — auto-issued via Ingress annotation</td><td><span class="badge bg">cert-manager</span></td></tr>
+      <tr><td>Monitoring stack internal certificates</td><td>~8</td><td>1-year — Prometheus, Alertmanager, Grafana mTLS</td><td><span class="badge bg">cert-manager</span></td></tr>
+      <tr><td>ACS Central and SecuredCluster mTLS</td><td>~6</td><td>1-year — ACS components use cert-manager</td><td><span class="badge bg">cert-manager</span></td></tr>
+      <tr><td>External Secrets Operator webhook certificate</td><td>1</td><td>90-day — ESO requires cert-manager for its own webhook cert</td><td><span class="badge bg">cert-manager</span></td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13px;color:var(--text2);">Total: approximately 85 certificates under cert-manager management at steady state. Without cert-manager, this inventory would require 85–340 manual renewals per year depending on certificate lifetime choices.</p>
+</div>
+
+<!-- 02 HOW IT WORKS -->
+<div class="page" id="page-how-it-works">
+  <div class="ey">OCP-OPS-02 · Section 02</div>
+  <div class="pt">How cert-manager works — the complete lifecycle from object to running pod</div>
+  <div class="ps">Following one certificate from the moment its <code>Certificate</code> object is created through to the moment it is served by a running pod — and through its first automatic renewal — makes every subsequent configuration decision obvious.</div>
+  <div class="decision">
+    <div class="decision-label">The complete certificate journey — what happens inside cert-manager</div>
+    <div class="decision-q">When I create a Certificate object, what happens between that moment and the certificate appearing as a Kubernetes Secret?</div>
+    <div class="decision-a"><strong>cert-manager's controller watches for Certificate objects. When it sees a new one, it creates a CertificateRequest object, fulfils it by communicating with the configured Issuer, and stores the result as a Kubernetes TLS Secret. The entire process is typically complete in under 10 seconds for an internal ADCS issuer.</strong><br/><br/>
+    The exact sequence in NovaCrestBank's environment:<br/><br/>
+    1. An engineer creates a <code>Certificate</code> object: "I want a cert for <code>payment-service.banking-apps.svc.cluster.local</code>, signed by <code>novacrestbank-issuer</code>, stored as Secret <code>payment-service-tls</code>, valid for 1 year."<br/>
+    2. cert-manager's controller detects the new Certificate and checks whether the named Secret already exists with a valid, non-expiring certificate. It does not — no Secret exists yet.<br/>
+    3. cert-manager generates a private key and a CSR for the requested hostname.<br/>
+    4. cert-manager creates a <code>CertificateRequest</code> object containing the CSR and a reference to the ClusterIssuer.<br/>
+    5. The ADCS issuer plugin reads the CertificateRequest, authenticates to <code>issuingca.novacrestbank.local</code> using the stored credential Secret, and submits the CSR to the IssuingCA's web enrollment endpoint (<code>/certsrv</code>).<br/>
+    6. The IssuingCA signs the certificate using the NovaCrestBank-WebServer template and returns it.<br/>
+    7. cert-manager stores the signed certificate and private key together as a Kubernetes TLS Secret (<code>payment-service-tls</code>) in the correct namespace.<br/>
+    8. cert-manager updates the Certificate's <code>.status.conditions</code> to <code>Ready: True</code> with the expiry date and renewal time.<br/>
+    9. The pod that mounts <code>payment-service-tls</code> picks up the new Secret at its next start — or immediately if the application watches the Secret file path for changes.</div>
+  </div>
+  <h2>The automatic renewal cycle</h2>
+  <div class="cert-lifecycle">
+    <div class="cl-row">
+      <div class="cl-time">Day 0</div>
+      <div class="cl-event"><strong>Certificate issued</strong> — <span>Secret created, cert valid for 365 days. cert-manager calculates the renewal time: 30 days before expiry (day 335). A timer is set.</span></div>
+    </div>
+    <div class="cl-row">
+      <div class="cl-time">Day 335</div>
+      <div class="cl-event"><strong>Renewal triggered automatically</strong> — <span>cert-manager detects the certificate enters its renewal window (30 days before expiry). It creates a new CertificateRequest and submits to IssuingCA. No human action required.</span></div>
+    </div>
+    <div class="cl-row">
+      <div class="cl-time">Day 335 + 10s</div>
+      <div class="cl-event"><strong>New certificate issued by IssuingCA</strong> — <span>The ADCS issuer returns the newly signed certificate. cert-manager updates the Secret in place — the old cert/key pair is replaced with the new one atomically.</span></div>
+    </div>
+    <div class="cl-row">
+      <div class="cl-time">Day 335 + ~60s</div>
+      <div class="cl-event"><strong>Application picks up new certificate</strong> — <span>Pods mounting the Secret as a volume see the updated file within the kubelet sync period. Applications that hot-reload detect the change and reload TLS without restarting. Applications that read cert only at startup need a rolling restart via Reloader annotation.</span></div>
+    </div>
+    <div class="cl-row">
+      <div class="cl-time">Day 365</div>
+      <div class="cl-event"><strong>Old certificate expires — irrelevant</strong> — <span>Renewal already happened 30 days ago. The running certificate is valid for another 335 days from day 335. TLS connections continue without interruption throughout.</span></div>
+    </div>
+  </div>
+  <div class="callout why">
+    <div class="cl">Why 30 days before expiry — the reasoning behind the renewal window</div>
+    The 30-day default renewal window exists because certificate operations can fail — the IssuingCA might be temporarily unreachable, a network policy might block the ADCS call, the credential password might have expired. A 30-day window gives cert-manager 30 attempts (it retries on exponential backoff) to complete the renewal before the certificate actually expires. Even if the IssuingCA is down for a week, the renewal will succeed with 3 weeks to spare. For short-lived certificates (90 days), cert-manager uses 2/3 of the certificate's lifetime as the renewal window, not a fixed 30 days — it adjusts automatically based on <code>spec.renewBefore</code>.
+  </div>
+</div>
+
+<!-- 03 CRD OVERVIEW -->
+<div class="page" id="page-crd-overview">
+  <div class="ey">OCP-OPS-02 · Section 03</div>
+  <div class="pt">The four CRDs — ClusterIssuer, Issuer, Certificate, and CertificateRequest</div>
+  <div class="ps">cert-manager installs four CRDs. Each represents a distinct concept. Understanding all four before touching the cluster means every configuration choice in the sections that follow has a clear reason.</div>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
+      <div class="layer-num" style="color:var(--ocp-red);">1</div>
+      <div class="layer-title">ClusterIssuer</div>
+      <div class="layer-desc"><strong>What it is:</strong> A cluster-scoped connection to a certificate authority. Cluster-scoped means it is not in any namespace — any Certificate object in any namespace can reference it. For NovaCrestBank, one <code>ClusterIssuer</code> named <code>novacrestbank-issuer</code> connects to NovaCrestBank-IssuingCA. All namespaces — banking-apps, monitoring, logging, gitops — use this same ClusterIssuer to issue certificates from the internal PKI.<br/><br/><strong>When to use ClusterIssuer vs Issuer:</strong> Use ClusterIssuer when the same CA serves the entire cluster. Use a namespace-scoped Issuer only when different namespaces need certificates from different CAs. NovaCrestBank uses only ClusterIssuers — one PKI for the entire cluster.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num" style="color:var(--accent);">2</div>
+      <div class="layer-title">Issuer</div>
+      <div class="layer-desc"><strong>What it is:</strong> A namespace-scoped connection to a CA — identical to ClusterIssuer in every way except it only serves Certificates in the same namespace. A Certificate in namespace <code>banking-apps</code> can only reference an Issuer in namespace <code>banking-apps</code>, never one in <code>monitoring</code>.<br/><br/><strong>NovaCrestBank usage:</strong> Not used at the cluster level — all Issuers are ClusterIssuers. However, cert-manager internally creates one short-lived bootstrap Issuer per namespace when processing ADCS requests — this is an internal implementation detail that does not appear in normal operations.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num" style="color:var(--accent2);">3</div>
+      <div class="layer-title">Certificate</div>
+      <div class="layer-desc"><strong>What it is:</strong> The declaration of a desired certificate — what hostname(s) it covers, how long it should be valid, when to renew it, which Issuer to use, and which Kubernetes Secret to store the result in. This is the primary object that engineers and application teams create. Once created, cert-manager owns the lifecycle — issuance, monitoring, and renewal — without further human involvement.<br/><br/><strong>Key fields:</strong> <code>spec.secretName</code> (where the cert+key pair is stored as a TLS Secret), <code>spec.dnsNames</code> (the SANs the certificate covers), <code>spec.issuerRef</code> (which ClusterIssuer to use), <code>spec.duration</code> (how long the certificate is valid), <code>spec.renewBefore</code> (how far in advance to renew).</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--purple);">
+      <div class="layer-num" style="color:var(--purple);">4</div>
+      <div class="layer-title">CertificateRequest</div>
+      <div class="layer-desc"><strong>What it is:</strong> An intermediate object created automatically by cert-manager — never created manually by engineers. When cert-manager needs to issue or renew a Certificate, it creates a CertificateRequest containing the CSR and a reference to the Issuer. The Issuer reads the CertificateRequest, obtains the signed certificate from the CA, and marks it Approved and Issued.<br/><br/><strong>Why it matters to engineers:</strong> When a Certificate is stuck — <code>Ready: False</code> — the first diagnostic step is to look at the CertificateRequest objects in the same namespace. The CertificateRequest's status conditions contain the specific error message from the CA or from the issuer plugin. This is where you find out <em>why</em> a certificate failed to issue: wrong template name, wrong credentials, CA unreachable, DNS name not permitted by CA policy.</div>
+    </div>
+  </div>
+  <div class="callout blue">
+    <div class="cl">What you create vs what cert-manager creates on your behalf</div>
+    As an engineer you create two types of objects: <code>ClusterIssuer</code> (once, during setup) and <code>Certificate</code> (once per service that needs a certificate). cert-manager creates <code>CertificateRequest</code> automatically when processing a Certificate, and creates the Kubernetes TLS <code>Secret</code> automatically when the CA returns the signed certificate. You never create CertificateRequests or manage TLS Secrets manually once cert-manager is configured.
+  </div>
+</div>
+
+<!-- 04 PREREQS -->
+<div class="page" id="page-prereqs">
+  <div class="ey">OCP-OPS-02 · Section 04</div>
+  <div class="pt">Prerequisites and namespace preparation</div>
+  <div class="ps">cert-manager is the first operator in the NovaCrestBank catalogue. Two prerequisites must be confirmed: the operator catalog is available in Harbor, and the ADCS issuer plugin image is mirrored.</div>
+  <div class="callout warn">
+    <div class="cl">cert-manager needs two images — the operator and the ADCS issuer plugin</div>
+    The cert-manager operator image comes from the Red Hat catalog (mirrored to Harbor in Registry-01). The ADCS issuer plugin is a separate community image from <code>ghcr.io/djkormo/adcs-issuer</code> — not in the Red Hat catalog — and must be explicitly pulled into Harbor's <code>platform</code> project before cert-manager can use it. Skipping this step causes the ADCS issuer pod to fail with <code>ImagePullBackOff</code>.
+  </div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — pull ADCS issuer into Harbor and verify catalog</span></div>
+    <div class="term-body"><pre><span class="td"># Pull the ADCS issuer image from ghcr.io into Harbor platform project</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker pull ghcr.io/djkormo/adcs-issuer:2.x.x</span>
+<span class="tg">2.x.x: Pulling from djkormo/adcs-issuer
+Status: Downloaded newer image</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker tag ghcr.io/djkormo/adcs-issuer:2.x.x \
+  harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x
+docker push harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x</span>
+<span class="tg">2.x.x: digest: sha256:abc123 size: 12345</span>
+
+<span class="td"># Verify the cert-manager operator is in the mirrored catalog</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get packagemanifest cert-manager -n openshift-marketplace \
+  -o jsonpath='{.status.channels[?(@.name=="stable")].currentCSVDesc.version}'</span>
+<span class="tg">1.14.x</span>
+
+<span class="td"># Confirm IssuingCA web enrollment is reachable — cert-manager will contact this URL</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://issuingca.novacrestbank.local/certsrv/ \
+  --cacert ~/ocp-kit/certs/chain.pem -o /dev/null -w "%{http_code}"</span>
+<span class="tg">200</span>
+    <div class="tann ok"><span class="tai">✓</span><span>ADCS issuer image in Harbor. cert-manager 1.14.x in mirrored catalog. IssuingCA /certsrv reachable with trusted cert. Ready to install.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 05 INSTALL -->
+<div class="page" id="page-install-operator">
+  <div class="ey">OCP-OPS-02 · Section 05</div>
+  <div class="pt">Install cert-manager via OLM — Subscription and InstallPlan</div>
+  <div class="ps">The standard four-step OLM installation flow from OCP-OPS-01. Every field in the Subscription YAML is annotated with its purpose and the reason behind the chosen value.</div>
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">cert-manager Namespace, OperatorGroup, and Subscription</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
+<span class="yk">kind</span>: <span class="yv">Namespace</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">cert-manager</span>
+  <span class="yc">  # Dedicated namespace — controller, CRDs, and the adcs-credentials Secret live here.</span>
+<span class="ys">---</span>
+<span class="yk">apiVersion</span>: <span class="yv">operators.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">OperatorGroup</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">cert-manager-og</span>
+  <span class="yk">namespace</span>: <span class="yv">cert-manager</span>
+<span class="yk">spec</span>:
+  <span class="yk">targetNamespaces</span>: []
+  <span class="yc">  # Empty [] = AllNamespaces mode.
+    # cert-manager must watch ALL namespaces because Certificate objects
+    # can be created in any namespace — banking-apps, monitoring, logging, etc.
+    # A namespace-scoped OperatorGroup prevents cert-manager from reconciling
+    # Certificates outside its own namespace, breaking all other teams.</span>
+<span class="ys">---</span>
+<span class="yk">apiVersion</span>: <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span>: <span class="yv">Subscription</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">cert-manager</span>
+  <span class="yk">namespace</span>: <span class="yv">cert-manager</span>
+<span class="yk">spec</span>:
+  <span class="yk">channel</span>: <span class="yv">stable</span>
+  <span class="yc">  # stable: production-grade channel — updates are tested before appearing here.</span>
+  <span class="yk">name</span>: <span class="yv">cert-manager</span>
+  <span class="yc">  # Package name exactly as it appears in the catalog packagemanifest.</span>
+  <span class="yk">source</span>: <span class="yv">redhat-operators</span>
+  <span class="yc">  # The Harbor-mirrored CatalogSource from Registry-01.
+    # Points at harbor.apps.ocp.novacrestbank.local/platform — not the internet.</span>
+  <span class="yk">sourceNamespace</span>: <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span>: <span class="yv">Manual</span>
+  <span class="yc">  # Manual: OLM creates an InstallPlan but does NOT apply it until an admin
+    # explicitly approves it. NovaCrestBank's standard for all operators.
+    # Every install and update is a reviewed, approved change.
+    # Automatic would install new versions immediately — violates
+    # NovaCrestBank's change management policy (PCI-DSS Req 6.4).</span></pre>
+    </div>
+  </div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply, review InstallPlan, approve</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f cert-manager-subscription.yaml</span>
+<span class="tg">namespace/cert-manager created
+operatorgroup.operators.coreos.com/cert-manager-og created
+subscription.operators.coreos.com/cert-manager created</span>
+
+<span class="td"># InstallPlan appears ~30 seconds after Subscription creation</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get installplan -n cert-manager</span>
+<span class="tg">NAME            CSV                   APPROVAL   APPROVED
+install-xyz12   cert-manager.v1.14.x  Manual     false</span>
+<span class="td">                                                 ↑ waiting for admin approval</span>
+
+<span class="td"># Review what will be installed — verify CSV version and expected CRDs</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe installplan install-xyz12 -n cert-manager \
+  | grep -E "Clusterservice|Resource:" | head -15</span>
+<span class="tg">    Clusterservice Version Names:  cert-manager.v1.14.x
+    Resource:  CRD  certificates.cert-manager.io
+    Resource:  CRD  clusterissuers.cert-manager.io
+    Resource:  CRD  certificaterequests.cert-manager.io
+    Resource:  CRD  issuers.cert-manager.io
+    Resource:  Deployment  cert-manager</span>
+<span class="td">    ↑ Correct version, expected 4 CRDs. Raise CR-2026-XXXX, obtain approval, then:</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc patch installplan install-xyz12 \
+  -n cert-manager --type merge \
+  -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-xyz12 patched</span>
+    <div class="tann ok"><span class="tai">✓</span><span>InstallPlan reviewed and approved after change management approval. OLM applies cert-manager CRDs and Deployment. Section 06 verifies the installation completed successfully.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 06 VERIFY INSTALL -->
+<div class="page" id="page-verify-install">
+  <div class="ey">OCP-OPS-02 · Section 06</div>
+  <div class="pt">Verify installation — CSV, pods, CRDs, and webhook</div>
+  <div class="ps">Four checks confirm cert-manager is fully operational. The webhook check is critical — cert-manager's admission webhook validates Certificate and ClusterIssuer objects. If the webhook is not ready, every Certificate creation fails with a timeout error.</div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — four-part verification</span></div>
+    <div class="term-body"><pre><span class="td"># Check 1: CSV — the definitive health signal</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get csv -n cert-manager</span>
+<span class="tg">NAME                   DISPLAY        VERSION   PHASE
+cert-manager.v1.14.x   cert-manager   1.14.x    Succeeded</span>
+<span class="td">                                                ↑ Succeeded ✓</span>
+
+<span class="td"># Check 2: Three pods Running — what each does</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n cert-manager</span>
+<span class="tg">NAME                                       READY   STATUS    RESTARTS
+cert-manager-xxxxxxxxx-yyyyy               1/1     Running   0
+cert-manager-cainjector-xxxxxxxxx-yyyyy    1/1     Running   0
+cert-manager-webhook-xxxxxxxxx-yyyyy       1/1     Running   0</span>
+<span class="td">  # cert-manager:            main controller — the reconciliation loop
+    # cert-manager-cainjector: injects CA bundle into webhook configs so the
+    #                          API server trusts cert-manager's own webhook cert
+    # cert-manager-webhook:   validates Certificate/ClusterIssuer YAML on creation
+    #                         — catches schema errors before they reach the controller</span>
+
+<span class="td"># Check 3: All four CRDs installed cluster-wide</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get crd | grep cert-manager</span>
+<span class="tg">certificaterequests.cert-manager.io
+certificates.cert-manager.io
+clusterissuers.cert-manager.io
+issuers.cert-manager.io</span>
+<span class="td">  ↑ All four present ✓</span>
+
+<span class="td"># Check 4: Webhook is ready — the cmctl CLI provides a built-in check</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cmctl check api --wait=2m</span>
+<span class="tg">The cert-manager API is ready</span>
+<span class="td">           ↑ webhook reachable ✓
+             If this times out: the webhook pod is not Running or has no Endpoint.
+             Check: oc get endpoints cert-manager-webhook -n cert-manager</span>
+    <div class="tann ok"><span class="tai">✓</span><span>cert-manager fully installed. CSV Succeeded. Three pods Running. Four CRDs registered. Webhook ready. Proceed to configure the ClusterIssuer pointing at NovaCrestBank-IssuingCA.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 07 ADCS CONCEPT -->
+<div class="page" id="page-adcs-issuer-concept">
+  <div class="ey">OCP-OPS-02 · Section 07</div>
+  <div class="pt">How cert-manager connects to Windows ADCS — the integration architecture</div>
+  <div class="ps">cert-manager has built-in support for ACME (Let's Encrypt), Vault, and Venafi. Active Directory Certificate Services — what NovaCrestBank uses — requires the ADCS issuer plugin. Understanding how it works explains every decision in the ClusterIssuer configuration.</div>
+  <div class="decision">
+    <div class="decision-label">What ADCS is and how the plugin bridges cert-manager to it</div>
+    <div class="decision-q">cert-manager has built-in issuers for Vault and ACME. Why does NovaCrestBank need a separate ADCS issuer plugin, and how does it work?</div>
+    <div class="decision-a"><strong>cert-manager's built-in issuers speak ACME, CFSSL, Vault, and Venafi. None of them speak the Microsoft ADCS protocol. NovaCrestBank's PKI runs on Windows Server ADCS — the same infrastructure used in WIN-VCF-03. ADCS exposes certificate enrollment through its web enrollment interface (<code>/certsrv</code>). The ADCS issuer plugin is a separate controller that bridges cert-manager's CertificateRequest objects to the ADCS web enrollment interface.</strong><br/><br/>
+    When the ADCS issuer plugin receives a CertificateRequest, it does exactly what a human engineer did in WIN-VCF-03: it authenticates to <code>https://issuingca.novacrestbank.local/certsrv</code> using stored credentials, submits the CSR using the <code>NovaCrestBank-WebServer</code> certificate template, receives the signed certificate, and returns it to cert-manager. The plugin runs as a separate Deployment alongside the main cert-manager controller — they communicate via the CertificateRequest API.<br/><br/>
+    <strong>The credential model:</strong> The ADCS plugin needs to authenticate to the IssuingCA web enrollment. It reads credentials from a Kubernetes Secret in the <code>cert-manager</code> namespace. This Secret contains the username and password for <code>svc-certmanager-enroll</code> — a dedicated AD service account with permission to enroll certificates from the IssuingCA and no other rights.</div>
+  </div>
+  <div class="flow-row">
+    <div class="flow-box" style="font-size:11px;">Certificate<br/>object created</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hi" style="font-size:11px;">cert-manager<br/>controller</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="font-size:11px;">CertificateRequest<br/>created</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hl" style="font-size:11px;">ADCS issuer<br/>plugin pod</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="font-size:11px;">HTTPS POST<br/>to /certsrv</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hg" style="font-size:11px;">IssuingCA<br/>signs cert</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="font-size:11px;">TLS Secret<br/>created</div>
+  </div>
+  <h2>AD account for ADCS enrollment — what to create in Active Directory</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Account name</span><span class="spec-val"><code>svc-certmanager-enroll</code> — service account in the ServiceAccounts OU</span></div>
+    <div class="spec-row"><span class="spec-label">Password</span><span class="spec-val"><code>NovaCrest$CertEnroll2026!</code> — stored in CyberArk</span></div>
+    <div class="spec-row"><span class="spec-label">Permission required</span><span class="spec-val">Member of the local group on IssuingCA granting "Request Certificates" for the <code>NovaCrestBank-WebServer</code> template — no other permissions</span></div>
+    <div class="spec-row"><span class="spec-label">Password expiry</span><span class="spec-val">Set to "Password never expires" — if this expires, every Certificate renewal in the cluster fails silently until the password is reset</span></div>
+  </div>
+</div>
+
+<!-- 08 ADCS SECRET -->
+<div class="page" id="page-adcs-secret">
+  <div class="ey">OCP-OPS-02 · Section 08</div>
+  <div class="pt">Create the credential Secret for the IssuingCA</div>
+  <div class="ps">The ADCS plugin reads IssuingCA enrollment credentials from a Kubernetes Secret in the <code>cert-manager</code> namespace. This Secret must exist before the ClusterIssuer is created.</div>
+  <div class="callout warn">
+    <div class="cl">This Secret must be in the cert-manager namespace — not in any other</div>
+    The ADCS issuer plugin pod runs in <code>cert-manager</code> and reads its credential Secret from that namespace. A Secret in any other namespace causes the ClusterIssuer to fail with <code>secret "adcs-credentials" not found</code>. The plugin's ServiceAccount RBAC only allows reading Secrets in <code>cert-manager</code>.
+  </div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — create the credential Secret</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc create secret generic adcs-credentials \
+  --from-literal=username='NOVACRESTBANK\svc-certmanager-enroll' \
+  --from-literal=password='NovaCrest$CertEnroll2026!' \
+  -n cert-manager</span>
+<span class="tg">secret/adcs-credentials created</span>
+
+<span class="td"># Verify the Secret has both keys (without revealing values)</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get secret adcs-credentials -n cert-manager \
+  -o jsonpath='{.data}' | python3 -c \
+  "import json,sys; [print(k,'present') for k in json.load(sys.stdin)]"</span>
+<span class="tg">username present
+password present</span>
+
+<span class="td"># Deploy the ADCS issuer plugin — runs alongside cert-manager in the same namespace</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adcs-issuer-controller
+  namespace: cert-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: adcs-issuer}
+  template:
+    metadata:
+      labels: {app: adcs-issuer}
+    spec:
+      containers:
+        - name: adcs-issuer
+          image: harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x
+          args: ["--leader-elect=false"]
+          env:
+            - name: WATCH_NAMESPACE
+              value: ""
+      serviceAccountName: adcs-issuer-controller
+EOF</span>
+<span class="tg">deployment.apps/adcs-issuer-controller created</span>
+    <div class="tann ok"><span class="tai">✓</span><span>ADCS credential Secret created in cert-manager namespace. ADCS issuer plugin Deployment running — image pulled from Harbor. Ready to create the ClusterIssuer.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 09 CLUSTER ISSUER -->
+<div class="page" id="page-cluster-issuer">
+  <div class="ey">OCP-OPS-02 · Section 09</div>
+  <div class="pt">Create the ClusterIssuer — every field explained</div>
+  <div class="ps">The ClusterIssuer connects cert-manager to NovaCrestBank-IssuingCA. Once this object exists and is Ready, any Certificate object in any namespace can reference it to obtain an IssuingCA-signed certificate.</div>
+  <div class="decision">
+    <div class="decision-label">Why one ClusterIssuer for the entire cluster — not one per namespace</div>
+    <div class="decision-q">Should NovaCrestBank have a separate Issuer per namespace, or one ClusterIssuer for everything?</div>
+    <div class="decision-a"><strong>One ClusterIssuer is the correct architecture for NovaCrestBank because the entire cluster uses the same PKI — every service in every namespace should be issued a certificate from NovaCrestBank-IssuingCA. A namespace-scoped Issuer must be created in every namespace that needs certificates, which creates management overhead and the risk of forgetting to create the Issuer before deploying a service that needs a certificate.</strong><br/><br/>
+    A namespace-scoped Issuer is appropriate when different teams own different CAs. NovaCrestBank has a single, unified PKI. One ClusterIssuer is correct.</div>
+  </div>
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">ClusterIssuer — every field explained</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">cert-manager.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">ClusterIssuer</span>
+<span class="yc"># ClusterIssuer is cluster-scoped — no namespace field.
+# Any Certificate in any namespace can reference this issuer.</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">novacrestbank-issuer</span>
+  <span class="yc">  # The name all Certificate objects reference in spec.issuerRef.name.
+    # Choose a stable, meaningful name — this string appears in every
+    # Certificate YAML across the entire cluster. Changing it requires
+    # updating every Certificate object that references it.</span>
+<span class="yk">spec</span>:
+  <span class="yk">adcs</span>:
+  <span class="yc">  # adcs: instructs cert-manager to use the ADCS issuer plugin.
+    # This key is registered by the ADCS issuer plugin's CRD installation.
+    # If the ADCS plugin pod is not running, this issuer stays NotReady.</span>
+    <span class="yk">caBundle</span>: <span class="yv">BASE64_ENCODED_CHAIN_PEM</span>
+    <span class="yc">    # The CA bundle used to verify the IssuingCA's HTTPS certificate.
+          # chain.pem (IssuingCA + RootCA) base64-encoded.
+          # Without this, the ADCS plugin rejects the TLS connection to /certsrv
+          # with "x509: certificate signed by unknown authority".
+          # Generate: base64 -w0 ~/ocp-kit/certs/chain.pem</span>
+    <span class="yk">credentialsRef</span>:
+      <span class="yk">name</span>: <span class="yv">adcs-credentials</span>
+      <span class="yc">  # References the Secret created in Section 08.
+          # Must be in the cert-manager namespace.</span>
+    <span class="yk">statusCheckInterval</span>: <span class="yv">6h</span>
+    <span class="yc">  # How often the plugin polls the IssuingCA for certificate status.
+      # ADCS sometimes processes requests asynchronously — the plugin submits
+      # the CSR and polls until the certificate is issued. 6h avoids flooding.</span>
+    <span class="yk">retryInterval</span>: <span class="yv">1h</span>
+    <span class="yc">  # How long to wait before retrying a failed request.
+      # If the IssuingCA is temporarily unreachable, the plugin retries every 1h —
+      # well within the 30-day renewal window.</span>
+    <span class="yk">url</span>: <span class="yv">https://issuingca.novacrestbank.local/certsrv</span>
+    <span class="yc">  # The IssuingCA web enrollment URL.
+      # Must use HTTPS — credentials are sent in the request body.
+      # Must be reachable from inside the cluster. Test from a pod if uncertain:
+      # oc run -it --rm curl-test --image=curlimages/curl -- \
+      #   curl -sk https://issuingca.novacrestbank.local/certsrv/</span>
+    <span class="yk">templateName</span>: <span class="yv">NovaCrestBank-WebServer</span>
+    <span class="yc">  # The ADCS certificate template used for all requests.
+      # Must exist on the IssuingCA and be configured to:
+      # - Allow SANs (Subject Alternative Names)
+      # - Allow the svc-certmanager-enroll account to enroll
+      # - Issue certs with: Digital Signature, Key Encipherment,
+      #   TLS Web Server Auth, TLS Web Client Auth key usages
+      # Name must match exactly the template display name in the CA console — case-sensitive.</span></pre>
+    </div>
+  </div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — encode CA bundle and apply ClusterIssuer</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">CA_BUNDLE=$(base64 -w0 ~/ocp-kit/certs/chain.pem)
+sed "s|BASE64_ENCODED_CHAIN_PEM|${CA_BUNDLE}|" \
+  cluster-issuer.yaml | oc apply -f -</span>
+<span class="tg">clusterissuer.cert-manager.io/novacrestbank-issuer created</span>
+
+<span class="td"># cert-manager validates the ClusterIssuer by connecting to /certsrv immediately</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe clusterissuer novacrestbank-issuer \
+  | grep -A6 "Conditions:"</span>
+<span class="tg">Conditions:
+  Last Transition Time:  2026-04-20T10:15:00Z
+  Message:               ADCS Issuer is ready to issue certificates
+  Reason:                Verified
+  Status:                True
+  Type:                  Ready</span>
+<span class="td">         ↑ Ready: True — ADCS plugin authenticated to IssuingCA ✓</span>
+    <div class="tann ok"><span class="tai">✓</span><span>ClusterIssuer novacrestbank-issuer is Ready. The ADCS plugin authenticated to issuingca.novacrestbank.local using svc-certmanager-enroll credentials and verified the NovaCrestBank-WebServer template is available.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 10 VERIFY ISSUER -->
+<div class="page" id="page-verify-issuer">
+  <div class="ey">OCP-OPS-02 · Section 10</div>
+  <div class="pt">Verify the ClusterIssuer — end-to-end connectivity test</div>
+  <div class="ps">A Ready status on the ClusterIssuer means the plugin connected to the IssuingCA. The deeper verification is issuing an actual test certificate and confirming it was signed by NovaCrestBank-IssuingCA.</div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — issue a test certificate and verify the chain</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: test-certificate
+  namespace: cert-manager
+spec:
+  secretName: test-certificate-tls
+  dnsNames:
+    - test.apps.ocp.novacrestbank.local
+  issuerRef:
+    name: novacrestbank-issuer
+    kind: ClusterIssuer
+  duration: 24h
+  renewBefore: 1h
+EOF</span>
+<span class="tg">certificate.cert-manager.io/test-certificate created</span>
+
+<span class="td"># Watch the Certificate reach Ready — typically 5–15 seconds</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get certificate test-certificate -n cert-manager -w</span>
+<span class="tg">NAME               READY   SECRET                  AGE
+test-certificate   False   test-certificate-tls    3s
+test-certificate   True    test-certificate-tls    11s</span>
+<span class="td">                   ↑ Ready=True within 11 seconds ✓</span>
+
+<span class="td"># Verify the cert was signed by NovaCrestBank-IssuingCA</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get secret test-certificate-tls -n cert-manager \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d \
+  | openssl x509 -noout -subject -issuer -dates</span>
+<span class="tg">subject=CN=test.apps.ocp.novacrestbank.local
+issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
+notBefore=Apr 20 10:15:12 2026 GMT
+notAfter=Apr 21 10:15:12 2026 GMT</span>
+<span class="td">         ↑ signed by NovaCrestBank-IssuingCA ✓  24h validity ✓</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc delete certificate test-certificate -n cert-manager
+oc delete secret test-certificate-tls -n cert-manager</span>
+<span class="tg">certificate.cert-manager.io "test-certificate" deleted
+secret "test-certificate-tls" deleted</span>
+    <div class="tann ok"><span class="tai">✓</span><span>End-to-end verification passed. Certificate object → CertificateRequest → ADCS issuer → IssuingCA signed → TLS Secret created → issuer confirmed as NovaCrestBank-IssuingCA. cert-manager is fully operational.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 11 CERTIFICATE CRD -->
+<div class="page" id="page-certificate-crd">
+  <div class="ey">OCP-OPS-02 · Section 11</div>
+  <div class="pt">The Certificate CRD — every field explained with its architectural reason</div>
+  <div class="ps">The Certificate object is what engineers and application teams create when they need a certificate. Every field has a purpose and a reason — understanding all of them means you can write a Certificate for any service without guessing.</div>
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">Certificate — fully annotated reference YAML</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">cert-manager.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">Certificate</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-tls</span>
+  <span class="yc">  # Convention: {service-name}-tls</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-apps</span>
+  <span class="yc">  # The namespace where the TLS Secret will be created.
+    # The Secret can only be used by pods in this namespace.
+    # Certificate must be in the same namespace as the pods that will mount it.</span>
+<span class="yk">spec</span>:
+  <span class="yk">secretName</span>: <span class="yv">payment-service-tls</span>
+  <span class="yc">  # The Kubernetes TLS Secret cert-manager creates and manages.
+    # Contains two keys:
+    #   tls.crt  the signed certificate (PEM)
+    #   tls.key  the private key (PEM)
+    # Pods reference this Secret in their volumeMounts.
+    # Convention: same name as the Certificate object for clarity.
+    # cert-manager OWNS this Secret — do not manually edit it.</span>
+
+  <span class="yk">commonName</span>: <span class="yv">payment-service.banking-apps.svc.cluster.local</span>
+  <span class="yc">  # The CN (Common Name) for the certificate subject.
+    # For internal cluster services: always use the full Kubernetes Service FQDN.
+    # This ensures validity for direct service-to-service calls within the cluster
+    # regardless of which namespace the caller is in.</span>
+
+  <span class="yk">dnsNames</span>:
+    - <span class="yv">payment-service</span>
+    <span class="yc">      # Short name — valid when caller is in the same namespace</span>
+    - <span class="yv">payment-service.banking-apps</span>
+    <span class="yc">      # Namespace-qualified — valid cross-namespace in short form</span>
+    - <span class="yv">payment-service.banking-apps.svc</span>
+    - <span class="yv">payment-service.banking-apps.svc.cluster.local</span>
+    <span class="yc">      # Full FQDN — always works regardless of calling context.
+              # Best practice: include all four forms so the cert is valid
+              # regardless of how DNS resolves the name in different callers.</span>
+
+  <span class="yk">usages</span>:
+    - <span class="yv">digital signature</span>
+    - <span class="yv">key encipherment</span>
+    - <span class="yv">server auth</span>
+    <span class="yc">  # server auth: payment-service presents this cert TO callers
+      # required for any TLS server</span>
+    - <span class="yv">client auth</span>
+    <span class="yc">  # client auth: payment-service presents this cert WHEN CALLING other services.
+      # Required for mutual TLS (mTLS).
+      # A cert with only server auth cannot be used as a client cert —
+      # the handshake fails with "certificate not authorised for client auth".
+      # For services that only receive calls (never initiate), client auth is optional.
+      # For banking microservices using mTLS: always include both.</span>
+
+  <span class="yk">duration</span>: <span class="yv">8760h</span>
+  <span class="yc">  # 8760h = 365 days = 1 year.
+    # Shorter lifetimes (90 days) are better security practice.
+    # cert-manager makes 90-day certs operationally equivalent to 1-year
+    # because renewal is automatic. NovaCrestBank uses 1-year to match
+    # the IssuingCA template default and reduce ADCS enrollment volume.</span>
+
+  <span class="yk">renewBefore</span>: <span class="yv">720h</span>
+  <span class="yc">  # 720h = 30 days.
+    # cert-manager triggers renewal 30 days before expiry.
+    # Provides 30 days of buffer if the IssuingCA is temporarily unreachable.
+    # Rule of thumb: at least 1/4 of the duration. For 365d, 30 days is safe.</span>
+
+  <span class="yk">privateKey</span>:
+    <span class="yk">algorithm</span>: <span class="yv">RSA</span>
+    <span class="yk">size</span>: <span class="yn">2048</span>
+    <span class="yc">    # RSA-2048. NovaCrestBank-IssuingCA signs RSA-2048 keys.
+          # The private key is generated by cert-manager on the OCP cluster —
+          # it NEVER leaves the cluster. Only the CSR (public key) is sent to the CA.</span>
+    <span class="yk">rotationPolicy</span>: <span class="yv">Always</span>
+    <span class="yc">    # Always: generate a NEW private key on every renewal.
+          # A compromised old key provides no value after renewal when a new
+          # key is generated. Never reuse private keys across certificate lifetimes.
+          # "Never" would reuse the same key — do not use that setting.</span>
+
+  <span class="yk">issuerRef</span>:
+    <span class="yk">name</span>: <span class="yv">novacrestbank-issuer</span>
+    <span class="yc">  # Must exactly match the ClusterIssuer name from Section 09.</span>
+    <span class="yk">kind</span>: <span class="yv">ClusterIssuer</span>
+    <span class="yc">  # ClusterIssuer (cluster-scoped).
+      # If this were "Issuer", cert-manager would look for a namespace-scoped
+      # Issuer in the banking-apps namespace — not find novacrestbank-issuer —
+      # and the Certificate would stay in Pending indefinitely.</span>
+    <span class="yk">group</span>: <span class="yv">cert-manager.io</span>
+    <span class="yc">  # Required for external issuers. cert-manager.io is correct for ClusterIssuer.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 12 FIRST CERTIFICATE -->
+<div class="page" id="page-first-certificate">
+  <div class="ey">OCP-OPS-02 · Section 12</div>
+  <div class="pt">Issue the first production certificate — Harbor internal service</div>
+  <div class="ps">The first real certificate issued by cert-manager is for Harbor's internal service communication. Harbor core communicates with its registry over HTTPS — this certificate replaces the self-signed cert Harbor generated at install time with an IssuingCA-signed one.</div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — Harbor internal certificate</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tg">apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: harbor-internal-tls
+  namespace: harbor
+spec:
+  secretName: harbor-internal-tls
+  commonName: harbor-core.harbor.svc.cluster.local
+  dnsNames:
+    - harbor-core
+    - harbor-core.harbor
+    - harbor-core.harbor.svc
+    - harbor-core.harbor.svc.cluster.local
+    - harbor-registry
+    - harbor-registry.harbor
+    - harbor-registry.harbor.svc
+    - harbor-registry.harbor.svc.cluster.local
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+    - client auth
+  duration: 8760h
+  renewBefore: 720h
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  issuerRef:
+    name: novacrestbank-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+EOF</span>
+<span class="tg">certificate.cert-manager.io/harbor-internal-tls created</span>
+
+<span class="td"># Watch — should reach Ready within 15 seconds</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get certificate harbor-internal-tls -n harbor -w</span>
+<span class="tg">NAME                   READY   SECRET               AGE
+harbor-internal-tls    False   harbor-internal-tls   3s
+harbor-internal-tls    True    harbor-internal-tls   11s</span>
+<span class="td">                       ↑ Ready=True within 11 seconds ✓</span>
+
+<span class="td"># Verify: 8 SANs, 1-year validity, signed by NovaCrestBank-IssuingCA</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get secret harbor-internal-tls -n harbor \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d \
+  | openssl x509 -noout -subject -issuer -dates -ext subjectAltName</span>
+<span class="tg">subject=CN=harbor-core.harbor.svc.cluster.local
+issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
+notBefore=Apr 20 10:30:00 2026 GMT
+notAfter=Apr 20 10:30:00 2027 GMT
+X509v3 Subject Alternative Name:
+  DNS:harbor-core, DNS:harbor-core.harbor,
+  DNS:harbor-core.harbor.svc,
+  DNS:harbor-core.harbor.svc.cluster.local,
+  DNS:harbor-registry, DNS:harbor-registry.harbor,
+  DNS:harbor-registry.harbor.svc,
+  DNS:harbor-registry.harbor.svc.cluster.local</span>
+<span class="td">  ↑ 8 DNS SANs ✓   1-year validity ✓   IssuingCA-signed ✓</span>
+    <div class="tann ok"><span class="tai">✓</span><span>First production certificate issued. Harbor internal services now use an IssuingCA-signed certificate instead of the self-signed cert generated at install. cert-manager will renew this automatically on Apr 20 2027 — 30 days before expiry.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 13 INGRESS ANNOTATION -->
+<div class="page" id="page-ingress-annotation">
+  <div class="ey">OCP-OPS-02 · Section 13</div>
+  <div class="pt">Automatic certificates via Ingress annotation — developer self-service HTTPS</div>
+  <div class="ps">The Ingress annotation is the implicit way to request a certificate. Add one annotation to any OCP Route and cert-manager automatically creates and manages the Certificate object on your behalf. Development teams get HTTPS without needing to understand PKI or cert-manager.</div>
+  <div class="decision">
+    <div class="decision-label">Ingress annotation vs explicit Certificate object — when to use each</div>
+    <div class="decision-q">We just created a Certificate explicitly. What does the Ingress annotation add and when should each approach be used?</div>
+    <div class="decision-a"><strong>The Ingress annotation and the Certificate CRD are two interfaces to the same underlying mechanism — cert-manager watches both and creates the same TLS Secret either way. The choice is about who is responsible and what level of control is needed.</strong><br/><br/>
+    <strong>Use an explicit Certificate object when:</strong> you need specific SANs (multiple DNS names for service mesh routing), specific key usage extensions (mTLS requires <code>client auth</code> in addition to <code>server auth</code>), specific key algorithm or rotation policy, or the certificate is for an internal cluster service rather than an externally-accessible route. The Certificate CRD gives full control over every parameter.<br/><br/>
+    <strong>Use the Ingress annotation when:</strong> the certificate is for an OCP Route exposing a single hostname, the default settings (RSA-2048, 1-year, <code>server auth</code> only) are acceptable, and the team creating the Route should not need PKI knowledge. The annotation is designed for developer self-service — a developer adds one annotation to their Route YAML and receives a valid IssuingCA-signed certificate, automatically renewed, with zero further effort.</div>
+  </div>
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">OCP Route with cert-manager annotation — one annotation, automatic certificate</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">route.openshift.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">Route</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-portal</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-apps</span>
+  <span class="yk">annotations</span>:
+    <span class="yk">cert-manager.io/cluster-issuer</span>: <span class="yv">novacrestbank-issuer</span>
+    <span class="yc">    # THIS SINGLE ANNOTATION is all cert-manager needs.
+          # cert-manager's route-shim watches for Routes with this annotation,
+          # creates a Certificate object automatically with the Route's hostname
+          # as the single SAN, and injects the resulting TLS certificate and key
+          # directly into the Route's spec.tls fields.
+          #
+          # The ClusterIssuer name must match exactly — novacrestbank-issuer.
+          #
+          # Use cert-manager.io/cluster-issuer for ClusterIssuers (correct for NovaCrestBank).
+          # Use cert-manager.io/issuer only for namespace-scoped Issuers.</span>
+<span class="yk">spec</span>:
+  <span class="yk">host</span>: <span class="yv">payment-portal.apps.ocp.novacrestbank.local</span>
+  <span class="yc">  # This hostname becomes the certificate's CN and SAN automatically.</span>
+  <span class="yk">to</span>:
+    <span class="yk">kind</span>: <span class="yv">Service</span>
+    <span class="yk">name</span>: <span class="yv">payment-portal-svc</span>
+  <span class="yk">tls</span>:
+    <span class="yk">termination</span>: <span class="yv">edge</span>
+    <span class="yc">    # edge: TLS terminated at the OCP router (HAProxy on infra nodes).
+          # cert-manager injects the cert into spec.tls.certificate
+          # and spec.tls.key automatically after issuance.
+          # Do not fill in these fields manually — cert-manager owns them.</span>
+    <span class="yk">insecureEdgeTerminationPolicy</span>: <span class="yv">Redirect</span>
+    <span class="yc">    # Redirect HTTP → HTTPS. Never use "Allow" for banking applications —
+          # Allow would serve the application over plain HTTP to any client
+          # that does not follow the redirect.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 14 MTLS -->
+<div class="page" id="page-mtls">
+  <div class="ey">OCP-OPS-02 · Section 14</div>
+  <div class="pt">Mutual TLS between banking microservices — why it is required and how cert-manager enables it</div>
+  <div class="ps">One-way TLS verifies the server's identity to the client. Mutual TLS adds the reverse — the server also verifies the client's identity. For banking microservices carrying cardholder data, mTLS is the correct baseline for internal service-to-service communication.</div>
+  <div class="decision">
+    <div class="decision-label">Why mTLS is necessary on top of NSX-05 DFW</div>
+    <div class="decision-q">The payment-service and API gateway communicate inside the cluster on a private network. NSX-05 DFW already restricts this traffic by IP and port. Why is mutual TLS also necessary?</div>
+    <div class="decision-a"><strong>NSX-05 DFW operates at the network layer — it allows or denies traffic between IP addresses and ports. It cannot verify the identity of the application making the connection. A compromised pod on a permitted source IP can call the payment-service and the DFW allows it, because the DFW sees only "permitted IP:port pair". mTLS operates at the application layer — every connection requires the caller to present a valid certificate signed by NovaCrestBank-IssuingCA. A compromised pod without a valid certificate cannot complete the TLS handshake regardless of what the DFW permits.</strong><br/><br/>
+    This is defence in depth: NSX-05 DFW is the network layer gate (necessary but not sufficient). mTLS is the application layer gate (adds cryptographic identity verification the network layer cannot provide). PCI-DSS Req 4.2.1 requires strong cryptography for all transmissions of cardholder data — in banking environments this extends to internal service communication that carries cardholder data.<br/><br/>
+    With cert-manager, enabling mTLS for a service requires only two things: a Certificate object with both <code>server auth</code> and <code>client auth</code> usages, and the application configured to request the client certificate during the TLS handshake. cert-manager handles all certificate management complexity — the application team only mounts the TLS Secret and enables mTLS in their TLS server configuration.</div>
+  </div>
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">mTLS Certificate — payment-service with client auth enabled for mutual TLS</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">cert-manager.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">Certificate</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-mtls</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-apps</span>
+<span class="yk">spec</span>:
+  <span class="yk">secretName</span>: <span class="yv">payment-service-mtls-tls</span>
+  <span class="yk">commonName</span>: <span class="yv">payment-service.banking-apps.svc.cluster.local</span>
+  <span class="yk">dnsNames</span>:
+    - <span class="yv">payment-service</span>
+    - <span class="yv">payment-service.banking-apps</span>
+    - <span class="yv">payment-service.banking-apps.svc</span>
+    - <span class="yv">payment-service.banking-apps.svc.cluster.local</span>
+  <span class="yk">usages</span>:
+    - <span class="yv">digital signature</span>
+    - <span class="yv">key encipherment</span>
+    - <span class="yv">server auth</span>
+    <span class="yc">  # server auth: payment-service presents this cert to callers (incoming connections)</span>
+    - <span class="yv">client auth</span>
+    <span class="yc">  # client auth: payment-service presents this cert when CALLING other services.
+      # This is the key difference from a one-way TLS cert.
+      # A cert with only server auth CANNOT be used as a client certificate —
+      # the TLS library rejects it with "certificate not authorised for client auth".
+      # For any microservice participating in mTLS: always include both usages.</span>
+  <span class="yk">duration</span>: <span class="yv">8760h</span>
+  <span class="yk">renewBefore</span>: <span class="yv">720h</span>
+  <span class="yk">privateKey</span>:
+    <span class="yk">algorithm</span>: <span class="yv">RSA</span>
+    <span class="yk">size</span>: <span class="yn">2048</span>
+    <span class="yk">rotationPolicy</span>: <span class="yv">Always</span>
+  <span class="yk">issuerRef</span>:
+    <span class="yk">name</span>: <span class="yv">novacrestbank-issuer</span>
+    <span class="yk">kind</span>: <span class="yv">ClusterIssuer</span>
+    <span class="yk">group</span>: <span class="yv">cert-manager.io</span></pre>
+    </div>
+  </div>
+  <div class="callout blue">
+    <div class="cl">How the application uses this certificate — the volume mount pattern</div>
+    The Secret <code>payment-service-mtls-tls</code> is mounted as a volume into the pod at <code>/etc/tls/</code>. The pod sees two files: <code>/etc/tls/tls.crt</code> (the certificate) and <code>/etc/tls/tls.key</code> (the private key). The TLS server configuration points to these file paths. When cert-manager renews the certificate it updates the Secret in place — Kubernetes propagates the updated file content to all mounting pods within the kubelet sync period (~60 seconds). Applications with hot-reload TLS detect the file change and reload the certificate without restarting. Applications that read the cert only at startup need the Reloader annotation (Section 17).
+  </div>
+</div>
+
+<!-- 15 RENEWAL -->
+<div class="page" id="page-renewal">
+  <div class="ey">OCP-OPS-02 · Section 15</div>
+  <div class="pt">How automatic renewal works — every step from trigger to running application</div>
+  <div class="ps">Renewal is the most operationally important feature of cert-manager. Understanding exactly how it works means you can diagnose a stuck renewal, know when to intervene, and explain to a PCI-DSS auditor how certificate validity is maintained without manual management.</div>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
+      <div class="layer-num" style="color:var(--ocp-red);">1</div>
+      <div class="layer-title">Expiry detection</div>
+      <div class="layer-desc">cert-manager continuously monitors every Certificate's <code>status.notAfter</code> field and calculates the renewal trigger time as <code>notAfter - renewBefore</code>. For a 365-day certificate with a 30-day <code>renewBefore</code>, the trigger fires on day 335. cert-manager uses a precise timer set to this exact moment — not a cron job that might fire hours late. The renewal begins exactly when needed.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
+      <div class="layer-num" style="color:var(--amber);">2</div>
+      <div class="layer-title">New private key generated on the cluster</div>
+      <div class="layer-desc">cert-manager generates a new RSA-2048 private key entirely on the OCP cluster. The private key never leaves the cluster — only the CSR (which contains the public key but not the private key) is sent to the IssuingCA. With <code>rotationPolicy: Always</code>, a completely new key pair is created on every renewal — a compromised old key provides zero value once the new certificate is issued.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num" style="color:var(--accent);">3</div>
+      <div class="layer-title">CertificateRequest created and fulfilled</div>
+      <div class="layer-desc">cert-manager creates a new CertificateRequest with the fresh CSR. The ADCS issuer plugin picks it up, authenticates to <code>issuingca.novacrestbank.local</code> using the <code>adcs-credentials</code> Secret, submits the CSR with the NovaCrestBank-WebServer template, receives the newly signed certificate, and marks the CertificateRequest Issued. The complete ADCS round-trip typically takes under 10 seconds.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num" style="color:var(--accent2);">4</div>
+      <div class="layer-title">TLS Secret updated atomically</div>
+      <div class="layer-desc">cert-manager replaces the <code>tls.crt</code> and <code>tls.key</code> values in the Kubernetes Secret in a single atomic update operation. At no point is the Secret empty or missing. Any client reading the Secret at any moment during the renewal finds a valid, non-expired certificate — either the old one (before the update) or the new one (after). There is no gap.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--purple);">
+      <div class="layer-num" style="color:var(--purple);">5</div>
+      <div class="layer-title">Application picks up the new certificate</div>
+      <div class="layer-desc">Pods mounting the Secret as a projected volume see the file content updated within the kubelet sync period (default: 60 seconds). Applications using file-based TLS with hot-reload (Go <code>tls.Config.GetCertificate</code>, nginx, HAProxy) detect the file change and reload without pod restart. Applications reading the cert only at startup require a rolling restart via the Reloader operator. cert-manager itself does not trigger any pod restarts — this is the application's responsibility.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 16 MONITORING -->
+<div class="page" id="page-monitoring-expiry">
+  <div class="ey">OCP-OPS-02 · Section 16</div>
+  <div class="pt">Monitoring certificate expiry — Prometheus alerts for the operations team</div>
+  <div class="ps">cert-manager exposes Prometheus metrics natively. Two alert rules provide advance warning when certificates approach expiry — a safety net for the cases where automatic renewal has failed silently.</div>
+  <div class="callout why">
+    <div class="cl">Why monitoring is still needed when renewal is automatic</div>
+    cert-manager's automatic renewal is reliable but not infallible. It can fail silently if: the IssuingCA is unreachable for the entire 30-day renewal window, the ADCS issuer pod crashes and is not restarted, the <code>adcs-credentials</code> Secret is accidentally deleted, or the <code>svc-certmanager-enroll</code> account password expires in AD. In any of these cases, cert-manager keeps retrying but the certificate keeps approaching expiry. Without a Prometheus alert, the first indication of failure is TLS handshake errors in production. The 14-day warning alert fires while there is still time to diagnose and fix the root cause before any service is affected.
+  </div>
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — two-tier certificate expiry alerts</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">cert-manager-expiry-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">cert-manager</span>
+  <span class="yk">labels</span>:
+    <span class="yk">role</span>: <span class="yv">alert-rules</span>
+    <span class="yc">  # The Prometheus Operator (part of the cluster monitoring stack) watches
+      # for PrometheusRule objects with this label and loads them into Prometheus
+      # automatically. No manual Prometheus configuration needed.</span>
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">cert-manager.certificates</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">CertificateExpiringSoon</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">certmanager_certificate_expiration_timestamp_seconds - time() &lt; 14 * 24 * 3600</span>
+          <span class="yc">  # Fires when any cert-manager Certificate expires within 14 days.
+            # certmanager_certificate_expiration_timestamp_seconds is a Prometheus gauge
+            # cert-manager exposes for EVERY Certificate object it manages.
+            # "expiration_timestamp - now() < 14 days" = 14 days or less remain.
+            #
+            # This fires AFTER automatic renewal should have already succeeded
+            # (renewal runs at day 335 = 30 days before expiry).
+            # If this fires, the renewal has been failing for ~16 days and
+            # needs immediate investigation.</span>
+          <span class="yk">for</span>: <span class="yv">1h</span>
+          <span class="yc">  # Must be consistently near-expiry for 1 hour before firing.
+            # Prevents alert flapping during cert-manager pod restarts.</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">"Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value | humanizeDuration }}"</span>
+            <span class="yk">description</span>: <span class="yv">"Automatic renewal has not succeeded. Check CertificateRequest status and ADCS issuer pod logs in the cert-manager namespace."</span>
+            <span class="yk">runbook</span>: <span class="yv">"https://wiki.novacrestbank.local/runbooks/cert-manager-renewal-failure"</span>
+
+        - <span class="yk">alert</span>: <span class="yv">CertificateExpiryCritical</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">certmanager_certificate_expiration_timestamp_seconds - time() &lt; 3 * 24 * 3600</span>
+          <span class="yc">  # Fires within 3 days of expiry — P1 incident trigger.
+            # At this point manual intervention is required immediately.
+            # Force re-issuance: delete the Certificate object and re-apply it.
+            # cert-manager immediately creates a new CertificateRequest.</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">"CRITICAL: Certificate {{ $labels.name }} expires in {{ $value | humanizeDuration }}"</span>
+            <span class="yk">description</span>: <span class="yv">"TLS failure is imminent. Delete and recreate the Certificate object to force immediate re-issuance."</span>
+            <span class="yk">runbook</span>: <span class="yv">"https://wiki.novacrestbank.local/runbooks/cert-emergency-renewal"</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 17 ZERO DOWNTIME -->
+<div class="page" id="page-rotation-zero-downtime">
+  <div class="ey">OCP-OPS-02 · Section 17</div>
+  <div class="pt">Zero-downtime rotation — how applications receive new certificates</div>
+  <div class="ps">cert-manager updates the TLS Secret atomically. Whether the running application picks up the new certificate without a pod restart depends entirely on how it reads its certificate. Three patterns — and NovaCrestBank's recommendation for each.</div>
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent2);">Pattern 1 — Hot-reload (recommended)</p>
+      <p style="font-size:13px;color:var(--text2);">The application uses filesystem watches (<code>inotify</code>) to detect when the mounted certificate file changes and reloads the TLS configuration without interrupting existing connections. Supported by nginx, Go services using <code>tls.Config.GetCertificate</code>, and HAProxy. Zero downtime, zero intervention. The gold standard for banking microservices.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--amber);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);">Pattern 2 — Reloader-triggered rolling restart</p>
+      <p style="font-size:13px;color:var(--text2);">The application reads the certificate only at startup. The Stakater Reloader operator detects the Secret change and triggers a rolling pod restart. Zero downtime because rolling restarts maintain availability — old pods serve traffic until new pods are Ready. Adds a ~60-second delay between cert rotation and the new cert being served.</p>
+    </div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--red);">
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--red);">Pattern 3 — Manual restart (avoid in production)</p>
+    <p style="font-size:13px;color:var(--text2);">The application reads the cert only at startup and there is no Reloader. cert-manager renews the Secret but the running pod continues serving the old certificate until manually restarted. The old certificate stays in service — which defeats the security benefit of short-lived certificates and could leave an expired cert in service if the team forgets to restart. Avoid this pattern. If an application cannot hot-reload, add the Reloader annotation.</p>
+  </div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — Reloader annotation for applications that cannot hot-reload</span></div>
+    <div class="term-body"><pre><span class="td"># Add to any Deployment whose pods read the certificate only at startup</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc annotate deployment payment-service \
+  -n banking-apps \
+  reloader.stakater.com/auto="true"</span>
+<span class="tg">deployment.apps/payment-service annotated</span>
+<span class="td">  # When cert-manager updates the payment-service-mtls-tls Secret,
+    # Reloader detects the Secret change and triggers:
+    #   oc rollout restart deployment/payment-service -n banking-apps
+    # Rolling restart: pods replaced one at a time — no payment-service downtime.
+    # New pods start with the new certificate mounted from the updated Secret.</span>
+    <div class="tann info"><span class="tai">ℹ</span><span>Without the Stakater Reloader operator installed, this annotation is silently ignored — no error, no restart. Always verify Reloader is running: <code>oc get pods -n stakater-reloader</code> before relying on this annotation.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- 18 TROUBLESHOOTING -->
+<div class="page" id="page-troubleshooting">
+  <div class="ey">OCP-OPS-02 · Section 18</div>
+  <div class="pt">Troubleshooting — Certificate stuck in Pending or Ready: False</div>
+  <div class="ps">When a Certificate does not reach Ready: True, follow the diagnostic chain: Certificate → CertificateRequest → ADCS issuer pod logs. The error almost always appears at one of these three levels — and the error message is specific enough to point directly at the fix.</div>
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — the three-level cert-manager diagnostic chain</span></div>
+    <div class="term-body"><pre><span class="td"># ── Level 1: Certificate status — where is the problem? ─────────────────</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe certificate payment-service-mtls -n banking-apps \
+  | grep -A8 "Conditions:"</span>
+<span class="tg">  Message:  Error authenticating to ADCS: 401 Unauthorized
+  Reason:   Failed
+  Status:   False
+  Type:     Ready</span>
+<span class="td">  ↑ "401 Unauthorized" → credentials in adcs-credentials Secret are wrong or expired</span>
+
+<span class="tg">  Message:  Waiting on certificate issuance from order
+  Reason:   InProgress
+  Status:   False
+  Type:     Ready</span>
+<span class="td">  ↑ InProgress → CertificateRequest created but ADCS hasn't returned the cert yet
+    Normal for up to ~30 seconds. Still InProgress after 5 min → check Level 2.</span>
+
+<span class="td"># ── Level 2: CertificateRequest — the most detailed error message ────────</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get certificaterequest -n banking-apps</span>
+<span class="tg">NAME                          APPROVED   READY   AGE
+payment-service-mtls-xxxxx1   True       False   2m</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe certificaterequest payment-service-mtls-xxxxx1 \
+  -n banking-apps | grep -A5 "Message:"</span>
+<span class="tg">  Message:  Failed to request certificate from ADCS:
+            POST https://issuingca.novacrestbank.local/certsrv returned 403 Forbidden.
+            Template 'NovaCrestBank-WebServer' not found or enrollment not permitted.</span>
+<span class="td">  ↑ "403 Forbidden" → template doesn't exist OR svc-certmanager-enroll lacks permission</span>
+
+<span class="td"># ── Level 3: ADCS issuer pod logs — full interaction detail ──────────────</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc logs -n cert-manager \
+  -l app=adcs-issuer \
+  --since=10m | grep -iE "error|fail|warn"</span>
+<span class="tg">ERROR: failed to authenticate: LDAP authentication failed for
+       NOVACRESTBANK\svc-certmanager-enroll
+       Error: 49 LDAP_INVALID_CREDENTIALS</span>
+<span class="td">  ↑ password in adcs-credentials Secret has expired or is wrong in AD</span>
+
+<span class="td"># ── Fix: update the credential Secret ────────────────────────────────────</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc create secret generic adcs-credentials \
+  --from-literal=username='NOVACRESTBANK\svc-certmanager-enroll' \
+  --from-literal=password='NovaCrest$CertEnroll2026-Updated!' \
+  -n cert-manager \
+  --dry-run=client -o yaml | oc apply -f -</span>
+<span class="tg">secret/adcs-credentials configured</span>
+
+<span class="td"># Delete the failed CertificateRequest — cert-manager immediately creates a new one</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc delete certificaterequest payment-service-mtls-xxxxx1 \
+  -n banking-apps</span>
+<span class="tg">certificaterequest.cert-manager.io "payment-service-mtls-xxxxx1" deleted</span>
+<span class="td">  ↑ cert-manager creates a new CertificateRequest immediately and retries ✓</span></pre>
+    </div>
+  </div>
+  <h2>Common failures and root causes</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>Root cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Certificate <code>Ready: False</code> — <code>401 Unauthorized</code></td><td>Wrong credentials in <code>adcs-credentials</code> Secret. Password changed in AD, or username typo (must include domain: <code>NOVACRESTBANK\svc-certmanager-enroll</code>).</td><td>Verify manually: <code>curl -u NOVACRESTBANK\\svc-certmanager-enroll:password https://issuingca.novacrestbank.local/certsrv/</code>. Update Secret. Delete failed CertificateRequest to force retry.</td></tr>
+      <tr><td>Certificate <code>Ready: False</code> — <code>template not found</code></td><td><code>templateName</code> in ClusterIssuer does not match the template display name on the IssuingCA. Case-sensitive exact match required.</td><td>Open IssuingCA certificate authority console → Certificate Templates → verify the exact display name including capitalisation.</td></tr>
+      <tr><td>Certificate <code>Ready: False</code> — <code>x509: certificate signed by unknown authority</code></td><td><code>caBundle</code> in ClusterIssuer is wrong — missing RootCA, or chain.pem was not base64-encoded correctly.</td><td>Re-run: <code>base64 -w0 ~/ocp-kit/certs/chain.pem</code>. Verify chain: <code>openssl verify -CAfile rootca.cer issuingca.cer</code>. Update ClusterIssuer with fresh base64 value.</td></tr>
+      <tr><td>Certificate stays <code>Pending</code> — no CertificateRequest appears</td><td>cert-manager webhook is down. All Certificate creation operations time out waiting for the webhook admission response.</td><td><code>cmctl check api --wait=1m</code>. If it fails: <code>oc get pods -n cert-manager</code> — restart the webhook pod. Check cainjector logs for cert injection failures into the webhook configuration.</td></tr>
+      <tr><td>Certificate <code>Ready: True</code> but application serves old certificate</td><td>Application reads cert only at startup. cert-manager renewed the Secret but the pod continues serving the old in-memory certificate.</td><td><code>oc rollout restart deployment/&lt;name&gt; -n &lt;ns&gt;</code>. Then add <code>reloader.stakater.com/auto="true"</code> annotation to prevent recurrence.</td></tr>
+      <tr><td>ADCS issuer pod <code>ImagePullBackOff</code></td><td>The ADCS issuer image was not pushed to Harbor before deploying the Deployment. The image reference points to Harbor but the image does not exist there.</td><td>Pull the image from ghcr.io on the jump host and push to Harbor as described in Section 04. Then delete the failing pod — it restarts automatically.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 19 CHECKLIST -->
+<div class="page" id="page-checklist">
+  <div class="ey">OCP-OPS-02 · Section 19</div>
+  <div class="pt">Handover checklist — cert-manager fully operational</div>
+  <div class="ps">cert-manager is installed, the ClusterIssuer is connected to NovaCrestBank-IssuingCA, the first production certificate has been issued, and the monitoring alerts are active. All future certificate issuance and renewal is automated.</div>
+  <div class="callout success">
+    <div class="cl">OCP-OPS-02 complete — ~85 future certificate renewals are now automated</div>
+    Every certificate in the NovaCrestBank OCP cluster — from banking microservice mTLS certificates to application Ingress routes to monitoring stack certificates — will be issued by cert-manager and renewed automatically 30 days before expiry. The operations team receives a Prometheus warning at 14 days and a critical alert at 3 days — both are safety nets that should never fire unless the IssuingCA or ADCS issuer has a problem. Every certificate is signed by NovaCrestBank-IssuingCA and trusted by all RHCOS nodes via the additionalTrustBundle from OCP-VCF-01.
+  </div>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">cert-manager operator installed via OLM</span><span class="spec-val"><span class="badge bg">✓</span> CSV Succeeded · three pods Running · four CRDs registered</span></div>
+    <div class="spec-row"><span class="spec-label">Webhook API ready</span><span class="spec-val"><span class="badge bg">✓</span> <code>cmctl check api</code> returns "The cert-manager API is ready"</span></div>
+    <div class="spec-row"><span class="spec-label">ADCS issuer plugin deployed</span><span class="spec-val"><span class="badge bg">✓</span> adcs-issuer-controller pod Running · image from Harbor platform project</span></div>
+    <div class="spec-row"><span class="spec-label">adcs-credentials Secret in cert-manager namespace</span><span class="spec-val"><span class="badge bg">✓</span> NOVACRESTBANK\svc-certmanager-enroll · password-never-expires set in AD · CyberArk</span></div>
+    <div class="spec-row"><span class="spec-label">ClusterIssuer novacrestbank-issuer Ready</span><span class="spec-val"><span class="badge bg">✓</span> ADCS plugin authenticated to issuingca.novacrestbank.local · NovaCrestBank-WebServer template confirmed</span></div>
+    <div class="spec-row"><span class="spec-label">End-to-end test certificate issued and verified</span><span class="spec-val"><span class="badge bg">✓</span> subject signed by NovaCrestBank-IssuingCA · correct SANs · correct validity period · test cert cleaned up</span></div>
+    <div class="spec-row"><span class="spec-label">First production certificate — Harbor internal TLS</span><span class="spec-val"><span class="badge bg">✓</span> harbor-internal-tls Secret in harbor namespace · 8 DNS SANs · 1-year validity</span></div>
+    <div class="spec-row"><span class="spec-label">PrometheusRule for expiry alerts applied</span><span class="spec-val"><span class="badge bg">✓</span> CertificateExpiringSoon (14d warning) · CertificateExpiryCritical (3d critical) active in Prometheus</span></div>
+    <div class="spec-row"><span class="spec-label">OLM installPlanApproval: Manual</span><span class="spec-val"><span class="badge bg">✓</span> cert-manager updates require change management approval — never automatic</span></div>
+    <div class="spec-row"><span class="spec-label">PCI-DSS Req 4.2.1 control implemented</span><span class="spec-val"><span class="badge bg">✓</span> All internal TLS uses valid, unexpired, IssuingCA-signed certificates · renewal fully automated</span></div>
+  </div>
+  <h2>Certificates cert-manager will issue for each subsequent operator</h2>
+  <p>Each Phase 6 operator installation creates its own Certificate objects referencing the same <code>novacrestbank-issuer</code> ClusterIssuer. The pattern is always identical: Certificate in the operator's namespace, dnsNames for the operator's Services, correct usages for the communication pattern. The specific certificates are created in their respective guides:</p>
+  <table>
+    <thead><tr><th>Operator</th><th>Certificates cert-manager will issue</th><th>Guide</th></tr></thead>
+    <tbody>
+      <tr><td>Red Hat ACS</td><td>Central HTTPS server cert, Central-to-SecuredCluster mTLS, sensor-to-collector mTLS (both server auth + client auth)</td><td>OCP-OPS-03</td></tr>
+      <tr><td>OpenShift Pipelines</td><td>Tekton webhook admission TLS — cert-manager annotation on the webhook Service handles this automatically</td><td>OCP-OPS-04</td></tr>
+      <tr><td>OpenShift GitOps</td><td>Argo CD server HTTPS, repo-server mTLS, dex OIDC endpoint TLS</td><td>OCP-OPS-05</td></tr>
+      <tr><td>OpenShift Logging</td><td>LokiStack internal mTLS (multiple components), ClusterLogForwarder TLS to SIEM</td><td>OBS-03</td></tr>
+      <tr><td>External Secrets Operator</td><td>ESO webhook TLS — this is specifically why ESO requires cert-manager to be installed first</td><td>GITOPS-05</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

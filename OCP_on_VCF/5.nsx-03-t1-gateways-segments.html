@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NSX-03 — Tier-1 Gateways &amp; Segments · NovaCrestBank</title>
+<style>
+  :root{
+    --bg:#f4f3ef;--bg2:#ffffff;--bg3:#ececea;
+    --text:#1a1917;--text2:#56544d;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --nsx:#6e2b8c;--nsx-bg:#f3edfb;
+    --t0:#b84000;--t0-bg:#fdf0e8;
+    --t1:#0a6b3c;--t1-bg:#e8f5ee;--t1-mid:#2a9a60;
+    --seg:#1a5c8f;--seg-bg:#e8f2fb;
+    --vcf:#1b5e8c;--vcf-bg:#e8f2fb;
+    --ocp:#cc0000;--ocp-bg:#fff0f0;
+    --win:#107c10;--win-bg:#e8f5e8;
+    --green:#0e6b45;--amber:#a87015;--red:#9e2828;
+    --pci:#7a3800;--pci-bg:#fff3e0;
+    --nist:#003366;--nist-bg:#e8eef8;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:275px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:48px;}
+  .sh{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .series{font-size:10px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--t1);margin-bottom:4px;}
+  .sh h1{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:3px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:10px 20px 4px;}
+  .ni{display:flex;align-items:flex-start;gap:9px;padding:7px 20px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .12s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--t1);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;transition:background .12s;}
+  .ni.active .nd{background:var(--t1);}
+
+  /* ── MAIN ── */
+  .main{margin-left:275px;padding:44px 56px 110px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--t1);margin-bottom:6px;}
+  .pt{font-size:26px;font-weight:700;color:var(--text);margin-bottom:7px;line-height:1.22;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:32px 0 11px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 20px;color:var(--text);}
+  li{margin-bottom:7px;font-size:14px;line-height:1.72;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--t1);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--t1);background:var(--bg3);
+    padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.success{border-left-color:var(--green);}
+  .callout.pci{border-left-color:var(--pci);}
+  .callout.nist{border-left-color:var(--nist);}
+  .callout.nsx{border-left-color:var(--nsx);}
+  .callout.ocp{border-left-color:var(--ocp);}
+  .callout.why{border-left-color:#5a4000;}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.success .cl{color:var(--green);}
+  .callout.pci .cl{color:var(--pci);}
+  .callout.nist .cl{color:var(--nist);}
+  .callout.nsx .cl{color:var(--nsx);}
+  .callout.ocp .cl{color:var(--ocp);}
+  .callout.why .cl{color:#5a4000;}
+  .callout:not(.warn):not(.success):not(.pci):not(.nist):not(.nsx):not(.ocp):not(.why) .cl{color:var(--t1);}
+
+  /* ── DECISION ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--nsx);border-radius:0 var(--r2) var(--r2) 0;
+    padding:14px 18px;margin:18px 0;}
+  .dl{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--nsx);margin-bottom:6px;}
+  .dq{font-size:14px;font-weight:600;margin-bottom:9px;color:var(--text);}
+  .da{font-size:13.5px;color:var(--text2);line-height:1.72;}
+  .da strong{color:var(--text);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES / REG ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bgr{background:#eeecea;color:#3c3c38;}
+  .reg{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+    border-radius:4px;font-size:11px;font-weight:700;margin:2px 2px;}
+  .reg.pci{background:var(--pci-bg);color:var(--pci);border:1px solid #e8c090;}
+  .reg.nist{background:var(--nist-bg);color:var(--nist);border:1px solid #a0b8d8;}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:9px;padding:6px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:235px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:20px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--t1);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ══ NSX GUI MOCKUP ══ */
+  .nsx-shell{background:#1a1a2e;border-radius:var(--r);overflow:hidden;
+    margin:20px 0;border:1px solid #2a2a4e;box-shadow:0 4px 24px rgba(0,0,0,.35);}
+  .nsx-topbar{background:#0f0f1e;padding:0;display:flex;align-items:stretch;
+    border-bottom:1px solid #2a2a4e;height:46px;}
+  .nsx-logo{padding:0 18px;display:flex;align-items:center;gap:10px;
+    border-right:1px solid #2a2a4e;}
+  .nsx-logo-badge{background:var(--nsx);color:#fff;font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:4px;}
+  .nsx-logo-text{font-size:12.5px;font-weight:600;color:#e8e0f0;white-space:nowrap;}
+  .nsx-tabs{display:flex;align-items:stretch;flex:1;}
+  .nsx-tab{padding:0 18px;display:flex;align-items:center;font-size:12.5px;
+    color:#9080b0;border-bottom:2px solid transparent;border-right:1px solid #2a2a4e;}
+  .nsx-tab.active{color:#e0d0f8;border-bottom-color:var(--t1);background:#1f1f38;}
+  .nsx-body{display:flex;min-height:300px;}
+  .nsx-leftnav{width:205px;flex-shrink:0;background:#141424;
+    border-right:1px solid #2a2a4e;padding:10px 0;}
+  .nsx-nav-sec{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:#5a5080;padding:8px 15px 3px;}
+  .nsx-nav-item{padding:7px 15px;font-size:12.5px;color:#9080b0;
+    display:flex;align-items:center;gap:8px;line-height:1.3;}
+  .nsx-nav-item.active{background:#0d3020;color:#60c890;
+    border-left:2px solid var(--t1);padding-left:13px;}
+  .nsx-nav-item.sub{padding-left:26px;font-size:12px;}
+  .nsx-nav-item.sub.active{padding-left:24px;}
+  .nsx-content{flex:1;background:#1a1a2e;overflow:auto;}
+  .nsx-ch{padding:14px 22px 11px;border-bottom:1px solid #2a2a4e;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .nsx-ct{font-size:15px;font-weight:700;color:#e8e0f0;}
+  .nsx-cs{font-size:12px;color:#9080b0;margin-top:2px;}
+  .nsx-cb{padding:16px 22px;}
+
+  /* form elements */
+  .nsx-form{background:#141424;border-radius:7px;padding:16px 20px;margin:12px 0;
+    border:1px solid #2a2a4e;}
+  .nsx-frow{display:flex;gap:14px;margin-bottom:13px;align-items:flex-start;flex-wrap:wrap;}
+  .nsx-fg{flex:1;min-width:160px;}
+  .nsx-lbl{font-size:11.5px;color:#9080b0;margin-bottom:4px;display:block;}
+  .nsx-req{color:#ff6060;font-size:10px;font-weight:700;}
+  .nsx-inp{width:100%;background:#1f1f38;border:1px solid #3a2a6a;border-radius:4px;
+    padding:7px 11px;font-size:13px;color:#e8e0f0;font-family:inherit;}
+  .nsx-inp.ok{border-color:var(--t1);background:#0a2018;}
+  .nsx-inp.ok-nsx{border-color:var(--nsx);background:#201830;}
+  .nsx-sel{width:100%;background:#1f1f38;border:1px solid #3a2a6a;border-radius:4px;
+    padding:7px 11px;font-size:13px;color:#e8e0f0;}
+  .nsx-sel.ok{border-color:var(--t1);background:#0a2018;}
+  .nsx-sel.ok-nsx{border-color:var(--nsx);background:#201830;}
+  .nsx-hint{font-size:11px;color:#7060a0;margin-top:3px;line-height:1.5;}
+  .nsx-hint.warn{color:#c8a030;}
+  .nsx-div{border:none;border-top:1px solid #2a2a4e;margin:13px 0;}
+  .nsx-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.07em;color:#7060a0;margin-bottom:9px;}
+  .nsx-btn{display:inline-flex;align-items:center;padding:7px 17px;
+    border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+  .nsx-btn.p{background:var(--t1);color:#fff;}
+  .nsx-btn.s{background:#2a2a4e;color:#d0b0ff;border:1px solid #4a3a7a;}
+  .nsx-btn.sm{padding:5px 11px;font-size:12px;}
+  .nsx-footer{padding:12px 22px;border-top:1px solid #2a2a4e;
+    display:flex;justify-content:flex-end;gap:9px;}
+
+  /* table */
+  .nsx-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0;}
+  .nsx-tbl th{background:#14142a;color:#9080b0;padding:7px 12px;text-align:left;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    border-bottom:1px solid #2a2a4e;font-weight:600;}
+  .nsx-tbl td{padding:8px 12px;border-bottom:0.5px solid #22223a;
+    color:#d0c8e8;vertical-align:middle;}
+  .nsx-tbl tr:last-child td{border-bottom:none;}
+  .st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;}
+  .st-dot{width:7px;height:7px;border-radius:50%;}
+  .st.ok .st-dot{background:#4ccd99;}.st.ok{color:#4ccd99;}
+  .st.dn .st-dot{background:#e05252;}.st.dn{color:#e05252;}
+  .st.wn .st-dot{background:#f1c40f;}.st.wn{color:#f1c40f;}
+
+  /* annotations */
+  .ann{display:flex;gap:10px;background:#0f1520;
+    border-left:3px solid var(--amber);padding:9px 14px;margin:8px 0;
+    border-radius:0 5px 5px 0;font-size:12.5px;color:#d0c8b0;line-height:1.55;}
+  .ann.ok{border-left-color:var(--green);}
+  .ann.info{border-left-color:var(--vcf);}
+  .ann.err{border-left-color:var(--red);}
+  .ai{flex-shrink:0;font-size:14px;margin-top:1px;}
+
+  /* steps */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:26px;align-items:flex-start;}
+  .sn{flex-shrink:0;width:32px;height:32px;border-radius:50%;
+    background:var(--t1);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .sc{flex:1;}
+  .st2{font-weight:700;margin-bottom:5px;font-size:14.5px;}
+  .sp{font-size:12px;color:var(--t1);background:var(--t1-bg);
+    padding:3px 10px;border-radius:4px;display:inline-block;margin-bottom:8px;
+    font-family:monospace;}
+
+  /* topology flow */
+  .topo-flow{display:flex;align-items:stretch;gap:0;margin:18px 0;flex-wrap:wrap;}
+  .topo-box{padding:12px 16px;border-radius:6px;min-width:120px;text-align:center;
+    font-size:12px;font-weight:600;}
+  .topo-box.t0{background:var(--t0-bg);border:2px solid var(--t0);color:var(--t0);}
+  .topo-box.t1i{background:var(--win-bg);border:2px solid var(--win);color:var(--win);}
+  .topo-box.t1o{background:var(--ocp-bg);border:2px solid var(--ocp);color:var(--ocp);}
+  .topo-box.seg{background:var(--seg-bg);border:2px solid var(--seg);color:var(--seg);}
+  .topo-box.vm{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
+  .topo-arrow{display:flex;align-items:center;padding:0 6px;color:var(--text3);
+    font-size:18px;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="series">NovaCrestBank · NSX Configuration</div>
+    <h1>NSX-03 — Tier-1 Gateways &amp; Segments</h1>
+    <p>GUI only · Screen by screen · Every field explained</p>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Before you begin</div>
+    <div class="ni active" onclick="show('prereqs')"><div class="nd"></div>01 — Prerequisites and what this guide builds</div>
+    <div class="ni" onclick="show('why-two-t1')"><div class="nd"></div>02 — Why two T1 Gateways — the security boundary design</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part A — NCB-T1-Infra</div>
+    <div class="ni" onclick="show('t1-infra-create')"><div class="nd"></div>03 — Create NCB-T1-Infra Gateway</div>
+    <div class="ni" onclick="show('t1-infra-connect')"><div class="nd"></div>04 — Connect NCB-T1-Infra to NCB-T0-Gateway</div>
+    <div class="ni" onclick="show('t1-infra-advert')"><div class="nd"></div>05 — Enable route advertisement on NCB-T1-Infra</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part B — NCB-T1-OCP</div>
+    <div class="ni" onclick="show('t1-ocp-create')"><div class="nd"></div>06 — Create NCB-T1-OCP Gateway</div>
+    <div class="ni" onclick="show('t1-ocp-connect')"><div class="nd"></div>07 — Connect NCB-T1-OCP to NCB-T0-Gateway</div>
+    <div class="ni" onclick="show('t1-ocp-advert')"><div class="nd"></div>08 — Enable route advertisement on NCB-T1-OCP</div>
+    <div class="ni" onclick="show('t1-verify')"><div class="nd"></div>09 — Verify both T1 Gateways</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part C — Segments</div>
+    <div class="ni" onclick="show('seg-concept')"><div class="nd"></div>10 — What the Segment form asks for</div>
+    <div class="ni" onclick="show('seg-infra')"><div class="nd"></div>11 — Create seg-infra-services (10.70.0.0/24)</div>
+    <div class="ni" onclick="show('seg-ocp')"><div class="nd"></div>12 — Create seg-ocp-nodes (10.50.0.0/24)</div>
+    <div class="ni" onclick="show('seg-verify')"><div class="nd"></div>13 — Verify both segments in the Segments list</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part D — Connect VMs to segments</div>
+    <div class="ni" onclick="show('vm-connect-concept')"><div class="nd"></div>14 — How to connect existing VMs to NSX segments</div>
+    <div class="ni" onclick="show('vm-connect-dc')"><div class="nd"></div>15 — Connect DC01 and DC02 to seg-infra-services</div>
+    <div class="ni" onclick="show('vm-connect-ca')"><div class="nd"></div>16 — Connect IssuingCA to seg-infra-services</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Verify end-to-end</div>
+    <div class="ni" onclick="show('bgp-routes-verify')"><div class="nd"></div>17 — Verify segment routes appear in T0 BGP table</div>
+    <div class="ni" onclick="show('ping-verify')"><div class="nd"></div>18 — Verify reachability — Traceflow from NSX Manager</div>
+    <div class="ni" onclick="show('final')"><div class="nd"></div>19 — Final checklist and what NSX-04 builds next</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══ 01 PREREQS ═══ -->
+<div class="page active" id="page-prereqs">
+  <div class="ey">NSX-03 · Section 01</div>
+  <div class="pt">Prerequisites and what this guide builds</div>
+  <div class="ps">NSX-02 built the border — the T0 Gateway with BGP sessions to Cisco. NSX-03 builds the interior — the tenant routing (T1 Gateways) and the logical networks (Segments) that VMs and OCP nodes connect to.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-01<br/>TZ + HTN</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-02<br/>Edge + T0</div>
+    <div class="pt-step active"><span class="pt-n">→</span>NSX-03<br/>T1 + Seg</div>
+    <div class="pt-step"><span class="pt-n">4</span>NSX-04<br/>LB</div>
+    <div class="pt-step"><span class="pt-n">5</span>NSX-05<br/>DFW</div>
+    <div class="pt-step"><span class="pt-n">6</span>WIN<br/>DNS</div>
+  </div>
+
+  <h2>Prerequisites</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NSX-02 fully complete</span><span class="spec-val">NCB-T0-Gateway exists · Active-Active · All 4 BGP sessions Established</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Edge-Cluster</span><span class="spec-val">2 members · both Up</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Overlay-TZ</span><span class="spec-val">Overlay type · 9 Transport Nodes (all ESXi hosts prepared)</span></div>
+    <div class="spec-row"><span class="spec-label">T0 route redistribution</span><span class="spec-val">T0 Connected + T1 Connected enabled — so new T1 segment routes are automatically advertised into BGP</span></div>
+    <div class="spec-row"><span class="spec-label">DC01, DC02, IssuingCA VMs exist</span><span class="spec-val">Currently on a port group or vSphere standard switch — will be migrated to NSX segment seg-infra-services in this guide</span></div>
+  </div>
+
+  <h2>What this guide builds — in order</h2>
+  <ol>
+    <li><strong>NCB-T1-Infra</strong> — Tier-1 Gateway for infrastructure service VMs (DCs, CAs). Connected to NCB-T0-Gateway. Active-Standby HA.</li>
+    <li><strong>NCB-T1-OCP</strong> — Tier-1 Gateway for OpenShift nodes and pods. Connected to NCB-T0-Gateway. Active-Standby HA.</li>
+    <li><strong>seg-infra-services</strong> — Overlay segment 10.70.0.0/24. Connected to NCB-T1-Infra. Gateway 10.70.0.1. Hosts DC01, DC02, IssuingCA.</li>
+    <li><strong>seg-ocp-nodes</strong> — Overlay segment 10.50.0.0/24. Connected to NCB-T1-OCP. Gateway 10.50.0.1. Hosts OCP node VMs during installation.</li>
+    <li><strong>VM migration</strong> — DC01, DC02, and IssuingCA virtual NICs changed from their current port group to seg-infra-services. IPs stay the same.</li>
+  </ol>
+
+  <h2>The complete logical topology after this guide</h2>
+  <div class="topo-flow">
+    <div class="topo-box t0">NCB-T0-Gateway<br/><span style="font-size:10px;font-weight:400;">BGP ASN 65010</span></div>
+    <div class="topo-arrow">↓</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="topo-box t1i">NCB-T1-Infra<br/><span style="font-size:10px;font-weight:400;">Active-Standby</span></div>
+        <div class="topo-arrow">→</div>
+        <div class="topo-box seg">seg-infra-services<br/><span style="font-size:10px;font-weight:400;">10.70.0.0/24</span></div>
+        <div class="topo-arrow">→</div>
+        <div class="topo-box vm">DC01 · DC02<br/>IssuingCA</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="topo-box t1o">NCB-T1-OCP<br/><span style="font-size:10px;font-weight:400;">Active-Standby</span></div>
+        <div class="topo-arrow">→</div>
+        <div class="topo-box seg">seg-ocp-nodes<br/><span style="font-size:10px;font-weight:400;">10.50.0.0/24</span></div>
+        <div class="topo-arrow">→</div>
+        <div class="topo-box vm">OCP nodes<br/>(added in OCP install)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 02 WHY TWO T1 ═══ -->
+<div class="page" id="page-why-two-t1">
+  <div class="ey">NSX-03 · Section 02</div>
+  <div class="pt">Why two T1 Gateways — the security boundary design decision</div>
+  <div class="ps">Understanding this design choice before touching the GUI — it is the single most important architectural decision in this guide</div>
+
+  <div class="decision">
+    <div class="dl">One T1 vs two T1s — the security boundary argument</div>
+    <div class="dq">Both the infrastructure VMs (DC01, DC02) and the OCP nodes could be connected to a single T1 Gateway. Why does NovaCrestBank use two separate T1 Gateways?</div>
+    <div class="da"><strong>Because traffic between two segments on the same T1 is routed internally within the T1 — it never crosses the T0, never passes through a gateway firewall policy point, and is only controlled by DFW. Traffic between segments on different T1s must pass through the T0, which is the natural enforcement point for inter-domain Gateway Firewall rules.</strong><br/><br/>
+    With one T1 (everything together):<br/>
+    — An OCP pod querying DC01 on 10.70.0.10 for LDAPS: the T1 routes it internally. DFW can still inspect this, but there is no Gateway Firewall boundary reflecting the different trust levels of the two domains.<br/><br/>
+    With two T1s (separate domains):<br/>
+    — An OCP pod querying DC01: traffic goes OCP pod → seg-ocp-nodes → NCB-T1-OCP → NCB-T0-Gateway → NCB-T1-Infra → seg-infra-services → DC01. The T0 crossing is the enforcement point. The Gateway Firewall on NCB-T1-OCP explicitly allows only LDAPS (TCP 636) and DNS (TCP/UDP 53) toward the Infrastructure domain — everything else is denied at the T1 boundary.<br/><br/>
+    <strong>The two-T1 design encodes the trust boundary in the routing topology, not just in firewall rules.</strong> Even if the DFW were misconfigured, an OCP pod could not reach the DC01 admin share or RDP port because the Gateway Firewall on NCB-T1-OCP explicitly denies those. Defence in depth at the network architecture level.<br/><br/>
+    <span class="reg pci">PCI-DSS v4.0 Req 1.3.2</span> — Restrict inbound and outbound traffic to that which is necessary for the cardholder data environment. The two-T1 design enforces this at the routing topology level, not just at the firewall rule level.
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="dl">Why both T1s are Active-Standby — not Active-Active</div>
+    <div class="dq">The T0 is Active-Active. Why are the T1 Gateways Active-Standby?</div>
+    <div class="da"><strong>Because T1 Gateways run distributed in the ESXi kernel for east-west (intra-segment and inter-segment) routing — but they have a "service router" component that runs on an Edge Node for north-south traffic (traffic that crosses from T1 to T0). Active-Standby for the T1 service router means one Edge Node is the primary handler for T0-bound traffic from this T1.</strong><br/><br/>
+    In practice for NovaCrestBank, the T1 HA mode has minimal operational impact because:<br/>
+    1. Most VM-to-VM traffic within a segment is handled by the distributed T1 kernel component — no Edge Node involved at all.<br/>
+    2. Traffic leaving the T1 to reach the T0 (e.g., OCP node accessing the internet) does pass through the T1 service router on the Edge Node — but stateful sessions survive failover because NSX synchronises connection state between Edge Nodes.<br/><br/>
+    Active-Standby for T1 is the simpler and most common configuration for tenant gateways. Active-Active T1 requires ECMP configuration on the T1 and is generally used for very high-throughput workloads.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 03 T1-INFRA CREATE ═══ -->
+<div class="page" id="page-t1-infra-create">
+  <div class="ey">NSX-03 · Section 03</div>
+  <div class="pt">Create NCB-T1-Infra Gateway</div>
+  <div class="ps">The Tier-1 Gateway for infrastructure service VMs — DC01, DC02, Root CA, Issuing CA, and any future management-plane VMs</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Tier-1 Gateways → ADD TIER-1 GATEWAY</div>
+        <div class="sp">Networking → Connectivity → Tier-1 Gateways</div>
+        <p style="font-size:13.5px;">Click the <strong>Networking</strong> tab. In the left panel expand <strong>Connectivity</strong> → click <strong>Tier-1 Gateways</strong>. The list is empty. Click <strong>+ ADD TIER-1 GATEWAY</strong>. A slide-in configuration panel opens on the right.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Add Tier-1 Gateway form for NCB-T1-Infra</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Tier-1 Gateway — NCB-T1-Infra</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-T1-Infra" readonly/>
+                    <div class="nsx-hint">The Infra suffix identifies this as the infrastructure services tenant — distinct from the OCP tenant. Consistent naming is important when there are multiple T1s in the same NSX environment.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="T1 Gateway for infrastructure VMs — DC01, DC02, IssuingCA · connected to NCB-T0-Gateway" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Linked Tier-0 Gateway <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-T0-Gateway ← select this</option>
+                    </select>
+                    <div class="nsx-hint">This connects NCB-T1-Infra to NCB-T0-Gateway. After this link is set, the T1's connected segment routes are automatically shared upward to the T0 and included in BGP advertisement toward Cisco — because T1 Connected route redistribution was enabled in NSX-02.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Edge Cluster <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Edge-Cluster ← select this</option>
+                    </select>
+                    <div class="nsx-hint">The Edge Cluster hosts the T1's "service router" component — the part that handles traffic crossing between the T1 and T0. NCB-Edge-Cluster (edge-01 + edge-02) provides this function.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:280px;">
+                    <span class="nsx-lbl">Failover Mode</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Non-preemptive ← leave as default</option>
+                      <option>Preemptive</option>
+                    </select>
+                    <div class="nsx-hint">Same as the T0 — Non-preemptive means a recovered Edge Node does not disrupt traffic by forcing itself back to primary status.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:260px;">
+                    <span class="nsx-lbl">HA Mode</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Active Standby ← leave as default</option>
+                      <option>Active Active</option>
+                    </select>
+                    <div class="nsx-hint">Active-Standby for the T1 service router. One Edge Node is primary for north-south T0-bound traffic. NSX synchronises connection state between Edge Nodes so failover is transparent to active sessions.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:280px;">
+                    <span class="nsx-lbl">Enable Standby Relocation</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Disabled ← leave as default</option>
+                      <option>Enabled</option>
+                    </select>
+                    <div class="nsx-hint">Leave Disabled. Standby Relocation moves the standby T1 service router to a different Edge Node when the primary fails. For NovaCrestBank with only two Edge Nodes, this has no effect — the standby is already on the only other Edge Node available.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: NCB-T1-Infra appears in the Tier-1 Gateways list. It shows a link to NCB-T0-Gateway. Status shows as Down initially — correct, no segments are connected yet. The T1 is ready for segment attachment.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 04 T1-INFRA CONNECT ═══ -->
+<div class="page" id="page-t1-infra-connect">
+  <div class="ey">NSX-03 · Section 04</div>
+  <div class="pt">Connect NCB-T1-Infra to NCB-T0-Gateway — verify the link</div>
+  <div class="ps">The Linked T0 field set during creation creates the connection automatically — this section confirms it is visible and correct</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Verify the T0-T1 connection in the Tier-1 Gateways list</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Networking → Tier-1 Gateways</div></div>
+          </div>
+          <div class="nsx-body">
+            <div class="nsx-leftnav">
+              <div class="nsx-nav-sec">Connectivity</div>
+              <div class="nsx-nav-item sub active">🔀 Tier-1 Gateways</div>
+              <div class="nsx-nav-item sub">🔶 Tier-0 Gateways</div>
+              <div class="nsx-nav-item sub">🔷 Segments</div>
+            </div>
+            <div class="nsx-content">
+              <div class="nsx-ch">
+                <div><div class="nsx-ct">Tier-1 Gateways</div><div class="nsx-cs">1 gateway</div></div>
+                <div class="nsx-btn p">+ ADD TIER-1 GATEWAY</div>
+              </div>
+              <div class="nsx-cb">
+                <table class="nsx-tbl">
+                  <thead><tr><th>Name</th><th>Linked T0</th><th>Edge Cluster</th><th>HA Mode</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><strong style="color:#60c890;">NCB-T1-Infra</strong></td>
+                      <td style="font-size:12px;color:#f0a040;">NCB-T0-Gateway ✓</td>
+                      <td style="font-size:12px;color:#9080b0;">NCB-Edge-Cluster</td>
+                      <td style="font-size:12px;"><span class="badge bgr">Active-Standby</span></td>
+                      <td><span class="st dn"><span class="st-dot"></span>Down</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div style="font-size:11.5px;color:#7060a0;margin-top:8px;">↑ Status: Down is expected — no segments are connected yet. The T1 has no route to advertise, so it is operationally inactive. Status will change to Up once seg-infra-services is connected in Section 11.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>NCB-T1-Infra is listed with Linked T0 = NCB-T0-Gateway. HA Mode = Active-Standby. Status Down is expected at this stage — correct.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout why">
+    <div class="cl">What "Linked Tier-0 Gateway" physically creates</div>
+    When the T1 is linked to the T0, NSX creates an internal transit link between the two gateways — a point-to-point connection using a reserved link-local subnet (100.64.x.x/31) that is not visible in any GUI. This transit link carries routing information from the T1 to the T0. Because T1 Connected route redistribution was already enabled on the T0 in NSX-02, any segment connected to this T1 will have its prefix automatically propagated to the T0 and included in BGP advertisements to Cisco. The administrator does not need to configure any routing between T1 and T0 — the link is the entire routing configuration.
+  </div>
+</div>
+
+<!-- ═══ 05 T1-INFRA ADVERT ═══ -->
+<div class="page" id="page-t1-infra-advert">
+  <div class="ey">NSX-03 · Section 05</div>
+  <div class="pt">Enable route advertisement on NCB-T1-Infra</div>
+  <div class="ps">Telling the T1 which of its routes to share upward to the T0 — a separate control from the T0's route redistribution</div>
+
+  <div class="decision">
+    <div class="dl">T1 route advertisement vs T0 route redistribution — two separate controls</div>
+    <div class="dq">The T0 already has "T1 Connected" route redistribution enabled. Does the T1 also need route advertisement configured separately?</div>
+    <div class="da"><strong>Yes — there are two separate controls:</strong><br/><br/>
+    <strong>T0 Route Redistribution</strong> (configured in NSX-02): tells the T0 "when you receive route information from a linked T1, redistribute it into BGP." This is the outbound control — once the T0 has the routes, it puts them into BGP.<br/><br/>
+    <strong>T1 Route Advertisement</strong> (configured here): tells the T1 "which of your routes to share upward to the linked T0." By default, a T1 shares nothing — even if the T0 is listening. Without enabling T1 route advertisement, the T0 never receives the T1's segment prefixes and cannot include them in BGP.<br/><br/>
+    Think of it as two gates on the same road: the T1 advertisement gate (does the T1 open its gate to share routes upward?) and the T0 redistribution gate (does the T0 take those routes and put them into BGP?). Both gates must be open for segment prefixes to reach Cisco via BGP.
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Click the edit pencil on NCB-T1-Infra → scroll to Route Advertisement → expand → click Set</div>
+        <p style="font-size:13.5px;">In <strong>Networking → Tier-1 Gateways</strong>, click the <strong>pencil edit icon</strong> (✎) next to NCB-T1-Infra. The T1 configuration slide-in opens. Scroll down to <strong>Route Advertisement</strong>. Click the expand arrow. Click <strong>Set</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Enable the correct advertisement types</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-T1-Infra → Route Advertisement</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div style="display:flex;flex-direction:column;gap:11px;">
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:var(--t1);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;">✓</div>
+                    <div>
+                      <div style="font-size:13.5px;color:#60c890;font-weight:600;">All Connected Segments &amp; Service Ports ← enable this</div>
+                      <div class="nsx-hint">Shares the prefixes of all segments directly connected to this T1 with the linked T0. This is the primary advertisement type — it makes seg-infra-services (10.70.0.0/24) visible to the T0 and then to Cisco via BGP. Enable this for the T1 to be operationally useful.</div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;opacity:.35;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:#333;flex-shrink:0;margin-top:2px;"></div>
+                    <div>
+                      <div style="font-size:13.5px;color:#9080b0;">All Static Routes — leave disabled</div>
+                      <div class="nsx-hint">No static routes are configured on NCB-T1-Infra. Leave disabled.</div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;opacity:.35;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:#333;flex-shrink:0;margin-top:2px;"></div>
+                    <div>
+                      <div style="font-size:13.5px;color:#9080b0;">All NAT IPs — leave disabled</div>
+                      <div class="nsx-hint">No NAT configured on NCB-T1-Infra.</div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;opacity:.35;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:#333;flex-shrink:0;margin-top:2px;"></div>
+                    <div>
+                      <div style="font-size:13.5px;color:#9080b0;">All LB VIP IPs — leave disabled</div>
+                      <div class="nsx-hint">Load Balancer VIPs for OCP are on NCB-T1-OCP, not NCB-T1-Infra.</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: Route Advertisement on NCB-T1-Infra is configured. "All Connected Segments" is enabled. Once seg-infra-services is connected (Section 11), its prefix 10.70.0.0/24 will be shared to NCB-T0-Gateway and advertised via BGP to Cisco automatically.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 06 T1-OCP CREATE ═══ -->
+<div class="page" id="page-t1-ocp-create">
+  <div class="ey">NSX-03 · Section 06</div>
+  <div class="pt">Create NCB-T1-OCP Gateway</div>
+  <div class="ps">The Tier-1 Gateway for OpenShift — a separate routing domain from the infrastructure tenant</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Still on Tier-1 Gateways → click ADD TIER-1 GATEWAY again</div>
+        <p style="font-size:13.5px;">NCB-T1-Infra now appears in the list. Click <strong>+ ADD TIER-1 GATEWAY</strong> again for the OCP tenant gateway.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the NCB-T1-OCP form</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Tier-1 Gateway — NCB-T1-OCP</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-T1-OCP" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="T1 Gateway for OpenShift workloads — OCP nodes, pods, services · connected to NCB-T0-Gateway" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Linked Tier-0 Gateway <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-T0-Gateway ← same T0 as NCB-T1-Infra</option>
+                    </select>
+                    <div class="nsx-hint">Both T1 Gateways connect to the same NCB-T0-Gateway. The T0 is the hub — all inter-T1 traffic (OCP → Infrastructure) must cross through the T0, which is the enforcement point for Gateway Firewall rules between the two domains.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Edge Cluster <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Edge-Cluster</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:280px;">
+                    <span class="nsx-lbl">HA Mode</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Active Standby</option>
+                    </select>
+                    <div class="nsx-hint">Same as NCB-T1-Infra — Active-Standby for the T1 service router on the Edge Nodes.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:260px;">
+                    <span class="nsx-lbl">Failover Mode</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Non-preemptive</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>NCB-T1-OCP created and appears in the Tier-1 Gateways list. Both T1s now show, both linked to NCB-T0-Gateway. Status: Down for both — correct, no segments connected yet.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 07 T1-OCP CONNECT ═══ -->
+<div class="page" id="page-t1-ocp-connect">
+  <div class="ey">NSX-03 · Section 07</div>
+  <div class="pt">Connect NCB-T1-OCP to NCB-T0-Gateway — verify the link</div>
+  <div class="ps">The link was set during creation — confirm both T1 Gateways are visible and both show NCB-T0-Gateway as their linked T0</div>
+
+  <div class="nsx-shell">
+    <div class="nsx-topbar">
+      <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Networking → Tier-1 Gateways</div></div>
+    </div>
+    <div class="nsx-body">
+      <div class="nsx-leftnav">
+        <div class="nsx-nav-sec">Connectivity</div>
+        <div class="nsx-nav-item sub active">🔀 Tier-1 Gateways</div>
+      </div>
+      <div class="nsx-content">
+        <div class="nsx-ch">
+          <div><div class="nsx-ct">Tier-1 Gateways</div><div class="nsx-cs">2 gateways</div></div>
+          <div class="nsx-btn p">+ ADD TIER-1 GATEWAY</div>
+        </div>
+        <div class="nsx-cb">
+          <table class="nsx-tbl">
+            <thead><tr><th>Name</th><th>Linked T0</th><th>HA Mode</th><th>Edge Cluster</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong style="color:#60c890;">NCB-T1-Infra</strong></td>
+                <td style="font-size:12px;color:#f0a040;">NCB-T0-Gateway ✓</td>
+                <td><span class="badge bgr">Active-Standby</span></td>
+                <td style="font-size:12px;color:#9080b0;">NCB-Edge-Cluster</td>
+                <td><span class="st dn"><span class="st-dot"></span>Down</span></td>
+              </tr>
+              <tr>
+                <td><strong style="color:#60c890;">NCB-T1-OCP</strong></td>
+                <td style="font-size:12px;color:#f0a040;">NCB-T0-Gateway ✓</td>
+                <td><span class="badge bgr">Active-Standby</span></td>
+                <td style="font-size:12px;color:#9080b0;">NCB-Edge-Cluster</td>
+                <td><span class="st dn"><span class="st-dot"></span>Down</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="font-size:11.5px;color:#7060a0;margin-top:8px;">↑ Both T1s linked to NCB-T0-Gateway. Status Down = correct — segments will bring them Up.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann ok">
+    <span class="ai">✓</span>
+    <span>Both T1 Gateways created. Both linked to NCB-T0-Gateway. Both Active-Standby. Status Down is expected. Proceed to enable route advertisement on NCB-T1-OCP.</span>
+  </div>
+</div>
+
+<!-- ═══ 08 T1-OCP ADVERT ═══ -->
+<div class="page" id="page-t1-ocp-advert">
+  <div class="ey">NSX-03 · Section 08</div>
+  <div class="pt">Enable route advertisement on NCB-T1-OCP</div>
+  <div class="ps">The same two-gate concept — the T1 OCP gateway also needs route advertisement enabled so OCP segment prefixes reach the T0 and are included in BGP</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Click the edit pencil on NCB-T1-OCP → Route Advertisement → Set</div>
+        <p style="font-size:13.5px;">Click the pencil edit icon next to <strong>NCB-T1-OCP</strong>. Scroll to <strong>Route Advertisement</strong> → expand → click <strong>Set</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Enable advertisement types for the OCP gateway — more options enabled than NCB-T1-Infra</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-T1-OCP → Route Advertisement</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div style="display:flex;flex-direction:column;gap:11px;">
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:var(--t1);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;">✓</div>
+                    <div>
+                      <div style="font-size:13.5px;color:#60c890;font-weight:600;">All Connected Segments &amp; Service Ports ← enable this</div>
+                      <div class="nsx-hint">Advertises seg-ocp-nodes (10.50.0.0/24) upward to the T0 once that segment is created. Same as NCB-T1-Infra.</div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:var(--t1);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;">✓</div>
+                    <div>
+                      <div style="font-size:13.5px;color:#60c890;font-weight:600;">All LB VIP IPs ← enable this</div>
+                      <div class="nsx-hint">When the NSX Load Balancer is configured in NSX-04 with OCP API VIP (10.50.0.200) and Ingress VIP (10.50.0.201), those VIPs are attached to NCB-T1-OCP. Enabling this advertisement type causes those VIP /32 host routes to be shared to the T0 and advertised via BGP. Without this, Cisco cannot route traffic destined for the OCP API or Ingress VIPs — they appear unreachable from outside NSX. Enabling it now means it is ready when the LB is configured in NSX-04.</div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;opacity:.35;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:#333;flex-shrink:0;margin-top:2px;"></div>
+                    <div>
+                      <div style="font-size:13.5px;color:#9080b0;">All Static Routes — leave disabled</div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-start;gap:11px;opacity:.35;">
+                    <div style="width:16px;height:16px;border-radius:3px;background:#333;flex-shrink:0;margin-top:2px;"></div>
+                    <div>
+                      <div style="font-size:13.5px;color:#9080b0;">All NAT IPs — leave disabled</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>Route Advertisement on NCB-T1-OCP configured. "All Connected Segments" and "All LB VIP IPs" enabled. The LB VIP advertisement will become active after NSX-04 creates the Virtual Servers.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 09 T1 VERIFY ═══ -->
+<div class="page" id="page-t1-verify">
+  <div class="ey">NSX-03 · Section 09</div>
+  <div class="pt">Verify both T1 Gateways — configuration summary</div>
+  <div class="ps">Confirming the complete T1 configuration before moving to segment creation</div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NCB-T1-Infra — Linked T0</span><span class="spec-val">NCB-T0-Gateway ✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-Infra — HA Mode</span><span class="spec-val">Active-Standby · Non-preemptive ✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-Infra — Route Advertisement</span><span class="spec-val">All Connected Segments enabled ✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-OCP — Linked T0</span><span class="spec-val">NCB-T0-Gateway ✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-OCP — HA Mode</span><span class="spec-val">Active-Standby · Non-preemptive ✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-OCP — Route Advertisement</span><span class="spec-val">All Connected Segments + All LB VIP IPs enabled ✓</span></div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Both T1s are Down — this is correct and expected</div>
+    A Tier-1 Gateway has no operational state until at least one segment is connected to it. The Status: Down simply means "no connected routes to advertise — nothing to route." Once seg-infra-services is connected to NCB-T1-Infra in Section 11, the T1 will immediately become Up. The same will happen for NCB-T1-OCP once seg-ocp-nodes is connected in Section 12.
+  </div>
+</div>
+
+<!-- ═══ 10 SEG CONCEPT ═══ -->
+<div class="page" id="page-seg-concept">
+  <div class="ey">NSX-03 · Section 10</div>
+  <div class="pt">What the Segment form asks for — before creating the first segment</div>
+  <div class="ps">Understanding each field in the Add Segment form so every entry is intentional</div>
+
+  <table>
+    <thead><tr><th>Field</th><th>What it controls</th><th>NovaCrestBank value</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Segment name</strong></td>
+        <td>The logical name in NSX Manager. VMs connect to this segment by selecting this name. Appears in DFW rules as a source/destination group member.</td>
+        <td>seg-infra-services · seg-ocp-nodes</td>
+      </tr>
+      <tr>
+        <td><strong>Connected Gateway</strong></td>
+        <td>Which T1 (or T0) this segment is attached to for routing. Setting this is what makes the segment's prefix get advertised upward to the T0 and into BGP.</td>
+        <td>NCB-T1-Infra (for infra segment) · NCB-T1-OCP (for OCP segment)</td>
+      </tr>
+      <tr>
+        <td><strong>Transport Zone</strong></td>
+        <td>Which Transport Zone this segment belongs to. Must be NCB-Overlay-TZ for GENEVE overlay segments (workload networks). Do not select NCB-VLAN-TZ here — that is for Edge uplinks only.</td>
+        <td>NCB-Overlay-TZ (for both segments)</td>
+      </tr>
+      <tr>
+        <td><strong>Subnets</strong></td>
+        <td>The gateway IP address and prefix length for this segment. The gateway IP is what VMs use as their default gateway — NSX creates a virtual interface on the T1 at this IP. VMs receive IPs in this subnet from DHCP or static assignment.</td>
+        <td>10.70.0.1/24 (infra) · 10.50.0.1/24 (OCP)</td>
+      </tr>
+      <tr>
+        <td><strong>Admin State</strong></td>
+        <td>Whether the segment is enabled (Up) or disabled (Down). Almost always leave as Up.</td>
+        <td>Up (default)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout nsx">
+    <div class="cl">Navigation to create segments</div>
+    In NSX Manager: <strong>Networking → Segments → + ADD SEGMENT</strong>. The Add Segment slide-in appears. This is the same Segments list where seg-edge-uplink-a and seg-edge-uplink-b (the VLAN-backed uplink segments) already exist from NSX-02.
+  </div>
+</div>
+
+<!-- ═══ 11 SEG INFRA ═══ -->
+<div class="page" id="page-seg-infra">
+  <div class="ey">NSX-03 · Section 11</div>
+  <div class="pt">Create seg-infra-services — the infrastructure VMs logical network</div>
+  <div class="ps">The overlay segment that DC01, DC02, IssuingCA, and all future infrastructure VMs will connect to — on IP subnet 10.70.0.0/24</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Segments → ADD SEGMENT</div>
+        <div class="sp">Networking → Segments → + ADD SEGMENT</div>
+        <p style="font-size:13.5px;">Click the <strong>Networking</strong> tab → left panel → <strong>Segments</strong>. The list shows the two VLAN-backed uplink segments from NSX-02. Click <strong>+ ADD SEGMENT</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Add Segment form for seg-infra-services</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Segment — seg-infra-services</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Segment Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="seg-infra-services" readonly/>
+                    <div class="nsx-hint">The "seg-" prefix and descriptive suffix is the NovaCrestBank naming convention for all workload segments. Consistent naming makes DFW rules and troubleshooting readable.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Connected Gateway / Type <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-T1-Infra | Tier-1 ← select this</option>
+                    </select>
+                    <div class="nsx-hint">Select <strong>NCB-T1-Infra</strong>. This connection is what activates the T1 — after saving, NCB-T1-Infra status changes from Down to Up. The segment prefix 10.70.0.0/24 is shared to NCB-T0-Gateway and appears in BGP advertisements to Cisco within seconds. <span class="reg pci">PCI Req 1.2.1</span></div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Transport Zone <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Overlay-TZ ← select this</option>
+                      <option>NCB-VLAN-TZ</option>
+                    </select>
+                    <div class="nsx-hint">Select <strong>NCB-Overlay-TZ</strong>. This creates an overlay (GENEVE) segment — no physical VLAN is needed. The segment spans all 9 ESXi hosts in the Overlay Transport Zone. Do not select NCB-VLAN-TZ — that would create a VLAN-backed segment requiring a physical VLAN.</div>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Subnets (Gateway IP)</div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div class="nsx-frow">
+                    <div class="nsx-fg">
+                      <span class="nsx-lbl">Gateway IP / Prefix Length <span class="nsx-req">*</span></span>
+                      <input class="nsx-inp ok" value="10.70.0.1/24" readonly/>
+                      <div class="nsx-hint">The gateway IP for VMs on this segment. DC01 uses 10.70.0.10 and has its default gateway set to 10.70.0.1 — this IP is the virtual interface NSX creates on NCB-T1-Infra for this segment. The /24 defines the segment's subnet (10.70.0.0/24).</div>
+                    </div>
+                  </div>
+                  <div style="font-size:11.5px;color:#7060a0;margin-top:6px;">To add the subnet: click "+ ADD SUBNET" if required by the UI, then enter 10.70.0.1/24 in the Gateway IP field and click ADD. Some NSX versions show this inline.</div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Admin State</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>UP ← leave as UP</option>
+                      <option>DOWN</option>
+                    </select>
+                    <div class="nsx-hint">Leave as UP. DOWN disables the segment — VMs connected to it lose connectivity.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: seg-infra-services appears in the Segments list. Type: <span class="badge bgr">Overlay</span>. Connected to NCB-T1-Infra. Subnets: 10.70.0.1/24. In the Tier-1 Gateways list, NCB-T1-Infra now shows Status: <span class="badge bg">Up</span>. The prefix 10.70.0.0/24 is now being advertised to NCB-T0-Gateway and via BGP to Cisco Leaf-01 and Leaf-02.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 12 SEG OCP ═══ -->
+<div class="page" id="page-seg-ocp">
+  <div class="ey">NSX-03 · Section 12</div>
+  <div class="pt">Create seg-ocp-nodes — the OpenShift nodes logical network</div>
+  <div class="ps">The overlay segment that OpenShift master, infrastructure, and worker node VMs will connect to during OCP installation</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Still on Segments → click ADD SEGMENT again</div>
+        <p style="font-size:13.5px;">seg-infra-services now appears in the list. Click <strong>+ ADD SEGMENT</strong> for the OCP nodes segment.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Add Segment form for seg-ocp-nodes</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Segment — seg-ocp-nodes</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Segment Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="seg-ocp-nodes" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Connected Gateway / Type <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-T1-OCP | Tier-1 ← select this</option>
+                    </select>
+                    <div class="nsx-hint">Select <strong>NCB-T1-OCP</strong>. After saving, NCB-T1-OCP becomes Up and the prefix 10.50.0.0/24 propagates to the T0 and into BGP. Cisco will learn the OCP node subnet and will be able to route traffic to OCP nodes.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Transport Zone <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Overlay-TZ ← select this</option>
+                    </select>
+                    <div class="nsx-hint">NCB-Overlay-TZ — same as seg-infra-services. An overlay segment spans all 9 ESXi hosts. OCP node VMs on any of the 5 OCP cluster hosts can connect to this segment.</div>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Subnets (Gateway IP)</div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div class="nsx-frow">
+                    <div class="nsx-fg">
+                      <span class="nsx-lbl">Gateway IP / Prefix Length <span class="nsx-req">*</span></span>
+                      <input class="nsx-inp ok" value="10.50.0.1/24" readonly/>
+                      <div class="nsx-hint">The gateway for OCP node VMs. OCP master-0 (10.50.0.11), master-1 (10.50.0.12), master-2 (10.50.0.13), infra-0 through infra-2 (10.50.0.21–.23), worker-0 through worker-2 (10.50.0.31–.33) — all have their default gateway set to 10.50.0.1. This IP is the T1 interface NSX creates on NCB-T1-OCP for this segment.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: seg-ocp-nodes appears in the Segments list. NCB-T1-OCP now shows Status: Up. The prefix 10.50.0.0/24 is now being advertised via BGP to Cisco. Both OCP NSX Load Balancer VIPs (10.50.0.200 and 10.50.0.201) will be routable from the physical network once the NSX LB is configured in NSX-04.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 13 SEG VERIFY ═══ -->
+<div class="page" id="page-seg-verify">
+  <div class="ey">NSX-03 · Section 13</div>
+  <div class="pt">Verify both segments in the Segments list</div>
+  <div class="ps">Confirming the overlay segments are created, connected to the correct T1 Gateways, and showing their subnet gateway IPs</div>
+
+  <div class="nsx-shell">
+    <div class="nsx-topbar">
+      <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Networking → Segments</div></div>
+    </div>
+    <div class="nsx-body">
+      <div class="nsx-leftnav">
+        <div class="nsx-nav-sec">Connectivity</div>
+        <div class="nsx-nav-item sub active">🔷 Segments</div>
+      </div>
+      <div class="nsx-content">
+        <div class="nsx-ch">
+          <div><div class="nsx-ct">Segments</div><div class="nsx-cs">4 segments total</div></div>
+          <div class="nsx-btn p">+ ADD SEGMENT</div>
+        </div>
+        <div class="nsx-cb">
+          <table class="nsx-tbl">
+            <thead><tr><th>Name</th><th>Type</th><th>Transport Zone</th><th>Connected Gateway</th><th>Subnets</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong style="color:#60c890;">seg-infra-services</strong></td>
+                <td><span class="badge bgr">Overlay</span></td>
+                <td style="font-size:11.5px;color:#9080b0;">NCB-Overlay-TZ</td>
+                <td style="font-size:12px;color:#60c890;">NCB-T1-Infra</td>
+                <td style="font-family:monospace;font-size:11.5px;">10.70.0.1/24</td>
+                <td><span class="st ok"><span class="st-dot"></span>Up</span></td>
+              </tr>
+              <tr>
+                <td><strong style="color:#60c890;">seg-ocp-nodes</strong></td>
+                <td><span class="badge bgr">Overlay</span></td>
+                <td style="font-size:11.5px;color:#9080b0;">NCB-Overlay-TZ</td>
+                <td style="font-size:12px;color:#60c890;">NCB-T1-OCP</td>
+                <td style="font-family:monospace;font-size:11.5px;">10.50.0.1/24</td>
+                <td><span class="st ok"><span class="st-dot"></span>Up</span></td>
+              </tr>
+              <tr>
+                <td style="color:#9080b0;font-size:12px;">seg-edge-uplink-a</td>
+                <td><span class="badge bb">VLAN 102</span></td>
+                <td style="font-size:11.5px;color:#9080b0;">NCB-VLAN-TZ</td>
+                <td style="font-size:12px;color:#f0a040;">NCB-T0-Gateway</td>
+                <td style="font-family:monospace;font-size:11.5px;">—</td>
+                <td><span class="st ok"><span class="st-dot"></span>Up</span></td>
+              </tr>
+              <tr>
+                <td style="color:#9080b0;font-size:12px;">seg-edge-uplink-b</td>
+                <td><span class="badge bb">VLAN 103</span></td>
+                <td style="font-size:11.5px;color:#9080b0;">NCB-VLAN-TZ</td>
+                <td style="font-size:12px;color:#f0a040;">NCB-T0-Gateway</td>
+                <td style="font-family:monospace;font-size:11.5px;">—</td>
+                <td><span class="st ok"><span class="st-dot"></span>Up</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann ok">
+    <span class="ai">✓</span>
+    <span>Both overlay segments are Up. seg-infra-services (10.70.0.1/24) connected to NCB-T1-Infra. seg-ocp-nodes (10.50.0.1/24) connected to NCB-T1-OCP. Both T1s are now Up. The two VLAN-backed uplink segments from NSX-02 also show here — they are working as expected.</span>
+  </div>
+</div>
+
+<!-- ═══ 14 VM CONNECT CONCEPT ═══ -->
+<div class="page" id="page-vm-connect-concept">
+  <div class="ey">NSX-03 · Section 14</div>
+  <div class="pt">How to connect existing VMs to NSX segments</div>
+  <div class="ps">DC01, DC02, and IssuingCA currently have their virtual NICs connected to a vDS port group. Moving them to the NSX overlay segment seg-infra-services is a single vNIC setting change — transparent to the VM</div>
+
+  <div class="decision">
+    <div class="dl">What changes on the VM when its NIC is moved to an NSX segment</div>
+    <div class="dq">DC01 currently has its NIC connected to a vDS port group on VLAN 70. When the NIC is changed to seg-infra-services, what physically changes — and what does DC01 experience?</div>
+    <div class="da"><strong>From DC01's perspective: nothing changes. The VM sees a normal Ethernet network with the same IP address, the same gateway (10.70.0.1 — now served by the T1 instead of a physical router), the same subnet. DC01 does not know or care whether its network is backed by a physical VLAN or an NSX GENEVE overlay.</strong><br/><br/>
+    What physically changes:<br/>
+    1. The VM's virtual NIC port is moved from the vDS port group (which maps to physical VLAN 70) to the NSX segment port (which uses GENEVE encapsulation on VLAN 100).<br/>
+    2. Traffic from DC01 now enters the NSX overlay — it is GENEVE-encapsulated by the ESXi host's TEP and forwarded to the destination via the overlay tunnel.<br/>
+    3. The gateway IP 10.70.0.1 is now served by the NCB-T1-Infra distributed router in the ESXi kernel — not by any physical device. DC01's default gateway still responds to ARP for 10.70.0.1 but the response comes from the NSX kernel module, not a physical router.<br/><br/>
+    <strong>The IP address does not change. The subnet does not change. Running applications on DC01 experience no interruption — the NIC migration causes a brief link-down/link-up event (approximately 1 second) but the IP stack reconnects immediately.</strong><br/><br/>
+    <span class="reg pci">PCI Req 1.2.1</span> — This migration implements the documented network design. The VM's effective network position (subnet, gateway, access controls) is the same. The enforcement mechanism changes from physical VLAN-based access control to NSX DFW — which provides more granular control at the VM level.
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">Migrate DC01 and DC02 one at a time — not simultaneously</div>
+    DC01 and DC02 are Active Directory Domain Controllers. If both are migrated simultaneously and either experiences a connectivity interruption during the migration, all domain authentication across the environment may fail for that brief period. Migrate DC01 first, verify DNS and LDAP are responding from DC01 after migration, then migrate DC02. The brief link-down during NIC migration (approximately 1 second) is tolerated by AD replication which has a built-in retry mechanism.
+  </div>
+</div>
+
+<!-- ═══ 15 VM CONNECT DC ═══ -->
+<div class="page" id="page-vm-connect-dc">
+  <div class="ey">NSX-03 · Section 15</div>
+  <div class="pt">Connect DC01 and DC02 to seg-infra-services</div>
+  <div class="ps">Changing the virtual NIC port group assignment in vCenter — the only change needed to move a VM from a vDS port group onto an NSX segment</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">In vCenter (vcenter-mgmt) — right-click DC01 → Edit Settings</div>
+        <p style="font-size:13.5px;">Open the vSphere Client connected to <strong>vcenter-mgmt.novacrestbank.local</strong>. In the Hosts and Clusters or VMs and Templates view, right-click <strong>DC01</strong>. Click <strong>Edit Settings</strong>. The VM hardware dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Find Network Adapter 1 — click the network dropdown</div>
+        <p style="font-size:13.5px;">In the Edit Settings dialog, find <strong>Network Adapter 1</strong>. The current value shows the existing port group (e.g., <em>PG-VLAN70-InfraServices</em> or similar). Click the dropdown next to the network adapter name.</p>
+
+        <div style="background:#1a1a2e;border-radius:8px;padding:16px 20px;margin:12px 0;border:1px solid #2a2a4e;">
+          <div style="font-size:12px;color:#9080b0;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">VM Hardware — DC01</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#141424;border-radius:5px;border:1px solid #2a2a4e;">
+            <span style="font-size:13px;color:#9080b0;min-width:160px;">Network Adapter 1:</span>
+            <select style="flex:1;background:#1f1f38;border:1.5px solid var(--t1);border-radius:4px;padding:7px 11px;font-size:13px;color:#60c890;" disabled>
+              <option selected>seg-infra-services ← select this NSX segment</option>
+              <option>PG-VLAN70-InfraServices (current — leave this)</option>
+            </select>
+          </div>
+          <div style="font-size:11px;color:#7060a0;margin-top:8px;">The dropdown shows all available networks in this vCenter — including both vDS port groups and NSX segments. NSX segments appear by their name (seg-infra-services) in the same dropdown as vDS port groups. No special process — it is the same NIC setting.</div>
+        </div>
+
+        <div class="ann" style="margin-top:8px;">
+          <span class="ai">⚠</span>
+          <span>In the network dropdown, NSX segments appear alongside vDS port groups. Scroll through the list to find <strong>seg-infra-services</strong>. It may appear under a group like "Segments" or directly in the list. Select it.</span>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">3</div>
+      <div class="sc">
+        <div class="st2">Verify "Connected" is ticked → click OK</div>
+        <p style="font-size:13.5px;">After selecting seg-infra-services, verify the <strong>Connected</strong> and <strong>Connect at power on</strong> checkboxes are both ticked. Click <strong>OK</strong>. The NIC switches to the NSX segment immediately — this is a hot change that does not require a VM restart. DC01 experiences a 1-second link-down/link-up event.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">4</div>
+      <div class="sc">
+        <div class="st2">Verify DC01 is reachable — ping 10.70.0.10 from the management workstation</div>
+        <p style="font-size:13.5px;">From a management workstation on VLAN 10 (which can reach the Cisco fabric), ping <strong>10.70.0.10</strong> (DC01). If the Cisco fabric has received the 10.70.0.0/24 route via BGP from the T0, the ping should succeed within 2–3 seconds. If ping fails, wait 10 seconds for BGP convergence and try again. If it still fails, check the BGP route table on the T0 (Section 17).</p>
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>Ping to 10.70.0.10 succeeds. DC01 is now on the NSX overlay segment seg-infra-services and reachable from the physical network via BGP-advertised routes.</span>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">5</div>
+      <div class="sc">
+        <div class="st2">Repeat for DC02 — right-click DC02 → Edit Settings → Network Adapter 1 → seg-infra-services → OK</div>
+        <p style="font-size:13.5px;">After confirming DC01 is reachable, perform the identical NIC change on <strong>DC02</strong>. Verify ping to 10.70.0.11 succeeds after the change.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 16 VM CONNECT CA ═══ -->
+<div class="page" id="page-vm-connect-ca">
+  <div class="ey">NSX-03 · Section 16</div>
+  <div class="pt">Connect IssuingCA to seg-infra-services</div>
+  <div class="ps">The same NIC change for the Issuing Certificate Authority VM — completing the infrastructure service VM migration</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Right-click IssuingCA → Edit Settings → Network Adapter 1 → seg-infra-services → OK</div>
+        <p style="font-size:13.5px;">Right-click <strong>issuingca.novacrestbank.local</strong> (10.70.0.21). Click <strong>Edit Settings</strong>. Network Adapter 1: change to <strong>seg-infra-services</strong>. Click <strong>OK</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Verify IssuingCA is reachable and certificate services are responding</div>
+        <p style="font-size:13.5px;">Ping <strong>10.70.0.21</strong> from a management workstation — should succeed within 2–3 seconds. Then verify certificate services are still working: open a browser and navigate to <strong>http://10.70.0.21/certsrv</strong> — the CA Web Enrollment page should appear. This confirms IssuingCA is reachable over the NSX overlay and the certificate infrastructure is intact.</p>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>All three infrastructure VMs — DC01, DC02, and IssuingCA — are now on seg-infra-services. Their IPs (10.70.0.10, 10.70.0.11, 10.70.0.21) are unchanged. The NSX overlay is transparent to them. Certificate services, DNS, and LDAP all continue operating normally.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="card" style="border-top:3px solid var(--win);">
+    <h3 style="color:var(--win);">Infrastructure VMs on seg-infra-services — complete inventory</h3>
+    <div class="spec-row"><span class="spec-label">DC01 (dc01.novacrestbank.local)</span><span class="spec-val">10.70.0.10 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
+    <div class="spec-row"><span class="spec-label">DC02 (dc02.novacrestbank.local)</span><span class="spec-val">10.70.0.11 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
+    <div class="spec-row"><span class="spec-label">IssuingCA (issuingca.novacrestbank.local)</span><span class="spec-val">10.70.0.21 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
+    <div class="spec-row"><span class="spec-label">RootCA (rootca.novacrestbank.local)</span><span class="spec-val">10.70.0.20 · Powered off (offline CA) — migrate NIC while powered off, same process</span></div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Root CA NIC migration — do it while the VM is powered off</div>
+    The Root CA is permanently powered off (best practice for offline root CAs). Edit its NIC setting while it is off — right-click RootCA → Edit Settings → Network Adapter 1 → seg-infra-services → OK. The next time it needs to be powered on (e.g., for certificate renewal in 10 years), it will come up on the correct segment.
+  </div>
+</div>
+
+<!-- ═══ 17 BGP ROUTES VERIFY ═══ -->
+<div class="page" id="page-bgp-routes-verify">
+  <div class="ey">NSX-03 · Section 17</div>
+  <div class="pt">Verify segment routes appear in the T0 BGP table</div>
+  <div class="ps">Confirming that the NSX segment prefixes are now being advertised to Cisco via BGP — the proof that the entire T1 → T0 → BGP chain is working</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Plan &amp; Troubleshoot → NCB-T0-Gateway → Routing → Route Table → Execute</div>
+        <div class="sp">Plan &amp; Troubleshoot → Gateway Firewall → select NCB-T0-Gateway → Routing tab → Route Table</div>
+        <p style="font-size:13.5px;">Click the <strong>Plan &amp; Troubleshoot</strong> tab. Navigate to <strong>Gateway Firewall</strong>. From the dropdown select <strong>NCB-T0-Gateway</strong>. Click the <strong>Routing</strong> tab. Select <strong>Route Table</strong>. Choose Edge Node <strong>edge-01</strong> and click <strong>Execute</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Verify the T0 route table now includes the segment prefixes</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Plan &amp; Troubleshoot → NCB-T0-Gateway → Route Table (edge-01)</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <table class="nsx-tbl">
+                <thead><tr><th>Network</th><th>Next Hop</th><th>Type</th><th>Interface / Route Source</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td style="font-family:monospace;">0.0.0.0/0</td>
+                    <td style="font-family:monospace;font-size:11.5px;">10.102.0.1</td>
+                    <td><span class="badge bb">BGP</span></td>
+                    <td style="font-size:11.5px;color:#9080b0;">edge01-uplink-a (from Leaf-01)</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family:monospace;">0.0.0.0/0</td>
+                    <td style="font-family:monospace;font-size:11.5px;">10.103.0.1</td>
+                    <td><span class="badge bb">BGP</span></td>
+                    <td style="font-size:11.5px;color:#9080b0;">edge01-uplink-b (from Leaf-02)</td>
+                  </tr>
+                  <tr style="background:#0a2018;">
+                    <td style="font-family:monospace;color:#60c890;font-weight:700;">10.70.0.0/24</td>
+                    <td style="font-family:monospace;font-size:11.5px;">100.64.x.x</td>
+                    <td><span class="badge bg">T1 Connected</span></td>
+                    <td style="font-size:11.5px;color:#60c890;">NCB-T1-Infra → seg-infra-services ✓</td>
+                  </tr>
+                  <tr style="background:#0a2018;">
+                    <td style="font-family:monospace;color:#60c890;font-weight:700;">10.50.0.0/24</td>
+                    <td style="font-family:monospace;font-size:11.5px;">100.64.x.x</td>
+                    <td><span class="badge bg">T1 Connected</span></td>
+                    <td style="font-size:11.5px;color:#60c890;">NCB-T1-OCP → seg-ocp-nodes ✓</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family:monospace;">10.102.0.0/29</td>
+                    <td style="font-family:monospace;font-size:11.5px;">0.0.0.0</td>
+                    <td><span class="badge bg">Connected</span></td>
+                    <td style="font-size:11.5px;color:#9080b0;">edge01-uplink-a</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family:monospace;">10.103.0.0/29</td>
+                    <td style="font-family:monospace;font-size:11.5px;">0.0.0.0</td>
+                    <td><span class="badge bg">Connected</span></td>
+                    <td style="font-size:11.5px;color:#9080b0;">edge01-uplink-b</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="font-size:11.5px;color:#7060a0;margin-top:8px;">The 100.64.x.x next hops for T1 Connected routes are the internal transit link IPs between T0 and T1 — these are NSX-internal and are not visible or configurable. They appear in the route table as the mechanism but are not addresses that need to be understood or managed.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>Both segment prefixes (10.70.0.0/24 and 10.50.0.0/24) appear in the T0 route table as "T1 Connected" routes. These are now being included in BGP advertisements to Cisco Leaf-01 and Leaf-02. Cisco can route traffic to both NSX segments.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 18 PING VERIFY ═══ -->
+<div class="page" id="page-ping-verify">
+  <div class="ey">NSX-03 · Section 18</div>
+  <div class="pt">Verify reachability — NSX Manager Traceflow</div>
+  <div class="ps">Using NSX Manager's built-in Traceflow tool to verify that overlay traffic flows correctly between segments — without needing SSH access to VMs</div>
+
+  <div class="decision">
+    <div class="dl">What Traceflow is and why it is more useful than a ping for NSX troubleshooting</div>
+    <div class="dq">A ping verifies IP reachability. What does NSX Traceflow add?</div>
+    <div class="da"><strong>Traceflow sends a synthetic packet through the NSX data plane and reports exactly what happens at each hop — which ESXi host processed it, which TEP tunnel it traversed, whether DFW allowed or blocked it, which T1 gateway forwarded it, and whether it arrived at the destination VM's virtual NIC. A ping only reports success or failure. Traceflow reports the complete packet path through the NSX overlay.</strong><br/><br/>
+    For NovaCrestBank: a ping from the management workstation to DC01 (10.70.0.10) proves DC01 is reachable from the physical network via BGP routing. A Traceflow from DC01's virtual port to the IssuingCA virtual port proves the NSX overlay is correctly routing traffic within the seg-infra-services segment. These are different tests — both are needed.
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Plan &amp; Troubleshoot → Traceflow → configure a test</div>
+        <div class="sp">Plan &amp; Troubleshoot → Traceflow</div>
+        <p style="font-size:13.5px;">Click <strong>Plan &amp; Troubleshoot</strong> tab → <strong>Traceflow</strong>. A form appears to define the test packet.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Configure the Traceflow — DC01 to IssuingCA (intra-segment test)</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Plan &amp; Troubleshoot → Traceflow</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Source — Select Port</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>DC01 — Network Adapter 1 (seg-infra-services · 10.70.0.10)</option>
+                    </select>
+                    <div class="nsx-hint">Select the VM port for DC01. NSX shows all VMs connected to NSX segments — select by VM name or IP address.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Destination Type</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>IP Address</option>
+                    </select>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Destination IP</span>
+                    <input class="nsx-inp ok" value="10.70.0.21" readonly/>
+                    <div class="nsx-hint">IssuingCA — on the same segment (seg-infra-services). This tests intra-segment overlay routing.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Protocol</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>ICMP</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:14px;">
+                <div class="nsx-btn p">▶ TRACE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">3</div>
+      <div class="sc">
+        <div class="st2">Read the Traceflow result</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Traceflow Result — DC01 → IssuingCA (10.70.0.21)</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;">
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;background:#0a2018;border-radius:5px;border-left:3px solid #4ccd99;">
+                  <span style="color:#4ccd99;font-weight:700;min-width:80px;">FORWARDED</span>
+                  <span style="color:#d0c8e8;">Source port: DC01 / NIC1 on esxi-mgmt-01 → DFW: allow (default — no blocking rule) → GENEVE tunnel to esxi-mgmt-02</span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;background:#0a2018;border-radius:5px;border-left:3px solid #4ccd99;">
+                  <span style="color:#4ccd99;font-weight:700;min-width:80px;">RECEIVED</span>
+                  <span style="color:#d0c8e8;">Destination port: IssuingCA / NIC1 on esxi-mgmt-02 → DFW: allow → delivered to VM</span>
+                </div>
+              </div>
+              <div style="margin-top:12px;font-size:11.5px;color:#7060a0;">↑ Traceflow: Packet forwarded from DC01 (esxi-mgmt-01) through GENEVE tunnel to IssuingCA (esxi-mgmt-02). DFW allowed at both source and destination. No drops. Intra-segment overlay routing is working correctly.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>Traceflow shows FORWARDED → RECEIVED with no DFW drops. DC01 can reach IssuingCA through the NSX overlay. GENEVE tunnelling between ESXi hosts is working correctly for the seg-infra-services segment.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 19 FINAL ═══ -->
+<div class="page" id="page-final">
+  <div class="ey">NSX-03 · Section 19</div>
+  <div class="pt">Final checklist and what NSX-04 builds next</div>
+  <div class="ps">Every item from this guide confirmed — the overlay network is fully operational with routed segments reachable from the physical network</div>
+
+  <div class="callout success">
+    <div class="cl">NSX-03 complete — T1 Gateways and Segments operational</div>
+    NCB-T1-Infra and NCB-T1-OCP created, both linked to NCB-T0-Gateway, both Active-Standby, both Up. Route advertisement enabled on both T1s. seg-infra-services (10.70.0.0/24) and seg-ocp-nodes (10.50.0.0/24) created as overlay segments in NCB-Overlay-TZ. DC01, DC02, and IssuingCA migrated to seg-infra-services — IPs unchanged, services uninterrupted. Both segment prefixes appear in the T0 route table and are being advertised to Cisco via BGP. Traceflow confirms intra-segment overlay traffic is flowing correctly.
+  </div>
+
+  <h2>Verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NCB-T1-Infra — Status Up · Linked to NCB-T0-Gateway</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-Infra — Route Advertisement: All Connected Segments</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-OCP — Status Up · Linked to NCB-T0-Gateway</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-OCP — Route Advertisement: Connected Segments + LB VIP IPs</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">seg-infra-services — Overlay · NCB-Overlay-TZ · GW 10.70.0.1/24 · Status Up</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">seg-ocp-nodes — Overlay · NCB-Overlay-TZ · GW 10.50.0.1/24 · Status Up</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DC01 (10.70.0.10) — NIC on seg-infra-services · ping OK</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DC02 (10.70.0.11) — NIC on seg-infra-services · ping OK</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">IssuingCA (10.70.0.21) — NIC on seg-infra-services · certsrv accessible</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">T0 route table: 10.70.0.0/24 as T1 Connected</span><span class="spec-val badge bg">✓ Advertised via BGP to Cisco</span></div>
+    <div class="spec-row"><span class="spec-label">T0 route table: 10.50.0.0/24 as T1 Connected</span><span class="spec-val badge bg">✓ Advertised via BGP to Cisco</span></div>
+    <div class="spec-row"><span class="spec-label">Traceflow DC01 → IssuingCA: FORWARDED → RECEIVED</span><span class="spec-val badge bg">✓ No DFW drops</span></div>
+  </div>
+
+  <h2>What NSX-04 builds next — NSX Load Balancer</h2>
+  <div class="card" style="border-left:4px solid var(--nsx);">
+    <p style="font-size:13.5px;">NSX-03 built the tenant networks — VMs can now communicate through the NSX overlay. NSX-04 builds the <strong>load balancing</strong> — the two Virtual IPs (VIPs) that OCP requires:</p>
+    <ul style="font-size:13.5px;margin-top:8px;margin-left:20px;">
+      <li><strong>OCP API VIP</strong> — 10.50.0.200 on port 6443. Load balances across the 3 OCP master nodes. The VIP that <code>api.ocp.novacrestbank.local</code> resolves to in DNS.</li>
+      <li><strong>OCP Ingress VIP</strong> — 10.50.0.201 on ports 443 and 80. Load balances across the 3 OCP infrastructure nodes. The VIP that <code>*.apps.ocp.novacrestbank.local</code> resolves to.</li>
+    </ul>
+    <p style="font-size:13.5px;margin-top:10px;">NSX-04 configures these as NSX Load Balancer Virtual Servers attached to NCB-T1-OCP on NCB-Edge-Cluster. Both VIPs are created <em>before</em> OCP installation begins — the OCP installer expects them to already be reachable at the VIP addresses specified in <code>install-config.yaml</code>.</p>
+    <p style="font-size:13.5px;margin-top:8px;">Because "All LB VIP IPs" advertisement was already enabled on NCB-T1-OCP in Section 08, the VIP /32 host routes (10.50.0.200/32 and 10.50.0.201/32) will automatically be advertised to Cisco via BGP as soon as the Virtual Servers are created in NSX-04.</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  if(event&&event.currentTarget){
+    event.currentTarget.classList.add('active');
+    const dot=event.currentTarget.querySelector('.nd');
+    if(dot) dot.style.background='var(--t1)';
+  }
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

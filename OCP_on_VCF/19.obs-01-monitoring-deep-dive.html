@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OBS-01 — Monitoring · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --ocp-red:#cc0000;--ocp-red-bg:#fff0f0;
+    --prom:#e6522c;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ocp-red);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--ocp-red);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--ocp-red);}
+  .pbadge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ocp-red);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--ocp-red);}
+  .callout{border-left:3px solid var(--ocp-red);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.blue{border-left-color:var(--accent);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.blue .cl{color:var(--accent);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.blue):not(.why) .cl{color:var(--ocp-red);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:22px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--ocp-red);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:230px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--ocp-red);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+  .yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;}
+  .yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #30363d;}
+  .yaml-dot{width:10px;height:10px;border-radius:50%;}
+  .yaml-dot.r{background:#ff5f57;}.yaml-dot.y{background:#febc2e;}.yaml-dot.g{background:#28c840;}
+  .yaml-label{font-size:11px;color:#8b949e;margin-left:6px;}
+  .yaml-body{padding:14px 18px;overflow-x:auto;}
+  .yaml-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;color:#c9d1d9;}
+  .yk{color:#7ee787;}.yv{color:#a5d6ff;}.yn{color:#f8c555;}
+  .yc{color:#8b949e;}.ys{color:#ff7b72;}.yb{color:#d2a8ff;}
+  .term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #333;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.65;}
+  .term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #333;}
+  .term-label{font-size:11px;color:#666;margin-left:6px;}
+  .term-body{padding:14px 18px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#608b7a;}.tw{color:#cca700;}
+  .tann{display:flex;gap:9px;background:#111;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#ccc;line-height:1.5;}
+  .tann.ok{border-left-color:#4ccd99;}.tann.info{border-left-color:#4da8da;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .layer-stack{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .layer{display:flex;align-items:flex-start;gap:14px;padding:13px 18px;
+    border-radius:var(--r2);border:0.5px solid var(--border2);}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:180px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  .prom-box{background:#1c1c1c;border:1px solid #333;border-radius:var(--r);
+    padding:14px 18px;margin:14px 0;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;overflow-x:auto;}
+  .pq-metric{color:#e6522c;}.pq-label{color:#5ba3d9;}.pq-val{color:#6dcf6d;}
+  .pq-fn{color:#d4a010;}.pq-op{color:#c0c0c0;}.pq-str{color:#a8d5a2;}
+  .pq-num{color:#f4c55e;}.pq-comment{color:#608b7a;font-style:italic;}
+  .scrape-flow{display:flex;align-items:stretch;gap:0;margin:20px 0;
+    border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+  .sf-step{flex:1;padding:14px 12px;text-align:center;border-right:0.5px solid var(--border);}
+  .sf-step:last-child{border-right:none;}
+  .sf-icon{font-size:22px;display:block;margin-bottom:5px;}
+  .sf-name{font-size:11.5px;font-weight:700;display:block;margin-bottom:3px;}
+  .sf-sub{font-size:10.5px;color:var(--text3);}
+  .sf-step.s1{background:#fff5ee;}.sf-step.s2{background:#eef4ff;}
+  .sf-step.s3{background:#f5f0ff;}.sf-step.s4{background:#eef9ee;}
+  .sf-step.s5{background:#fff9ee;}
+  @media(prefers-color-scheme:dark){
+    .sf-step.s1{background:#2c1500;}.sf-step.s2{background:#0d1f40;}
+    .sf-step.s3{background:#1a1040;}.sf-step.s4{background:#0d2c18;}
+    .sf-step.s5{background:#2c2000;}
+  }
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Phase 7 · Observability</div>
+    <h1>OBS-01 — Monitoring Deep-Dive</h1>
+    <p>Prometheus · Alertmanager · Thanos · Banking alert rules</p>
+  </div>
+
+  <div class="ngl">From first principles</div>
+  <div class="ni active" onclick="show('what-prometheus')"><div class="nd"></div>01 — What Prometheus is — the pull model and time-series database</div>
+  <div class="ni" onclick="show('scrape-discovery')"><div class="nd"></div>02 — How Prometheus finds targets — ServiceMonitor and PodMonitor <span class="pbadge bp">CRDs</span></div>
+  <div class="ni" onclick="show('promql')"><div class="nd"></div>03 — PromQL — reading and writing Prometheus queries</div>
+  <div class="ni" onclick="show('alertmanager')"><div class="nd"></div>04 — Alertmanager — routing, grouping, silencing, and inhibition <span class="pbadge bp">Concept</span></div>
+  <div class="ni" onclick="show('thanos')"><div class="nd"></div>05 — Thanos — long-term storage and global query across clusters</div>
+
+  <div class="ngl">OCP monitoring stack</div>
+  <div class="ni" onclick="show('ocp-stack')"><div class="nd"></div>06 — The OCP monitoring stack — what is installed and what manages what</div>
+  <div class="ni" onclick="show('infra-nodes')"><div class="nd"></div>07 — Why monitoring lives on infra nodes — the isolation architecture</div>
+  <div class="ni" onclick="show('cluster-monitoring-config')"><div class="nd"></div>08 — cluster-monitoring-config — every field explained <span class="pbadge bp">Key YAML</span></div>
+  <div class="ni" onclick="show('verify-stack')"><div class="nd"></div>09 — Verify the monitoring stack is healthy</div>
+
+  <div class="ngl">Scrape target configuration</div>
+  <div class="ni" onclick="show('servicemonitor-crd')"><div class="nd"></div>10 — ServiceMonitor CRD — every field explained <span class="pbadge bp">Key YAML</span></div>
+  <div class="ni" onclick="show('podmonitor-crd')"><div class="nd"></div>11 — PodMonitor CRD — when to use it instead of ServiceMonitor</div>
+  <div class="ni" onclick="show('user-workload')"><div class="nd"></div>12 — User workload monitoring — banking app metrics in Prometheus</div>
+
+  <div class="ngl">Banking-specific alert rules</div>
+  <div class="ni" onclick="show('prometheusrule-crd')"><div class="nd"></div>13 — PrometheusRule CRD — alert anatomy and routing</div>
+  <div class="ni" onclick="show('etcd-alerts')"><div class="nd"></div>14 — etcd quorum loss alerts — the cluster's most critical signal</div>
+  <div class="ni" onclick="show('node-alerts')"><div class="nd"></div>15 — Node memory and disk pressure alerts</div>
+  <div class="ni" onclick="show('cert-expiry-alerts')"><div class="nd"></div>16 — Certificate expiry alerts — 30-day advance warning</div>
+  <div class="ni" onclick="show('alertmanager-config')"><div class="nd"></div>17 — Alertmanager configuration — routes to PagerDuty and email</div>
+
+  <div class="ngl">Operations</div>
+  <div class="ni" onclick="show('grafana')"><div class="nd"></div>18 — Grafana — dashboards for the operations team</div>
+  <div class="ni" onclick="show('checklist')"><div class="nd"></div>19 — Handover checklist — monitoring fully operational</div>
+</nav>
+
+<main class="main">
+
+<!-- ══ 01 WHAT PROMETHEUS ══ -->
+<div class="page active" id="page-what-prometheus">
+  <div class="ey">OBS-01 · Section 01</div>
+  <div class="pt">What Prometheus is — the pull model and time-series database explained from first principles</div>
+  <div class="ps">The OCP monitoring stack is built on Prometheus. Before touching a single ConfigMap, understand what Prometheus is, how it works, and why it is designed the way it is. Every configuration decision in this guide follows from these first principles.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>OPS-05<br/>GitOps</div>
+    <div class="pt-step active"><span class="pt-n">→</span>OBS-01<br/>Monitoring</div>
+    <div class="pt-step"><span class="pt-n">3</span>OBS-02<br/>App Metrics</div>
+    <div class="pt-step"><span class="pt-n">4</span>OBS-03<br/>Logging</div>
+    <div class="pt-step"><span class="pt-n">5</span>OBS-04<br/>Tracing</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">The key insight — why Prometheus pulls rather than applications pushing metrics</div>
+    <div class="decision-q">Traditional monitoring systems (Nagios, Zabbix) have agents that push metrics to a central server. Prometheus does the opposite — it pulls metrics from targets on a schedule. Why?</div>
+    <div class="decision-a"><strong>The pull model has three properties that make it fundamentally better suited for Kubernetes environments than the push model.</strong><br/><br/>
+    <strong>1. Prometheus controls the scrape rate.</strong> In a push model, if 200 pods all push metrics simultaneously during a load spike, the monitoring server receives 200 simultaneous writes and can be overwhelmed. In Prometheus's pull model, Prometheus decides when to scrape each target and at what interval. A load spike in the application does not cause a load spike in the monitoring system.<br/><br/>
+    <strong>2. Prometheus can detect target failure.</strong> In a push model, if a target stops pushing, the monitoring server has no way to know whether the target crashed or is just quiet. In Prometheus's pull model, if a target stops responding to scrape requests, Prometheus immediately knows — the scrape fails with a connection refused or timeout. Target down is an observable, alertable condition.<br/><br/>
+    <strong>3. No monitoring agent to manage.</strong> Applications expose metrics as a simple HTTP endpoint — typically <code>/metrics</code> — and Prometheus calls that endpoint periodically. The application does not need a monitoring agent installed or configured. For NovaCrestBank's 50 banking microservices, this means: add one dependency to the Java application (Micrometer for Spring Boot metrics), expose the <code>/metrics</code> endpoint, create a ServiceMonitor — done. No per-service agent configuration, no firewall rule for the agent, no agent updates.<br/><br/>
+    <strong>What Prometheus stores:</strong> Time-series data. A time series is a sequence of (timestamp, float64 value) pairs identified by a unique combination of a metric name and a set of label key-value pairs. For example: <code>jvm_memory_used_bytes{area="heap", pod="payment-service-abc123", namespace="banking-production"}</code> is one time series. Prometheus stores every scraped sample in its local TSDB (Time Series Database) on disk. Default retention: 15 days. Thanos extends this to months or years.</div>
+  </div>
+
+  <h2>The scrape cycle — what happens every 30 seconds</h2>
+  <div class="scrape-flow">
+    <div class="sf-step s1">
+      <span class="sf-icon">🔍</span>
+      <span class="sf-name">Discover targets</span>
+      <span class="sf-sub">ServiceMonitor → Service → pod IPs</span>
+    </div>
+    <div class="sf-step s2">
+      <span class="sf-icon">📡</span>
+      <span class="sf-name">HTTP GET /metrics</span>
+      <span class="sf-sub">Prometheus calls each pod's endpoint</span>
+    </div>
+    <div class="sf-step s3">
+      <span class="sf-icon">📊</span>
+      <span class="sf-name">Parse exposition format</span>
+      <span class="sf-sub">Text format → metric name + labels + value</span>
+    </div>
+    <div class="sf-step s4">
+      <span class="sf-icon">💾</span>
+      <span class="sf-name">Store in TSDB</span>
+      <span class="sf-sub">Compressed blocks on vsan-standard PVC</span>
+    </div>
+    <div class="sf-step s5">
+      <span class="sf-icon">🔔</span>
+      <span class="sf-name">Evaluate rules</span>
+      <span class="sf-sub">PrometheusRule → alert if threshold crossed</span>
+    </div>
+  </div>
+
+  <h2>The four Prometheus metric types — what each one represents</h2>
+  <table>
+    <thead><tr><th>Type</th><th>What it represents</th><th>NovaCrestBank example</th><th>Key property</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Counter</strong></td>
+        <td>A value that only ever goes up. Resets to zero when the process restarts.</td>
+        <td><code>http_requests_total</code> — total number of HTTP requests since the payment-service started</td>
+        <td>Use <code>rate()</code> or <code>increase()</code> in PromQL to get the per-second rate or increase over a time window. Never query the raw counter — it is meaningless without a rate function.</td>
+      </tr>
+      <tr>
+        <td><strong>Gauge</strong></td>
+        <td>A value that can go up or down arbitrarily. Represents a current state.</td>
+        <td><code>jvm_memory_used_bytes</code> — current heap memory used by the payment-service JVM</td>
+        <td>Query directly — the raw value is meaningful. Use for: memory, CPU, queue depth, replica count, temperature.</td>
+      </tr>
+      <tr>
+        <td><strong>Histogram</strong></td>
+        <td>Samples observations into configurable buckets. Produces three time series: count, sum, and per-bucket counts.</td>
+        <td><code>http_request_duration_seconds</code> — distribution of HTTP response times, bucketed at 0.01s, 0.05s, 0.1s, 0.5s, 1s, 5s</td>
+        <td>Use <code>histogram_quantile(0.99, rate(...))</code> to compute P99 latency. The bucket boundaries are configured at instrument time — change them only with a code change and application restart.</td>
+      </tr>
+      <tr>
+        <td><strong>Summary</strong></td>
+        <td>Like a Histogram but computes quantiles inside the application instead of in Prometheus. Less flexible — quantile windows are fixed at instrument time.</td>
+        <td>Some legacy Java libraries expose Summary types. Avoid in new code — prefer Histogram for flexibility.</td>
+        <td>Quantiles are computed by the application, not Prometheus. Cannot be aggregated across multiple pods — each pod reports its own quantiles independently.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 02 SCRAPE DISCOVERY ══ -->
+<div class="page" id="page-scrape-discovery">
+  <div class="ey">OBS-01 · Section 02</div>
+  <div class="pt">How Prometheus finds targets — ServiceMonitor and PodMonitor CRDs</div>
+  <div class="ps">Prometheus does not scrape all Kubernetes pods by default. It scrapes only what is explicitly declared via ServiceMonitor or PodMonitor objects. Understanding how target discovery works from ServiceMonitor → Service → Pod explains why each field in a ServiceMonitor is necessary.</div>
+
+  <div class="decision">
+    <div class="decision-label">The target discovery chain — how Prometheus gets from ServiceMonitor to pod IP</div>
+    <div class="decision-q">A ServiceMonitor specifies a namespace and a label selector. How does Prometheus turn that into an actual IP address and port to scrape?</div>
+    <div class="decision-a"><strong>The discovery chain is: ServiceMonitor selects Services → Service selects Pods → Pods expose the /metrics endpoint. Prometheus does not scrape Services directly — Services are a virtual abstraction. It resolves the Service to its Endpoint objects (which contain the actual pod IPs) and scrapes each pod individually.</strong><br/><br/>
+    Step by step: The Prometheus Operator watches for ServiceMonitor objects in namespaces it is configured to monitor. When it finds one, it reads the <code>selector.matchLabels</code> field to identify which Services to watch. It finds all Service objects in the specified <code>namespaceSelector</code> that match those labels. For each matching Service, Prometheus resolves the Service's Endpoints to get the list of current pod IPs and ports. Prometheus then scrapes each pod IP directly at the configured path (typically <code>/metrics</code>) and port.<br/><br/>
+    <strong>Why this is important for NovaCrestBank:</strong> When the payment-service is scaled from 3 to 5 replicas, Prometheus automatically discovers the 2 new pods within the next service discovery refresh cycle (typically 30 seconds). No manual Prometheus configuration change is needed. The ServiceMonitor is the static declaration; the Endpoint list is dynamic. The pod scaling event propagates automatically to Prometheus's scrape target list.</div>
+  </div>
+
+  <h2>The complete ServiceMonitor → Service → Pod chain for payment-service</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--purple);">
+      <div class="layer-num" style="color:var(--purple);">1</div>
+      <div class="layer-title">ServiceMonitor object</div>
+      <div class="layer-desc">Created in the <code>banking-production</code> namespace (or the monitoring namespace, depending on configuration). Declares: which namespaces to look in for Services (<code>namespaceSelector</code>), which label to use to identify the correct Service (<code>selector.matchLabels: app: payment-service</code>), which port on the Service carries the metrics (<code>endpoints[0].port: metrics</code> — the port name, not number), the scrape interval, and any relabelling rules. The Prometheus Operator watches all ServiceMonitor objects and generates Prometheus scrape configuration from them automatically.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num" style="color:var(--accent);">2</div>
+      <div class="layer-title">Kubernetes Service object</div>
+      <div class="layer-desc">The payment-service Service has labels <code>app: payment-service</code> — matching the ServiceMonitor selector. It defines a port named <code>metrics</code> on port 8080 (or a dedicated metrics port). The Service is the bridge between the static ServiceMonitor declaration and the dynamic pod list. As pods come and go, the Service's Endpoint list updates automatically.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num" style="color:var(--accent2);">3</div>
+      <div class="layer-title">Kubernetes Endpoints object</div>
+      <div class="layer-desc">Created and maintained automatically by Kubernetes when a Service is created. Contains the current list of pod IPs and ports for all pods matching the Service's selector that are Ready. Prometheus resolves each Service to its Endpoints to get the actual IP:port pairs to scrape. This is the dynamic layer — it changes when pods are created, destroyed, or fail readiness checks.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
+      <div class="layer-num" style="color:var(--ocp-red);">4</div>
+      <div class="layer-title">Pod /metrics HTTP endpoint</div>
+      <div class="layer-desc">Each payment-service pod exposes a <code>/metrics</code> HTTP endpoint on the configured port. Prometheus calls this endpoint every 30 seconds (the default scrape interval). The response is in Prometheus exposition format — plain text, one metric per line, with labels. Prometheus parses each line, attaches additional labels from the ServiceMonitor relabelling rules (namespace, pod name, job), and stores the resulting time series in its TSDB.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 03 PROMQL ══ -->
+<div class="page" id="page-promql">
+  <div class="ey">OBS-01 · Section 03</div>
+  <div class="pt">PromQL — reading and writing Prometheus queries from first principles</div>
+  <div class="ps">PromQL (Prometheus Query Language) is how engineers query metrics, write alert expressions, and build Grafana dashboards. Understanding its three core concepts — instant vectors, range vectors, and functions — makes every query readable rather than cryptic.</div>
+
+  <div class="decision">
+    <div class="decision-label">The three data types in PromQL — what each one is and when each is used</div>
+    <div class="decision-q">PromQL queries return different kinds of data depending on the query form. What are the differences and when does each appear?</div>
+    <div class="decision-a"><strong>An instant vector is the most common PromQL result — it is a set of time series, each with one value at the current moment. A range vector is a set of time series, each with multiple values over a time window. A scalar is a single numeric value with no labels.</strong><br/><br/>
+    <strong>Instant vector:</strong> <code>jvm_memory_used_bytes{namespace="banking-production"}</code> — returns one value per matching time series right now. Used for dashboards and current-state queries.<br/><br/>
+    <strong>Range vector:</strong> <code>jvm_memory_used_bytes{namespace="banking-production"}[5m]</code> — returns 5 minutes of values per time series. The square brackets make it a range vector. Range vectors are inputs to functions like <code>rate()</code>, <code>increase()</code>, and <code>changes()</code> — you never display a range vector directly.<br/><br/>
+    <strong>The key rule:</strong> a Counter must always be wrapped in <code>rate(counter[5m])</code> before being displayed or used in an alert. A raw counter value is meaningless — it grows monotonically until the process restarts. The <code>rate()</code> function computes the per-second increase rate over the last 5 minutes, accounting for counter resets automatically. This is why alert expressions for HTTP error rates always look like <code>rate(http_requests_total{status="500"}[5m])</code> rather than <code>http_requests_total{status="500"}</code>.</div>
+  </div>
+
+  <h2>PromQL building blocks — the essential functions for banking monitoring</h2>
+  <div class="prom-box">
+    <pre><span class="pq-comment"># ── 1. Rate — per-second rate of a counter over a time window ─────────────────</span>
+<span class="pq-fn">rate</span>(<span class="pq-metric">http_requests_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>, <span class="pq-label">status</span>=~<span class="pq-str">"5.."</span>}[<span class="pq-num">5m</span>])
+<span class="pq-comment"># Returns: per-second rate of 5xx responses over the last 5 minutes.
+# status=~"5.." is a regex match — matches 500, 501, 502, 503, etc.
+# The [5m] range tells Prometheus to use the last 5 minutes of data to compute the rate.
+# Longer window = smoother (less noise) but slower to respond to spikes.
+# 5 minutes is the standard for alert expressions.</span>
+
+<span class="pq-comment"># ── 2. Sum — aggregate across labels ──────────────────────────────────────────</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">http_requests_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])) <span class="pq-op">by</span> (<span class="pq-label">pod</span>)
+<span class="pq-comment"># Aggregates request rate across all status codes, grouped by pod name.
+# "by (pod)" = keep the pod label, discard all others.
+# Result: one time series per pod showing its total request rate.</span>
+
+<span class="pq-comment"># ── 3. histogram_quantile — compute latency percentiles ───────────────────────</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.99</span>, <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">http_request_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])) <span class="pq-op">by</span> (<span class="pq-label">le</span>, <span class="pq-label">pod</span>))
+<span class="pq-comment"># P99 latency (the 99th percentile response time) per pod over the last 5 minutes.
+# "le" = "less than or equal" — the histogram bucket label, must be kept in the "by".
+# 0.99 = 99th percentile. Use 0.50 for median, 0.95 for P95, 0.999 for P99.9.
+# This is the standard expression for SLO latency monitoring in banking APIs.</span>
+
+<span class="pq-comment"># ── 4. increase — total increase of a counter over a window ───────────────────</span>
+<span class="pq-fn">increase</span>(<span class="pq-metric">http_requests_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>, <span class="pq-label">status</span>=<span class="pq-str">"500"</span>}[<span class="pq-num">1h</span>])
+<span class="pq-comment"># Total number of 500 errors in the last 1 hour (not per-second rate).
+# Useful for alert conditions like "more than 10 errors in the last hour".</span>
+
+<span class="pq-comment"># ── 5. predict_linear — forecast metric trend ─────────────────────────────────</span>
+<span class="pq-fn">predict_linear</span>(<span class="pq-metric">node_filesystem_avail_bytes</span>{<span class="pq-label">mountpoint</span>=<span class="pq-str">"/"</span>}[<span class="pq-num">6h</span>], <span class="pq-num">4</span> * <span class="pq-num">3600</span>)
+<span class="pq-comment"># Linear extrapolation: if disk usage continues at the current 6-hour trend,
+# what will the available bytes be in 4 hours?
+# Use in alerts: "if disk fills up in less than 4 hours, alert now."
+# This is the standard pattern for disk space alerts — alert before the disk is full,
+# not when it is full. Filling at 2 AM with 4 hours of lead time wakes the on-call engineer
+# with time to act. Alerting when full at 2 AM means the damage is already done.</span>
+
+<span class="pq-comment"># ── 6. absent — alert when a metric disappears ────────────────────────────────</span>
+<span class="pq-fn">absent</span>(<span class="pq-metric">up</span>{<span class="pq-label">job</span>=<span class="pq-str">"payment-service"</span>, <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>})
+<span class="pq-comment"># Returns a value when NO time series matching the selector exist.
+# Used to alert when a scrape target has completely disappeared from discovery.
+# If all payment-service pods are down and no endpoints exist, Prometheus stops
+# seeing the "up" metric entirely — absent() fires.</span></pre>
+  </div>
+</div>
+
+<!-- ══ 04 ALERTMANAGER ══ -->
+<div class="page" id="page-alertmanager">
+  <div class="ey">OBS-01 · Section 04</div>
+  <div class="pt">Alertmanager — routing, grouping, silencing, and inhibition explained</div>
+  <div class="ps">Prometheus evaluates alert rules and fires alerts. Alertmanager receives those alerts and decides what to do with them — which team to notify, on which channel, grouped how, and when to silence or suppress. Understanding Alertmanager's four features makes alert fatigue avoidable in production.</div>
+
+  <div class="decision">
+    <div class="decision-label">Alertmanager's job — the difference between firing an alert and sending a notification</div>
+    <div class="decision-q">Prometheus evaluates rules and fires alerts. What does Alertmanager add? Why is it not enough to have Prometheus send emails directly?</div>
+    <div class="decision-a"><strong>Prometheus fires an alert when an expression evaluates to true for a configured duration. Without Alertmanager, a separate notification would be sent for every alert — every 30 seconds while the condition persists. A single incident (for example, 3 nodes under memory pressure) could generate thousands of email notifications before anyone acknowledges it. Alertmanager exists to make alerts useful rather than overwhelming.</strong><br/><br/>
+    <strong>Grouping:</strong> Alertmanager groups related alerts into a single notification. If all three masters and two workers simultaneously have high memory pressure (likely caused by a single event), Alertmanager sends one notification: "5 nodes are under memory pressure" rather than 5 separate notifications. The grouping key is configurable — NovaCrestBank groups by <code>alertname</code> and <code>namespace</code>.<br/><br/>
+    <strong>Routing:</strong> Different alerts go to different destinations. etcd quorum loss → PagerDuty P1 (wakes the on-call engineer). Certificate expiring in 14 days → email to the platform team. Node memory pressure → PagerDuty P2. The routing tree in Alertmanager's configuration determines the destination and urgency for each alert based on its labels.<br/><br/>
+    <strong>Silencing:</strong> During a planned maintenance window (OCP upgrade, vSphere maintenance), alerts that are expected fire and would be noisy. A silence tells Alertmanager: "from 2026-04-20 22:00 to 23:00, suppress all alerts with <code>alertname=NodeNotReady</code>." The underlying alert still fires; Alertmanager just does not send the notification while the silence is active.<br/><br/>
+    <strong>Inhibition:</strong> If a cluster-level alert is firing (for example, "all masters are unreachable"), the many downstream alerts it causes (etcd health failure, API server unavailable, etc.) are redundant — they are all symptoms of the same root cause. Inhibition rules tell Alertmanager: "if alert X is firing, suppress alert Y." This prevents notification floods where the root cause arrives with 50 symptom alerts attached.</div>
+  </div>
+
+  <h2>The alert lifecycle — from expression to notification</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--text3);">
+      <div class="layer-num">Inactive</div>
+      <div class="layer-title">Alert expression evaluates to false</div>
+      <div class="layer-desc">The rule's expression does not match any time series, or the resulting value is 0 or NaN. No alert is firing. Prometheus evaluates the expression every <code>evaluationInterval</code> (default: 30 seconds) and moves the alert to Pending when the expression first evaluates to true.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
+      <div class="layer-num">Pending</div>
+      <div class="layer-title">Expression true but <code>for</code> duration not yet met</div>
+      <div class="layer-desc">The expression evaluated to true but the alert has a <code>for: 5m</code> clause — it must remain true for 5 continuous minutes before firing. This prevents false alarms from momentary spikes. A payment-service pod with a 3-second CPU spike at 100% would trigger the expression but not reach Pending→Firing if the CPU drops before the <code>for</code> duration expires.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--red);">
+      <div class="layer-num">Firing</div>
+      <div class="layer-title">Expression true for the full <code>for</code> duration</div>
+      <div class="layer-desc">Prometheus sends the alert to Alertmanager. Alertmanager groups it with related firing alerts, waits for the <code>group_wait</code> period (time to collect more alerts into the same group before sending the first notification), then sends the notification. While the alert remains firing, Alertmanager sends repeat notifications at the <code>repeat_interval</code> frequency until the alert resolves or is silenced.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num">Resolved</div>
+      <div class="layer-title">Expression evaluates to false — alert resolved</div>
+      <div class="layer-desc">Prometheus marks the alert as resolved and sends the resolved state to Alertmanager. Alertmanager sends a resolution notification ("Alert resolved: NodeMemoryPressure on infra-0 has recovered") — this closes the PagerDuty incident and notifies the team that the condition is gone.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 05 THANOS ══ -->
+<div class="page" id="page-thanos">
+  <div class="ey">OBS-01 · Section 05</div>
+  <div class="pt">Thanos — long-term metric storage and global query</div>
+  <div class="ps">OCP's built-in Prometheus retains metrics for 15 days by default. Thanos extends this to months or years by uploading Prometheus TSDB blocks to object storage and providing a unified query interface. For NovaCrestBank, Thanos satisfies the banking requirement to retain operational metrics for audit and trend analysis.</div>
+
+  <div class="decision">
+    <div class="decision-label">What Thanos adds — and what it does not change</div>
+    <div class="decision-q">Prometheus already stores metrics locally. Why add Thanos? And does it replace Prometheus or sit alongside it?</div>
+    <div class="decision-a"><strong>Thanos sits alongside Prometheus — it does not replace it. Prometheus continues to scrape targets, evaluate alert rules, and serve real-time queries. Thanos adds three capabilities Prometheus cannot provide alone.</strong><br/><br/>
+    <strong>1. Long-term storage.</strong> Prometheus's local TSDB has a configurable retention period — OCP's default is 15 days, and extending it indefinitely requires an ever-growing vSAN PVC. Thanos Sidecar runs alongside each Prometheus pod and uploads TSDB blocks (2-hour chunks of compacted metric data) to object storage (S3-compatible, such as AWS S3 or MinIO on-premises). Once uploaded, Prometheus can delete the local blocks — the vSAN PVC stays bounded while Thanos queries object storage for historical data.<br/><br/>
+    <strong>2. Long-term retention for compliance.</strong> NovaCrestBank needs operational metrics retained for 90 days minimum for FFIEC examination readiness — being able to show that the cluster was healthy and performing within SLOs during the examination period. Thanos provides queryable access to these historical metrics without keeping 90 days of data on expensive vSAN storage.<br/><br/>
+    <strong>3. Unified query interface.</strong> The Thanos Querier component provides a single PromQL endpoint that queries both live Prometheus data (from the last 15 days) and historical data from object storage (older than 15 days) transparently. The engineer makes one query — Thanos routes it to Prometheus for recent data and to object storage for older data, deduplicates the results, and returns a unified response.<br/><br/>
+    <strong>For NovaCrestBank's current single-cluster deployment:</strong> the immediate value is long-term storage and compliance retention. The global query capability becomes valuable when NovaCrestBank adds more OCP clusters.</div>
+  </div>
+
+  <h2>Thanos components that run in NovaCrestBank's cluster</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Runs as</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Thanos Sidecar</strong></td><td>Container in each Prometheus pod</td><td>Watches Prometheus's TSDB directory. When Prometheus seals a 2-hour block, Sidecar uploads it to object storage. Also exposes a gRPC endpoint so Thanos Querier can read live data from this Prometheus instance.</td></tr>
+      <tr><td><strong>Thanos Querier</strong></td><td>Separate Deployment</td><td>Receives PromQL queries. Fans out to all configured Thanos Sidecars (live data) and Thanos Store Gateway (historical data from object storage). Deduplicates results from replicated Prometheuses. Returns unified time series.</td></tr>
+      <tr><td><strong>Thanos Store Gateway</strong></td><td>StatefulSet</td><td>Reads TSDB blocks from object storage and serves them via the same gRPC interface as Thanos Sidecar. The Querier uses this for queries older than the Prometheus retention period.</td></tr>
+      <tr><td><strong>Thanos Compactor</strong></td><td>StatefulSet (runs periodically)</td><td>Compacts and downsamples historical blocks in object storage. After 30 days, 30-second resolution data is downsampled to 5-minute resolution. After 1 year, to 1-hour resolution. This reduces storage cost as data ages.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout blue">
+    <div class="cl">Thanos in OCP — what the Cluster Monitoring Operator already handles</div>
+    OCP's Cluster Monitoring Operator already includes Thanos Querier and optionally Thanos Ruler. The <code>cluster-monitoring-config</code> ConfigMap (Section 08) enables and configures Thanos Sidecar on the built-in Prometheus pods. What NovaCrestBank adds in this guide is: enabling Thanos long-term storage by configuring an object storage backend, which is beyond the default OCP monitoring configuration.
+  </div>
+</div>
+
+<!-- ══ 06 OCP STACK ══ -->
+<div class="page" id="page-ocp-stack">
+  <div class="ey">OBS-01 · Section 06</div>
+  <div class="pt">The OCP monitoring stack — what is installed and what manages what</div>
+  <div class="ps">OpenShift's monitoring stack is not a single tool — it is a collection of components managed by the Cluster Monitoring Operator (CMO). Understanding the division between the platform stack and the user workload stack prevents the most common monitoring configuration mistakes.</div>
+
+  <div class="decision">
+    <div class="decision-label">Two Prometheus instances — platform metrics vs application metrics</div>
+    <div class="decision-q">OCP appears to have two Prometheus instances. What is the difference and why are they separate?</div>
+    <div class="decision-a"><strong>OCP installs two separate Prometheus stacks, managed by the same Cluster Monitoring Operator but serving different purposes with different access controls.</strong><br/><br/>
+    <strong>Platform Prometheus</strong> (in the <code>openshift-monitoring</code> namespace) scrapes all OCP platform components: etcd, kube-apiserver, kube-controller-manager, the OCP router, the vSphere CSI driver, node metrics (CPU, memory, disk), and all other OCP internal components. Only cluster administrators can query this Prometheus. It contains sensitive operational data about the cluster infrastructure. It runs on infra nodes and is managed entirely by the CMO — engineers do not create ServiceMonitors in <code>openshift-monitoring</code>.<br/><br/>
+    <strong>User Workload Prometheus</strong> (in the <code>openshift-user-workload-monitoring</code> namespace) scrapes banking application metrics — whatever ServiceMonitors and PodMonitors application teams create in their own namespaces. Application teams can query their own namespace's metrics without accessing the platform Prometheus. Developers can create ServiceMonitors in their application namespaces and see their metrics in Prometheus without any cluster-admin intervention.<br/><br/>
+    <strong>The key rule:</strong> never create ServiceMonitors in the <code>openshift-monitoring</code> namespace. They are ignored by the CMO. Create ServiceMonitors in the application namespace (<code>banking-production</code>) and the User Workload Prometheus picks them up automatically.</div>
+  </div>
+
+  <h2>The complete component map — who manages what</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Namespace</th><th>Purpose</th><th>Who manages it</th><th>Infra nodes?</th></tr></thead>
+    <tbody>
+      <tr><td>Cluster Monitoring Operator</td><td>openshift-monitoring</td><td>Manages all other monitoring components. Reads cluster-monitoring-config and reconciles the desired state.</td><td>OCP itself (cluster operator)</td><td>Yes</td></tr>
+      <tr><td>Prometheus (platform)</td><td>openshift-monitoring</td><td>Scrapes OCP platform components. Evaluates platform alert rules.</td><td>CMO — no direct configuration by engineers</td><td>Yes</td></tr>
+      <tr><td>Prometheus Operator</td><td>openshift-monitoring</td><td>Watches ServiceMonitor, PodMonitor, and PrometheusRule CRDs. Generates Prometheus scrape configs from them.</td><td>CMO</td><td>Yes</td></tr>
+      <tr><td>Alertmanager</td><td>openshift-monitoring</td><td>Routes platform and application alerts to PagerDuty/email.</td><td>CMO — configured via AlertmanagerConfig CR or Secret</td><td>Yes</td></tr>
+      <tr><td>Thanos Querier</td><td>openshift-monitoring</td><td>Unified query endpoint for both platform and user workload Prometheus.</td><td>CMO</td><td>Yes</td></tr>
+      <tr><td>Grafana (via OCP console)</td><td>openshift-monitoring</td><td>Dashboard UI — accessible from the OCP web console Observe menu.</td><td>CMO</td><td>Yes</td></tr>
+      <tr><td>Prometheus (user workload)</td><td>openshift-user-workload-monitoring</td><td>Scrapes banking application metrics via ServiceMonitors created in application namespaces.</td><td>CMO — enabled via cluster-monitoring-config</td><td>Yes</td></tr>
+      <tr><td>Prometheus Operator (UWM)</td><td>openshift-user-workload-monitoring</td><td>Watches ServiceMonitors in all namespaces for the user workload Prometheus.</td><td>CMO</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 07 INFRA NODES ══ -->
+<div class="page" id="page-infra-nodes">
+  <div class="ey">OBS-01 · Section 07</div>
+  <div class="pt">Why monitoring lives on infra nodes — the isolation architecture</div>
+  <div class="ps">The monitoring stack was moved to infra nodes in OCP-VCF-02 Section 10. This section explains precisely why — what goes wrong if monitoring runs on worker nodes, and how infra node isolation protects monitoring reliability in a banking environment.</div>
+
+  <div class="decision">
+    <div class="decision-label">What happens when monitoring and application workloads share the same nodes</div>
+    <div class="decision-q">The monitoring stack was moved to infra nodes in OCP-VCF-02. Why is this isolation architecturally important rather than just a nice-to-have?</div>
+    <div class="decision-a"><strong>Prometheus is the most memory-hungry component in a production OCP cluster. A Prometheus instance monitoring a banking cluster with 50 microservices, each with 20 metrics, scraping every 30 seconds, retains 15 days of data — this easily consumes 30–80 GB of RAM. If Prometheus runs on a worker node shared with banking application pods, two specific failure modes emerge.</strong><br/><br/>
+    <strong>Failure mode 1 — application load starves monitoring.</strong> During a banking load spike (end of month batch processing, a flash sale), banking application pods consume increased CPU and memory. If Prometheus is on the same node, it competes for resources. The kubelet begins OOM-killing pods. Prometheus — which is a constant-memory process that does not scale back during application spikes — gets killed first, because it often has a higher memory footprint than any individual application pod. The cluster loses monitoring exactly when the load spike is most likely to cause an incident that needs monitoring to diagnose.<br/><br/>
+    <strong>Failure mode 2 — monitoring load affects banking applications.</strong> Prometheus's periodic bulk reads from its TSDB (for rule evaluation, for Grafana dashboard queries, for Thanos block uploads) cause I/O spikes. If this I/O competes with a banking application's database I/O on the same vSAN datastore path, banking transaction latency increases during routine monitoring operations.<br/><br/>
+    <strong>Infra node isolation eliminates both failure modes.</strong> Infra nodes run only monitoring (Prometheus, Alertmanager, Grafana), logging (LokiStack), and Ingress Router. Banking application pods cannot be scheduled on infra nodes (NoSchedule taint). Monitoring pods cannot be displaced by banking application load. The two workload categories have independent resource pools with independent scheduling decisions. If a load spike causes an infra node resource constraint, the only consequence is degraded monitoring — which is acceptable. The banking applications on worker nodes are unaffected.</div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify monitoring is on infra nodes</span></div>
+    <div class="term-body"><pre><span class="td"># Confirm all Prometheus pods are on infra nodes — not worker nodes</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-monitoring \
+  -o wide | grep prometheus</span>
+<span class="tg">NAME                         READY   STATUS    NODE
+prometheus-k8s-0             6/6     Running   infra-0.ocp.novacrestbank.local
+prometheus-k8s-1             6/6     Running   infra-1.ocp.novacrestbank.local</span>
+<span class="td">                                              ↑ infra nodes ✓  NOT worker nodes</span>
+
+<span class="td"># Verify the infra node taint is applied — prevents banking app pods landing here</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node infra-0.ocp.novacrestbank.local \
+  -o jsonpath='{.spec.taints}'</span>
+<span class="tg">[{"effect":"NoSchedule","key":"node-role.kubernetes.io/infra"}]</span>
+<span class="td">  ↑ NoSchedule taint — only pods with matching toleration can run here.
+    Prometheus pods have this toleration (set by cluster-monitoring-config).
+    Banking application pods do not — they cannot schedule on infra nodes ✓</span>
+
+<span class="td"># Verify Alertmanager is also on infra nodes</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-monitoring \
+  -l app=alertmanager -o wide | awk 'NR==1 || {print $1,$7}'</span>
+<span class="tg">NAME                    NODE
+alertmanager-main-0     infra-0.ocp.novacrestbank.local
+alertmanager-main-1     infra-1.ocp.novacrestbank.local
+alertmanager-main-2     infra-2.ocp.novacrestbank.local</span>
+<span class="td">  ↑ All 3 Alertmanager pods on infra nodes ✓</span>
+    <div class="tann ok"><span class="tai">✓</span><span>Both Prometheus StatefulSet pods and all 3 Alertmanager pods are on infra nodes. Banking application workloads run exclusively on worker nodes. The monitoring stack has dedicated infra node resources isolated from application load.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 08 CLUSTER-MONITORING-CONFIG ══ -->
+<div class="page" id="page-cluster-monitoring-config">
+  <div class="ey">OBS-01 · Section 08</div>
+  <div class="pt">cluster-monitoring-config — the ConfigMap that controls the entire monitoring stack</div>
+  <div class="ps">The <code>cluster-monitoring-config</code> ConfigMap in <code>openshift-monitoring</code> is the single point of control for the entire OCP monitoring stack. Every configuration choice — infra node placement, storage, retention, Thanos, user workload monitoring — is expressed here. Every field is explained.</div>
+
+  <div class="callout why">
+    <div class="cl">Why a ConfigMap controls the monitoring stack instead of direct CRD configuration</div>
+    The Cluster Monitoring Operator reads this ConfigMap and reconciles all monitoring components to match the declared configuration. Engineers never directly edit Prometheus's StatefulSet, Alertmanager's Deployment, or Grafana's ConfigMap — the CMO owns those objects and would revert any direct edits. The ConfigMap is the correct interface. This is the same pattern as the Argo CD ArgoCD CR and the cert-manager ClusterIssuer — you configure the operator, not its outputs.
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">cluster-monitoring-config ConfigMap — every field explained</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
+<span class="yk">kind</span>: <span class="yv">ConfigMap</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">cluster-monitoring-config</span>
+  <span class="yc">  # This exact name is required — the CMO watches for this specific ConfigMap.
+    # Any other name is ignored. Misspelling means no configuration is applied.</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-monitoring</span>
+  <span class="yc">  # Must be in openshift-monitoring — the CMO only reads from this namespace.</span>
+<span class="yk">data</span>:
+  <span class="yk">config.yaml</span>: <span class="yv">|</span>
+    <span class="yc">    # Every key under config.yaml targets a specific monitoring component.
+        # The key is the component name; the value is its configuration.</span>
+
+    <span class="yv">    prometheusK8s:</span>                <span class="yc">← the main platform Prometheus</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yc">        # Schedule Prometheus pods on infra nodes — nodes with this label.
+              # This label is set by the MachineSet in OCP-VCF-02.</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+    <span class="yc">        # Toleration for the infra node's NoSchedule taint.
+              # Without this, Prometheus pods cannot be scheduled on infra nodes
+              # even with the correct nodeSelector — the taint blocks them.</span>
+    <span class="yv">      retention: 15d</span>
+    <span class="yc">        # How long Prometheus keeps raw metric data locally on the vSAN PVC.
+              # 15d is the OCP default. Reduce to 7d if Thanos is configured for
+              # long-term storage (Thanos Sidecar uploads blocks to object storage
+              # so local retention can be shorter).
+              # Increase only if Thanos is NOT configured and you need longer local history.</span>
+    <span class="yv">      retentionSize: 40GB</span>
+    <span class="yc">        # Maximum size of the Prometheus TSDB on disk before older blocks are deleted.
+              # Works together with retention: whichever limit is hit first wins.
+              # 40 GB is appropriate for a banking cluster with 50+ services scraping
+              # ~1000 metrics each at 30-second intervals with 15-day retention.</span>
+    <span class="yv">      volumeClaimTemplate:</span>
+    <span class="yv">        spec:</span>
+    <span class="yv">          storageClassName: vsan-standard</span>
+    <span class="yc">              # vsan-standard: Delete policy, RAID-5 FTT:1.
+                    # Prometheus TSDB data can be rebuilt from re-scraping if lost —
+                    # it is not permanent record data like ACS alerts or application data.
+                    # vsan-standard (not vsan-gold) is appropriate: faster, less overhead,
+                    # and the data is reconstructible.</span>
+    <span class="yv">          resources:</span>
+    <span class="yv">            requests:</span>
+    <span class="yv">              storage: 50Gi</span>
+    <span class="yc">              # 50 GB per Prometheus pod (2 pods = 100 GB total vSAN).
+                    # For 15d retention with 40 GB limit: 50 GB provides headroom.
+                    # Size conservatively: Prometheus compresses data well but
+                    # a cluster under heavy load generates more samples per interval.</span>
+
+    <span class="yv">    alertmanagerMain:</span>               <span class="yc">← Alertmanager cluster (3 pods)</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+    <span class="yc">        # Same infra node placement as Prometheus.
+              # Alertmanager runs as 3-pod cluster (HA). If monitoring is needed
+              # during an infra node failure, the remaining 2 pods maintain quorum.</span>
+    <span class="yv">      volumeClaimTemplate:</span>
+    <span class="yv">        spec:</span>
+    <span class="yv">          storageClassName: vsan-standard</span>
+    <span class="yv">          resources:</span>
+    <span class="yv">            requests:</span>
+    <span class="yv">              storage: 2Gi</span>
+    <span class="yc">              # Alertmanager's PVC stores: silences, notification logs, and
+                    # alert correlation state. 2 GB is generous — typical usage is
+                    # under 100 MB. But use a PVC rather than emptyDir so silences
+                    # survive pod restarts (a silence created during an incident
+                    # should persist across the Alertmanager rolling restart).</span>
+
+    <span class="yv">    prometheusOperator:</span>             <span class="yc">← watches ServiceMonitor/PodMonitor/PrometheusRule CRDs</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+
+    <span class="yv">    kubeStateMetrics:</span>               <span class="yc">← exposes Kubernetes object state as metrics</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+    <span class="yc">      # kube-state-metrics generates metrics about Kubernetes objects themselves:
+          # kube_deployment_status_replicas_available (how many replicas are available?),
+          # kube_pod_status_phase (what phase is each pod in?),
+          # kube_node_status_condition (is each node Ready?).
+          # These are derived from the Kubernetes API — not from the nodes themselves.
+          # Essential for the banking alert rules in Sections 14-16.</span>
+
+    <span class="yv">    grafana:</span>                         <span class="yc">← OCP's built-in Grafana (deprecated in 4.16+)</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+
+    <span class="yv">    telemeterClient:</span>                 <span class="yc">← sends anonymous cluster telemetry to Red Hat</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+
+    <span class="yv">    enableUserWorkload: true</span>
+    <span class="yc">      # true: enables the second Prometheus stack (openshift-user-workload-monitoring)
+          # that picks up ServiceMonitors from banking application namespaces.
+          # Without this, banking teams cannot scrape their application metrics.
+          # false (default): only platform metrics are monitored.
+          # This is the most important flag in this ConfigMap for application teams.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply the ConfigMap and verify CMO reconciliation</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f cluster-monitoring-config.yaml</span>
+<span class="tg">configmap/cluster-monitoring-config configured</span>
+
+<span class="td"># The CMO detects the ConfigMap change and begins reconciling — watch it</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get clusteroperator monitoring</span>
+<span class="tg">NAME        VERSION   AVAILABLE   PROGRESSING   DEGRADED
+monitoring  4.16.x    True        True          False</span>
+<span class="td">                                  ↑ True — CMO is reconciling the new configuration.
+   Wait for Progressing=False before declaring success (2–5 minutes).</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get clusteroperator monitoring</span>
+<span class="tg">NAME        VERSION   AVAILABLE   PROGRESSING   DEGRADED
+monitoring  4.16.x    True        False         False</span>
+<span class="td">                                  ↑ False — reconciliation complete ✓</span>
+
+<span class="td"># Verify user workload monitoring namespace was created</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-user-workload-monitoring</span>
+<span class="tg">NAME                                  READY   STATUS    AGE
+prometheus-operator-xxxxxxxxx         1/1     Running   2m
+prometheus-user-workload-0            6/6     Running   2m
+prometheus-user-workload-1            6/6     Running   2m
+thanos-ruler-user-workload-0          3/3     Running   2m</span>
+<span class="td">  ↑ User workload Prometheus is running ✓
+    Banking teams can now create ServiceMonitors in their namespaces.</span>
+    <div class="tann ok"><span class="tai">✓</span><span>cluster-monitoring-config applied. CMO reconciled. All monitoring components on infra nodes. User workload monitoring enabled. Banking application teams can now create ServiceMonitors in their namespaces to scrape application metrics.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 09 VERIFY STACK ══ -->
+<div class="page" id="page-verify-stack">
+  <div class="ey">OBS-01 · Section 09</div>
+  <div class="pt">Verify the monitoring stack is healthy — the complete health check</div>
+  <div class="ps">Seven checks confirm the monitoring stack is fully operational — from Prometheus TSDB health through to Alertmanager cluster status and the platform alert rules being loaded.</div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — seven-check monitoring verification</span></div>
+    <div class="term-body"><pre><span class="td"># Check 1: Prometheus pods Running and all containers ready (6/6)</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-monitoring | grep "prometheus-k8s"</span>
+<span class="tg">prometheus-k8s-0   6/6   Running   0   2d
+prometheus-k8s-1   6/6   Running   0   2d</span>
+<span class="td">              ↑ 6/6: prometheus, thanos-sidecar, config-reloader, rules-configmap-reloader,
+                kube-rbac-proxy-web, kube-rbac-proxy-thanos — all 6 containers in each pod ✓</span>
+
+<span class="td"># Check 2: Prometheus TSDB is healthy — no corruption or write failures</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-monitoring prometheus-k8s-0 \
+  -c prometheus -- \
+  promtool tsdb analyze /prometheus 2>/dev/null | grep -E "Block|Chunk|Series" | head -5</span>
+<span class="tg">Block ulid: 01HXK... MinTime: 2026-04-05T00:00:00Z MaxTime: 2026-04-06T00:00:00Z
+  Duration: 24h0m0s
+  Series: 152847
+  Chunks: 432156</span>
+<span class="td">  ↑ TSDB has valid blocks, series are being stored ✓</span>
+
+<span class="td"># Check 3: Alertmanager cluster is healthy (all 3 members in quorum)</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-monitoring alertmanager-main-0 \
+  -c alertmanager -- \
+  amtool cluster show \
+  --alertmanager.url=http://localhost:9093</span>
+<span class="tg">Alerting Cluster Members:
+  192.168.x.x:9094 (alertmanager-main-0) → alive
+  192.168.x.x:9094 (alertmanager-main-1) → alive
+  192.168.x.x:9094 (alertmanager-main-2) → alive</span>
+<span class="td">  ↑ All 3 Alertmanager pods in quorum ✓</span>
+
+<span class="td"># Check 4: Platform alert rules are loaded</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-monitoring prometheus-k8s-0 \
+  -c prometheus -- \
+  promtool rules check /etc/prometheus/rules/*.yaml 2>/dev/null | tail -3</span>
+<span class="tg">Checking /etc/prometheus/rules/platform.yaml
+  SUCCESS: 247 rules found</span>
+<span class="td">  ↑ 247 platform alert rules loaded successfully ✓</span>
+
+<span class="td"># Check 5: Prometheus is successfully scraping targets
+# A scrape failure rate of 0 means all configured targets are reachable</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-monitoring prometheus-k8s-0 \
+  -c prometheus -- \
+  promtool query instant http://localhost:9090 \
+  'count(up == 0) or vector(0)' 2>/dev/null</span>
+<span class="tg">vector(0)
+  {}  =>  0 @[1745142000]</span>
+<span class="td">  ↑ 0 scrape targets are DOWN — all targets reachable ✓</span>
+
+<span class="td"># Check 6: No firing critical alerts (should be empty on healthy cluster)</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-monitoring alertmanager-main-0 \
+  -c alertmanager -- \
+  amtool alert query severity=critical \
+  --alertmanager.url=http://localhost:9093</span>
+<span class="td">  [no output = no critical alerts firing ✓]</span>
+
+<span class="td"># Check 7: PVC storage usage — ensure Prometheus is not approaching the 40 GB limit</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-monitoring prometheus-k8s-0 \
+  -c prometheus -- df -h /prometheus</span>
+<span class="tg">Filesystem                Size  Used Avail Use%
+/dev/rbd...              50G   12G   38G  24%</span>
+<span class="td">  ↑ 12 GB used of 50 GB (24%) after initial data collection ✓
+    At 15-day retention with 24% after ~7 days, will stabilise around 40% ✓</span>
+    <div class="tann ok"><span class="tai">✓</span><span>All 7 checks passed. Both Prometheus pods healthy (6/6 containers). TSDB has valid blocks. Alertmanager cluster has 3-member quorum. 247 platform rules loaded. 0 scrape targets down. 0 critical alerts. Storage at 24% of capacity. Monitoring stack is fully operational.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 10 SERVICEMONITOR ══ -->
+<div class="page" id="page-servicemonitor-crd">
+  <div class="ey">OBS-01 · Section 10</div>
+  <div class="pt">ServiceMonitor CRD — every field explained with its architectural reason</div>
+  <div class="ps">The ServiceMonitor is what tells Prometheus "add this Service's pods as scrape targets." It is the primary interface between application teams and the monitoring stack. Every field has a purpose.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">ServiceMonitor — payment-service metrics — fully annotated</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">ServiceMonitor</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-monitor</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-production</span>
+  <span class="yc">  # Namespace: the ServiceMonitor lives in the SAME namespace as the application.
+    # The User Workload Prometheus watches all namespaces for ServiceMonitors.
+    # Never create ServiceMonitors in openshift-monitoring — they are ignored there.</span>
+  <span class="yk">labels</span>:
+    <span class="yk">app</span>: <span class="yv">payment-service</span>
+    <span class="yk">team</span>: <span class="yv">banking-platform</span>
+    <span class="yc">  # Labels on the ServiceMonitor itself — not the labels used to find the Service.
+        # These identify who owns this ServiceMonitor for RBAC and organisational purposes.</span>
+<span class="yk">spec</span>:
+  <span class="yk">selector</span>:
+    <span class="yk">matchLabels</span>:
+      <span class="yk">app</span>: <span class="yv">payment-service</span>
+      <span class="yc">  # WHICH SERVICE to scrape — the label selector that matches the Service object.
+          # The Service must have this label. The Prometheus Operator resolves this
+          # Service to its Endpoints and scrapes each pod individually.
+          # This is NOT the label to find pods directly — it finds Services,
+          # and Services resolve to pods via Endpoints.</span>
+  <span class="yk">namespaceSelector</span>:
+    <span class="yk">matchNames</span>:
+      - <span class="yv">banking-production</span>
+      <span class="yc">  # Only look for the matching Service in this namespace.
+          # Without namespaceSelector, Prometheus looks in the same namespace as
+          # the ServiceMonitor (banking-production). This makes it explicit.
+          # Could add banking-staging here to also scrape staging — but NovaCrestBank
+          # keeps separate ServiceMonitors per environment for clarity.</span>
+  <span class="yk">endpoints</span>:
+    - <span class="yk">port</span>: <span class="yv">metrics</span>
+      <span class="yc">  # The NAME of the port on the Service that carries /metrics traffic.
+          # Port names (not numbers) are used here because: if the port number changes
+          # (8080 → 8090 during a refactor), only the Service YAML needs updating —
+          # the ServiceMonitor continues to work because it references the name.
+          # The payment-service Service must have a port named "metrics".</span>
+      <span class="yk">path</span>: <span class="yv">/actuator/prometheus</span>
+      <span class="yc">  # Spring Boot Actuator's Prometheus metrics endpoint.
+          # Standard Java/Spring apps: /actuator/prometheus
+          # Go apps: /metrics
+          # FastAPI/Flask apps (with prometheus_client): /metrics
+          # Use /actuator/prometheus for Spring Boot — /metrics alone returns health JSON.</span>
+      <span class="yk">interval</span>: <span class="yv">30s</span>
+      <span class="yc">  # How often Prometheus scrapes this endpoint. 30s is the cluster default.
+          # For high-frequency trading or payment processing latency monitoring,
+          # 15s provides finer granularity but doubles storage and CPU usage.
+          # For most banking microservices, 30s is appropriate.</span>
+      <span class="yk">scheme</span>: <span class="yv">https</span>
+      <span class="yc">  # https: scrape the /metrics endpoint over TLS.
+          # The payment-service uses mTLS (cert-manager Certificate from OCP-OPS-02).
+          # Scraping over plain HTTP would expose metric data in transit — unacceptable
+          # for a banking environment. The cert-manager-issued certificate on the
+          # payment-service is trusted by all nodes via additionalTrustBundle.</span>
+      <span class="yk">tlsConfig</span>:
+        <span class="yk">caFile</span>: <span class="yv">/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt</span>
+        <span class="yc">  # The CA certificate file used to verify the payment-service's TLS certificate.
+              # This path is mounted into Prometheus by the CMO automatically — it contains
+              # the OCP service CA bundle that validates in-cluster service certificates.
+              # For IssuingCA-signed certs, use the NovaCrestBank chain.pem instead.</span>
+        <span class="yk">insecureSkipVerify</span>: <span class="yb">false</span>
+        <span class="yc">  # false: always verify the TLS certificate. Never set true in production.
+              # insecureSkipVerify: true would disable all TLS validation — Prometheus
+              # would accept any certificate including self-signed or attacker-controlled ones.</span>
+      <span class="yk">relabelings</span>:
+        - <span class="yk">sourceLabels</span>: [<span class="yv">__meta_kubernetes_pod_name</span>]
+          <span class="yk">targetLabel</span>: <span class="yv">pod</span>
+          <span class="yc">  # Relabelling: copy the pod name from Kubernetes metadata into a "pod" label
+                # on every scraped metric. This allows querying per-pod:
+                # http_requests_total{pod="payment-service-abc123"}
+                # Without this relabelling, the pod name is in __meta_kubernetes_pod_name
+                # (a private label) but not exposed in the stored time series.</span>
+        - <span class="yk">sourceLabels</span>: [<span class="yv">__meta_kubernetes_namespace</span>]
+          <span class="yk">targetLabel</span>: <span class="yv">namespace</span>
+          <span class="yc">  # Copy the namespace into a "namespace" label. Allows cross-namespace queries:
+                # http_requests_total{namespace="banking-production"}</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 11 PODMONITOR ══ -->
+<div class="page" id="page-podmonitor-crd">
+  <div class="ey">OBS-01 · Section 11</div>
+  <div class="pt">PodMonitor CRD — when to use it instead of ServiceMonitor</div>
+  <div class="ps">ServiceMonitor requires a Kubernetes Service. PodMonitor scrapes pods directly without a Service intermediary. Understanding when to use each prevents confusion when a service does not have a Kubernetes Service object.</div>
+
+  <div class="decision">
+    <div class="decision-label">ServiceMonitor vs PodMonitor — the correct choice for each scenario</div>
+    <div class="decision-q">ServiceMonitor is used for most applications. When does a PodMonitor make more sense?</div>
+    <div class="decision-a"><strong>Use ServiceMonitor for 90% of cases — any application that has a Kubernetes Service object (which is almost everything in a banking microservices environment). Use PodMonitor in three specific situations.</strong><br/><br/>
+    <strong>1. The application exposes metrics on a port that is not in the Service.</strong> Some applications expose a dedicated metrics port (for example, port 9090 for metrics, separate from port 8080 for the API). If the Service only exposes port 8080, a ServiceMonitor cannot reach port 9090. A PodMonitor scrapes pods directly and can specify any port regardless of what the Service exposes.<br/><br/>
+    <strong>2. Each pod exposes different metrics that should not be aggregated.</strong> In a StatefulSet where pod-0 is the primary and pod-1 is a replica, each pod has a distinct role and distinct metrics. A ServiceMonitor routes through the Service load balancer — scrapes land on random pods. A PodMonitor discovers each pod individually with its unique pod labels, enabling per-pod dashboard rows.<br/><br/>
+    <strong>3. No Service exists.</strong> DaemonSets running infrastructure agents (node exporters, log collectors) often have no Service — they run directly on nodes. A PodMonitor can discover these pods by their labels without requiring a Service to exist.<br/><br/>
+    For NovaCrestBank's banking microservices, ServiceMonitor is always correct. PodMonitor would be used for the OCP node exporter, the vSphere CSI metrics, or custom DaemonSet-based monitoring agents.</div>
+  </div>
+</div>
+
+<!-- ══ 12 USER WORKLOAD ══ -->
+<div class="page" id="page-user-workload">
+  <div class="ey">OBS-01 · Section 12</div>
+  <div class="pt">User workload monitoring — banking application metrics in Prometheus</div>
+  <div class="ps">With <code>enableUserWorkload: true</code> in the ConfigMap, application teams can create ServiceMonitors in their namespaces and see their metrics in the OCP console's Observe section. This section shows the complete path from Java application to Prometheus query.</div>
+
+  <div class="callout blue">
+    <div class="cl">What user workload monitoring provides — and what it does not</div>
+    The User Workload Prometheus scrapes application metrics and makes them queryable via the OCP console. It does NOT share the same Prometheus instance as platform metrics — the two are separate. Application teams can query their own namespace's metrics from the OCP console (Observe → Metrics) without seeing platform metrics. Platform metrics are queried from the same console UI but are restricted to cluster admins. The Thanos Querier provides a unified endpoint that combines both when needed (for example, correlating application latency spikes with node CPU saturation).
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — apply the payment-service ServiceMonitor and verify scraping</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f payment-service-servicemonitor.yaml \
+  -n banking-production</span>
+<span class="tg">servicemonitor.monitoring.coreos.com/payment-service-monitor created</span>
+
+<span class="td"># Wait ~60 seconds for the Prometheus Operator to detect the new ServiceMonitor
+# and regenerate Prometheus's scrape configuration</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">sleep 60</span>
+
+<span class="td"># Verify payment-service appears as a scrape target</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-user-workload-monitoring \
+  prometheus-user-workload-0 \
+  -c prometheus -- \
+  promtool query instant http://localhost:9090 \
+  'up{job="payment-service", namespace="banking-production"}' 2>/dev/null</span>
+<span class="tg">up{job="payment-service", namespace="banking-production", pod="payment-service-abc123", ...}  =>  1 @[...]
+up{job="payment-service", namespace="banking-production", pod="payment-service-def456", ...}  =>  1 @[...]
+up{job="payment-service", namespace="banking-production", pod="payment-service-ghi789", ...}  =>  1 @[...]</span>
+<span class="td">  ↑ up=1 for all 3 payment-service pods ✓ (up=0 would mean scrape failed)
+    3 pods × 1 = 3 healthy scrape targets confirmed ✓</span>
+
+<span class="td"># Query a real metric from the payment-service — JVM heap memory</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-user-workload-monitoring \
+  prometheus-user-workload-0 \
+  -c prometheus -- \
+  promtool query instant http://localhost:9090 \
+  'jvm_memory_used_bytes{area="heap", namespace="banking-production"}' 2>/dev/null</span>
+<span class="tg">jvm_memory_used_bytes{area="heap", pod="payment-service-abc123", namespace="banking-production"}  =>  268435456
+jvm_memory_used_bytes{area="heap", pod="payment-service-def456", namespace="banking-production"}  =>  251658240
+jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="banking-production"}  =>  283115520</span>
+<span class="td">  ↑ ~256 MB heap per pod — payment-service metrics are being scraped ✓</span>
+    <div class="tann ok"><span class="tai">✓</span><span>ServiceMonitor applied. User Workload Prometheus is scraping all 3 payment-service pods (up=1). JVM heap metrics are available. Application teams can now query payment-service metrics from the OCP console Observe section under the banking-production namespace.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 13 PROMETHEUSRULE ══ -->
+<div class="page" id="page-prometheusrule-crd">
+  <div class="ey">OBS-01 · Section 13</div>
+  <div class="pt">PrometheusRule CRD — alert anatomy and routing to Alertmanager</div>
+  <div class="ps">PrometheusRule objects define the alert rules Prometheus evaluates. Understanding the anatomy of an alert rule — the expression, the <code>for</code> duration, labels, and annotations — makes writing banking-specific alerts straightforward.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule anatomy — every field explained</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-banking-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-monitoring</span>
+  <span class="yc">  # Platform alerts (etcd, node, cert-manager) go in openshift-monitoring.
+    # Application alerts (payment-service SLOs) go in the application namespace
+    # and are picked up by the User Workload Prometheus.</span>
+  <span class="yk">labels</span>:
+    <span class="yk">role</span>: <span class="yv">alert-rules</span>
+    <span class="yc">  # This label triggers the Prometheus Operator to load this rule file into Prometheus.
+        # The Prometheus Operator watches for PrometheusRule objects with specific labels
+        # defined in its configuration — "role: alert-rules" is the standard label.</span>
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.etcd</span>
+      <span class="yc">  # Group name — organises related rules. Use a dotted hierarchy:
+          # ncb.etcd, ncb.nodes, ncb.certificates, ncb.banking-slos</span>
+      <span class="yk">rules</span>:
+        - <span class="yk">alert</span>: <span class="yv">NCBEtcdQuorumLost</span>
+          <span class="yc">  # Alert name — must be unique within the cluster.
+                # Convention: prefix with NCB to distinguish from OCP built-in alerts.</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">count(etcd_server_has_leader == 0) >= 2</span>
+          <span class="yc">  # The PromQL expression. Evaluates every 30 seconds.
+                # When this expression produces a non-empty result, the alert goes Pending.
+                # "count(etcd_server_has_leader == 0) >= 2" means:
+                # count how many etcd members report has_leader=0 (no leader seen).
+                # >= 2 means at least 2 members cannot find a leader.
+                # A 3-member etcd needs 2 members for quorum — losing 2 = quorum lost.
+                # This is the most critical alert in the cluster.</span>
+          <span class="yk">for</span>: <span class="yv">1m</span>
+          <span class="yc">  # The expression must be true for 1 minute before the alert fires.
+                # for etcd quorum loss: 1 minute is already generous — etcd elections
+                # typically complete in seconds. 1 minute confirms this is a real
+                # quorum loss, not a momentary election in progress.</span>
+          <span class="yk">labels</span>:
+            <span class="yk">severity</span>: <span class="yv">critical</span>
+            <span class="yk">team</span>: <span class="yv">platform</span>
+            <span class="yc">  # Labels on the alert — used by Alertmanager routing rules.
+                  # severity: critical → routes to PagerDuty P1 in Section 17.
+                  # team: platform → routes to the Platform Engineering on-call.</span>
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">etcd quorum lost — cluster API writes are failing</span>
+            <span class="yk">description</span>: <span class="yv">|</span>
+              <span class="yv">              {{ $value }} etcd members cannot find a leader.</span>
+              <span class="yv">              The Kubernetes API server has stopped accepting write requests.</span>
+              <span class="yv">              No deployments, ConfigMap updates, or Secret changes will succeed.</span>
+              <span class="yv">              Immediate investigation required.</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-quorum-loss</span>
+            <span class="yc">  # Annotations appear in the notification message.
+                  # summary: the one-line description shown in PagerDuty.
+                  # description: the full context — tells the on-call engineer exactly
+                  # what the alert means in operational terms, not just metric terms.
+                  # runbook: link to the step-by-step investigation and recovery procedure.
+                  # {{ $value }} is a Go template — inserts the actual metric value at alert time.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 14 ETCD ALERTS ══ -->
+<div class="page" id="page-etcd-alerts">
+  <div class="ey">OBS-01 · Section 14</div>
+  <div class="pt">etcd quorum loss alerts — the cluster's most critical signal</div>
+  <div class="ps">etcd is the database that stores all Kubernetes state. etcd quorum loss means the API server stops accepting writes — no deployments, no ConfigMap updates, no Secret changes. For NovaCrestBank, this means no banking application deployments can proceed. This is the cluster's highest-priority alert.</div>
+
+  <div class="decision">
+    <div class="decision-label">Understanding etcd quorum — why 2-of-3 is the critical threshold</div>
+    <div class="decision-q">The alert fires when 2 etcd members lose their leader. Why 2, not 1 or 3?</div>
+    <div class="decision-a"><strong>etcd uses the Raft consensus algorithm, which requires a majority of members to agree before committing any write. In a 3-member etcd cluster, the majority is 2. If 2 members can agree, quorum is maintained and writes proceed. If only 1 member is available, it cannot form a majority by itself — quorum is lost and the cluster stops accepting writes to prevent split-brain scenarios.</strong><br/><br/>
+    <strong>The scenarios:</strong><br/>
+    1 member unreachable → quorum maintained (2 of 3 still agree) → API writes continue → alert at WARNING severity, not critical. The system degrades gracefully.<br/>
+    2 members unreachable → quorum lost (only 1 of 3 available, no majority) → API server enters read-only mode → NO new deployments, no OCP operator reconciliation, no scaling. The cluster is effectively frozen. This is the CRITICAL alert that wakes the on-call engineer at 2 AM regardless of day.<br/><br/>
+    For NovaCrestBank, this translates directly to banking operations: if etcd loses quorum during business hours, no application can be deployed, no Kubernetes Secrets can be rotated, no OCP operators can reconcile — including cert-manager (certificate renewals stall) and the Logging Operator (log forwarding configuration stalls). The banking applications already running continue running — their pods are not affected — but any operational change to the cluster is impossible.</div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — etcd health alerts (three severity levels)</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-etcd-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-monitoring</span>
+  <span class="yk">labels</span>: {<span class="yk">role</span>: <span class="yv">alert-rules</span>}
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.etcd</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">NCBEtcdMemberDown</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">count(etcd_server_has_leader == 1) < 3</span>
+          <span class="yc">  # Fires when fewer than 3 etcd members report has_leader=1 (healthy with a leader).
+                # This fires for ANY member being unreachable — even just 1.
+                # Fire early at WARNING — gives time to investigate before quorum is lost.</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">etcd member is down — quorum is at risk</span>
+            <span class="yk">description</span>: <span class="yv">"{{ $value }} etcd members are healthy. 1 member is unreachable. Investigate before a second failure causes quorum loss."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-member-down</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBEtcdQuorumLost</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">count(etcd_server_has_leader == 0) >= 2</span>
+          <span class="yc">  # Fires when 2+ etcd members report no leader (has_leader=0).
+                # This means quorum IS LOST — API writes are failing right now.</span>
+          <span class="yk">for</span>: <span class="yv">1m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">CRITICAL — etcd quorum lost, Kubernetes API writes failing</span>
+            <span class="yk">description</span>: <span class="yv">"{{ $value }} etcd members have no leader. API server write operations are failing. Banking application deployments and OCP operator reconciliation are halted. Restore etcd quorum immediately."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-quorum-loss</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBEtcdHighFsyncLatency</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">histogram_quantile(0.99,</span>
+            <span class="yv">  sum(rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m]))</span>
+            <span class="yv">  by (le, pod)</span>
+            <span class="yv">) > 0.01</span>
+          <span class="yc">  # P99 etcd WAL fsync latency exceeds 10 ms.
+                # etcd's performance is critically dependent on disk write latency.
+                # If WAL fsync latency rises above 10 ms, etcd leader elections become
+                # more frequent and write performance degrades.
+                # On vSAN, this usually indicates vSAN storage contention or a failed disk.
+                # Catch this BEFORE it causes quorum instability.</span>
+          <span class="yk">for</span>: <span class="yv">10m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">etcd WAL fsync latency is elevated</span>
+            <span class="yk">description</span>: <span class="yv">"Pod {{ $labels.pod }} etcd WAL fsync P99 latency is {{ $value | humanizeDuration }}. Etcd performance is degrading. Check vSAN health and storage I/O contention."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-disk-latency</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 15 NODE ALERTS ══ -->
+<div class="page" id="page-node-alerts">
+  <div class="ey">OBS-01 · Section 15</div>
+  <div class="pt">Node memory and disk pressure alerts</div>
+  <div class="ps">Node-level resource exhaustion is a leading cause of production incidents. The following rules alert in advance — before the kubelet starts OOM-killing pods or before the node root filesystem fills up and the node becomes unhealthy.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — node memory, disk, and pressure alerts</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-node-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-monitoring</span>
+  <span class="yk">labels</span>: {<span class="yk">role</span>: <span class="yv">alert-rules</span>}
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.nodes</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">NCBNodeMemoryHigh</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)</span>
+            <span class="yv">  / node_memory_MemTotal_bytes > 0.85</span>
+          <span class="yc">  # (total - available) / total = used fraction.
+                # > 0.85 = more than 85% of node memory is in use.
+                # 85% is the warning threshold — not 90% or 95%.
+                # By the time a node reaches 90%, the kubelet is already applying
+                # memory eviction pressure and may start killing pods.
+                # 85% gives 10+ minutes to investigate and take action.
+                # node_memory_MemAvailable_bytes is more accurate than MemFree —
+                # it includes reclaimable memory (cache, buffers) as "available".</span>
+          <span class="yk">for</span>: <span class="yv">10m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">Node {{ $labels.node }} memory utilisation is {{ $value | humanizePercentage }}</span>
+            <span class="yk">description</span>: <span class="yv">"Node {{ $labels.instance }} is using {{ $value | humanizePercentage }} of memory. Consider draining and investigating for memory leaks in pods."</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBNodeMemoryCritical</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)</span>
+            <span class="yv">  / node_memory_MemTotal_bytes > 0.93</span>
+          <span class="yc">  # > 93%: the kubelet's eviction threshold on most OCP configurations.
+                # Above this, the kubelet begins OOM-killing pods.
+                # This alert fires CONCURRENTLY with NodeMemoryHigh — they share the same
+                # node but have different severity levels and different routing (critical
+                # routes to PagerDuty P1, warning routes to email).</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">CRITICAL — Node {{ $labels.node }} OOM eviction imminent</span>
+            <span class="yk">description</span>: <span class="yv">"Node {{ $labels.instance }} is at {{ $value | humanizePercentage }} memory. The kubelet is OOM-killing pods. Drain the node immediately: oc adm drain {{ $labels.node }} --ignore-daemonsets --delete-emptydir-data"</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBNodeDiskFillingUp</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    predict_linear(</span>
+            <span class="yv">      node_filesystem_avail_bytes{mountpoint="/", fstype!="tmpfs"}[6h],</span>
+            <span class="yv">      4 * 3600</span>
+            <span class="yv">    ) < 0</span>
+          <span class="yc">  # predict_linear: "if disk usage continues at the current 6-hour trend,
+                # will the disk fill up within 4 hours?"
+                # < 0 means: the linear prediction goes below zero within 4 hours.
+                # This fires BEFORE the disk is full — with 4 hours of lead time.
+                # Alerting when disk is FULL at 2 AM is useless.
+                # Alerting at 10 PM that the disk will fill by 2 AM gives the on-call
+                # engineer time to either clear space or trigger a maintenance response.</span>
+          <span class="yk">for</span>: <span class="yv">30m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">Node {{ $labels.instance }} root filesystem will fill within 4 hours</span>
+            <span class="yk">description</span>: <span class="yv">"Based on the last 6 hours of trend, node {{ $labels.instance }} root filesystem ({{ $labels.device }}) will be full within 4 hours. Current available: {{ $labels.mountpoint }} available bytes. Clean up container image layers or large log files."</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBNodeNotReady</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">kube_node_status_condition{condition="Ready", status="true"} == 0</span>
+          <span class="yc">  # A node is no longer Ready — the kubelet is not reporting healthy to the API server.
+                # This fires for any node: master, infra, or worker.
+                # Note: uses kube_node_status_condition from kube-state-metrics — NOT
+                # from the node_exporter. kube-state-metrics reads from the Kubernetes API,
+                # which is authoritative for node status. The node_exporter reads from the
+                # node itself — but if a node is unreachable, node_exporter data disappears.</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">Node {{ $labels.node }} is NotReady</span>
+            <span class="yk">description</span>: <span class="yv">"Kubernetes node {{ $labels.node }} has been NotReady for 5 minutes. Pods may be evicted. Check node status: oc get node {{ $labels.node }} and oc describe node {{ $labels.node }}"</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 16 CERT EXPIRY ══ -->
+<div class="page" id="page-cert-expiry-alerts">
+  <div class="ey">OBS-01 · Section 16</div>
+  <div class="pt">Certificate expiry alerts — 30-day advance warning</div>
+  <div class="ps">cert-manager automatically renews certificates 30 days before expiry (OCP-OPS-02). These Prometheus alerts are the safety net — if cert-manager's renewal fails silently, these alerts fire while there is still time to fix the root cause manually.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why alert at 30 days when cert-manager renews at 30 days</div>
+    <div class="decision-q">cert-manager is configured to renew certificates at 30 days before expiry. Why also have a Prometheus alert at 30 days? What situation does the alert catch that cert-manager does not?</div>
+    <div class="decision-a"><strong>cert-manager renews certificates automatically — but if cert-manager itself is broken, the renewal does not happen. The Prometheus alert fires independently of cert-manager, watching the actual certificate expiry from the <code>certmanager_certificate_expiration_timestamp_seconds</code> metric. If cert-manager's ADCS issuer pod crashes and stays down for two weeks, cert-manager will not renew any certificates — but Prometheus will see the expiry timestamps approaching and fire the alert at 14 days with another critical alert at 3 days.</strong><br/><br/>
+    The two are different types of controls: cert-manager renewal is a preventive control (tries to prevent expiry from ever being reached). The Prometheus alert is a detective control (detects when the preventive control has failed and expiry is genuinely approaching). Both are necessary for a banking environment where an expired TLS certificate causes immediate service failures.</div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — certificate expiry alerts (complement to cert-manager renewal)</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-certificate-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">cert-manager</span>
+  <span class="yc">  # This PrometheusRule is in the cert-manager namespace.
+    # The cert-manager ServiceMonitor (from OCP-OPS-02 Section 16) exposes
+    # certmanager_* metrics to the User Workload Prometheus.
+    # These rules are evaluated by the User Workload Prometheus.</span>
+  <span class="yk">labels</span>: {<span class="yk">role</span>: <span class="yv">alert-rules</span>}
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.certificates</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">NCBCertificateExpiringSoon</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    certmanager_certificate_expiration_timestamp_seconds</span>
+            <span class="yv">  - time() < 14 * 24 * 3600</span>
+          <span class="yc">  # certmanager_certificate_expiration_timestamp_seconds: the Unix timestamp
+                # when each cert-manager-managed certificate expires. Exposed per Certificate object.
+                # - time(): subtract the current Unix timestamp → seconds until expiry.
+                # < 14 * 24 * 3600: fire when less than 14 days (1,209,600 seconds) remain.
+                # 14 days: well after cert-manager should have renewed (30 days).
+                # If this fires, cert-manager's renewal has been failing for ~16 days.
+                # Still enough time to investigate and fix before the certificate expires.</span>
+          <span class="yk">for</span>: <span class="yv">1h</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value | humanizeDuration }}</span>
+            <span class="yk">description</span>: <span class="yv">"cert-manager automatic renewal has not succeeded for certificate {{ $labels.name }}. Check the CertificateRequest status and the ADCS issuer pod logs in the cert-manager namespace."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/cert-manager-renewal-failure</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBCertificateExpiryCritical</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    certmanager_certificate_expiration_timestamp_seconds</span>
+            <span class="yv">  - time() < 3 * 24 * 3600</span>
+          <span class="yc">  # < 3 days: P1 incident trigger. TLS service failure is imminent.
+                # At this point, manual certificate renewal is required immediately.
+                # Force immediate renewal: delete the Certificate object and re-apply it.
+                # cert-manager creates a new CertificateRequest immediately on creation.</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">CRITICAL — Certificate {{ $labels.name }} expires in {{ $value | humanizeDuration }}</span>
+            <span class="yk">description</span>: <span class="yv">"Immediate manual renewal required. Service TLS failures will occur when the certificate expires. Force renewal: oc delete certificate {{ $labels.name }} -n {{ $labels.namespace }} and re-apply the Certificate object."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/cert-emergency-renewal</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBCertificateReadyFalse</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">certmanager_certificate_ready_status{condition="False"} == 1</span>
+          <span class="yc">  # A cert-manager Certificate object has Ready=False — the issuer failed
+                # to issue the certificate. This fires immediately when a Certificate
+                # transitions to the failed state — before any expiry threat.
+                # Useful for catching new certificate issuance failures (not just renewals).</span>
+          <span class="yk">for</span>: <span class="yv">15m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">Certificate {{ $labels.name }} in {{ $labels.namespace }} is not Ready</span>
+            <span class="yk">description</span>: <span class="yv">"Certificate {{ $labels.name }} has been in Ready=False state for 15 minutes. The ADCS issuer is failing to issue this certificate. Check: oc describe certificate {{ $labels.name }} -n {{ $labels.namespace }}"</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 17 ALERTMANAGER CONFIG ══ -->
+<div class="page" id="page-alertmanager-config">
+  <div class="ey">OBS-01 · Section 17</div>
+  <div class="pt">Alertmanager configuration — routing alerts to PagerDuty and email</div>
+  <div class="ps">Alertmanager's routing tree determines who gets notified and on which channel for each alert. NovaCrestBank routes critical alerts to PagerDuty (wakes the on-call engineer) and warning alerts to email (reviewed during business hours).</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">Alertmanager configuration — routing tree with every field explained</span></div>
+    <div class="yaml-body"><pre><span class="yc"># Alertmanager configuration is stored as a Secret in openshift-monitoring:
+# oc create secret generic alertmanager-main \
+#   --from-file=alertmanager.yaml=alertmanager-config.yaml \
+#   -n openshift-monitoring --dry-run=client -o yaml | oc apply -f -</span>
+
+<span class="yk">global</span>:
+  <span class="yk">resolve_timeout</span>: <span class="yv">5m</span>
+  <span class="yc">  # How long Alertmanager waits after an alert stops firing before
+    # sending a "resolved" notification. 5 minutes prevents premature
+    # resolution notifications for flapping alerts.</span>
+  <span class="yk">pagerduty_url</span>: <span class="yv">https://events.pagerduty.com/v2/enqueue</span>
+  <span class="yk">smtp_smarthost</span>: <span class="yv">smtp-relay.novacrestbank.local:587</span>
+  <span class="yk">smtp_from</span>: <span class="yv">ocp-monitoring@novacrestbank.local</span>
+  <span class="yk">smtp_require_tls</span>: <span class="yb">true</span>
+
+<span class="yk">route</span>:
+  <span class="yk">group_by</span>: [<span class="yv">alertname</span>, <span class="yv">namespace</span>]
+  <span class="yc">  # Group alerts that share the same alertname AND namespace into one notification.
+    # This prevents: 5 separate notifications for NodeMemoryHigh on 5 nodes.
+    # Instead: one notification "NodeMemoryHigh on 5 nodes in openshift-monitoring".</span>
+  <span class="yk">group_wait</span>: <span class="yv">30s</span>
+  <span class="yc">  # After the first alert in a new group, wait 30s before sending the notification.
+    # This collects related alerts that fire within 30 seconds of each other
+    # into a single grouped notification rather than sending one immediately.</span>
+  <span class="yk">group_interval</span>: <span class="yv">5m</span>
+  <span class="yc">  # Minimum time between notifications for the same group.
+    # If new alerts join the group, wait 5 minutes before sending another notification.</span>
+  <span class="yk">repeat_interval</span>: <span class="yv">4h</span>
+  <span class="yc">  # If an alert is still firing after 4 hours, send another notification.
+    # This reminds the team that an unresolved alert is still active.
+    # For critical alerts, a 4-hour repeat is appropriate (not every 30 minutes —
+    # that causes alert fatigue).</span>
+  <span class="yk">receiver</span>: <span class="yv">platform-email</span>
+  <span class="yc">  # Default receiver — any alert not matching a more specific route goes here.</span>
+  <span class="yk">routes</span>:
+    - <span class="yk">match</span>:
+        <span class="yk">severity</span>: <span class="yv">critical</span>
+      <span class="yc">    # Match: any alert with severity=critical label</span>
+      <span class="yk">receiver</span>: <span class="yv">pagerduty-p1</span>
+      <span class="yc">    # Route to PagerDuty P1 — wakes the on-call engineer via mobile alert.
+            # Critical alerts: etcd quorum loss, node OOM, certificate expiry <3 days.</span>
+      <span class="yk">group_wait</span>: <span class="yv">10s</span>
+      <span class="yc">    # Critical alerts: shorter group wait (10s not 30s) — send faster.</span>
+      <span class="yk">repeat_interval</span>: <span class="yv">1h</span>
+      <span class="yc">    # Repeat every 1 hour for critical alerts — more aggressive reminders.</span>
+    - <span class="yk">match</span>:
+        <span class="yk">severity</span>: <span class="yv">warning</span>
+        <span class="yk">team</span>: <span class="yv">platform</span>
+      <span class="yk">receiver</span>: <span class="yv">platform-email</span>
+      <span class="yc">    # Platform warning alerts → email to platform engineering team.
+            # Reviewed during business hours. Not waking anyone up at night.</span>
+
+<span class="yk">receivers</span>:
+  - <span class="yk">name</span>: <span class="yv">pagerduty-p1</span>
+    <span class="yk">pagerduty_configs</span>:
+      - <span class="yk">routing_key</span>: <span class="yv">YOUR_PAGERDUTY_INTEGRATION_KEY</span>
+        <span class="yc">          # PagerDuty service integration key (from PagerDuty → Services →
+                      # Events API v2 → Integration Key). Store in a Kubernetes Secret.</span>
+        <span class="yk">description</span>: <span class="yv">'{{ .CommonAnnotations.summary }}'</span>
+        <span class="yk">severity</span>: <span class="yv">critical</span>
+        <span class="yk">client</span>: <span class="yv">NovaCrestBank OCP ncb-ocp-cluster</span>
+        <span class="yk">client_url</span>: <span class="yv">https://console-openshift-console.apps.ocp.novacrestbank.local</span>
+        <span class="yk">details</span>:
+          <span class="yk">description</span>: <span class="yv">'{{ .CommonAnnotations.description }}'</span>
+          <span class="yk">runbook</span>: <span class="yv">'{{ .CommonAnnotations.runbook }}'</span>
+          <span class="yk">alertname</span>: <span class="yv">'{{ .CommonLabels.alertname }}'</span>
+          <span class="yk">namespace</span>: <span class="yv">'{{ .CommonLabels.namespace }}'</span>
+
+  - <span class="yk">name</span>: <span class="yv">platform-email</span>
+    <span class="yk">email_configs</span>:
+      - <span class="yk">to</span>: <span class="yv">platform-engineering@novacrestbank.local</span>
+        <span class="yk">headers</span>:
+          <span class="yk">subject</span>: <span class="yv">'[OCP Alert] {{ .CommonLabels.alertname }} — {{ .Status | toUpper }}'</span>
+        <span class="yk">html</span>: <span class="yv">'{{ range .Alerts }}&lt;b&gt;{{ .Annotations.summary }}&lt;/b&gt;&lt;br&gt;{{ .Annotations.description }}&lt;br&gt;Runbook: {{ .Annotations.runbook }}&lt;br&gt;&lt;br&gt;{{ end }}'</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 18 GRAFANA ══ -->
+<div class="page" id="page-grafana">
+  <div class="ey">OBS-01 · Section 18</div>
+  <div class="pt">Grafana — dashboards for the NovaCrestBank operations team</div>
+  <div class="ps">Grafana provides the visual layer on top of Prometheus. The OCP console includes a basic Grafana-compatible dashboard view. For production banking monitoring, a dedicated Grafana deployment provides richer dashboards for the operations team.</div>
+
+  <div class="decision">
+    <div class="decision-label">OCP built-in dashboards vs a dedicated Grafana deployment</div>
+    <div class="decision-q">OCP has an Observe → Dashboards section in the console. Why would NovaCrestBank also deploy a dedicated Grafana instance?</div>
+    <div class="decision-a"><strong>The OCP console's built-in dashboards are read-only — they are shipped by Red Hat and cannot be customised. Engineers cannot add a dashboard showing payment-service P99 latency, transaction throughput, or the four golden signals for the banking microservices. The built-in dashboards cover platform metrics (etcd, API server, node CPU/memory) but not application-level metrics.</strong><br/><br/>
+    A dedicated Grafana deployment (OCP 4.13+ uses GrafanaOperator from OperatorHub) provides: custom dashboards for banking application SLOs (P99 latency, error rate, transaction throughput), composite dashboards correlating application performance with infrastructure health (is the payment-service latency spike correlated with node memory pressure?), and dashboards for the operations team's weekly SLO review. Grafana connects to the Thanos Querier endpoint as its data source, giving access to both platform and application metrics from a single query interface.</div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — deploy a Grafana instance connected to Thanos Querier</span></div>
+    <div class="term-body"><pre><span class="td"># Deploy GrafanaOperator (from OperatorHub — already mirrored in Harbor)</span>
+<span class="td"># Create a Grafana CR pointing at the Thanos Querier as data source</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tg">apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: ncb-grafana
+  namespace: openshift-monitoring
+  labels:
+    dashboards: ncb-grafana
+spec:
+  route:
+    spec:
+      host: grafana-monitoring.apps.ocp.novacrestbank.local
+      tls:
+        termination: edge
+  config:
+    auth:
+      disable_login_form: "false"
+    auth.ldap:
+      enabled: "true"
+    log:
+      level: info
+  deployment:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              effect: NoSchedule</span>
+<span class="tg">EOF</span>
+<span class="tg">grafana.grafana.integreatly.org/ncb-grafana created</span>
+
+<span class="td"># Create a GrafanaDatasource pointing at the Thanos Querier
+# The Thanos Querier provides a unified PromQL endpoint for both
+# platform metrics and user workload metrics</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
+<span class="tg">apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: thanos-querier
+  namespace: openshift-monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: ncb-grafana
+  datasource:
+    name: Thanos
+    type: prometheus
+    url: https://thanos-querier.openshift-monitoring.svc:9091
+    access: proxy
+    isDefault: true
+    jsonData:
+      tlsSkipVerify: false
+      httpHeaderName1: Authorization
+    secureJsonData:
+      httpHeaderValue1: "Bearer $(oc sa get-token grafana-serviceaccount -n openshift-monitoring)"</span>
+<span class="tg">EOF</span>
+<span class="tg">grafanadatasource.grafana.integreatly.org/thanos-querier created</span>
+
+<span class="td"># Verify Grafana is Running and accessible</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://grafana-monitoring.apps.ocp.novacrestbank.local/api/health</span>
+<span class="tg">{"commit":"abc123","database":"ok","version":"10.x.x"}</span>
+<span class="td">  ↑ Grafana is healthy ✓
+    Access: grafana-monitoring.apps.ocp.novacrestbank.local
+    Authenticate with NovaCrestBank AD credentials (LDAP configured)
+    Data source: Thanos Querier — unified platform + app metrics ✓</span>
+    <div class="tann info"><span class="tai">ℹ</span><span>With Grafana connected to Thanos Querier, engineers can write PromQL queries against both platform metrics (etcd, node CPU, API server latency) and application metrics (payment-service P99 latency, transaction throughput, error rate) from a single interface. OBS-02 (Custom Application Metrics) covers building banking-specific Grafana dashboards.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 19 CHECKLIST ══ -->
+<div class="page" id="page-checklist">
+  <div class="ey">OBS-01 · Section 19</div>
+  <div class="pt">Handover checklist — monitoring fully operational</div>
+  <div class="ps">The complete OCP monitoring stack is deployed, all components are on infra nodes, banking-specific alert rules are loaded, Alertmanager routes critical alerts to PagerDuty, and Grafana provides the operations dashboard layer.</div>
+
+  <div class="callout success">
+    <div class="cl">OBS-01 complete — the cluster is fully observable</div>
+    The NovaCrestBank OCP cluster now has comprehensive monitoring: Prometheus scrapes all platform components and all banking application metrics. Alertmanager routes alerts to PagerDuty (critical) and email (warning) with banking-specific context and runbook links. Three layers of certificate expiry protection are active (cert-manager renewal + 14-day warning + 3-day critical alert). etcd quorum is monitored with three severity levels. Node resource exhaustion alerts fire with 4+ hours of lead time. Grafana provides unified dashboards from Thanos Querier. All monitoring runs on dedicated infra nodes isolated from banking application workloads.
+  </div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">cluster-monitoring-config applied</span><span class="spec-val"><span class="badge bg">✓</span> CMO reconciled · enableUserWorkload: true · all components on infra nodes</span></div>
+    <div class="spec-row"><span class="spec-label">Prometheus pods Running (6/6 containers)</span><span class="spec-val"><span class="badge bg">✓</span> prometheus-k8s-0 and prometheus-k8s-1 on infra nodes · TSDB healthy</span></div>
+    <div class="spec-row"><span class="spec-label">Prometheus PVCs on vsan-standard (50 Gi each)</span><span class="spec-val"><span class="badge bg">✓</span> 100 Gi total vSAN storage · 15-day retention · 40 GB size limit</span></div>
+    <div class="spec-row"><span class="spec-label">Alertmanager cluster — 3-member quorum</span><span class="spec-val"><span class="badge bg">✓</span> alertmanager-main-0/1/2 on infra nodes · all members alive</span></div>
+    <div class="spec-row"><span class="spec-label">Alertmanager PVCs on vsan-standard (2 Gi)</span><span class="spec-val"><span class="badge bg">✓</span> Silences persist across pod restarts</span></div>
+    <div class="spec-row"><span class="spec-label">User Workload Monitoring enabled</span><span class="spec-val"><span class="badge bg">✓</span> prometheus-user-workload-0/1 Running · banking teams can create ServiceMonitors</span></div>
+    <div class="spec-row"><span class="spec-label">Platform alert rules loaded — 247 rules</span><span class="spec-val"><span class="badge bg">✓</span> promtool rules check: SUCCESS</span></div>
+    <div class="spec-row"><span class="spec-label">payment-service ServiceMonitor — up=1 for all pods</span><span class="spec-val"><span class="badge bg">✓</span> 3 pods being scraped · JVM metrics visible in Prometheus</span></div>
+    <div class="spec-row"><span class="spec-label">NovaCrestBank etcd alert rules applied</span><span class="spec-val"><span class="badge bg">✓</span> NCBEtcdMemberDown (warning) · NCBEtcdQuorumLost (critical) · NCBEtcdHighFsyncLatency (warning)</span></div>
+    <div class="spec-row"><span class="spec-label">NovaCrestBank node alert rules applied</span><span class="spec-val"><span class="badge bg">✓</span> Memory 85% warning · 93% critical · disk fill prediction · NodeNotReady critical</span></div>
+    <div class="spec-row"><span class="spec-label">Certificate expiry alert rules applied</span><span class="spec-val"><span class="badge bg">✓</span> 14-day warning · 3-day critical · Ready=False detection</span></div>
+    <div class="spec-row"><span class="spec-label">Alertmanager configured — PagerDuty P1 + email</span><span class="spec-val"><span class="badge bg">✓</span> severity=critical → PagerDuty · severity=warning → platform-email</span></div>
+    <div class="spec-row"><span class="spec-label">0 critical alerts firing on cluster</span><span class="spec-val"><span class="badge bg">✓</span> amtool alert query severity=critical returns empty</span></div>
+    <div class="spec-row"><span class="spec-label">Grafana deployed on infra nodes</span><span class="spec-val"><span class="badge bg">✓</span> ncb-grafana Running · Thanos Querier data source configured · AD authentication</span></div>
+    <div class="spec-row"><span class="spec-label">Thanos Querier provides unified query endpoint</span><span class="spec-val"><span class="badge bg">✓</span> Platform + user workload metrics accessible from single PromQL endpoint</span></div>
+  </div>
+
+  <h2>What OBS-02 adds on top of this foundation</h2>
+  <p>OBS-01 establishes the monitoring infrastructure. OBS-02 (Custom Application Metrics) adds the banking application layer: how the payment-service Java code exposes Micrometer metrics, how to write PromQL expressions for the four golden signals of banking APIs (latency, traffic, errors, saturation), and how to build Grafana dashboards for the weekly SLO review. The ServiceMonitor from Section 10 of this guide is the foundation OBS-02 builds on.</p>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

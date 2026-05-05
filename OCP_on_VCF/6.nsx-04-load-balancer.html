@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NSX-04 — NSX Load Balancer · NovaCrestBank</title>
+<style>
+  :root{
+    --bg:#f4f3ef;--bg2:#ffffff;--bg3:#ececea;
+    --text:#1a1917;--text2:#56544d;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --nsx:#6e2b8c;--nsx-bg:#f3edfb;
+    --t1:#0a6b3c;--t1-bg:#e8f5ee;
+    --lb:#b84000;--lb-bg:#fdf0e8;--lb-mid:#e8903a;
+    --ocp:#cc0000;--ocp-bg:#fff0f0;
+    --vcf:#1b5e8c;--vcf-bg:#e8f2fb;
+    --green:#0e6b45;--amber:#a87015;--red:#9e2828;
+    --pci:#7a3800;--pci-bg:#fff3e0;
+    --nist:#003366;--nist-bg:#e8eef8;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  .sidebar{position:fixed;top:0;left:0;width:275px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:48px;}
+  .sh{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .series{font-size:10px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--lb);margin-bottom:4px;}
+  .sh h1{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:3px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:10px 20px 4px;}
+  .ni{display:flex;align-items:flex-start;gap:9px;padding:7px 20px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .12s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--lb);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;transition:background .12s;}
+  .ni.active .nd{background:var(--lb);}
+
+  .main{margin-left:275px;padding:44px 56px 110px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--lb);margin-bottom:6px;}
+  .pt{font-size:26px;font-weight:700;color:var(--text);margin-bottom:7px;line-height:1.22;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:32px 0 11px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 20px;color:var(--text);}
+  li{margin-bottom:7px;font-size:14px;line-height:1.72;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--lb);}
+
+  .callout{border-left:3px solid var(--lb);background:var(--bg3);
+    padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.success{border-left-color:var(--green);}
+  .callout.pci{border-left-color:var(--pci);}
+  .callout.nist{border-left-color:var(--nist);}
+  .callout.nsx{border-left-color:var(--nsx);}
+  .callout.ocp{border-left-color:var(--ocp);}
+  .callout.why{border-left-color:#5a4000;}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.success .cl{color:var(--green);}
+  .callout.pci .cl{color:var(--pci);}
+  .callout.nist .cl{color:var(--nist);}
+  .callout.nsx .cl{color:var(--nsx);}
+  .callout.ocp .cl{color:var(--ocp);}
+  .callout.why .cl{color:#5a4000;}
+  .callout:not(.warn):not(.success):not(.pci):not(.nist):not(.nsx):not(.ocp):not(.why) .cl{color:var(--lb);}
+
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--nsx);border-radius:0 var(--r2) var(--r2) 0;
+    padding:14px 18px;margin:18px 0;}
+  .dl{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--nsx);margin-bottom:6px;}
+  .dq{font-size:14px;font-weight:600;margin-bottom:9px;color:var(--text);}
+  .da{font-size:13.5px;color:var(--text2);line-height:1.72;}
+  .da strong{color:var(--text);}
+
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bgr{background:#eeecea;color:#3c3c38;}
+  .reg{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+    border-radius:4px;font-size:11px;font-weight:700;margin:2px 2px;}
+  .reg.pci{background:var(--pci-bg);color:var(--pci);border:1px solid #e8c090;}
+  .reg.nist{background:var(--nist-bg);color:var(--nist);border:1px solid #a0b8d8;}
+
+  .spec-row{display:flex;gap:9px;padding:6px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:235px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  .progress-track{display:flex;gap:0;margin:20px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--lb);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ══ NSX GUI MOCKUP ══ */
+  .nsx-shell{background:#1a1a2e;border-radius:var(--r);overflow:hidden;
+    margin:20px 0;border:1px solid #2a2a4e;box-shadow:0 4px 24px rgba(0,0,0,.35);}
+  .nsx-topbar{background:#0f0f1e;padding:0;display:flex;align-items:stretch;
+    border-bottom:1px solid #2a2a4e;height:46px;}
+  .nsx-logo{padding:0 18px;display:flex;align-items:center;gap:10px;
+    border-right:1px solid #2a2a4e;}
+  .nsx-logo-badge{background:var(--nsx);color:#fff;font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:4px;}
+  .nsx-logo-text{font-size:12.5px;font-weight:600;color:#e8e0f0;white-space:nowrap;}
+  .nsx-tabs{display:flex;align-items:stretch;flex:1;}
+  .nsx-tab{padding:0 18px;display:flex;align-items:center;font-size:12.5px;
+    color:#9080b0;border-bottom:2px solid transparent;border-right:1px solid #2a2a4e;}
+  .nsx-tab.active{color:#e0d0f8;border-bottom-color:var(--lb);background:#1f1f38;}
+  .nsx-body{display:flex;min-height:320px;}
+  .nsx-leftnav{width:205px;flex-shrink:0;background:#141424;
+    border-right:1px solid #2a2a4e;padding:10px 0;}
+  .nsx-nav-sec{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:#5a5080;padding:8px 15px 3px;}
+  .nsx-nav-item{padding:7px 15px;font-size:12.5px;color:#9080b0;
+    display:flex;align-items:center;gap:8px;line-height:1.3;}
+  .nsx-nav-item.active{background:#2a1408;color:#e8903a;
+    border-left:2px solid var(--lb);padding-left:13px;}
+  .nsx-nav-item.sub{padding-left:26px;font-size:12px;}
+  .nsx-nav-item.sub.active{padding-left:24px;}
+  .nsx-content{flex:1;background:#1a1a2e;overflow:auto;}
+  .nsx-ch{padding:14px 22px 11px;border-bottom:1px solid #2a2a4e;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .nsx-ct{font-size:15px;font-weight:700;color:#e8e0f0;}
+  .nsx-cs{font-size:12px;color:#9080b0;margin-top:2px;}
+  .nsx-cb{padding:16px 22px;}
+  .nsx-form{background:#141424;border-radius:7px;padding:16px 20px;margin:12px 0;
+    border:1px solid #2a2a4e;}
+  .nsx-frow{display:flex;gap:14px;margin-bottom:13px;align-items:flex-start;flex-wrap:wrap;}
+  .nsx-fg{flex:1;min-width:160px;}
+  .nsx-lbl{font-size:11.5px;color:#9080b0;margin-bottom:4px;display:block;}
+  .nsx-req{color:#ff6060;font-size:10px;font-weight:700;}
+  .nsx-inp{width:100%;background:#1f1f38;border:1px solid #3a2a6a;border-radius:4px;
+    padding:7px 11px;font-size:13px;color:#e8e0f0;font-family:inherit;}
+  .nsx-inp.ok{border-color:var(--lb);background:#1e0a00;}
+  .nsx-sel{width:100%;background:#1f1f38;border:1px solid #3a2a6a;border-radius:4px;
+    padding:7px 11px;font-size:13px;color:#e8e0f0;}
+  .nsx-sel.ok{border-color:var(--lb);background:#1e0a00;}
+  .nsx-hint{font-size:11px;color:#7060a0;margin-top:3px;line-height:1.5;}
+  .nsx-div{border:none;border-top:1px solid #2a2a4e;margin:13px 0;}
+  .nsx-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.07em;color:#7060a0;margin-bottom:9px;}
+  .nsx-btn{display:inline-flex;align-items:center;padding:7px 17px;
+    border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+  .nsx-btn.p{background:var(--lb);color:#fff;}
+  .nsx-btn.s{background:#2a2a4e;color:#d0b0ff;border:1px solid #4a3a7a;}
+  .nsx-btn.sm{padding:5px 11px;font-size:12px;}
+  .nsx-footer{padding:12px 22px;border-top:1px solid #2a2a4e;
+    display:flex;justify-content:flex-end;gap:9px;}
+  .nsx-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0;}
+  .nsx-tbl th{background:#14142a;color:#9080b0;padding:7px 12px;text-align:left;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    border-bottom:1px solid #2a2a4e;font-weight:600;}
+  .nsx-tbl td{padding:8px 12px;border-bottom:0.5px solid #22223a;
+    color:#d0c8e8;vertical-align:middle;}
+  .nsx-tbl tr:last-child td{border-bottom:none;}
+  .st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;}
+  .st-dot{width:7px;height:7px;border-radius:50%;}
+  .st.ok .st-dot{background:#4ccd99;}.st.ok{color:#4ccd99;}
+  .st.dn .st-dot{background:#e05252;}.st.dn{color:#e05252;}
+  .st.wn .st-dot{background:#f1c40f;}.st.wn{color:#f1c40f;}
+
+  /* member list inside GUI */
+  .member-row{display:flex;align-items:center;gap:12px;padding:8px 12px;
+    background:#141424;border-radius:4px;border:1px solid #2a2a4e;margin-bottom:6px;}
+  .member-dot{width:8px;height:8px;border-radius:50%;background:#4ccd99;flex-shrink:0;}
+
+  .ann{display:flex;gap:10px;background:#0f1520;border-left:3px solid var(--amber);
+    padding:9px 14px;margin:8px 0;border-radius:0 5px 5px 0;
+    font-size:12.5px;color:#d0c8b0;line-height:1.55;}
+  .ann.ok{border-left-color:var(--green);}
+  .ann.info{border-left-color:var(--vcf);}
+  .ann.err{border-left-color:var(--red);}
+  .ai{flex-shrink:0;font-size:14px;margin-top:1px;}
+
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:26px;align-items:flex-start;}
+  .sn{flex-shrink:0;width:32px;height:32px;border-radius:50%;
+    background:var(--lb);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .sc{flex:1;}
+  .st2{font-weight:700;margin-bottom:5px;font-size:14.5px;}
+  .sp{font-size:12px;color:var(--lb);background:var(--lb-bg);
+    padding:3px 10px;border-radius:4px;display:inline-block;margin-bottom:8px;
+    font-family:monospace;}
+
+  /* LB architecture diagram */
+  .lb-arch{display:flex;flex-direction:column;align-items:center;gap:0;margin:18px 0;}
+  .lb-box{padding:11px 18px;border-radius:7px;text-align:center;
+    font-size:12.5px;font-weight:600;width:260px;}
+  .lb-box.vs{background:var(--lb-bg);border:2px solid var(--lb);color:var(--lb);}
+  .lb-box.pool{background:var(--vcf-bg);border:2px solid var(--vcf);color:var(--vcf);}
+  .lb-box.hm{background:var(--t1-bg);border:1.5px solid var(--t1);color:var(--t1);
+    font-size:11.5px;}
+  .lb-box.node{background:var(--bg3);border:1px solid var(--border2);
+    color:var(--text2);font-size:11.5px;width:180px;}
+  .lb-arrow{font-size:20px;color:var(--text3);line-height:1;padding:2px 0;}
+  .lb-members{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:6px 0;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="series">NovaCrestBank · NSX Configuration</div>
+    <h1>NSX-04 — NSX Load Balancer</h1>
+    <p>GUI only · Screen by screen · Every field explained</p>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Before you begin</div>
+    <div class="ni active" onclick="show('prereqs')"><div class="nd"></div>01 — Prerequisites and what this guide builds</div>
+    <div class="ni" onclick="show('lb-concepts')"><div class="nd"></div>02 — LB object hierarchy — four objects, one flow</div>
+    <div class="ni" onclick="show('keepalived-vs-nsx')"><div class="nd"></div>03 — NSX LB vs keepalived — what changes for OCP</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part A — Load Balancer service</div>
+    <div class="ni" onclick="show('lb-create')"><div class="nd"></div>04 — Create the Load Balancer service on NCB-T1-OCP</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part B — Health Monitors</div>
+    <div class="ni" onclick="show('hm-concept')"><div class="nd"></div>05 — What health monitors do — and why they matter</div>
+    <div class="ni" onclick="show('hm-api')"><div class="nd"></div>06 — Create NCB-HM-OCP-API (TCP port 6443)</div>
+    <div class="ni" onclick="show('hm-ingress')"><div class="nd"></div>07 — Create NCB-HM-OCP-Ingress (TCP port 443)</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part C — Server Pools</div>
+    <div class="ni" onclick="show('pool-concept')"><div class="nd"></div>08 — What a server pool is and how it distributes traffic</div>
+    <div class="ni" onclick="show('pool-api')"><div class="nd"></div>09 — Create NCB-Pool-OCP-API (3 master nodes)</div>
+    <div class="ni" onclick="show('pool-ingress')"><div class="nd"></div>10 — Create NCB-Pool-OCP-Ingress (3 infra nodes)</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part D — Virtual Servers (VIPs)</div>
+    <div class="ni" onclick="show('vs-concept')"><div class="nd"></div>11 — What a Virtual Server is — the VIP</div>
+    <div class="ni" onclick="show('vs-api')"><div class="nd"></div>12 — Create NCB-VS-OCP-API (10.50.0.200:6443)</div>
+    <div class="ni" onclick="show('vs-ingress-https')"><div class="nd"></div>13 — Create NCB-VS-OCP-HTTPS (10.50.0.201:443)</div>
+    <div class="ni" onclick="show('vs-ingress-http')"><div class="nd"></div>14 — Create NCB-VS-OCP-HTTP (10.50.0.201:80)</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Verify and complete</div>
+    <div class="ni" onclick="show('verify-lb')"><div class="nd"></div>15 — Verify the Load Balancer and all Virtual Servers</div>
+    <div class="ni" onclick="show('verify-bgp')"><div class="nd"></div>16 — Verify VIP routes appear in BGP table</div>
+    <div class="ni" onclick="show('verify-dns')"><div class="nd"></div>17 — Verify DNS resolves to the correct VIPs</div>
+    <div class="ni" onclick="show('final')"><div class="nd"></div>18 — Final checklist and what NSX-05 builds next</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══ 01 PREREQS ═══ -->
+<div class="page active" id="page-prereqs">
+  <div class="ey">NSX-04 · Section 01</div>
+  <div class="pt">Prerequisites and what this guide builds</div>
+  <div class="ps">NSX-03 built the tenant networks. NSX-04 builds the load balancing layer — the two VIPs that OCP installation requires before the first node boots.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-01<br/>TZ+HTN</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-02<br/>Edge+T0</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-03<br/>T1+Seg</div>
+    <div class="pt-step active"><span class="pt-n">→</span>NSX-04<br/>LB</div>
+    <div class="pt-step"><span class="pt-n">5</span>NSX-05<br/>DFW</div>
+    <div class="pt-step"><span class="pt-n">6</span>WIN<br/>DNS</div>
+  </div>
+
+  <h2>Prerequisites</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NSX-03 complete</span><span class="spec-val">NCB-T1-Infra and NCB-T1-OCP both Up · seg-infra-services and seg-ocp-nodes exist</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-T1-OCP route advertisement</span><span class="spec-val">"All LB VIP IPs" already enabled (Section 08 of NSX-03) — VIP routes will propagate to BGP automatically</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Edge-Cluster</span><span class="spec-val">Both Edge Nodes Up · Large form factor confirmed — NSX LB requires Large Edge Nodes</span></div>
+    <div class="spec-row"><span class="spec-label">OCP node IPs allocated</span><span class="spec-val">master-0/1/2: 10.50.0.11–.13 · infra-0/1/2: 10.50.0.21–.23 · API VIP: 10.50.0.200 · Ingress VIP: 10.50.0.201</span></div>
+    <div class="spec-row"><span class="spec-label">DNS records exist</span><span class="spec-val">api.ocp.novacrestbank.local → 10.50.0.200 · *.apps.ocp.novacrestbank.local → 10.50.0.201</span></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">VIPs must exist before OCP installation begins — not after</div>
+    The OCP IPI installer contacts <code>api.ocp.novacrestbank.local</code> (10.50.0.200:6443) immediately after the first master node boots, to begin bootstrapping the cluster. If the VIP does not exist or is not routable at that moment, the installation fails. Configure the NSX Load Balancer and both VIPs completely in this guide — before the OCP installer is run in OCP-VCF-01.
+  </div>
+
+  <h2>What this guide builds</h2>
+  <ol>
+    <li><strong>Load Balancer service</strong> — NCB-OCP-LB, attached to NCB-T1-OCP on NCB-Edge-Cluster. The container object for all pools and virtual servers.</li>
+    <li><strong>Health Monitors</strong> — NCB-HM-OCP-API (TCP:6443) and NCB-HM-OCP-Ingress (TCP:443). Active probes that detect when a backend node fails.</li>
+    <li><strong>Server Pools</strong> — NCB-Pool-OCP-API (3 master nodes on :6443) and NCB-Pool-OCP-Ingress (3 infra nodes on :443). The backend groups that receive load-balanced traffic.</li>
+    <li><strong>Virtual Servers</strong> — NCB-VS-OCP-API (:6443), NCB-VS-OCP-HTTPS (:443), NCB-VS-OCP-HTTP (:80). The VIPs that DNS resolves to and OCP clients connect to.</li>
+  </ol>
+</div>
+
+<!-- ═══ 02 LB CONCEPTS ═══ -->
+<div class="page" id="page-lb-concepts">
+  <div class="ey">NSX-04 · Section 02</div>
+  <div class="pt">LB object hierarchy — four objects, one traffic flow</div>
+  <div class="ps">Understanding how the four NSX LB objects relate before creating any of them — each object references the one below it</div>
+
+  <div class="lb-arch">
+    <div class="lb-box vs">Virtual Server (VIP)<br/><span style="font-size:10px;font-weight:400;">10.50.0.200:6443 — what clients connect to</span></div>
+    <div class="lb-arrow">↓ references</div>
+    <div class="lb-box pool">Server Pool<br/><span style="font-size:10px;font-weight:400;">3 backend members + load balancing algorithm</span></div>
+    <div class="lb-arrow">↓ references</div>
+    <div class="lb-box hm">Health Monitor<br/><span style="font-size:10px;font-weight:400;">TCP probe every 5s — remove failed members automatically</span></div>
+    <div class="lb-arrow">↓ members</div>
+    <div class="lb-members">
+      <div class="lb-box node">master-0<br/>10.50.0.11:6443</div>
+      <div class="lb-box node">master-1<br/>10.50.0.12:6443</div>
+      <div class="lb-box node">master-2<br/>10.50.0.13:6443</div>
+    </div>
+  </div>
+
+  <p>Reading bottom to top: the Health Monitor probes each pool member. The Server Pool groups the members and distributes traffic using Round Robin. The Virtual Server presents the VIP (10.50.0.200:6443) and sends incoming connections to the pool. All of this runs on the Load Balancer service, which is attached to NCB-T1-OCP.</p>
+
+  <h2>Creation order — build bottom to top</h2>
+  <table>
+    <thead><tr><th>Order</th><th>Object</th><th>Why this order</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1st</strong></td><td>Load Balancer service</td><td>Container — must exist before pools and virtual servers can reference it</td></tr>
+      <tr><td><strong>2nd</strong></td><td>Health Monitors</td><td>Pools reference health monitors — monitors must exist first</td></tr>
+      <tr><td><strong>3rd</strong></td><td>Server Pools</td><td>Virtual Servers reference pools — pools must exist first</td></tr>
+      <tr><td><strong>4th</strong></td><td>Virtual Servers</td><td>Created last — they reference pools which reference monitors</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="cl">Navigation for all Load Balancer work</div>
+    All four object types are under: <strong>Networking → Load Balancing</strong>. The left panel shows sub-items: Load Balancers, Server Pools, Virtual Servers, Health Monitors. Create in the order shown above.
+  </div>
+</div>
+
+<!-- ═══ 03 KEEPALIVED VS NSX ═══ -->
+<div class="page" id="page-keepalived-vs-nsx">
+  <div class="ey">NSX-04 · Section 03</div>
+  <div class="pt">NSX LB vs keepalived — what changes for OpenShift</div>
+  <div class="ps">The candidate built OCP with keepalived in the previous vSphere series — understanding what the NSX LB replaces and what stays the same</div>
+
+  <div class="decision">
+    <div class="dl">Exactly what keepalived did — and why NSX LB does it better</div>
+    <div class="dq">In the previous OCP deployment, keepalived ran inside the OCP master nodes and used VRRP to claim the API VIP. What exactly did it do and why does the NSX LB replace it?</div>
+    <div class="da"><strong>keepalived broadcast VRRP announcements from the master nodes to claim ownership of the VIP IP address. Whichever master was the VRRP master held the VIP. If that master failed, a new VRRP election occurred among surviving masters and one of them claimed the VIP. This worked but had three limitations:</strong><br/><br/>
+    1. <strong>The VIP had to be on the same subnet as the masters.</strong> keepalived uses gratuitous ARP to claim the VIP — ARP is a Layer-2 protocol and only works within the same broadcast domain. The API VIP had to be in 10.50.0.0/24 for the same reason the masters were in 10.50.0.0/24.<br/><br/>
+    2. <strong>Failover was slow — 3–10 seconds.</strong> VRRP uses advertisement intervals and dead timers. During that window, new connections to the API VIP failed. Existing connections dropped.<br/><br/>
+    3. <strong>Traffic was not load-balanced.</strong> One master held the VIP and received all API traffic. The other two masters received no direct API traffic except when the primary master failed.<br/><br/>
+    <strong>The NSX LB resolves all three:</strong><br/>
+    1. The VIP (10.50.0.200) does not need to be on the same subnet as the masters — it is a floating IP managed by NSX on the Edge cluster. It can be any IP in any NSX-routable range.<br/>
+    2. Failover is sub-second — NSX LB detects a dead member within 2 consecutive failed probes (10 seconds with 5s interval) and stops sending traffic to it immediately. The health check window is tunable.<br/>
+    3. Traffic is genuinely load-balanced — Round Robin across all healthy master nodes simultaneously.<br/><br/>
+    <span class="reg pci">PCI-DSS v4.0 Req 6.4</span> — Automated technical solutions detect failures and route traffic away from failed components. The NSX LB satisfies this with active health monitoring and automated pool member removal.</div>
+  </div>
+
+  <h2>What changes in install-config.yaml</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;background:var(--bg3);">
+    <div style="color:var(--text2);margin-bottom:6px;"># install-config.yaml — API and Ingress VIP values</div>
+    <div style="color:var(--text2);margin-bottom:4px;"># These values are IDENTICAL whether using keepalived or NSX LB</div>
+    <div style="color:var(--lb);">platform:</div>
+    <div style="margin-left:16px;color:var(--lb);">vsphere:</div>
+    <div style="margin-left:32px;color:var(--lb);">apiVIPs:</div>
+    <div style="margin-left:48px;color:var(--lb);">- 10.50.0.200   <span style="color:var(--text2);"># NSX LB Virtual Server NCB-VS-OCP-API listens here</span></div>
+    <div style="margin-left:32px;color:var(--lb);">ingressVIPs:</div>
+    <div style="margin-left:48px;color:var(--lb);">- 10.50.0.201   <span style="color:var(--text2);"># NSX LB Virtual Servers NCB-VS-OCP-HTTPS and NCB-VS-OCP-HTTP</span></div>
+    <div style="margin-top:8px;color:var(--text2);"># OCP does not know or care whether the VIP is served by keepalived or NSX LB</div>
+    <div style="color:var(--text2);"># The installer just needs the VIP to be reachable at the configured address</div>
+  </div>
+</div>
+
+<!-- ═══ 04 LB CREATE ═══ -->
+<div class="page" id="page-lb-create">
+  <div class="ey">NSX-04 · Section 04</div>
+  <div class="pt">Create the Load Balancer service — NCB-OCP-LB</div>
+  <div class="ps">The container object that all pools and virtual servers belong to — attached to NCB-T1-OCP on NCB-Edge-Cluster</div>
+
+  <div class="decision">
+    <div class="dl">Why the Load Balancer attaches to NCB-T1-OCP — not directly to the Edge Cluster</div>
+    <div class="dq">The Load Balancer runs on the Edge Nodes in NCB-Edge-Cluster. Why is it attached to NCB-T1-OCP instead of directly to the Edge Cluster?</div>
+    <div class="da"><strong>Because the Load Balancer VIPs are addresses on the OCP network domain — the VIPs (10.50.0.200 and 10.50.0.201) are within the 10.50.0.0/24 segment that NCB-T1-OCP owns. Attaching the LB to NCB-T1-OCP places the VIPs in the correct routing context — when a client connects to 10.50.0.200, the T1 OCP gateway handles the forwarding to the Edge Nodes where the LB Virtual Server processes it.</strong><br/><br/>
+    Additionally, "All LB VIP IPs" route advertisement was enabled on NCB-T1-OCP in NSX-03. Attaching the LB to NCB-T1-OCP is what causes the VIP /32 host routes to be advertised via that T1. If the LB were attached to NCB-T1-Infra instead, the VIP routes would be advertised via the infrastructure T1 — wrong routing domain, and the Infra T1 has no route advertisement for LB VIPs enabled.
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Load Balancing → Load Balancers → ADD LOAD BALANCER</div>
+        <div class="sp">Networking → Load Balancing → Load Balancers</div>
+        <p style="font-size:13.5px;">Click the <strong>Networking</strong> tab. In the left panel, scroll down to find <strong>Load Balancing</strong>. Click to expand it. Click <strong>Load Balancers</strong>. The list is empty. Click <strong>+ ADD LOAD BALANCER</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Add Load Balancer form</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Load Balancer — NCB-OCP-LB</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-OCP-LB" readonly/>
+                    <div class="nsx-hint">The OCP suffix identifies this as the OpenShift load balancer. Clear naming is important when multiple load balancers exist in the same NSX environment.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="NSX LB for OpenShift — API VIP 10.50.0.200 and Ingress VIP 10.50.0.201" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:280px;">
+                    <span class="nsx-lbl">Load Balancer Size <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option>Small</option>
+                      <option selected>Medium ← select this</option>
+                      <option>Large</option>
+                    </select>
+                    <div class="nsx-hint">Select <strong>Medium</strong>. LB size controls the number of virtual servers and connection capacity, not the Edge Node VM size (that is always Large). Medium supports up to 100 virtual servers and 100,000 concurrent connections — more than sufficient for NovaCrestBank's OCP cluster with 3 virtual servers.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Attachment — Tier-1 Gateway <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-T1-OCP ← select this</option>
+                      <option>NCB-T1-Infra</option>
+                    </select>
+                    <div class="nsx-hint">Select <strong>NCB-T1-OCP</strong>. This attaches the LB to the OCP tenant gateway. The VIP routes will be advertised via NCB-T1-OCP's route advertisement policy (which has "All LB VIP IPs" enabled). Do not select NCB-T1-Infra.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Admin State</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>ENABLED</option>
+                    </select>
+                    <div class="nsx-hint">Leave Enabled — DISABLED would turn off the entire load balancer.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Error Log Level</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>INFO</option>
+                    </select>
+                    <div class="nsx-hint">INFO is appropriate for production. Set to DEBUG only during troubleshooting — DEBUG generates high log volume.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: NCB-OCP-LB appears in the Load Balancers list, attached to NCB-T1-OCP, size Medium. Status shows <span class="badge bg">Enabled</span>. Virtual Servers, Server Pools, and Pool Members all show 0 — to be added next.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 05 HM CONCEPT ═══ -->
+<div class="page" id="page-hm-concept">
+  <div class="ey">NSX-04 · Section 05</div>
+  <div class="pt">What health monitors do — and why they matter more than the load balancing algorithm</div>
+  <div class="ps">The health monitor is the automated failure detection mechanism — without it, the LB continues sending traffic to failed OCP nodes</div>
+
+  <div class="decision">
+    <div class="dl">What happens without a health monitor — why it is not optional</div>
+    <div class="dq">If no health monitor is configured, the Server Pool still distributes traffic via Round Robin. What is the consequence when a master node fails?</div>
+    <div class="da"><strong>Without a health monitor, the Server Pool has no mechanism to detect that a pool member has failed. It continues sending new connections to that member according to the load balancing algorithm — Round Robin would send every third request to the dead master node. The clients (kubectl, the OCP web console, the installer) receive TCP connection timeouts for those requests. The LB has no visibility into backend health.</strong><br/><br/>
+    With a health monitor: the NSX LB probes each pool member every 5 seconds on the configured port (TCP 6443 for the API pool). If a probe fails twice consecutively (10 seconds total), the member is marked DOWN and removed from the active rotation. All subsequent traffic goes to the two surviving masters. When the failed master recovers and two consecutive probes succeed, it is marked UP and added back to the rotation.<br/><br/>
+    For NovaCrestBank's banking environment: the OCP API handles authentication for all banking applications and cluster operations. A dead master node silently receiving API traffic causes 33% of API requests to timeout — banking operations fail intermittently, which is worse than a clean failure. Active health monitoring eliminates this class of failure.<br/><br/>
+    <span class="reg pci">PCI-DSS v4.0 Req 6.4</span> — Automated technical solutions detect when data has been tampered with, is absent, or when other anomalies affecting security of the application are detected. Active health monitoring is the mechanism that detects absent backend services.
+    </div>
+  </div>
+
+  <h2>NovaCrestBank health monitor parameters</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Protocol</span><span class="spec-val">TCP — the simplest and most reliable probe for OCP. An HTTP probe would also work but TCP is sufficient since we only need to verify port availability, not HTTP response content.</span></div>
+    <div class="spec-row"><span class="spec-label">Interval</span><span class="spec-val">5 seconds — probe sent every 5 seconds to each pool member</span></div>
+    <div class="spec-row"><span class="spec-label">Timeout</span><span class="spec-val">5 seconds — if the TCP handshake does not complete within 5 seconds, the probe is counted as failed</span></div>
+    <div class="spec-row"><span class="spec-label">Rise count (mark UP)</span><span class="spec-val">3 — after 3 consecutive successful probes, a DOWN member is marked UP and re-enters the rotation</span></div>
+    <div class="spec-row"><span class="spec-label">Fall count (mark DOWN)</span><span class="spec-val">2 — after 2 consecutive failed probes, a member is marked DOWN and removed from rotation (10 seconds to detect failure)</span></div>
+  </div>
+</div>
+
+<!-- ═══ 06 HM API ═══ -->
+<div class="page" id="page-hm-api">
+  <div class="ey">NSX-04 · Section 06</div>
+  <div class="pt">Create NCB-HM-OCP-API — health monitor for the API pool</div>
+  <div class="ps">TCP health check on port 6443 — the OCP Kubernetes API server port</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Load Balancing → Health Monitors → ADD HEALTH MONITOR</div>
+        <div class="sp">Networking → Load Balancing → Health Monitors</div>
+        <p style="font-size:13.5px;">In the left panel under Load Balancing, click <strong>Health Monitors</strong>. The list is empty. Click <strong>+ ADD HEALTH MONITOR</strong>. A slide-in form opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Health Monitor form for the API monitor</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Health Monitor — NCB-HM-OCP-API</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-HM-OCP-API" readonly/>
+                    <div class="nsx-hint">The HM prefix indicates Health Monitor. OCP-API identifies its purpose. The port (6443) is implicit in the configuration below.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="TCP health check on port 6443 — OCP Kubernetes API server" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:200px;">
+                    <span class="nsx-lbl">Type <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>TCP ← select this</option>
+                      <option>HTTP</option>
+                      <option>HTTPS</option>
+                      <option>ICMP</option>
+                    </select>
+                    <div class="nsx-hint">Select <strong>TCP</strong>. A TCP health check attempts a full TCP handshake (SYN → SYN-ACK → ACK) on the configured port. If the handshake completes, the member is UP. This is the most reliable check for the OCP API — it verifies the port is listening without depending on a specific HTTP response code.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Monitor Port <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="6443" readonly/>
+                    <div class="nsx-hint">Port 6443 — the Kubernetes API server port on all OCP master nodes. This is the port that kubectl and the OCP web console connect to.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Interval (sec) <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="5" readonly/>
+                    <div class="nsx-hint">Probe every 5 seconds.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Timeout (sec) <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="5" readonly/>
+                    <div class="nsx-hint">If no TCP SYN-ACK received within 5 seconds, count as failed probe.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Rise Count <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="3" readonly/>
+                    <div class="nsx-hint">3 consecutive successes → mark member UP.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Fall Count <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="2" readonly/>
+                    <div class="nsx-hint">2 consecutive failures → mark member DOWN. Detection in 10 seconds.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: NCB-HM-OCP-API appears in the Health Monitors list. Type: TCP, Port: 6443, Interval: 5s, Fall: 2, Rise: 3.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 07 HM INGRESS ═══ -->
+<div class="page" id="page-hm-ingress">
+  <div class="ey">NSX-04 · Section 07</div>
+  <div class="pt">Create NCB-HM-OCP-Ingress — health monitor for the Ingress pool</div>
+  <div class="ps">TCP health check on port 443 — used for both the HTTPS and HTTP virtual servers, since the infra nodes serve both on the same hosts</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Still on Health Monitors → click ADD HEALTH MONITOR again</div>
+        <p style="font-size:13.5px;">NCB-HM-OCP-API is now in the list. Click <strong>+ ADD HEALTH MONITOR</strong> for the second monitor.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Ingress health monitor — only one value differs from the API monitor</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Health Monitor — NCB-HM-OCP-Ingress</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-HM-OCP-Ingress" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="TCP health check on port 443 — OCP Ingress Router on infra nodes" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:200px;">
+                    <span class="nsx-lbl">Type <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>TCP</option>
+                    </select>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Monitor Port <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="443" readonly/>
+                    <div class="nsx-hint">Port 443 — the OCP Ingress Router (HAProxy) listens on port 443 for HTTPS traffic on infra nodes. One monitor covers both HTTPS (443) and HTTP (80) pools because the same infra nodes host both. If port 443 is responding, port 80 is responding too.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Interval</span>
+                    <input class="nsx-inp ok" value="5" readonly/>
+                  </div>
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Timeout</span>
+                    <input class="nsx-inp ok" value="5" readonly/>
+                  </div>
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Rise Count</span>
+                    <input class="nsx-inp ok" value="3" readonly/>
+                  </div>
+                  <div class="nsx-fg" style="max-width:150px;">
+                    <span class="nsx-lbl">Fall Count</span>
+                    <input class="nsx-inp ok" value="2" readonly/>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>Both health monitors created: NCB-HM-OCP-API (TCP:6443) and NCB-HM-OCP-Ingress (TCP:443). Both will show status <span class="badge ba">Not Connected</span> until a Server Pool references them — that is expected.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 08 POOL CONCEPT ═══ -->
+<div class="page" id="page-pool-concept">
+  <div class="ey">NSX-04 · Section 08</div>
+  <div class="pt">What a server pool is and how it distributes traffic</div>
+  <div class="ps">The pool is the group of backend servers — understanding its key settings before creating the OCP pools</div>
+
+  <table>
+    <thead><tr><th>Pool setting</th><th>What it controls</th><th>NovaCrestBank choice</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Algorithm</strong></td>
+        <td>How incoming connections are distributed across pool members. Round Robin sends each new connection to the next member in sequence. Least Connection sends to the member with fewest active connections. IP Hash sends a given client IP always to the same member.</td>
+        <td><strong>Round Robin</strong> — appropriate for OCP API (stateless from the LB perspective, TLS sessions handle stickiness) and Ingress (OCP Router handles session affinity per Route object).</td>
+      </tr>
+      <tr>
+        <td><strong>Members</strong></td>
+        <td>The backend server IPs and ports. Each member entry is: IP address + port + weight. Weight controls the relative share of traffic — equal weight = equal distribution.</td>
+        <td>API pool: master-0/1/2 at 10.50.0.11–.13:6443. Ingress pool: infra-0/1/2 at 10.50.0.21–.23:443.</td>
+      </tr>
+      <tr>
+        <td><strong>Health Monitor</strong></td>
+        <td>Which health monitor to use for this pool. The monitor probes each member on its configured port.</td>
+        <td>API pool → NCB-HM-OCP-API. Ingress pool → NCB-HM-OCP-Ingress.</td>
+      </tr>
+      <tr>
+        <td><strong>SNAT mode</strong></td>
+        <td>Whether the LB replaces the client source IP with an LB IP (SNAT) or passes the original client IP through (Transparent). For OCP API, Transparent is preferred so master nodes see the actual client IP in their audit logs.</td>
+        <td><strong>Transparent</strong> for both pools — OCP audit logs preserve original client IP addresses. <span class="reg pci">PCI Req 10.2.1</span> — audit logs capture all access with the originating IP.</td>
+      </tr>
+      <tr>
+        <td><strong>TCP multiplexing</strong></td>
+        <td>Whether the LB reuses TCP connections to backends (multiplexing) or creates a new TCP connection per client connection (passthrough). For OCP API with TLS, passthrough is required — TLS handshake must terminate at the master node for mutual TLS to work.</td>
+        <td><strong>Disabled</strong> — OCP API uses mutual TLS. TCP passthrough preserves the full TLS connection end-to-end.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ 09 POOL API ═══ -->
+<div class="page" id="page-pool-api">
+  <div class="ey">NSX-04 · Section 09</div>
+  <div class="pt">Create NCB-Pool-OCP-API — the three master nodes on port 6443</div>
+  <div class="ps">The backend pool that receives API traffic — the three OCP master nodes</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Load Balancing → Server Pools → ADD SERVER POOL</div>
+        <div class="sp">Networking → Load Balancing → Server Pools</div>
+        <p style="font-size:13.5px;">In the left panel under Load Balancing, click <strong>Server Pools</strong>. The list is empty. Click <strong>+ ADD SERVER POOL</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Server Pool form — top section</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Server Pool — NCB-Pool-OCP-API</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-Pool-OCP-API" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="OCP master nodes — API server port 6443 — Round Robin" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Algorithm <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Round Robin ← select this</option>
+                      <option>Least Connection</option>
+                      <option>IP Hash</option>
+                    </select>
+                    <div class="nsx-hint">Round Robin — distributes each new connection to the next master node in sequence. All three masters receive equal API traffic. OCP handles session continuity above the TCP layer.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Active Monitor <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-HM-OCP-API ← select this</option>
+                    </select>
+                    <div class="nsx-hint">The health monitor created in Section 06. TCP probe on port 6443 every 5 seconds.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">SNAT Mode</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Transparent ← select this</option>
+                      <option>SNAT IP Pool</option>
+                      <option>LB IP</option>
+                    </select>
+                    <div class="nsx-hint"><strong>Transparent</strong> — the original client IP is preserved when forwarding to the master nodes. OCP API audit logs record the actual source IPs of all kubectl and API calls. <span class="reg pci">PCI Req 10.2.1</span></div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">TCP Multiplexing</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Disabled ← select this</option>
+                      <option>Enabled</option>
+                    </select>
+                    <div class="nsx-hint">Disabled — TCP passthrough preserves the TLS connection end-to-end. OCP API uses mutual TLS — the TLS handshake must reach the master node, not terminate at the LB.</div>
+                  </div>
+                </div>
+
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Pool Members — click + ADD MEMBER for each OCP master node</div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div class="member-row">
+                    <div class="member-dot"></div>
+                    <div style="flex:1;">
+                      <div style="font-size:13px;color:#e0d0f8;font-weight:600;">master-0</div>
+                      <div style="font-size:11.5px;color:#9080b0;font-family:monospace;">IP: 10.50.0.11 · Port: 6443 · Weight: 1 · Admin State: ENABLED</div>
+                    </div>
+                  </div>
+                  <div class="member-row">
+                    <div class="member-dot"></div>
+                    <div style="flex:1;">
+                      <div style="font-size:13px;color:#e0d0f8;font-weight:600;">master-1</div>
+                      <div style="font-size:11.5px;color:#9080b0;font-family:monospace;">IP: 10.50.0.12 · Port: 6443 · Weight: 1 · Admin State: ENABLED</div>
+                    </div>
+                  </div>
+                  <div class="member-row">
+                    <div class="member-dot"></div>
+                    <div style="flex:1;">
+                      <div style="font-size:13px;color:#e0d0f8;font-weight:600;">master-2</div>
+                      <div style="font-size:11.5px;color:#9080b0;font-family:monospace;">IP: 10.50.0.13 · Port: 6443 · Weight: 1 · Admin State: ENABLED</div>
+                    </div>
+                  </div>
+                  <div style="font-size:11px;color:#7060a0;margin-top:8px;">Click + ADD MEMBER three times. For each: Name (master-0/1/2), IP Address (10.50.0.11/12/13), Port (6443), Weight (1), Admin State (ENABLED).</div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: NCB-Pool-OCP-API appears with 3 members. Health monitor: NCB-HM-OCP-API. Members will show status <span class="badge ba">Unknown</span> until the Virtual Server references this pool — the health checks begin only when the LB is active.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 10 POOL INGRESS ═══ -->
+<div class="page" id="page-pool-ingress">
+  <div class="ey">NSX-04 · Section 10</div>
+  <div class="pt">Create NCB-Pool-OCP-Ingress — the three infra nodes on port 443</div>
+  <div class="ps">The same process for the Ingress pool — infra nodes instead of masters, port 443 instead of 6443</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Still on Server Pools → click ADD SERVER POOL again</div>
+        <p style="font-size:13.5px;">NCB-Pool-OCP-API is now in the list. Click <strong>+ ADD SERVER POOL</strong> for the Ingress pool.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the Ingress pool — differences from the API pool are highlighted</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Server Pool — NCB-Pool-OCP-Ingress</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-Pool-OCP-Ingress" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="OCP infra nodes — Ingress Router ports 443/80 — Round Robin" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Algorithm</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Round Robin</option>
+                    </select>
+                  </div>
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Active Monitor</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-HM-OCP-Ingress ← different from API pool</option>
+                    </select>
+                    <div class="nsx-hint" style="color:#c8a030;">⚠ Select <strong>NCB-HM-OCP-Ingress</strong> — not NCB-HM-OCP-API. The Ingress monitor probes port 443.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">SNAT Mode</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Transparent</option>
+                    </select>
+                    <div class="nsx-hint">Same as API pool — preserve original client IP for OCP Router access logs. <span class="reg pci">PCI Req 10.2.1</span></div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">TCP Multiplexing</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Disabled</option>
+                    </select>
+                    <div class="nsx-hint">OCP Ingress also uses TLS — passthrough to the infra node HAProxy which terminates TLS per Route.</div>
+                  </div>
+                </div>
+
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Pool Members — OCP infrastructure nodes</div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div class="member-row">
+                    <div class="member-dot"></div>
+                    <div style="flex:1;">
+                      <div style="font-size:13px;color:#e0d0f8;font-weight:600;">infra-0</div>
+                      <div style="font-size:11.5px;color:#9080b0;font-family:monospace;">IP: 10.50.0.21 · Port: 443 · Weight: 1 · Admin State: ENABLED</div>
+                    </div>
+                  </div>
+                  <div class="member-row">
+                    <div class="member-dot"></div>
+                    <div style="flex:1;">
+                      <div style="font-size:13px;color:#e0d0f8;font-weight:600;">infra-1</div>
+                      <div style="font-size:11.5px;color:#9080b0;font-family:monospace;">IP: 10.50.0.22 · Port: 443 · Weight: 1 · Admin State: ENABLED</div>
+                    </div>
+                  </div>
+                  <div class="member-row">
+                    <div class="member-dot"></div>
+                    <div style="flex:1;">
+                      <div style="font-size:13px;color:#e0d0f8;font-weight:600;">infra-2</div>
+                      <div style="font-size:11.5px;color:#9080b0;font-family:monospace;">IP: 10.50.0.23 · Port: 443 · Weight: 1 · Admin State: ENABLED</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>Both server pools created: NCB-Pool-OCP-API (3 masters, port 6443, NCB-HM-OCP-API) and NCB-Pool-OCP-Ingress (3 infra nodes, port 443, NCB-HM-OCP-Ingress). Proceed to create the Virtual Servers.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 11 VS CONCEPT ═══ -->
+<div class="page" id="page-vs-concept">
+  <div class="ey">NSX-04 · Section 11</div>
+  <div class="pt">What a Virtual Server is — the VIP that clients connect to</div>
+  <div class="ps">The Virtual Server is the public face of the load balancer — the IP address and port that DNS resolves to</div>
+
+  <div class="decision">
+    <div class="dl">Why three Virtual Servers for two VIP addresses</div>
+    <div class="dq">NovaCrestBank has two VIPs: 10.50.0.200 (API) and 10.50.0.201 (Ingress). Why are three Virtual Servers needed?</div>
+    <div class="da"><strong>Because the Ingress VIP serves two different ports (443 for HTTPS and 80 for HTTP) that need separate Virtual Server configurations. NSX Load Balancer creates one Virtual Server per IP+port combination. Therefore:</strong><br/><br/>
+    NCB-VS-OCP-API: 10.50.0.200 port 6443 → NCB-Pool-OCP-API (masters)<br/>
+    NCB-VS-OCP-HTTPS: 10.50.0.201 port 443 → NCB-Pool-OCP-Ingress (infra nodes)<br/>
+    NCB-VS-OCP-HTTP: 10.50.0.201 port 80 → NCB-Pool-OCP-Ingress (same infra nodes)<br/><br/>
+    Both HTTPS and HTTP Virtual Servers use the same backend pool (NCB-Pool-OCP-Ingress) because the same infra nodes serve both. The OCP Router (HAProxy) on the infra nodes handles both ports. Separating them into two Virtual Servers allows port 80 traffic to be forwarded independently — the OCP Router typically redirects HTTP (port 80) to HTTPS (port 443), but the redirect happens at the application layer, not the LB layer.
+    </div>
+  </div>
+
+  <h2>Virtual Server key fields</h2>
+  <table>
+    <thead><tr><th>Field</th><th>What it controls</th></tr></thead>
+    <tbody>
+      <tr><td><strong>VIP Address</strong></td><td>The IP the Virtual Server listens on — the IP that DNS resolves to. Must be a free IP not assigned to any VM or other device.</td></tr>
+      <tr><td><strong>Port</strong></td><td>The TCP port the Virtual Server listens on. Incoming connections on this IP:Port are forwarded to the pool.</td></tr>
+      <tr><td><strong>Load Balancer</strong></td><td>Which LB service this Virtual Server belongs to — NCB-OCP-LB.</td></tr>
+      <tr><td><strong>Server Pool</strong></td><td>Which pool receives the forwarded traffic. Each Virtual Server forwards to exactly one pool.</td></tr>
+      <tr><td><strong>Protocol</strong></td><td>TCP for all OCP VIPs — Layer 4 passthrough. The LB does not inspect or modify the payload. HTTP/HTTPS protocols would enable Layer 7 features but require TLS termination at the LB, which would break OCP's end-to-end TLS.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ 12 VS API ═══ -->
+<div class="page" id="page-vs-api">
+  <div class="ey">NSX-04 · Section 12</div>
+  <div class="pt">Create NCB-VS-OCP-API — the OCP API VIP on 10.50.0.200:6443</div>
+  <div class="ps">The Virtual Server that api.ocp.novacrestbank.local resolves to — the most critical VIP in the OCP environment</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Load Balancing → Virtual Servers → ADD VIRTUAL SERVER</div>
+        <div class="sp">Networking → Load Balancing → Virtual Servers</div>
+        <p style="font-size:13.5px;">In the left panel under Load Balancing, click <strong>Virtual Servers</strong>. The list is empty. Click <strong>+ ADD VIRTUAL SERVER</strong>. A form appears — select <strong>L4 TCP</strong> as the type when prompted (Layer 4 TCP passthrough — no TLS termination at the LB).</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the API Virtual Server form</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Virtual Server — NCB-VS-OCP-API</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-VS-OCP-API" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="OCP API VIP — api.ocp.novacrestbank.local → 10.50.0.200:6443" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Application Profile</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>nsx-default-lb-fast-tcp-profile ← leave default</option>
+                    </select>
+                    <div class="nsx-hint">The default TCP profile is appropriate. It provides TCP health checking and connection handling without any Layer 7 inspection or TLS offloading.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Access Log</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Enabled ← enable this</option>
+                      <option>Disabled</option>
+                    </select>
+                    <div class="nsx-hint">Enable access logging. Every connection to the API VIP is logged — connection source IP, destination, timestamp, and result. <span class="reg pci">PCI Req 10.2.1</span> — log all access to audit trail.</div>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">VIP and Port</div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">VIP Address <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="10.50.0.200" readonly/>
+                    <div class="nsx-hint">The OCP API VIP from VCF-01. api.ocp.novacrestbank.local and api-int.ocp.novacrestbank.local both resolve to this IP. Must not be assigned to any VM — it is a floating IP held by the NSX LB on the Edge Nodes.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Port <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="6443" readonly/>
+                    <div class="nsx-hint">Kubernetes API server port — OCP always uses 6443. This is the port the OCP installer, kubectl, and all API clients connect to.</div>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Load Balancer and Pool</div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Load Balancer <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-OCP-LB ← select this</option>
+                    </select>
+                    <div class="nsx-hint">The LB service created in Section 04. All Virtual Servers for OCP must belong to the same LB service.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Default Pool <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Pool-OCP-API ← select this</option>
+                    </select>
+                    <div class="nsx-hint">Connections arriving at 10.50.0.200:6443 are forwarded to NCB-Pool-OCP-API — the three OCP master nodes on port 6443.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Admin State</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>ENABLED</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>After clicking <strong>SAVE</strong>: NCB-VS-OCP-API appears in the Virtual Servers list. VIP: 10.50.0.200:6443. Pool: NCB-Pool-OCP-API. The 10.50.0.200/32 host route is now being advertised via NCB-T1-OCP into BGP — Cisco can route traffic to the API VIP.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 13 VS INGRESS HTTPS ═══ -->
+<div class="page" id="page-vs-ingress-https">
+  <div class="ey">NSX-04 · Section 13</div>
+  <div class="pt">Create NCB-VS-OCP-HTTPS — Ingress VIP on 10.50.0.201:443</div>
+  <div class="ps">The Virtual Server for HTTPS application traffic — *.apps.ocp.novacrestbank.local resolves here</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Still on Virtual Servers → click ADD VIRTUAL SERVER again</div>
+        <p style="font-size:13.5px;">NCB-VS-OCP-API is now in the list. Click <strong>+ ADD VIRTUAL SERVER</strong>. Select <strong>L4 TCP</strong> as the type.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the HTTPS Ingress Virtual Server</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Virtual Server — NCB-VS-OCP-HTTPS</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-VS-OCP-HTTPS" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="OCP Ingress VIP HTTPS — *.apps.ocp.novacrestbank.local → 10.50.0.201:443" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Access Log</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Enabled</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">VIP and Port</div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">VIP Address <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="10.50.0.201" readonly/>
+                    <div class="nsx-hint">The OCP Ingress VIP. The wildcard DNS record *.apps.ocp.novacrestbank.local resolves to this IP. All OCP application Routes resolve to this VIP via DNS.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Port <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="443" readonly/>
+                    <div class="nsx-hint">HTTPS port. Banking application users connect to application Routes on port 443. The OCP Router (HAProxy) on the infra nodes terminates TLS using the Route's certificate.</div>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Load Balancer <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-OCP-LB</option>
+                    </select>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Default Pool <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Pool-OCP-Ingress ← select this</option>
+                    </select>
+                    <div class="nsx-hint">HTTPS traffic on port 443 is forwarded to the three OCP infra nodes on port 443 via NCB-Pool-OCP-Ingress.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>NCB-VS-OCP-HTTPS created: 10.50.0.201:443 → NCB-Pool-OCP-Ingress. The 10.50.0.201/32 host route is now being advertised via BGP — one Virtual Server pointing to this VIP is sufficient to trigger the route advertisement.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 14 VS HTTP ═══ -->
+<div class="page" id="page-vs-ingress-http">
+  <div class="ey">NSX-04 · Section 14</div>
+  <div class="pt">Create NCB-VS-OCP-HTTP — Ingress VIP on 10.50.0.201:80</div>
+  <div class="ps">The same Ingress VIP on port 80 — required for OCP's HTTP-to-HTTPS redirect and for Routes that serve plain HTTP</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Click ADD VIRTUAL SERVER again — select L4 TCP</div>
+        <p style="font-size:13.5px;">Click <strong>+ ADD VIRTUAL SERVER</strong>. Select <strong>L4 TCP</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Fill in the HTTP Virtual Server — only the port and name differ from the HTTPS one</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Virtual Server — NCB-VS-OCP-HTTP</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-VS-OCP-HTTP" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="OCP Ingress VIP HTTP — *.apps.ocp.novacrestbank.local → 10.50.0.201:80" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:220px;">
+                    <span class="nsx-lbl">Access Log</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>Enabled</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">VIP Address <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="10.50.0.201" readonly/>
+                    <div class="nsx-hint">Same VIP as the HTTPS Virtual Server — same Ingress VIP, different port.</div>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Port <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="80" readonly/>
+                    <div class="nsx-hint">HTTP port. OCP Router listens on port 80 to serve plain HTTP Routes and issue 301 redirects to HTTPS for edge-terminated TLS Routes.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Load Balancer <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-OCP-LB</option>
+                    </select>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Default Pool <span class="nsx-req">*</span></span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>NCB-Pool-OCP-Ingress ← same pool as HTTPS</option>
+                    </select>
+                    <div class="nsx-hint">Same pool as the HTTPS Virtual Server — same infra nodes, same health monitor. HTTP traffic on port 80 is forwarded to infra nodes on port 80.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:10px;">
+          <span class="ai">✓</span>
+          <span>All three Virtual Servers created: NCB-VS-OCP-API (10.50.0.200:6443), NCB-VS-OCP-HTTPS (10.50.0.201:443), NCB-VS-OCP-HTTP (10.50.0.201:80). The Load Balancer configuration is complete.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 15 VERIFY LB ═══ -->
+<div class="page" id="page-verify-lb">
+  <div class="ey">NSX-04 · Section 15</div>
+  <div class="pt">Verify the Load Balancer and all Virtual Servers</div>
+  <div class="ps">The complete view of the Load Balancer and its objects — confirming everything is correctly configured before OCP installation</div>
+
+  <div class="nsx-shell">
+    <div class="nsx-topbar">
+      <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Networking → Load Balancing → Load Balancers</div></div>
+    </div>
+    <div class="nsx-body">
+      <div class="nsx-leftnav">
+        <div class="nsx-nav-sec">Load Balancing</div>
+        <div class="nsx-nav-item sub active">⚖ Load Balancers</div>
+        <div class="nsx-nav-item sub">👥 Server Pools</div>
+        <div class="nsx-nav-item sub">🔷 Virtual Servers</div>
+        <div class="nsx-nav-item sub">🏥 Health Monitors</div>
+      </div>
+      <div class="nsx-content">
+        <div class="nsx-ch">
+          <div><div class="nsx-ct">Load Balancers</div><div class="nsx-cs">1 load balancer</div></div>
+        </div>
+        <div class="nsx-cb">
+          <table class="nsx-tbl">
+            <thead><tr><th>Name</th><th>Attachment</th><th>Size</th><th>Virtual Servers</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong style="color:#e8903a;">NCB-OCP-LB</strong></td>
+                <td style="font-size:12px;color:#60c890;">NCB-T1-OCP</td>
+                <td style="font-size:12px;">Medium</td>
+                <td style="font-size:12px;">3 (API, HTTPS, HTTP)</td>
+                <td><span class="st ok"><span class="st-dot"></span>Enabled</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top:18px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#7060a0;margin-bottom:10px;">Virtual Servers in NCB-OCP-LB</div>
+            <table class="nsx-tbl">
+              <thead><tr><th>Name</th><th>VIP : Port</th><th>Pool</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong style="color:#e8903a;">NCB-VS-OCP-API</strong></td>
+                  <td style="font-family:monospace;font-size:12px;">10.50.0.200 : 6443</td>
+                  <td style="font-size:12px;color:#60c890;">NCB-Pool-OCP-API</td>
+                  <td><span class="st ok"><span class="st-dot"></span>Enabled</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="color:#e8903a;">NCB-VS-OCP-HTTPS</strong></td>
+                  <td style="font-family:monospace;font-size:12px;">10.50.0.201 : 443</td>
+                  <td style="font-size:12px;color:#60c890;">NCB-Pool-OCP-Ingress</td>
+                  <td><span class="st ok"><span class="st-dot"></span>Enabled</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="color:#e8903a;">NCB-VS-OCP-HTTP</strong></td>
+                  <td style="font-family:monospace;font-size:12px;">10.50.0.201 : 80</td>
+                  <td style="font-size:12px;color:#60c890;">NCB-Pool-OCP-Ingress</td>
+                  <td><span class="st ok"><span class="st-dot"></span>Enabled</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top:18px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#7060a0;margin-bottom:10px;">Server Pools</div>
+            <table class="nsx-tbl">
+              <thead><tr><th>Pool</th><th>Members</th><th>Health Monitor</th><th>Algorithm</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-size:12px;color:#e0d0f8;">NCB-Pool-OCP-API</td>
+                  <td style="font-family:monospace;font-size:11.5px;">10.50.0.11:6443<br/>10.50.0.12:6443<br/>10.50.0.13:6443</td>
+                  <td style="font-size:12px;color:#9080b0;">NCB-HM-OCP-API</td>
+                  <td style="font-size:12px;">Round Robin</td>
+                  <td><span class="st wn"><span class="st-dot"></span>Unknown — OCP not installed yet</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;color:#e0d0f8;">NCB-Pool-OCP-Ingress</td>
+                  <td style="font-family:monospace;font-size:11.5px;">10.50.0.21:443<br/>10.50.0.22:443<br/>10.50.0.23:443</td>
+                  <td style="font-size:12px;color:#9080b0;">NCB-HM-OCP-Ingress</td>
+                  <td style="font-size:12px;">Round Robin</td>
+                  <td><span class="st wn"><span class="st-dot"></span>Unknown — OCP not installed yet</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="font-size:11.5px;color:#7060a0;margin-top:8px;">↑ Pool member status shows Unknown because the OCP nodes (10.50.0.11–.23) do not exist yet — they will be created by the OCP installer. Once OCP is installed and the master/infra nodes are running, the health monitors will begin probing and the status will change to UP (green) for each healthy member.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann ok">
+    <span class="ai">✓</span>
+    <span>Load Balancer configuration is complete. NCB-OCP-LB enabled on NCB-T1-OCP. Three Virtual Servers: API (10.50.0.200:6443), HTTPS (10.50.0.201:443), HTTP (10.50.0.201:80). Two Server Pools with health monitors. Pool member status Unknown is expected — OCP nodes do not yet exist.</span>
+  </div>
+</div>
+
+<!-- ═══ 16 VERIFY BGP ═══ -->
+<div class="page" id="page-verify-bgp">
+  <div class="ey">NSX-04 · Section 16</div>
+  <div class="pt">Verify VIP routes appear in the T0 BGP table</div>
+  <div class="ps">Confirming that the two VIP /32 host routes are being advertised via BGP to Cisco — proving they are routable from the physical network</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Plan &amp; Troubleshoot → NCB-T0-Gateway → Routing → Route Table → Execute on edge-01</div>
+        <p style="font-size:13.5px;">Navigate to <strong>Plan &amp; Troubleshoot → Gateway Firewall → NCB-T0-Gateway → Routing tab → Route Table</strong>. Select edge-01. Click Execute.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Verify the two VIP /32 host routes appear as T1 Connected</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-T0-Gateway → Route Table (edge-01) — after LB creation</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <table class="nsx-tbl">
+                <thead><tr><th>Network</th><th>Type</th><th>Route Source</th></tr></thead>
+                <tbody>
+                  <tr><td style="font-family:monospace;">0.0.0.0/0</td><td><span class="badge bb">BGP</span></td><td style="font-size:11.5px;color:#9080b0;">Leaf-01 and Leaf-02 (×2 ECMP)</td></tr>
+                  <tr><td style="font-family:monospace;">10.50.0.0/24</td><td><span class="badge bg">T1 Connected</span></td><td style="font-size:11.5px;color:#9080b0;">NCB-T1-OCP → seg-ocp-nodes</td></tr>
+                  <tr style="background:#1e0a00;">
+                    <td style="font-family:monospace;color:#e8903a;font-weight:700;">10.50.0.200/32</td>
+                    <td><span class="badge bg">T1 LB VIP</span></td>
+                    <td style="font-size:11.5px;color:#e8903a;">NCB-T1-OCP → NCB-OCP-LB → NCB-VS-OCP-API ✓</td>
+                  </tr>
+                  <tr style="background:#1e0a00;">
+                    <td style="font-family:monospace;color:#e8903a;font-weight:700;">10.50.0.201/32</td>
+                    <td><span class="badge bg">T1 LB VIP</span></td>
+                    <td style="font-size:11.5px;color:#e8903a;">NCB-T1-OCP → NCB-OCP-LB → NCB-VS-OCP-HTTPS + NCB-VS-OCP-HTTP ✓</td>
+                  </tr>
+                  <tr><td style="font-family:monospace;">10.70.0.0/24</td><td><span class="badge bg">T1 Connected</span></td><td style="font-size:11.5px;color:#9080b0;">NCB-T1-Infra → seg-infra-services</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>Both VIP /32 host routes appear in the T0 route table: 10.50.0.200/32 (API VIP) and 10.50.0.201/32 (Ingress VIP) as T1 LB VIP type. These /32 host routes are being advertised via all four BGP sessions to Cisco Leaf-01 and Leaf-02. Traffic from the physical network destined for either VIP will be routed to the NSX overlay and processed by the NSX Load Balancer on the Edge Nodes.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 17 VERIFY DNS ═══ -->
+<div class="page" id="page-verify-dns">
+  <div class="ey">NSX-04 · Section 17</div>
+  <div class="pt">Verify DNS resolves to the correct VIPs</div>
+  <div class="ps">The final pre-installation check — DNS must resolve both OCP VIP names before the installer is run</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">From a management workstation — run nslookup for all four OCP DNS records</div>
+        <p style="font-size:13.5px;">Open Command Prompt or PowerShell on a domain-joined management workstation and run the following lookups. All must return the correct VIP address before the OCP installation can begin.</p>
+
+        <div style="background:#1a1a1a;border-radius:8px;padding:16px 20px;margin:12px 0;font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;line-height:1.7;border:1px solid #333;">
+          <div style="color:#9080b0;margin-bottom:6px;"># Test 1 — API VIP</div>
+          <div style="color:#f1c40f;">C:\> nslookup api.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Server: dc01.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Address: 10.70.0.10</div>
+          <div style="color:#4ccd99;margin-top:4px;">Name: api.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Address: 10.50.0.200   ✓</div>
+
+          <div style="color:#9080b0;margin:12px 0 6px;"># Test 2 — API internal VIP (same result expected)</div>
+          <div style="color:#f1c40f;">C:\> nslookup api-int.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Name: api-int.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Address: 10.50.0.200   ✓</div>
+
+          <div style="color:#9080b0;margin:12px 0 6px;"># Test 3 — Ingress wildcard (any subdomain of *.apps)</div>
+          <div style="color:#f1c40f;">C:\> nslookup console-openshift-console.apps.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Name: console-openshift-console.apps.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;">Address: 10.50.0.201   ✓</div>
+
+          <div style="color:#9080b0;margin:12px 0 6px;"># Test 4 — Connectivity to API VIP (port must be open after OCP installs)</div>
+          <div style="color:#f1c40f;">C:\> Test-NetConnection -ComputerName 10.50.0.200 -Port 6443</div>
+          <div style="color:#608b7a;"># Before OCP installation: TcpTestSucceeded = False (no listener yet — expected)</div>
+          <div style="color:#608b7a;"># After OCP installation: TcpTestSucceeded = True</div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>All DNS lookups return correct VIP addresses. api.ocp.novacrestbank.local → 10.50.0.200. *.apps.ocp.novacrestbank.local → 10.50.0.201. TCP connectivity to port 6443 is expected to fail before OCP installation — the master nodes do not exist yet. This is correct behaviour.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout ocp">
+    <div class="cl">Ready for OCP installation — NSX LB pre-flight checklist</div>
+    Before running the OCP IPI installer the following must all be true:<br/><br/>
+    ✓ NSX LB NCB-OCP-LB attached to NCB-T1-OCP, status Enabled<br/>
+    ✓ Three Virtual Servers created (10.50.0.200:6443, 10.50.0.201:443, 10.50.0.201:80)<br/>
+    ✓ VIP /32 routes appear in T0 route table<br/>
+    ✓ api.ocp.novacrestbank.local resolves to 10.50.0.200 via DNS<br/>
+    ✓ *.apps.ocp.novacrestbank.local resolves to 10.50.0.201 via DNS<br/>
+    ✓ Pool member status Unknown is acceptable (OCP nodes will be created by the installer)<br/><br/>
+    After OCP installation completes, return here and check the Pool member status — all six members (3 masters, 3 infra nodes) should show <span class="badge bg">UP</span> with green health status.
+  </div>
+</div>
+
+<!-- ═══ 18 FINAL ═══ -->
+<div class="page" id="page-final">
+  <div class="ey">NSX-04 · Section 18</div>
+  <div class="pt">Final checklist and what NSX-05 builds next</div>
+  <div class="ps">Every Load Balancer object confirmed — the VIPs are live and routable. NSX-05 completes the NSX configuration with Distributed Firewall policy.</div>
+
+  <div class="callout success">
+    <div class="cl">NSX-04 complete — NSX Load Balancer operational, VIPs routable</div>
+    NCB-OCP-LB created on NCB-T1-OCP (Medium size). Two health monitors: NCB-HM-OCP-API (TCP:6443) and NCB-HM-OCP-Ingress (TCP:443), both with 5s interval, 2 fall / 3 rise counts. Two server pools: NCB-Pool-OCP-API (masters .11–.13) and NCB-Pool-OCP-Ingress (infra nodes .21–.23), both Round Robin, Transparent SNAT, TCP passthrough. Three Virtual Servers: API (10.50.0.200:6443), HTTPS (10.50.0.201:443), HTTP (10.50.0.201:80). VIP /32 host routes appear in T0 route table and are being advertised to Cisco via BGP. DNS resolves correctly for all OCP DNS records.
+  </div>
+
+  <h2>Verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NCB-OCP-LB — Medium · attached to NCB-T1-OCP · Enabled</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-HM-OCP-API — TCP:6443 · Interval 5s · Fall 2 · Rise 3</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-HM-OCP-Ingress — TCP:443 · Interval 5s · Fall 2 · Rise 3</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Pool-OCP-API — 3 members (10.50.0.11–.13:6443) · Round Robin · Transparent</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Pool-OCP-Ingress — 3 members (10.50.0.21–.23:443) · Round Robin · Transparent</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-VS-OCP-API — 10.50.0.200:6443 → NCB-Pool-OCP-API · Enabled</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-VS-OCP-HTTPS — 10.50.0.201:443 → NCB-Pool-OCP-Ingress · Enabled</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-VS-OCP-HTTP — 10.50.0.201:80 → NCB-Pool-OCP-Ingress · Enabled</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">T0 route table: 10.50.0.200/32 and 10.50.0.201/32 as T1 LB VIP</span><span class="spec-val badge bg">✓ Advertised via BGP to Cisco</span></div>
+    <div class="spec-row"><span class="spec-label">DNS: api.ocp.novacrestbank.local → 10.50.0.200</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DNS: *.apps.ocp.novacrestbank.local → 10.50.0.201</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">Pool member health status</span><span class="spec-val badge ba">⏳ Unknown — expected until OCP nodes are created by installer</span></div>
+  </div>
+
+  <h2>What NSX-05 builds next — Distributed Firewall</h2>
+  <div class="card" style="border-left:4px solid var(--nsx);">
+    <p style="font-size:13.5px;">NSX-04 completed the networking and load balancing. NSX-05 adds the <strong>security layer</strong> — the NSX Distributed Firewall (DFW) that enforces microsegmentation between the security zones defined in VCF-01 Section 15.</p>
+    <p style="font-size:13.5px;margin-top:8px;"><strong>NSX-05 screen-by-screen steps:</strong></p>
+    <ul style="font-size:13.5px;margin-top:6px;margin-left:20px;">
+      <li>Create Security Groups (groups of VMs by segment or tag) — one group per security zone</li>
+      <li>Create a Default-Deny policy — the last rule in the DFW that blocks all traffic not explicitly permitted</li>
+      <li>Create the inter-zone allow rules: OCP → Infra on TCP 636 (LDAPS), TCP/UDP 53 (DNS), TCP 5696 (KMIP/HSM)</li>
+      <li>Create intra-zone rules: OCP node-to-node communication (required for etcd, cluster networking, and pod scheduling)</li>
+      <li>Verify with Traceflow that allowed traffic passes and denied traffic is blocked</li>
+    </ul>
+    <p style="font-size:13.5px;margin-top:10px;">After NSX-05, the complete NSX configuration for NovaCrestBank VCF + OCP is done. The next phase moves to Windows Server (WIN-VCF-01 — DNS records for VCF) and then the OCP installation itself.</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  if(event&&event.currentTarget){
+    event.currentTarget.classList.add('active');
+    const dot=event.currentTarget.querySelector('.nd');
+    if(dot) dot.style.background='var(--lb)';
+  }
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
