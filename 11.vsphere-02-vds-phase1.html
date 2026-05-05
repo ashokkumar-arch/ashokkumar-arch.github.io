@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>vSphere-02 — vDS Phase 1 · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --r:10px;--r2:6px;
+    /* VMware UI palette */
+    --vm-bg:#f5f5f5;--vm-header:#0e1e2e;--vm-blue:#1e6eb5;
+    --vm-light:#e8f2fc;--vm-border:#c8d8e8;--vm-green:#28a745;
+    --vm-grey:#6c757d;--vm-dark:#1a2a3a;
+    /* wizard */
+    --wiz-bg:#1c2b3c;--wiz-side:#142030;--wiz-text:#ccdae8;
+    --wiz-blue:#3a8fc8;--wiz-active:#4da8da;--wiz-done:#4cad6a;
+    --wiz-pending:#4a6a8a;--wiz-border:#253d54;
+    --wiz-input:#243650;--wiz-input-border:#3a6090;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .nav-group{padding:4px 0;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--accent);}
+
+  /* ── MAIN ── */
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1040px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--accent);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.vmware{border-left-color:#6db33f;}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.vmware .cl{color:#6db33f;}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.vmware):not(.why) .cl{color:var(--accent);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}
+  .ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}
+  .bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}
+  .bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:20px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+
+  /* ── DECISION BOX — the star of this guide ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:200px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ══════════════════════════════════════════
+     vCenter UI MOCKUP — main visual language
+  ══════════════════════════════════════════ */
+  .vc-ui{background:var(--vm-bg);border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid var(--vm-border);
+    box-shadow:0 2px 16px rgba(0,0,0,.12);font-family:inherit;}
+  .vc-topbar{background:var(--vm-header);padding:8px 16px;
+    display:flex;align-items:center;gap:14px;}
+  .vc-logo{font-size:13px;font-weight:700;color:#7bc4f8;letter-spacing:.02em;}
+  .vc-topnav{display:flex;gap:18px;margin-left:10px;}
+  .vc-topnav-item{font-size:12px;color:#8ab8d8;cursor:pointer;padding:2px 0;}
+  .vc-topnav-item.active{color:#fff;border-bottom:2px solid #4da8da;}
+  .vc-body{display:flex;min-height:320px;}
+  .vc-sidebar{width:210px;flex-shrink:0;background:#f8f8f8;
+    border-right:1px solid var(--vm-border);padding:8px 0;overflow-y:auto;}
+  .vc-side-item{padding:6px 14px;font-size:12.5px;color:var(--vm-grey);cursor:pointer;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .vc-side-item.active{color:var(--vm-blue);background:var(--vm-light);
+    border-left:3px solid var(--vm-blue);padding-left:11px;}
+  .vc-side-group{padding:8px 14px 3px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;color:#aaa;}
+  .vc-main{flex:1;padding:16px 20px;overflow-y:auto;}
+  .vc-title{font-size:15px;font-weight:700;color:#1a2a3a;margin-bottom:2px;}
+  .vc-subtitle{font-size:12px;color:var(--vm-grey);margin-bottom:14px;}
+
+  /* Wizard inside vCenter */
+  .vc-wizard{background:#fff;border:1px solid var(--vm-border);border-radius:6px;
+    overflow:hidden;margin:14px 0;}
+  .vc-wiz-header{background:#1e3a5c;padding:12px 20px;}
+  .vc-wiz-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;}
+  .vc-wiz-sub{font-size:11.5px;color:#8ab8d8;}
+  .vc-wiz-body{display:flex;min-height:280px;}
+  .vc-wiz-nav{width:190px;flex-shrink:0;background:#f5f8fc;
+    border-right:1px solid var(--vm-border);padding:12px 0;}
+  .vc-wiz-step{display:flex;align-items:center;gap:9px;
+    padding:7px 14px;font-size:12.5px;color:var(--vm-grey);cursor:default;}
+  .vc-wiz-step.active{color:var(--vm-blue);background:var(--vm-light);}
+  .vc-wiz-step.done{color:var(--vm-green);}
+  .vc-wiz-dot{width:18px;height:18px;border-radius:50%;
+    border:1.5px solid currentColor;display:flex;align-items:center;
+    justify-content:center;font-size:9px;flex-shrink:0;}
+  .vc-wiz-step.active .vc-wiz-dot{background:var(--vm-blue);border-color:var(--vm-blue);color:#fff;}
+  .vc-wiz-step.done .vc-wiz-dot{background:var(--vm-green);border-color:var(--vm-green);color:#fff;}
+  .vc-wiz-content{flex:1;padding:20px 24px;}
+  .vc-wiz-section{font-size:13px;font-weight:700;color:#1a2a3a;
+    margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--vm-border);}
+  .vc-field{margin-bottom:13px;}
+  .vc-label{font-size:11.5px;color:#5a7090;margin-bottom:4px;}
+  .vc-input{width:100%;border:1px solid var(--vm-border);border-radius:4px;
+    padding:6px 10px;font-size:13px;color:#1a2a3a;background:#fff;}
+  .vc-input.filled{border-color:var(--vm-green);background:#f8fff8;}
+  .vc-select{width:100%;border:1px solid var(--vm-border);border-radius:4px;
+    padding:6px 10px;font-size:13px;color:#1a2a3a;background:#fff;}
+  .vc-hint{font-size:11px;color:#8090a0;margin-top:3px;}
+  .vc-required{color:#e05252;font-size:10px;}
+  .vc-wiz-footer{background:#f5f8fc;padding:10px 20px;
+    display:flex;justify-content:flex-end;gap:10px;
+    border-top:1px solid var(--vm-border);}
+  .vc-btn{padding:6px 18px;border-radius:4px;font-size:13px;
+    font-weight:600;cursor:pointer;}
+  .vc-btn.secondary{background:#fff;color:var(--vm-grey);
+    border:1px solid var(--vm-border);}
+  .vc-btn.primary{background:var(--vm-blue);color:#fff;border:none;}
+
+  /* Inline annotation under mockups */
+  .screen-ann{display:flex;gap:9px;background:#1a2030;
+    border-left:3px solid #d4a331;padding:7px 13px;margin:0 0 8px;
+    border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;
+    font-size:12px;color:#c8d8e8;line-height:1.5;}
+  .screen-ann.ok{border-left-color:#5ccb6f;}
+  .screen-ann.info{border-left-color:#4da8da;}
+  .screen-ann.danger{border-left-color:#e05252;}
+  .sai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--accent);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ── NETWORK DIAGRAM ── */
+  .netdiag{background:var(--bg3);border:0.5px solid var(--border2);
+    border-radius:var(--r);padding:20px 24px;margin:18px 0;
+    font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;line-height:2;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · VMware Series</div>
+    <h1>vSphere-02 — vDS Phase 1</h1>
+    <p>Every decision. Every reason. Every click.</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">The thinking framework</div>
+    <div class="ni active" onclick="show('why-vds')"><div class="nd"></div>01 — Why vDS exists — what vSwitch cannot do</div>
+    <div class="ni" onclick="show('why-decisions')"><div class="nd"></div>02 — The decisions this guide makes</div>
+    <div class="ni" onclick="show('why-phase1')"><div class="nd"></div>03 — Why Phase 1 only — the migration risk</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Create the vDS</div>
+    <div class="ni" onclick="show('create-vds')"><div class="nd"></div>04 — Create the vDS — every wizard screen</div>
+    <div class="ni" onclick="show('vds-name')"><div class="nd"></div>05 — vDS name — and why it matters</div>
+    <div class="ni" onclick="show('vds-version')"><div class="nd"></div>06 — vDS version — choosing correctly</div>
+    <div class="ni" onclick="show('vds-uplinks')"><div class="nd"></div>07 — Number of uplinks — the LACP decision</div>
+    <div class="ni" onclick="show('vds-nioc')"><div class="nd"></div>08 — Network I/O Control — banking traffic priority</div>
+    <div class="ni" onclick="show('vds-review')"><div class="nd"></div>09 — vDS review and create</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Create port groups</div>
+    <div class="ni" onclick="show('pg-philosophy')"><div class="nd"></div>10 — Port group design philosophy</div>
+    <div class="ni" onclick="show('pg-mgmt')"><div class="nd"></div>11 — PG-VLAN10-Management port group</div>
+    <div class="ni" onclick="show('pg-vmotion')"><div class="nd"></div>12 — PG-VLAN20-vMotion port group</div>
+    <div class="ni" onclick="show('pg-vsan')"><div class="nd"></div>13 — PG-VLAN25-vSAN port group (MTU 9000)</div>
+    <div class="ni" onclick="show('pg-nfs')"><div class="nd"></div>14 — PG-VLAN30-NFS port group (MTU 9000)</div>
+    <div class="ni" onclick="show('pg-ocp')"><div class="nd"></div>15 — PG-VLAN50-OCP port group</div>
+    <div class="ni" onclick="show('pg-vm')"><div class="nd"></div>16 — PG-VLAN60-VM-Production port group</div>
+    <div class="ni" onclick="show('pg-win')"><div class="nd"></div>17 — PG-VLAN70-Windows port group</div>
+    <div class="ni" onclick="show('pg-summary')"><div class="nd"></div>18 — Port group summary — all 7</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Add hosts and migrate NICs</div>
+    <div class="ni" onclick="show('add-hosts-vds')"><div class="nd"></div>19 — Add all 5 hosts to the vDS</div>
+    <div class="ni" onclick="show('migrate-mgmt')"><div class="nd"></div>20 — Migrate management VMkernel — the careful step</div>
+    <div class="ni" onclick="show('configure-lacp')"><div class="nd"></div>21 — Configure LACP on uplink port groups</div>
+    <div class="ni" onclick="show('assign-uplinks')"><div class="nd"></div>22 — Assign physical NICs to vDS uplinks</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Verification</div>
+    <div class="ni" onclick="show('verify-connectivity')"><div class="nd"></div>23 — Verify management connectivity after migration</div>
+    <div class="ni" onclick="show('verify-lacp')"><div class="nd"></div>24 — Verify LACP — leaf switch confirms bonds</div>
+    <div class="ni" onclick="show('verify-pg')"><div class="nd"></div>25 — Verify all port groups on all hosts</div>
+    <div class="ni" onclick="show('phase1-summary')"><div class="nd"></div>26 — Phase 1 complete — what you have</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 — WHY VDS ══════ -->
+<div class="page active" id="page-why-vds">
+  <div class="ey">VMware Series · vSphere-02 · Section 01</div>
+  <div class="pt">Why the vDS exists — what a standard vSwitch cannot do</div>
+  <div class="ps">Understanding the problem before the solution — the limitations of standard vSwitches that make the vDS essential for NovaCrestBank</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Cisco<br/>fabric</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>ESXi<br/>install</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>vCenter<br/>deploy</div>
+    <div class="pt-step active"><span class="pt-n">→</span>vDS<br/>Phase 1</div>
+    <div class="pt-step"><span class="pt-n">5</span>Windows<br/>DC/DNS</div>
+    <div class="pt-step"><span class="pt-n">6</span>AD CS<br/>PKI</div>
+    <div class="pt-step"><span class="pt-n">7+</span>vSAN<br/>HA/DRS</div>
+  </div>
+
+  <div class="callout vmware">
+    <div class="cl">The standard vSwitch — what it is and why it falls short</div>
+    Every ESXi host currently has a standard vSwitch (vSwitch0) created automatically during installation. A standard vSwitch is a per-host construct — it exists only on the single ESXi host where it was created, has its own configuration, and is managed separately from every other host's vSwitch. In a five-host cluster, you have five completely separate vSwitches. If you need to add a port group, you must add it to all five hosts individually. If you make a mistake on one host, it differs silently from the others. There is no consistency enforcement.
+  </div>
+
+  <h2>The standard vSwitch vs vDS — a direct comparison</h2>
+  <table>
+    <thead><tr><th>Capability</th><th>Standard vSwitch (current)</th><th>Distributed Virtual Switch (vDS)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Scope</strong></td>
+        <td>Single host only</td>
+        <td>Spans all hosts in the cluster — one switch, all hosts</td>
+      </tr>
+      <tr>
+        <td><strong>Configuration</strong></td>
+        <td>Per host — must configure each separately</td>
+        <td>Centralised in vCenter — configure once, applies everywhere</td>
+      </tr>
+      <tr>
+        <td><strong>LACP support</strong></td>
+        <td>No LACP — only static port channel or failover teaming</td>
+        <td>Full LACP — required for the Cisco leaf switch port channels (vPC members)</td>
+      </tr>
+      <tr>
+        <td><strong>Port group consistency</strong></td>
+        <td>No enforcement — port groups can silently differ between hosts</td>
+        <td>Same port group configuration on every host by definition</td>
+      </tr>
+      <tr>
+        <td><strong>Network I/O Control (NIOC)</strong></td>
+        <td>Not available</td>
+        <td>Available — reserves bandwidth per traffic type (vSAN, vMotion, VM)</td>
+      </tr>
+      <tr>
+        <td><strong>Traffic shaping</strong></td>
+        <td>Egress only</td>
+        <td>Ingress and egress</td>
+      </tr>
+      <tr>
+        <td><strong>Port-level statistics</strong></td>
+        <td>Per-vSwitch only</td>
+        <td>Per-port statistics for every VM and every VMkernel adapter</td>
+      </tr>
+      <tr>
+        <td><strong>vMotion requirement</strong></td>
+        <td>Port groups must be manually identical on all hosts</td>
+        <td>Port groups are identical by design — vMotion always works</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>The LACP requirement — why this is non-negotiable for NovaCrestBank</h2>
+  <p>The Cisco leaf switches have the ESXi ports configured as LACP port channels (Po101 through Po106 in Guide 5). LACP is a dynamic link aggregation protocol — both sides must agree to form the bond. The standard vSwitch does not support LACP at all. It can do static port channel (where the switch side runs LACP but the ESXi side uses a static "IP hash" policy) — but this creates an imbalance: the switch LACP state machine detects the ESXi side as non-negotiating and falls back to Individual mode. The port channels on the Cisco switch show <code>(I) Individual</code> — not <code>(P) Active</code>. Traffic works but without the link-level negotiation that catches cable errors and prevents forwarding loops. The vDS supports LACP end-to-end — ESXi sends and receives LACP PDUs, the Cisco switch responds, and the port channel reaches full <code>(P)</code> status. This is the correct enterprise configuration.</p>
+</div>
+
+<!-- ══════ 02 — WHY DECISIONS ══════ -->
+<div class="page" id="page-why-decisions">
+  <div class="ey">VMware Series · vSphere-02 · Section 02</div>
+  <div class="pt">The decisions this guide makes — and the reasoning behind each one</div>
+  <div class="ps">Every major vDS design decision stated as a question and answered with the reason — the mental model for making these decisions in any environment</div>
+
+  <div class="decision">
+    <div class="decision-label">Decision 1</div>
+    <div class="decision-q">Why one vDS for the entire cluster — not one vDS per host or one vDS per traffic type?</div>
+    <div class="decision-a"><strong>One vDS is the simplest correct architecture.</strong> A single vDS spans all hosts and contains all port groups. All port groups are visible and consistent on every host. vMotion can move a VM between any two hosts without compatibility issues because the destination port group always exists. Multiple vDS instances add operational complexity (you must manage two switch objects, track which host is on which switch, and ensure both are always consistent) with no meaningful benefit for NovaCrestBank's five-host environment. VMware recommends one vDS per cluster except in specific multi-tenant or regulatory isolation scenarios that do not apply here.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Decision 2</div>
+    <div class="decision-q">Why 6 uplinks on the vDS — not 2 or 4?</div>
+    <div class="decision-a"><strong>Because each ESXi host has 6 physical NICs, each with a distinct purpose.</strong> The vDS needs one uplink slot per physical NIC so it can be precisely controlled which vmnic carries which traffic type. With 6 uplinks: uplink1 and uplink2 carry management and Windows traffic (vmnic0/1, VLAN 10 and 70); uplink3 and uplink4 carry VM, vMotion, and OCP traffic (vmnic2/3, VLAN 20/50/60); uplink5 and uplink6 carry vSAN and NFS storage traffic (vmnic4/5, VLAN 25 and 30). If only 2 uplinks were defined, all 6 NICs would have to share two slots — losing the ability to separate storage traffic from management traffic at the NIC level. The vDS uplink count is set at creation and changing it later requires a complex reconfiguration.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Decision 3</div>
+    <div class="decision-q">Why use LACP Enhanced mode — not LACP Basic?</div>
+    <div class="decision-a"><strong>Because Enhanced mode supports multiple LACP Link Aggregation Groups (LAGs) per vDS — one per NIC pair.</strong> NovaCrestBank has three NIC pairs per host: management pair (vmnic0/1), VM/OCP pair (vmnic2/3), and vSAN pair (vmnic4/5). Each pair needs its own LACP bond — they connect to different Cisco port channels (Po101, Po102, Po103 respectively) and carry different VLANs. LACP Basic mode only supports a single LAG per vDS. LACP Enhanced mode supports multiple LAGs — one for each NIC pair. This is why Enhanced mode is mandatory for NovaCrestBank's design.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Decision 4</div>
+    <div class="decision-q">Why is Network I/O Control (NIOC) enabled?</div>
+    <div class="decision-a"><strong>Because banking-grade reliability requires guaranteed bandwidth for storage and management traffic even during VM traffic bursts.</strong> NIOC reserves shares of physical NIC bandwidth per traffic type. Without NIOC: a VM generating a bulk data transfer at 25G could starve vSAN replication traffic or management connectivity on the same NIC. With NIOC: vSAN traffic gets a guaranteed bandwidth share, management traffic gets a guaranteed share, and VM traffic gets the remainder. In a banking environment, vSAN latency directly affects VM disk I/O which directly affects transaction throughput. NIOC is the network-layer mechanism that prevents one workload from degrading another.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Decision 5</div>
+    <div class="decision-q">Why does each port group carry only specific VLANs — not all VLANs?</div>
+    <div class="decision-a"><strong>The same least-privilege principle that was applied to the Cisco trunk ports in Guide 6 applies here.</strong> A VM connected to PG-VLAN60-VM-Production should not be able to send traffic on VLAN 25 (vSAN) or VLAN 10 (management). By assigning each port group a specific VLAN ID, ESXi tags all traffic from that port group with that VLAN. A VM on PG-VLAN60-VM-Production can only send tagged VLAN 60 frames — it physically cannot inject traffic into other VLANs without being moved to a different port group. This is a security control, not just an organisational preference.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Decision 6</div>
+    <div class="decision-q">Why is MTU 9000 set only on the vSAN and NFS port groups — not all port groups?</div>
+    <div class="decision-a"><strong>Because jumbo frames must be consistent end-to-end on every hop, and only the storage paths support it consistently.</strong> The Cisco leaf SVIs for VLAN 25 and VLAN 30 are configured at MTU 9000. The SVIs for VLANs 10, 20, 50, 60, and 70 are at MTU 1500. If a management port group (VLAN 10) were set to MTU 9000 but the VLAN 10 SVI on the leaf were still at 1500, the result is silent packet drops for any management frame exceeding 1500 bytes. Consistent end-to-end MTU is more important than using the largest possible MTU. Only the paths verified as end-to-end 9000 (vSAN and NFS) get jumbo frames.</div>
+  </div>
+</div>
+
+<!-- ══════ 03 — WHY PHASE 1 ══════ -->
+<div class="page" id="page-why-phase1">
+  <div class="ey">VMware Series · vSphere-02 · Section 03</div>
+  <div class="pt">Why Phase 1 only — the migration risk and how to manage it</div>
+  <div class="ps">Moving ESXi hosts from a standard vSwitch to the vDS is the most operationally dangerous step in the VMware build — here is why, and how Phase 1 manages the risk</div>
+
+  <div class="callout danger">
+    <div class="cl">The single most dangerous operation in the VMware build</div>
+    Migrating a management VMkernel adapter from a standard vSwitch to the vDS severs and re-establishes the host's management network connection in one operation. If anything goes wrong — wrong port group, wrong VLAN, wrong uplink assignment — the host becomes unreachable via the management network. vCenter loses connection to the host. You cannot fix it remotely because your remote access path (vCenter API, SSH to vmk0) is gone. You must use iLO to access the DCUI and manually restore the management network configuration. The risk is real and manageable — but only if you understand it before you start.
+  </div>
+
+  <h2>What Phase 1 covers — and what it defers</h2>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <h3 style="color:var(--accent2);">Phase 1 — this guide</h3>
+      <ul style="font-size:13px;margin-left:16px;">
+        <li>Create the vDS with 6 uplinks</li>
+        <li>Create all 7 VLAN port groups</li>
+        <li>Add all 5 hosts to the vDS</li>
+        <li>Migrate vmnic0 (management) to vDS uplink1</li>
+        <li>Migrate vmk0 (management VMkernel) to vDS PG-VLAN10</li>
+        <li>Configure LACP LAG for vmnic0/vmnic1 pair</li>
+        <li>Add vmnic1 to the LACP LAG (completing the management bond)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--amber);">
+      <h3 style="color:var(--amber);">Phase 2 — after Windows DC and AD CS</h3>
+      <ul style="font-size:13px;margin-left:16px;">
+        <li>Configure vMotion VMkernel (vmk1) on VLAN 20</li>
+        <li>Configure vSAN VMkernel (vmk2) on VLAN 25</li>
+        <li>Configure NFS VMkernel (vmk3) on VLAN 30</li>
+        <li>Migrate remaining NIC pairs (vmnic2/3 and vmnic4/5) to vDS</li>
+        <li>Configure remaining LACP LAGs</li>
+        <li>Remove old standard vSwitch from all hosts</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Why Phase 1 stops at management only</h2>
+  <p>Phase 1 establishes that the vDS is working correctly for the management path — the path you need to continue configuring everything else. If the management migration fails, you detect it immediately because vCenter loses the host — and you fix it before touching any other VMkernel adapters. If you tried to migrate all VMkernel adapters in one operation and it failed, you would have no management path, no vMotion path, and no storage path simultaneously.</p>
+  <p>Phase 2 is deferred until after the Windows Domain Controllers and AD CS are deployed (because certificate replacement uses the AD CS PKI, and stable management networking is required throughout that process). The vDS will be partially configured during Phase 1 — some uplinks unused, vMotion/vSAN/NFS VMkernel adapters not yet created. This is the correct and intentional state.</p>
+
+  <h2>The safety net — iLO is always there</h2>
+  <p>If the management VMkernel migration fails and a host becomes unreachable, the recovery procedure is:</p>
+  <ol>
+    <li>Open iLO for that host (10.40.0.31–35) — this is independent of the production network</li>
+    <li>Launch the HTML5 remote console</li>
+    <li>Press F2 in the DCUI, authenticate as root</li>
+    <li>Navigate to Configure Management Network</li>
+    <li>Restore the correct VLAN (10), IP address (10.10.0.11), and gateway (10.10.0.1)</li>
+    <li>Press Escape → apply changes</li>
+    <li>The host becomes reachable again within seconds</li>
+  </ol>
+  <p>This is exactly why iLO was configured first, in Cisco Guide 3. You always have a path in, regardless of what happens to the production network configuration.</p>
+</div>
+
+<!-- ══════ 04 — CREATE VDS ══════ -->
+<div class="page" id="page-create-vds">
+  <div class="ey">VMware Series · vSphere-02 · Section 04</div>
+  <div class="pt">Create the vDS — launching the wizard</div>
+  <div class="ps">Opening the New Distributed Switch wizard in vCenter — where to find it and what you see</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter, switch to the Networking view</div>
+        <p style="font-size:13.5px">In the vSphere Client top navigation bar, click <strong>Networking</strong> (or click the Menu icon → Networking). The inventory tree on the left changes to show the networking hierarchy: your vCenter instance, then NovaCrestBank-DC1, and underneath it any existing network objects. Currently you may see a "dvSwitch" or just the datacenter — the important thing is you are in the Networking view.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NovaCrestBank-DC1 → Distributed Switch → New Distributed Switch</div>
+        <p style="font-size:13.5px">In the left inventory tree, right-click <strong>NovaCrestBank-DC1</strong>. A context menu appears. Hover over <strong>Distributed Switch</strong> — a submenu appears. Click <strong>New Distributed Switch</strong>. The New Distributed Switch wizard opens.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="vc-ui">
+    <div class="vc-topbar">
+      <div class="vc-logo">VMware vSphere</div>
+      <div class="vc-topnav">
+        <div class="vc-topnav-item">Hosts and Clusters</div>
+        <div class="vc-topnav-item active">Networking</div>
+        <div class="vc-topnav-item">Storage</div>
+      </div>
+    </div>
+    <div class="vc-body">
+      <div class="vc-sidebar">
+        <div class="vc-side-group">vCenter</div>
+        <div class="vc-side-item">📦 vcenter.novacrestbank.local</div>
+        <div class="vc-side-item active" style="border-left:3px solid var(--vm-blue);padding-left:11px;">🏢 NovaCrestBank-DC1</div>
+        <div class="vc-side-item" style="padding-left:24px;font-size:11.5px;color:#aaa;">No distributed switches yet</div>
+      </div>
+      <div class="vc-main">
+        <div class="vc-title">NovaCrestBank-DC1</div>
+        <div class="vc-subtitle">Right-click the Datacenter → Distributed Switch → New Distributed Switch</div>
+        <div style="background:#fff3e0;border:1px solid #ffb74d;border-radius:5px;padding:10px 14px;font-size:12.5px;color:#e65100;margin-top:12px;">
+          💡 This datacenter has no distributed switches. Create one to enable LACP, consistent port groups across all hosts, and Network I/O Control.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>The wizard that opens has 5 steps shown in a left panel (Name and location, Select version, Configure settings, Add and manage hosts, Ready to complete). You will work through each one in Sections 05–09.</span></div>
+</div>
+
+<!-- ══════ 05 — VDS NAME ══════ -->
+<div class="page" id="page-vds-name">
+  <div class="ey">VMware Series · vSphere-02 · Section 05</div>
+  <div class="pt">vDS name — and why the name matters</div>
+  <div class="ps">The first screen of the wizard — naming the vDS correctly from the start</div>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Distributed Switch</div>
+      <div class="vc-wiz-sub">Step 1 of 5 — Name and location</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Name and location</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">2</div>Select version</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">3</div>Configure settings</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">4</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Name and location</div>
+        <div class="vc-field">
+          <div class="vc-label">Name <span class="vc-required">*</span></div>
+          <div class="vc-input filled">NCB-vDS-01</div>
+          <div class="vc-hint">A short, descriptive name. This appears in all network management views.</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">Location</div>
+          <div class="vc-input filled">NovaCrestBank-DC1</div>
+          <div class="vc-hint">Pre-selected — the datacenter where the vDS will live.</div>
+        </div>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">Cancel</div>
+      <div class="vc-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why this name</div>
+    <div class="decision-q">Why "NCB-vDS-01" and not "dvSwitch" or "vDS-Management" or "NovaCrestBankDistributedSwitch"?</div>
+    <div class="decision-a"><strong>Three naming principles applied simultaneously:</strong><br/><br/>
+    <strong>1. Organisation prefix (NCB).</strong> If this vCenter ever manages multiple organisations' resources (e.g., a tenant model), the NCB prefix immediately identifies this as a NovaCrestBank object — not a shared or tenant object.<br/><br/>
+    <strong>2. Object type in the name (vDS).</strong> The name tells you what kind of object this is without having to look at the icon. In a large vCenter with hundreds of objects, searchable, self-describing names save time.<br/><br/>
+    <strong>3. Sequence number (01).</strong> This is the first vDS. If a second vDS is ever added (for a dedicated storage network, for example), it becomes NCB-vDS-02. The sequence number prevents naming collisions and makes ordering obvious.<br/><br/>
+    The alternative ("dvSwitch" — vCenter's default) tells you nothing. You cannot tell which organisation owns it, what it is for, or how many there are. Never accept default names for production infrastructure objects.</div>
+  </div>
+
+  <p>Type <strong>NCB-vDS-01</strong> in the Name field. The Location should already show NovaCrestBank-DC1. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 06 — VDS VERSION ══════ -->
+<div class="page" id="page-vds-version">
+  <div class="ey">VMware Series · vSphere-02 · Section 06</div>
+  <div class="pt">vDS version — choosing correctly</div>
+  <div class="ps">The version determines which features are available — choose the wrong version and you cannot use LACP Enhanced mode</div>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Distributed Switch</div>
+      <div class="vc-wiz-sub">Step 2 of 5 — Select version</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Name and location</div>
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Select version</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">3</div>Configure settings</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">4</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Distributed switch version</div>
+        <div style="margin-bottom:12px;font-size:13px;color:#5a7090;">Select a version. ESXi hosts must be at least the version shown to be compatible with this switch.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--vm-light);border:1px solid var(--vm-blue);border-radius:5px;cursor:pointer;">
+            <div style="width:12px;height:12px;border-radius:50%;background:var(--vm-blue);flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a2a3a;">8.0.3 (latest)</div>
+              <div style="font-size:11.5px;color:var(--vm-grey);">Requires ESXi 8.0.3 · Supports all current features including LACP Enhanced, NIOC v3</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid var(--vm-border);border-radius:5px;cursor:pointer;opacity:.6;">
+            <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid var(--vm-border);flex-shrink:0;"></div>
+            <div style="font-size:13px;color:var(--vm-grey);">7.0.3 · Requires ESXi 7.0.3</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid var(--vm-border);border-radius:5px;cursor:pointer;opacity:.6;">
+            <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid var(--vm-border);flex-shrink:0;"></div>
+            <div style="font-size:13px;color:var(--vm-grey);">6.7.0 · Requires ESXi 6.7</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">← Back</div>
+      <div class="vc-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why version 8.0.3 — the latest</div>
+    <div class="decision-q">Should you choose the latest vDS version or an older compatible version?</div>
+    <div class="decision-a"><strong>Always choose the latest version that all your hosts support — which is 8.0.3 because all five hosts run ESXi 8.0.3.</strong><br/><br/>
+    The temptation to choose an older version "for compatibility" is a mistake in NovaCrestBank's environment. All five hosts are identical, all run ESXi 8.0.3, and none will ever be downgraded. Older vDS versions lack features that are needed: vDS 6.x does not support LACP Enhanced mode. vDS 7.x lacks some NIOC v3 capabilities. vDS 8.0.3 has everything.<br/><br/>
+    The only valid reason to choose an older vDS version is if you have a mixed environment where some hosts run an older ESXi version — then you must pick the version that all hosts support. NovaCrestBank does not have this problem.</div>
+  </div>
+
+  <p>Select <strong>8.0.3 (latest)</strong>. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 07 — VDS UPLINKS ══════ -->
+<div class="page" id="page-vds-uplinks">
+  <div class="ey">VMware Series · vSphere-02 · Section 07</div>
+  <div class="pt">Configure settings — uplinks, NIOC, and default port group</div>
+  <div class="ps">The most decision-dense screen in the wizard — three choices with long-term consequences</div>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Distributed Switch</div>
+      <div class="vc-wiz-sub">Step 3 of 5 — Configure settings</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Name and location</div>
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Select version</div>
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Configure settings</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">4</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Configure settings</div>
+        <div class="vc-field">
+          <div class="vc-label">Number of uplinks <span class="vc-required">*</span></div>
+          <div class="vc-input filled">6</div>
+          <div class="vc-hint">One uplink slot per physical NIC. NovaCrestBank has 6 × 25G NICs per host.</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">Network I/O Control</div>
+          <div class="vc-select">Enabled (version 3)</div>
+          <div class="vc-hint">Enables per-traffic-type bandwidth reservation on each physical NIC.</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">Default port group</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#333;margin-top:4px;">
+            <div style="width:14px;height:14px;border:1.5px solid var(--vm-border);border-radius:3px;flex-shrink:0;background:#fff;"></div>
+            Create a default port group
+          </div>
+          <div class="vc-hint">Leave unchecked. You will create all port groups manually with correct names and VLANs.</div>
+        </div>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">← Back</div>
+      <div class="vc-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>The three settings — what to enter and why</h2>
+
+  <div class="decision">
+    <div class="decision-label">Number of uplinks — set to 6</div>
+    <div class="decision-q">Why exactly 6 uplinks — and what happens if you set it wrong?</div>
+    <div class="decision-a"><strong>One uplink per physical NIC, because each NIC has a distinct role and must be individually assignable.</strong><br/><br/>
+    The 6 uplinks will be assigned as: Uplink1=vmnic0, Uplink2=vmnic1, Uplink3=vmnic2, Uplink4=vmnic3, Uplink5=vmnic4, Uplink6=vmnic5. This one-to-one mapping makes the configuration explicit and auditable. When a network engineer looks at the vDS uplink configuration, they can immediately see which physical NIC is assigned to which uplink slot and which LACP LAG it belongs to.<br/><br/>
+    If you set fewer uplinks (e.g., 2): you would have to share uplink slots among multiple NICs — losing the ability to assign specific NICs to specific port groups. If you set more uplinks (e.g., 8): you have empty uplink slots with no NICs assigned — wasteful and potentially confusing. 6 is exactly right.<br/><br/>
+    If you set the wrong number and want to change it later: you can add uplinks to a vDS after creation (Actions → Edit Settings → change the count). You cannot reduce the number of uplinks without first ensuring no NICs or LAGs are assigned to the slots being removed.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Network I/O Control — enable it</div>
+    <div class="decision-q">NIOC sounds complex. Do you actually need it for a 5-host cluster?</div>
+    <div class="decision-a"><strong>Yes — because NovaCrestBank has storage (vSAN), infrastructure (management, vMotion), and workload (VMs) traffic all sharing the same physical NICs via LACP bonds.</strong><br/><br/>
+    The scenario NIOC prevents: esxi01 has a VM running a large batch job that generates 20 Gbps of VM-production traffic. The LACP bond for that NIC pair is 50 Gbps (2 × 25G). Without NIOC, the VM's 20 Gbps plus vSAN replication traffic plus vMotion traffic can collectively saturate the bond — causing vSAN heartbeat timeouts that trigger unnecessarily, or vMotion migrations that stall mid-transfer. With NIOC, vSAN is guaranteed a minimum share (typically 25%), vMotion is guaranteed a share, and VM traffic gets the remainder. The VM batch job slows down — not the storage layer.<br/><br/>
+    Disabling NIOC now saves no time (it is one toggle) but creates a problem you will only discover during peak load — which in a bank is typically end-of-day transaction processing. Enable it now.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Default port group — leave unchecked</div>
+    <div class="decision-q">Why not let vCenter create a default port group automatically?</div>
+    <div class="decision-a"><strong>Because the default port group has a generic name ("DPortGroup") and no VLAN assignment — it is a trap.</strong><br/><br/>
+    If you accept the default port group, it appears in the vDS with VLAN 0 (untagged) and the name "DPortGroup". Someone will eventually connect a VM to it thinking it is a valid port group. Traffic will arrive at the switch untagged and land on native VLAN 1 — which has no SVI and no routing. The VM will have no network access but no obvious error either. This wastes 30 minutes of troubleshooting. Creating all port groups manually ensures every port group has a meaningful name, the correct VLAN, and is created intentionally.</div>
+  </div>
+
+  <p>Enter <strong>6</strong> for uplinks. Set NIOC to <strong>Enabled (version 3)</strong>. Leave the default port group checkbox <strong>unchecked</strong>. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 08 — NIOC ══════ -->
+<div class="page" id="page-vds-nioc">
+  <div class="ey">VMware Series · vSphere-02 · Section 08</div>
+  <div class="pt">Network I/O Control — configuring bandwidth reservations</div>
+  <div class="ps">After the vDS is created, NIOC settings are configured separately — here is what to set and why</div>
+
+  <div class="callout vmware">
+    <div class="cl">NIOC configuration — done after the vDS is created, not during the wizard</div>
+    The New Distributed Switch wizard enables NIOC but does not configure the per-traffic-class bandwidth shares. After the vDS is created, you configure NIOC shares through the vDS properties. This section shows you where to find it and what to configure.
+  </div>
+
+  <h2>How to access NIOC settings after vDS creation</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In the Networking view, click NCB-vDS-01 to select it</div>
+        <p style="font-size:13.5px">In the left inventory tree (Networking view), click <strong>NCB-vDS-01</strong>. The main panel shows the vDS summary.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click the "Configure" tab → Network I/O Control</div>
+        <p style="font-size:13.5px">In the main panel, click the <strong>Configure</strong> tab. In the left sub-navigation, click <strong>Network I/O Control</strong>. The NIOC configuration page appears showing the System Traffic types (vSAN, vMotion, Management, VM, iSCSI, etc.) each with configurable Shares and Reservation values.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Click "Edit" and configure the shares</div>
+        <p style="font-size:13.5px">Click the <strong>Edit</strong> button. A dialog appears with all traffic categories. Configure as shown in the table below. Click <strong>OK</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>NIOC shares configuration — NovaCrestBank values</h2>
+  <table>
+    <thead><tr><th>Traffic type</th><th>Shares setting</th><th>Reservation</th><th>Why this setting</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>vSAN</strong></td>
+        <td>High (100)</td>
+        <td>0 Mbps</td>
+        <td>vSAN storage I/O is the most latency-sensitive workload — disk writes from VMs transit vSAN. High shares ensure vSAN is served before VM traffic during contention.</td>
+      </tr>
+      <tr>
+        <td><strong>vMotion</strong></td>
+        <td>Normal (50)</td>
+        <td>0 Mbps</td>
+        <td>vMotion needs consistent bandwidth during migrations but is not latency-critical. Normal shares ensures it completes in reasonable time without starving VMs.</td>
+      </tr>
+      <tr>
+        <td><strong>Management</strong></td>
+        <td>Normal (50)</td>
+        <td>100 Mbps</td>
+        <td>The 100 Mbps reservation guarantees management traffic (vCenter API, SSH) always gets through even during full saturation. Critical for maintaining control during incidents.</td>
+      </tr>
+      <tr>
+        <td><strong>Virtual machine</strong></td>
+        <td>Normal (50)</td>
+        <td>0 Mbps</td>
+        <td>VM traffic is best-effort — it gets what remains after storage and management are served. During normal operations (no contention) this is the majority of bandwidth.</td>
+      </tr>
+      <tr>
+        <td><strong>NFS</strong></td>
+        <td>High (100)</td>
+        <td>0 Mbps</td>
+        <td>NFS mounts from the NetApp AFF A400 serve ESXi datastores — NFS latency affects VM disk performance similarly to vSAN.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="decision-label">Why shares not reservations for vSAN and NFS?</div>
+    <div class="decision-q">Why use "High shares" for vSAN rather than a fixed Mbps reservation?</div>
+    <div class="decision-a"><strong>Because shares are proportional and adapt to what is actually being used — fixed reservations waste bandwidth.</strong><br/><br/>
+    A fixed reservation of 10,000 Mbps for vSAN would hold 10 Gbps reserved even when no vSAN traffic is flowing (during off-hours, for example). That reserved bandwidth sits unused. High shares (100 vs VM's 50) means: when there IS contention, vSAN gets roughly 2× the proportion of VM traffic. When there is no contention, all traffic flows freely at full speed with no artificial limits. Shares are the right model for a dynamic workload like a vSphere cluster. Fixed reservations are for services that need absolute guarantees regardless of load — like the management traffic 100 Mbps reservation.</div>
+  </div>
+</div>
+
+<!-- ══════ 09 — VDS REVIEW ══════ -->
+<div class="page" id="page-vds-review">
+  <div class="ey">VMware Series · vSphere-02 · Section 09</div>
+  <div class="pt">vDS review and create</div>
+  <div class="ps">The ready-to-complete screen of the New Distributed Switch wizard</div>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Distributed Switch</div>
+      <div class="vc-wiz-sub">Step 4 of 5 — Ready to complete</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Name and location</div>
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Select version</div>
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Configure settings</div>
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Summary — ready to create vDS</div>
+        <table style="font-size:12.5px;">
+          <tr><td style="color:#6c757d;padding:4px 0;min-width:160px;">Name</td><td style="font-weight:600;color:#1a2a3a;">NCB-vDS-01</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Location</td><td style="color:#1a2a3a;">NovaCrestBank-DC1</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Version</td><td style="color:#1a2a3a;">8.0.3</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Uplinks</td><td style="font-weight:600;color:#1a2a3a;">6</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Network I/O Control</td><td style="color:#28a745;font-weight:600;">Enabled (v3)</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Default port group</td><td style="color:#1a2a3a;">None created</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">← Back</div>
+      <div class="vc-btn primary">Finish — Create vDS</div>
+    </div>
+  </div>
+
+  <p>Verify: 6 uplinks, NIOC enabled, no default port group. Click <strong>Finish</strong>. The vDS (NCB-vDS-01) appears in the Networking inventory tree under NovaCrestBank-DC1 within a few seconds. It currently has no port groups, no hosts, and no uplinks assigned — it is a shell waiting to be filled.</p>
+</div>
+
+<!-- ══════ 10 — PG PHILOSOPHY ══════ -->
+<div class="page" id="page-pg-philosophy">
+  <div class="ey">VMware Series · vSphere-02 · Section 10</div>
+  <div class="pt">Port group design philosophy</div>
+  <div class="ps">The naming convention, VLAN assignment rules, and teaming policy decisions that apply to all 7 port groups — decided once, applied consistently</div>
+
+  <div class="decision">
+    <div class="decision-label">Port group naming convention</div>
+    <div class="decision-q">Why the format "PG-VLAN10-Management" — what does each part mean?</div>
+    <div class="decision-a"><strong>PG (object type) — VLAN10 (the VLAN ID) — Management (the traffic purpose).</strong><br/><br/>
+    This three-part format makes every port group self-documenting. When a VM administrator connects a VM to a port group, the name immediately tells them: (1) it is a port group (not a vDS or host), (2) it carries VLAN 10 traffic (they can cross-reference the VLAN plan from Guide 6), (3) it is for management traffic (not VM workloads). There is no ambiguity about what a VM connected to this port group will experience. The alternative — naming it "MGMT" or "Network1" — requires a separate lookup to understand what VLAN it carries and what traffic belongs there.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Teaming and failover policy per port group</div>
+    <div class="decision-q">Why are different teaming policies applied to different port groups?</div>
+    <div class="decision-a"><strong>Because different traffic types use different physical NIC pairs — and LACP LAGs must know which physical NICs to use.</strong><br/><br/>
+    Each LACP LAG is associated with specific uplinks. PG-VLAN10-Management uses Uplink1 and Uplink2 (vmnic0/1 — the management NIC pair). PG-VLAN20-vMotion and PG-VLAN50-OCP and PG-VLAN60-VM use Uplink3 and Uplink4 (vmnic2/3). PG-VLAN25-vSAN and PG-VLAN30-NFS use Uplink5 and Uplink6 (vmnic4/5). If a VM port group were accidentally configured to use all 6 uplinks, its traffic could end up on the vSAN NIC pair — consuming storage bandwidth with VM traffic. Explicit uplink assignment is a security and performance control, not just organisation.</div>
+  </div>
+
+  <h2>Port group reference plan — all 7 port groups at a glance</h2>
+  <table>
+    <thead><tr><th>Port group name</th><th>VLAN</th><th>Uplinks used</th><th>MTU</th><th>Who connects here</th></tr></thead>
+    <tbody>
+      <tr><td><code>PG-VLAN10-Management</code></td><td>10</td><td>Uplink1, Uplink2</td><td>1500</td><td>ESXi vmk0 (management VMkernel), vCenter VM NIC</td></tr>
+      <tr><td><code>PG-VLAN20-vMotion</code></td><td>20</td><td>Uplink3, Uplink4</td><td>1500</td><td>ESXi vmk1 (vMotion VMkernel)</td></tr>
+      <tr><td><code>PG-VLAN25-vSAN</code></td><td>25</td><td>Uplink5, Uplink6</td><td>9000</td><td>ESXi vmk2 (vSAN VMkernel)</td></tr>
+      <tr><td><code>PG-VLAN30-NFS</code></td><td>30</td><td>Uplink5, Uplink6</td><td>9000</td><td>ESXi vmk3 (NFS VMkernel)</td></tr>
+      <tr><td><code>PG-VLAN50-OCP-Nodes</code></td><td>50</td><td>Uplink3, Uplink4</td><td>1500</td><td>OpenShift node VMs</td></tr>
+      <tr><td><code>PG-VLAN60-VM-Production</code></td><td>60</td><td>Uplink3, Uplink4</td><td>1500</td><td>General workload VMs</td></tr>
+      <tr><td><code>PG-VLAN70-Windows</code></td><td>70</td><td>Uplink1, Uplink2</td><td>1500</td><td>Windows DC VMs, AD CS VMs</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="cl">How to create each port group — the common procedure</div>
+    All 7 port groups are created the same way: right-click NCB-vDS-01 in the Networking inventory → Distributed Port Group → New Distributed Port Group. A wizard opens with four screens: Name and location, Configure settings (VLAN, port binding), Advanced (uplink assignment, security), and Ready to complete. Sections 11–17 walk through each port group individually, showing only the values that differ.
+  </div>
+</div>
+
+<!-- ══════ 11 — PG MGMT ══════ -->
+<div class="page" id="page-pg-mgmt">
+  <div class="ey">VMware Series · vSphere-02 · Section 11</div>
+  <div class="pt">PG-VLAN10-Management — the most critical port group</div>
+  <div class="ps">The port group that carries ESXi management traffic and vCenter's own NIC — configured first because everything else depends on management connectivity</div>
+
+  <h2>Creating the port group — the wizard screens</h2>
+
+  <p>Right-click <strong>NCB-vDS-01</strong> → <strong>Distributed Port Group</strong> → <strong>New Distributed Port Group</strong>.</p>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Distributed Port Group</div>
+      <div class="vc-wiz-sub">PG-VLAN10-Management</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Name and location</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">2</div>Configure settings</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">3</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Name and location</div>
+        <div class="vc-field">
+          <div class="vc-label">Name</div>
+          <div class="vc-input filled">PG-VLAN10-Management</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">Number of ports</div>
+          <div class="vc-input filled">128</div>
+          <div class="vc-hint">128 ports is sufficient for this port group. Each VMkernel adapter or VM NIC uses one port.</div>
+        </div>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">Cancel</div>
+      <div class="vc-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <p>Click <strong>Next</strong>. The Configure Settings screen appears.</p>
+
+  <div class="vc-wizard">
+    <div class="vc-wiz-header">
+      <div class="vc-wiz-title">New Distributed Port Group</div>
+      <div class="vc-wiz-sub">Configure settings — VLAN, security, teaming</div>
+    </div>
+    <div class="vc-wiz-body">
+      <div class="vc-wiz-nav">
+        <div class="vc-wiz-step done"><div class="vc-wiz-dot">✓</div>Name and location</div>
+        <div class="vc-wiz-step active"><div class="vc-wiz-dot">→</div>Configure settings</div>
+        <div class="vc-wiz-step"><div class="vc-wiz-dot">3</div>Ready to complete</div>
+      </div>
+      <div class="vc-wiz-content">
+        <div class="vc-wiz-section">Port properties</div>
+        <div class="vc-field">
+          <div class="vc-label">Port binding</div>
+          <div class="vc-select">Static binding</div>
+          <div class="vc-hint">A port is assigned when the VM is connected. Correct for all NovaCrestBank port groups.</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">Port allocation</div>
+          <div class="vc-select">Elastic</div>
+          <div class="vc-hint">Ports are added automatically as needed, up to the maximum.</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">VLAN type</div>
+          <div class="vc-select">VLAN</div>
+        </div>
+        <div class="vc-field">
+          <div class="vc-label">VLAN ID <span class="vc-required">*</span></div>
+          <div class="vc-input filled">10</div>
+          <div class="vc-hint">All traffic on this port group is tagged with VLAN 10 by ESXi before sending to the Cisco leaf switch.</div>
+        </div>
+      </div>
+    </div>
+    <div class="vc-wiz-footer">
+      <div class="vc-btn secondary">← Back</div>
+      <div class="vc-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">VLAN type — "VLAN" not "VLAN Trunking" not "Private VLAN"</div>
+    <div class="decision-q">The VLAN type dropdown has four options: None, VLAN, VLAN Trunking, and Private VLAN. Which to choose and why?</div>
+    <div class="decision-a"><strong>Select "VLAN" for all NovaCrestBank port groups except those carrying VM trunks.</strong><br/><br/>
+    <strong>None:</strong> Sends untagged frames — correct only if the switch port is an access port. NovaCrestBank uses trunk ports on all ESXi-facing leaf switch ports. Untagged frames land on native VLAN 1 which has no routing. Never use "None" here.<br/><br/>
+    <strong>VLAN (selected):</strong> Tags all traffic from this port group with the specified VLAN ID. This is what a trunk port expects. The leaf switch receives VLAN 10-tagged frames and routes them to the VLAN 10 SVI. This is correct.<br/><br/>
+    <strong>VLAN Trunking:</strong> Passes multiple VLAN tags through to VMs — used when a VM itself is a router or firewall that needs to handle multiple VLANs. Not needed for ESXi VMkernel adapters or workload VMs.<br/><br/>
+    <strong>Private VLAN:</strong> Isolates VMs from each other within the same VLAN using PVLAN. Not used in NovaCrestBank's design.</div>
+  </div>
+
+  <p>Click <strong>Next</strong>, review, click <strong>Finish</strong>. PG-VLAN10-Management is created.</p>
+</div>
+
+<!-- ══════ 12–17 — REMAINING PORT GROUPS ══════ -->
+<div class="page" id="page-pg-vmotion">
+  <div class="ey">VMware Series · vSphere-02 · Section 12</div>
+  <div class="pt">PG-VLAN20-vMotion port group</div>
+  <div class="ps">The live migration port group — why it is on different uplinks from management</div>
+
+  <p>Repeat the same wizard: right-click NCB-vDS-01 → Distributed Port Group → New Distributed Port Group.</p>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Name:            <strong style="color:var(--accent);">PG-VLAN20-vMotion</strong></div>
+    <div style="margin-top:4px;">Number of ports: <strong style="color:var(--accent);">128</strong></div>
+    <div style="margin-top:4px;">Port binding:    <strong style="color:var(--accent);">Static binding</strong></div>
+    <div style="margin-top:4px;">VLAN type:       <strong style="color:var(--accent);">VLAN</strong></div>
+    <div style="margin-top:4px;">VLAN ID:         <strong style="color:var(--accent);">20</strong></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why vMotion is on Uplink3/Uplink4 — not the management uplinks</div>
+    <div class="decision-q">vMotion and management are both infrastructure traffic. Why not put them on the same NIC pair?</div>
+    <div class="decision-a"><strong>Because vMotion generates enormous bandwidth bursts that would crowd out management traffic on a shared NIC.</strong><br/><br/>
+    A vMotion of a 64 GB RAM VM generates approximately 64 GB of network transfer in roughly 20 seconds — approaching 25 Gbps (the full line rate of a single 25G NIC). If vMotion and management shared vmnic0/1, a vMotion event would saturate the management NIC. vCenter loses reliable communication with the host. SSH sessions drop. If an administrator is making a configuration change during the vMotion, the session dies mid-command. By putting vMotion on its own dedicated NIC pair (vmnic2/3), vMotion can burst to full line rate without touching the management path. Management always has dedicated bandwidth regardless of vMotion activity.</div>
+  </div>
+</div>
+
+<div class="page" id="page-pg-vsan">
+  <div class="ey">VMware Series · vSphere-02 · Section 13</div>
+  <div class="pt">PG-VLAN25-vSAN — MTU 9000 is mandatory</div>
+  <div class="ps">The vSAN storage port group — the MTU setting here has the most operational consequence of any port group setting</div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Name:            <strong style="color:var(--accent);">PG-VLAN25-vSAN</strong></div>
+    <div style="margin-top:4px;">Number of ports: <strong style="color:var(--accent);">128</strong></div>
+    <div style="margin-top:4px;">VLAN type:       <strong style="color:var(--accent);">VLAN</strong></div>
+    <div style="margin-top:4px;">VLAN ID:         <strong style="color:var(--accent);">25</strong></div>
+  </div>
+
+  <h2>Setting MTU 9000 on the vSAN port group</h2>
+  <p>After creating the port group, MTU is not set in the New Port Group wizard — it is set in the port group's <strong>Edit Settings</strong> after creation.</p>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click PG-VLAN25-vSAN → Edit Settings</div>
+        <p style="font-size:13.5px">In the Networking inventory, right-click <strong>PG-VLAN25-vSAN</strong> → <strong>Edit Settings</strong>. The Edit Settings dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click "Advanced" in the left panel → set MTU override</div>
+        <p style="font-size:13.5px">In the Edit Settings dialog, click <strong>Advanced</strong> in the left panel. You will see a field labelled <strong>"Override port policies"</strong> with a checkbox for <strong>MTU</strong>. Tick the MTU checkbox. A field appears — type <strong>9000</strong>. Click <strong>OK</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="decision">
+    <div class="decision-label">MTU 9000 — the complete chain that must be consistent</div>
+    <div class="decision-q">The port group MTU is set to 9000. Is that sufficient for jumbo frames to work end-to-end?</div>
+    <div class="decision-a"><strong>No — MTU 9000 must be set at every single hop in the path.</strong><br/><br/>
+    Setting MTU 9000 on the vDS port group is one step in a five-step chain. The complete chain that must all be at MTU 9000:<br/>
+    1. ESXi VMkernel adapter (vmk2) — set when configuring the vSAN VMkernel in Phase 2<br/>
+    2. vDS port group (PG-VLAN25-vSAN) — set here<br/>
+    3. Leaf switch port channel (Po103, physical ESXi-facing port) — set in Cisco Guide 5 with <code>mtu 9000</code><br/>
+    4. Leaf SVI (VLAN 25) — set in Cisco Guide 5 with <code>mtu 9000</code> on <code>interface vlan25</code><br/>
+    5. Spine interfaces (Eth1/1-3) — set in Cisco Guide 5 with <code>mtu 9000</code><br/><br/>
+    If any single hop is at 1500, oversized frames are silently dropped at that hop. The VMkernel sends a 9000-byte frame, it arrives at a 1500-byte interface, and the interface drops it without an ICMP "fragmentation needed" response (because the DF bit is set). vSAN degrades silently — slower writes, more retries — with no obvious error in the vCenter UI. The MTU verification test (vmkping -d -s 8972) is what catches this.
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-pg-nfs">
+  <div class="ey">VMware Series · vSphere-02 · Section 14</div>
+  <div class="pt">PG-VLAN30-NFS — storage for NetApp</div>
+  <div class="ps">The NFS port group for NetApp AFF A400 connectivity — same MTU requirement as vSAN, same uplinks</div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Name:            <strong style="color:var(--accent);">PG-VLAN30-NFS</strong></div>
+    <div style="margin-top:4px;">Number of ports: <strong style="color:var(--accent);">128</strong></div>
+    <div style="margin-top:4px;">VLAN type:       <strong style="color:var(--accent);">VLAN</strong></div>
+    <div style="margin-top:4px;">VLAN ID:         <strong style="color:var(--accent);">30</strong></div>
+    <div style="margin-top:4px;">MTU override:    <strong style="color:var(--accent);">9000</strong>  (set in Edit Settings → Advanced after creation)</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why NFS uses the same uplinks as vSAN (Uplink5/6)</div>
+    <div class="decision-q">vSAN and NFS are both storage traffic. Why not put NFS on Uplink3/4 with vMotion to spread the load?</div>
+    <div class="decision-a"><strong>Because vSAN and NFS both require MTU 9000 end-to-end, and the uplinks carrying MTU 9000 frames must connect to switch ports configured for MTU 9000.</strong><br/><br/>
+    On the Cisco leaf switches, Uplink5 and Uplink6 (vmnic4/5) connect to port channels (Po103/Po106) whose member ports are configured at MTU 9000. The port channels for Uplink3/4 (Po102/Po105) are at standard MTU 1500 — they carry vMotion and VM traffic. If NFS were placed on Uplink3/4, its 9000-byte frames would hit 1500-byte switch ports and be dropped.<br/><br/>
+    The MTU configuration on the Cisco switch and the uplink assignment in the vDS must be aligned. This is the exact design from Guide 5: storage NICs (vmnic4/5) connect to the storage LACP bond with MTU 9000; infrastructure NICs (vmnic2/3) connect to the VM/vMotion bond at MTU 1500.
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-pg-ocp">
+  <div class="ey">VMware Series · vSphere-02 · Section 15</div>
+  <div class="pt">PG-VLAN50-OCP-Nodes — OpenShift node connectivity</div>
+  <div class="ps">The port group all OpenShift master, infra, and worker node VMs connect to</div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Name:            <strong style="color:var(--accent);">PG-VLAN50-OCP-Nodes</strong></div>
+    <div style="margin-top:4px;">Number of ports: <strong style="color:var(--accent);">128</strong></div>
+    <div style="margin-top:4px;">VLAN type:       <strong style="color:var(--accent);">VLAN</strong></div>
+    <div style="margin-top:4px;">VLAN ID:         <strong style="color:var(--accent);">50</strong></div>
+    <div style="margin-top:4px;">MTU:             <strong style="color:var(--accent);">1500</strong>  (default — no override needed)</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why OCP nodes share uplinks with vMotion and VM production</div>
+    <div class="decision-q">OpenShift generates significant east-west traffic (pod-to-pod OVN tunnels). Should it have dedicated NICs?</div>
+    <div class="decision-a"><strong>Not at the initial deployment scale — the Uplink3/4 pair (vmnic2/3) at 2×25G provides 50 Gbps aggregate capacity, which comfortably handles vMotion, OCP overlay traffic, and VM production traffic combined for a 9-node OCP cluster.</strong><br/><br/>
+    OCP's pod-to-pod traffic uses Geneve tunnels encapsulated in UDP. The tunnel overhead adds ~50 bytes per packet. At 1500-byte MTU the effective payload per packet is about 1430 bytes — a small efficiency loss. If this becomes a bottleneck (measurable as high CPU for OVN overlay processing or sustained link utilisation above 80%), the remediation is: (1) increase MTU to 9000 on the OCP port group and VLAN 50 SVIs (reduces fragmentation overhead), or (2) dedicate a fourth NIC pair specifically for OCP. Neither change requires redesigning the vDS — just modifying port group settings and potentially the LACP LAG assignments. The current design is deliberately flexible for future growth.</div>
+  </div>
+</div>
+
+<div class="page" id="page-pg-vm">
+  <div class="ey">VMware Series · vSphere-02 · Section 16</div>
+  <div class="pt">PG-VLAN60-VM-Production — general VM workloads</div>
+  <div class="ps">The broadest port group — for banking application VMs that are not containerised</div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Name:            <strong style="color:var(--accent);">PG-VLAN60-VM-Production</strong></div>
+    <div style="margin-top:4px;">Number of ports: <strong style="color:var(--accent);">128</strong></div>
+    <div style="margin-top:4px;">VLAN type:       <strong style="color:var(--accent);">VLAN</strong></div>
+    <div style="margin-top:4px;">VLAN ID:         <strong style="color:var(--accent);">60</strong></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why 128 ports on every port group</div>
+    <div class="decision-q">NovaCrestBank has a 5-host cluster and maybe 20 VMs initially. Why not set the port count lower — say 32?</div>
+    <div class="decision-a"><strong>Because the cost of an unused port is zero, but the cost of running out of ports mid-operation is significant.</strong><br/><br/>
+    vDS ports are not physical resources — they are software constructs that consume negligible memory. There is no performance or cost penalty for having 128 ports when only 20 are used. However, if you set 32 ports and later add a vMotion event that temporarily binds 40 ports, the operation fails with an error: "No free ports on distributed port group." Running out of ports causes VM power-on failures and vMotion failures — at the worst possible time (during a high-load period when you are migrating VMs). 128 is the VMware-recommended starting point for enterprise environments. You can always increase the port count later, but doing so requires a brief port group reconfiguration that generates a change-management event.
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-pg-win">
+  <div class="ey">VMware Series · vSphere-02 · Section 17</div>
+  <div class="pt">PG-VLAN70-Windows — Windows infrastructure VMs</div>
+  <div class="ps">The most security-sensitive port group — for Domain Controllers and CA servers</div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Name:            <strong style="color:var(--accent);">PG-VLAN70-Windows</strong></div>
+    <div style="margin-top:4px;">Number of ports: <strong style="color:var(--accent);">128</strong></div>
+    <div style="margin-top:4px;">VLAN type:       <strong style="color:var(--accent);">VLAN</strong></div>
+    <div style="margin-top:4px;">VLAN ID:         <strong style="color:var(--accent);">70</strong></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why Windows infrastructure shares uplinks with management (Uplink1/2)</div>
+    <div class="decision-q">Domain Controllers are high-value targets. Should they have dedicated NICs separate from management traffic?</div>
+    <div class="decision-a"><strong>No — and the reasoning reveals an important principle: security isolation through VLANs is more effective than physical NIC separation for the Windows tier.</strong><br/><br/>
+    Giving the DCs dedicated NICs (vmnic6/7 — which do not exist on NovaCrestBank's hardware) would only add physical separation. The security control that matters is VLAN isolation — the fact that VLAN 70 traffic is separated from VLAN 60 (VM production) at the network layer, enforced by the Cisco leaf switches and the Palo Alto firewall. Physical NIC separation adds no additional security if both NICs are on the same trunk port and VLAN separation is already enforced by the switch.<br/><br/>
+    Sharing Uplink1/2 with management means the management VMkernel and Windows VMs share the same physical NIC pair. This is intentional: management traffic is small (SSH sessions, API calls — rarely more than a few Mbps) and Windows VM traffic for 2 DCs is also small. There is no contention risk. The NIOC management traffic reservation (100 Mbps guaranteed) ensures the management VMkernel always gets through regardless of DC traffic. The right decision is: share the NIC pair, rely on VLAN isolation for security.</div>
+  </div>
+</div>
+
+<div class="page" id="page-pg-summary">
+  <div class="ey">VMware Series · vSphere-02 · Section 18</div>
+  <div class="pt">Port group summary — all 7 created</div>
+  <div class="ps">Confirming all port groups exist before proceeding to add hosts</div>
+
+  <div class="vc-ui">
+    <div class="vc-topbar">
+      <div class="vc-logo">VMware vSphere</div>
+      <div class="vc-topnav">
+        <div class="vc-topnav-item active">Networking</div>
+      </div>
+    </div>
+    <div class="vc-body">
+      <div class="vc-sidebar">
+        <div class="vc-side-group">NovaCrestBank-DC1</div>
+        <div class="vc-side-item" style="font-size:12px;padding-left:8px;">🔷 NCB-vDS-01</div>
+        <div class="vc-side-item active" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN10-Management</div>
+        <div class="vc-side-item" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN20-vMotion</div>
+        <div class="vc-side-item" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN25-vSAN</div>
+        <div class="vc-side-item" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN30-NFS</div>
+        <div class="vc-side-item" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN50-OCP-Nodes</div>
+        <div class="vc-side-item" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN60-VM-Production</div>
+        <div class="vc-side-item" style="font-size:11.5px;padding-left:20px;">📋 PG-VLAN70-Windows</div>
+      </div>
+      <div class="vc-main">
+        <div class="vc-title">NCB-vDS-01</div>
+        <div class="vc-subtitle">Version 8.0.3 · 6 uplinks · NIOC v3 enabled · 7 port groups · 0 hosts</div>
+        <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:5px;padding:10px 14px;font-size:13px;color:#1b5e20;margin-top:12px;">
+          ✓ All 7 port groups created. Next: Add hosts to the vDS and configure LACP.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Quick verification — check each port group's VLAN before adding hosts</h2>
+  <p>Click each port group in the inventory tree and check the <strong>Summary</strong> tab. Verify:</p>
+  <table>
+    <thead><tr><th>Port group</th><th>VLAN ID shown in summary</th><th>MTU</th></tr></thead>
+    <tbody>
+      <tr><td>PG-VLAN10-Management</td><td><span class="badge bg">10 ✓</span></td><td>1500</td></tr>
+      <tr><td>PG-VLAN20-vMotion</td><td><span class="badge bg">20 ✓</span></td><td>1500</td></tr>
+      <tr><td>PG-VLAN25-vSAN</td><td><span class="badge bg">25 ✓</span></td><td><span class="badge bg">9000 ✓</span></td></tr>
+      <tr><td>PG-VLAN30-NFS</td><td><span class="badge bg">30 ✓</span></td><td><span class="badge bg">9000 ✓</span></td></tr>
+      <tr><td>PG-VLAN50-OCP-Nodes</td><td><span class="badge bg">50 ✓</span></td><td>1500</td></tr>
+      <tr><td>PG-VLAN60-VM-Production</td><td><span class="badge bg">60 ✓</span></td><td>1500</td></tr>
+      <tr><td>PG-VLAN70-Windows</td><td><span class="badge bg">70 ✓</span></td><td>1500</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 19 — ADD HOSTS VDS ══════ -->
+<div class="page" id="page-add-hosts-vds">
+  <div class="ey">VMware Series · vSphere-02 · Section 19</div>
+  <div class="pt">Add all 5 hosts to the vDS</div>
+  <div class="ps">Connecting the ESXi hosts to the vDS — the prerequisite step before any NICs can be assigned or migrated</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NCB-vDS-01 → Add and Manage Hosts</div>
+        <p style="font-size:13.5px">In the Networking inventory tree, right-click <strong>NCB-vDS-01</strong>. Click <strong>Add and Manage Hosts</strong>. The Add and Manage Hosts wizard opens. This is the wizard that adds hosts to the vDS AND allows you to assign physical NICs and migrate VMkernel adapters — all in one workflow.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Select task: "Add hosts"</div>
+        <p style="font-size:13.5px">The first screen asks you to select a task. You see three radio buttons: <strong>Add hosts</strong>, <strong>Manage host networking</strong>, and <strong>Remove hosts</strong>. Select <strong>Add hosts</strong>. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Click "New hosts" — add all 5 ESXi hosts</div>
+        <p style="font-size:13.5px">Click the <strong>+ New hosts</strong> button. A list of eligible hosts appears — your five ESXi hosts (10.10.0.11 through 10.10.0.15). Tick the checkbox next to each host (or tick the header checkbox to select all). Click <strong>OK</strong>. All five hosts appear in the host list. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Manage physical adapters — do not assign NICs yet</div>
+        <p style="font-size:13.5px">The next screen shows each host and its physical NICs. It asks you to assign physical adapters to vDS uplinks. For now, click <strong>Next</strong> without making any changes. You will configure LACP LAGs and assign NICs in Sections 21–22. Assigning NICs before LACP is configured creates a brief period where the NIC is on the vDS but not in a LAG — which causes the Cisco switch LACP port channel to go to Individual state momentarily.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Manage VMkernel adapters — do not migrate yet</div>
+        <p style="font-size:13.5px">The next screen shows existing VMkernel adapters. For each host, vmk0 (management) is shown with a warning icon indicating it is not yet on the vDS. Do not migrate it here — the management migration is done carefully in Section 20 after LACP is confirmed working. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Review and Finish</div>
+        <p style="font-size:13.5px">The summary screen shows 5 hosts being added with no NIC assignments and no VMkernel migrations. This is correct — you are adding the hosts to the vDS structure without disrupting any existing connectivity. Click <strong>Finish</strong>. The hosts are now members of NCB-vDS-01 (visible in the vDS topology view) but all their NICs are still on vSwitch0. Nothing has changed about connectivity — yet.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>All 5 hosts are now members of NCB-vDS-01. No connectivity has changed. All NICs are still on vSwitch0. The vDS membership is structural only at this point. Next: configure LACP LAGs on the vDS, then migrate NICs into the LAGs, then migrate the management VMkernel.</span></div>
+</div>
+
+<!-- ══════ 20 — MIGRATE MGMT ══════ -->
+<div class="page" id="page-migrate-mgmt">
+  <div class="ey">VMware Series · vSphere-02 · Section 20</div>
+  <div class="pt">Migrate management VMkernel — the careful step</div>
+  <div class="ps">Moving vmk0 from vSwitch0 to the vDS — one host at a time, with verification after each</div>
+
+  <div class="callout danger">
+    <div class="cl">Read this entire section before starting — then execute it without interruption</div>
+    The management VMkernel migration on each host takes approximately 30 seconds. During those 30 seconds, vCenter loses the management connection to that host. This is expected and normal. If the migration succeeds, the connection restores in 30 seconds. If it fails (wrong VLAN, wrong port group, IP conflict), the host stays disconnected until you use iLO to restore the DCUI settings. Do one host at a time. Verify connection is restored before doing the next host.
+  </div>
+
+  <h2>The correct order of operations for management migration</h2>
+
+  <div class="callout warn">
+    <div class="cl">Before migrating: confirm LACP LAG is configured (Section 21 must be done first)</div>
+    The management VMkernel migration should happen AFTER the LACP LAG for Uplink1/Uplink2 is configured (Section 21) but BEFORE vmnic0 is removed from vSwitch0 (Section 22). Here is why: after migration, vmk0 is on the vDS port group. If vmnic0 is not yet assigned to a vDS uplink, vmk0 has no physical path and the host is immediately unreachable. The correct sequence: (1) Configure LACP LAG, (2) Add vmnic0 to vDS Uplink1 while it is still ALSO on vSwitch0 — brief dual membership, (3) Migrate vmk0 from vSwitch0 to vDS PG-VLAN10, (4) Remove vmnic0 from vSwitch0 (the old path is now gone, vDS is the only path). This guide presents them in teaching order (LACP in Section 21, NIC assignment in Section 22) but the execution order within each host is: LAG → NIC to vDS (keep on vSwitch0 too) → VMkernel migrate → remove from vSwitch0.
+  </div>
+
+  <h2>Migrating vmk0 on esxi01 — the procedure</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In vCenter, select esxi01 → Configure → Networking → VMkernel adapters</div>
+        <p style="font-size:13.5px">In the Hosts and Clusters inventory, click <strong>esxi01 (10.10.0.11)</strong>. Click the <strong>Configure</strong> tab. In the left sub-navigation, click <strong>Networking → VMkernel adapters</strong>. You see vmk0 listed with IP 10.10.0.11, associated with vSwitch0.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NCB-vDS-01 → Add and Manage Hosts → Manage host networking → esxi01 only</div>
+        <p style="font-size:13.5px">Go back to the Networking view. Right-click <strong>NCB-vDS-01</strong> → <strong>Add and Manage Hosts</strong>. Select <strong>Manage host networking</strong>. On the host selection screen, add only <strong>esxi01</strong> (tick esxi01, leave all others unticked). Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Manage physical adapters — assign vmnic0 to Uplink1</div>
+        <p style="font-size:13.5px">The Manage physical adapters screen shows esxi01's NICs. Click <strong>vmnic0</strong>. Click <strong>Assign uplink</strong>. Select <strong>Uplink1</strong>. Click <strong>OK</strong>. vmnic0 is now assigned to Uplink1 on the vDS. At this moment, vmnic0 is simultaneously a member of vSwitch0 (old) AND assigned to vDS Uplink1 (new). ESXi allows this brief dual-membership during migration.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Manage VMkernel adapters — migrate vmk0 to PG-VLAN10-Management</div>
+        <p style="font-size:13.5px">Click <strong>Next</strong> to reach the Manage VMkernel adapters screen. Click <strong>vmk0</strong> on esxi01. Click <strong>Assign port group</strong>. Select <strong>PG-VLAN10-Management</strong>. Click <strong>OK</strong>. vmk0 is now assigned to migrate to PG-VLAN10-Management on the vDS.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Review and Finish — the connection drops briefly</div>
+        <p style="font-size:13.5px">Click <strong>Next</strong> → review → <strong>Finish</strong>. The migration begins. In the Tasks panel you will see "Reconfigure virtual switch" running. For 20–40 seconds, esxi01 shows as "Not responding" in the vCenter inventory — the management connection is temporarily lost as vmk0 moves to the vDS. If the migration was configured correctly (VLAN 10, correct port group, vmnic0 assigned to Uplink1), the connection restores automatically. Within 45 seconds, esxi01 shows as "Connected" again.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Verify — ping esxi01 from jump host immediately after reconnect</div>
+        <p style="font-size:13.5px">From the jump host, run <code>ping 10.10.0.11</code>. It should respond within 60 seconds of starting the Finish. If it does not respond within 90 seconds, open iLO for esxi01 (https://10.40.0.31) and use the DCUI to restore the management network — the old standard vSwitch configuration will still be there as a fallback, restoring connectivity via the DCUI network restart option.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <div class="step-title">Repeat for esxi02 through esxi05 — one at a time</div>
+        <p style="font-size:13.5px">After esxi01's management connection is confirmed restored, repeat the exact same procedure for esxi02, esxi03, esxi04, and esxi05 in sequence. Never migrate two hosts simultaneously — if both fail, you lose management of two hosts at once, which is much harder to recover. One at a time, verify connectivity after each.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 21 — LACP ══════ -->
+<div class="page" id="page-configure-lacp">
+  <div class="ey">VMware Series · vSphere-02 · Section 21</div>
+  <div class="pt">Configure LACP on the vDS — Link Aggregation Groups</div>
+  <div class="ps">Creating the three LACP LAGs that correspond to the three NIC pairs — and why each LAG has exactly two uplinks</div>
+
+  <div class="callout vmware">
+    <div class="cl">LACP Enhanced mode — enabling it first</div>
+    Before creating LAGs, you must switch the vDS to LACP Enhanced mode. By default, the vDS uses LACP Basic mode (one LAG per vDS). NovaCrestBank needs three LAGs (one per NIC pair). Navigate to NCB-vDS-01 → Configure tab → LACP → click Edit → change mode from "Basic" to "Enhanced". Click OK. This change is non-disruptive — no hosts need to be disconnected.
+  </div>
+
+  <h2>Creating the three LAGs</h2>
+  <p>Navigate to <strong>NCB-vDS-01 → Configure tab → LACP</strong>. Click <strong>+ New Link Aggregation Group</strong> for each LAG.</p>
+
+  <div class="card">
+    <h3>LAG 1 — Management NIC pair</h3>
+    <div class="spec-row"><span class="spec-label">LAG name</span><span class="spec-val"><code>LAG-Management</code></span></div>
+    <div class="spec-row"><span class="spec-label">Number of ports</span><span class="spec-val">2 (vmnic0 and vmnic1 — one LAG port per physical NIC)</span></div>
+    <div class="spec-row"><span class="spec-label">LACP mode</span><span class="spec-val">Active (initiates LACP negotiation — matches Cisco "mode active" on Po101)</span></div>
+    <div class="spec-row"><span class="spec-label">LACP load balancing</span><span class="spec-val">Source and Destination IP and MAC Address (5-tuple hash — matches Cisco hash policy)</span></div>
+    <div class="spec-row"><span class="spec-label">Uplinks assigned</span><span class="spec-val">Uplink1, Uplink2</span></div>
+    <div class="spec-row"><span class="spec-label">VLAN port groups using this LAG</span><span class="spec-val">PG-VLAN10-Management, PG-VLAN70-Windows</span></div>
+  </div>
+
+  <div class="card">
+    <h3>LAG 2 — VM/OCP/vMotion NIC pair</h3>
+    <div class="spec-row"><span class="spec-label">LAG name</span><span class="spec-val"><code>LAG-VM-OCP</code></span></div>
+    <div class="spec-row"><span class="spec-label">Number of ports</span><span class="spec-val">2</span></div>
+    <div class="spec-row"><span class="spec-label">LACP mode</span><span class="spec-val">Active</span></div>
+    <div class="spec-row"><span class="spec-label">LACP load balancing</span><span class="spec-val">Source and Destination IP and MAC Address</span></div>
+    <div class="spec-row"><span class="spec-label">Uplinks assigned</span><span class="spec-val">Uplink3, Uplink4</span></div>
+    <div class="spec-row"><span class="spec-label">VLAN port groups using this LAG</span><span class="spec-val">PG-VLAN20-vMotion, PG-VLAN50-OCP-Nodes, PG-VLAN60-VM-Production</span></div>
+  </div>
+
+  <div class="card">
+    <h3>LAG 3 — Storage NIC pair</h3>
+    <div class="spec-row"><span class="spec-label">LAG name</span><span class="spec-val"><code>LAG-Storage</code></span></div>
+    <div class="spec-row"><span class="spec-label">Number of ports</span><span class="spec-val">2</span></div>
+    <div class="spec-row"><span class="spec-label">LACP mode</span><span class="spec-val">Active</span></div>
+    <div class="spec-row"><span class="spec-label">LACP load balancing</span><span class="spec-val">Source and Destination IP and MAC Address</span></div>
+    <div class="spec-row"><span class="spec-label">Uplinks assigned</span><span class="spec-val">Uplink5, Uplink6</span></div>
+    <div class="spec-row"><span class="spec-label">VLAN port groups using this LAG</span><span class="spec-val">PG-VLAN25-vSAN, PG-VLAN30-NFS</span></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">LACP mode Active on both sides — why not Passive?</div>
+    <div class="decision-q">LACP has two modes: Active (initiates negotiation) and Passive (waits for the other side to initiate). The Cisco switch is configured with "mode active". Should ESXi also be Active?</div>
+    <div class="decision-a"><strong>Yes — both sides Active is acceptable and is the recommended configuration for VMware vDS.</strong><br/><br/>
+    LACP requires that at least one side is Active. Two Passive sides never form a LAG — both wait forever for the other to initiate. Two Active sides both initiate, exchange LACP PDUs, and form the LAG — this is correct behaviour. With the Cisco switch at Active and ESXi at Active, the LAG negotiates immediately when the port is enabled. The result is the same as one Active and one Passive — the LAG forms. Active/Active is VMware's default recommendation for vDS LACP because it eliminates any risk of two-Passive no-formation.</div>
+  </div>
+
+  <h2>Assigning LAGs to port groups — the teaming policy</h2>
+  <p>After creating the LAGs, assign each LAG as the active uplink for the relevant port groups. For each port group: right-click → Edit Settings → Teaming and failover → Active uplinks: select the LAG for that port group. Set all individual uplinks (Uplink1–6) to Unused for that port group — only the LAG should be active.</p>
+  <table>
+    <thead><tr><th>Port group</th><th>Active uplink (LAG)</th><th>Unused uplinks</th></tr></thead>
+    <tbody>
+      <tr><td>PG-VLAN10-Management</td><td><code>LAG-Management</code></td><td>Uplink1, Uplink2, Uplink3, Uplink4, Uplink5, Uplink6</td></tr>
+      <tr><td>PG-VLAN70-Windows</td><td><code>LAG-Management</code></td><td>All individual uplinks</td></tr>
+      <tr><td>PG-VLAN20-vMotion</td><td><code>LAG-VM-OCP</code></td><td>All individual uplinks</td></tr>
+      <tr><td>PG-VLAN50-OCP-Nodes</td><td><code>LAG-VM-OCP</code></td><td>All individual uplinks</td></tr>
+      <tr><td>PG-VLAN60-VM-Production</td><td><code>LAG-VM-OCP</code></td><td>All individual uplinks</td></tr>
+      <tr><td>PG-VLAN25-vSAN</td><td><code>LAG-Storage</code></td><td>All individual uplinks</td></tr>
+      <tr><td>PG-VLAN30-NFS</td><td><code>LAG-Storage</code></td><td>All individual uplinks</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 22 — ASSIGN UPLINKS ══════ -->
+<div class="page" id="page-assign-uplinks">
+  <div class="ey">VMware Series · vSphere-02 · Section 22</div>
+  <div class="pt">Assign physical NICs to vDS uplinks</div>
+  <div class="ps">The final physical wiring step — mapping each vmnic to its vDS uplink slot and LAG</div>
+
+  <h2>The NIC-to-uplink assignment for each host</h2>
+  <p>For each host, navigate to: right-click NCB-vDS-01 → Add and Manage Hosts → Manage host networking → select one host → Manage physical adapters. Assign each vmnic to its uplink:</p>
+
+  <table>
+    <thead><tr><th>Physical NIC</th><th>vDS Uplink slot</th><th>LAG membership</th><th>Traffic carried</th></tr></thead>
+    <tbody>
+      <tr><td>vmnic0</td><td>Uplink1</td><td>LAG-Management port 0</td><td>Management, Windows VMs</td></tr>
+      <tr><td>vmnic1</td><td>Uplink2</td><td>LAG-Management port 1</td><td>Management, Windows VMs</td></tr>
+      <tr><td>vmnic2</td><td>Uplink3</td><td>LAG-VM-OCP port 0</td><td>vMotion, OCP, VM production</td></tr>
+      <tr><td>vmnic3</td><td>Uplink4</td><td>LAG-VM-OCP port 1</td><td>vMotion, OCP, VM production</td></tr>
+      <tr><td>vmnic4</td><td>Uplink5</td><td>LAG-Storage port 0</td><td>vSAN, NFS</td></tr>
+      <tr><td>vmnic5</td><td>Uplink6</td><td>LAG-Storage port 1</td><td>vSAN, NFS</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="cl">Phase 1 only migrates vmnic0 — the rest come in Phase 2</div>
+    In Phase 1 you migrate only vmnic0 (to Uplink1, as part of the management VMkernel migration in Section 20). vmnic1 through vmnic5 remain on vSwitch0 and are moved to the vDS in Phase 2 — after the Windows DCs and AD CS are deployed and the build is on stable ground. Phase 2 also creates the vMotion, vSAN, and NFS VMkernel adapters. At the end of Phase 1, the state per host is: vmnic0 on vDS Uplink1 (in LAG-Management), vmnic1–5 still on vSwitch0 (mostly unused). This is intentional and correct.
+  </div>
+</div>
+
+<!-- ══════ 23 — VERIFY CONNECTIVITY ══════ -->
+<div class="page" id="page-verify-connectivity">
+  <div class="ey">VMware Series · vSphere-02 · Section 23</div>
+  <div class="pt">Verify management connectivity after migration</div>
+  <div class="ps">The critical check after each host's management VMkernel is migrated to the vDS</div>
+
+  <h2>Post-migration verification for each host</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
+    <div style="color:var(--text2);margin-bottom:8px;"># From jump host — check all 5 ESXi management IPs after migration</div>
+    <div>for ip in 10.10.0.11 10.10.0.12 10.10.0.13 10.10.0.14 10.10.0.15; do</div>
+    <div style="padding-left:16px;">ping -c 2 -W 3 $ip > /dev/null && echo "$ip — REACHABLE via vDS" || echo "$ip — UNREACHABLE — CHECK iLO"</div>
+    <div>done</div>
+    <div style="margin-top:10px;color:var(--accent2);">10.10.0.11 — REACHABLE via vDS  ← esxi01 ✓</div>
+    <div style="color:var(--accent2);">10.10.0.12 — REACHABLE via vDS  ← esxi02 ✓</div>
+    <div style="color:var(--accent2);">10.10.0.13 — REACHABLE via vDS  ← esxi03 ✓</div>
+    <div style="color:var(--accent2);">10.10.0.14 — REACHABLE via vDS  ← esxi04 ✓</div>
+    <div style="color:var(--accent2);">10.10.0.15 — REACHABLE via vDS  ← esxi05 ✓</div>
+  </div>
+
+  <h2>What to check in vCenter after all hosts migrated</h2>
+  <ul>
+    <li>All 5 hosts show <strong>Connected</strong> status in the cluster view — no "Not Responding"</li>
+    <li>In NCB-vDS-01's topology view, each host shows under the vDS with vmnic0 assigned to Uplink1</li>
+    <li>PG-VLAN10-Management shows all 5 hosts as connected hosts in its Summary tab</li>
+    <li>The vCenter VM itself continues to function (its NIC is also on PG-VLAN10-Management via vSwitch0 still — it migrates in Phase 2)</li>
+    <li>No red alarms in the alarm panel for any host</li>
+  </ul>
+</div>
+
+<!-- ══════ 24 — VERIFY LACP ══════ -->
+<div class="page" id="page-verify-lacp">
+  <div class="ey">VMware Series · vSphere-02 · Section 24</div>
+  <div class="pt">Verify LACP — Cisco switch confirms bonds are active</div>
+  <div class="ps">The Cisco leaf switch is the ground truth for LACP — checking it proves that vmnic0 has negotiated a proper LACP bond</div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
+    <div style="color:var(--text2);margin-bottom:8px;"># SSH to leaf01 from jump host — check port channel status after vmnic0 migration</div>
+    <div>ssh admin@10.40.0.20 "show port-channel summary | include Po101"</div>
+    <div style="margin-top:10px;color:var(--accent2);">1    Po1(SU)    Eth  LACP  Eth1/47(P) Eth1/48(P)       ← peer link still healthy</div>
+    <div style="color:var(--accent2);">101  Po101(SU)  Eth  LACP  Eth1/1(P)              ← esxi01 vmnic0 LACP active ✓</div>
+    <div style="color:var(--accent2);">    ↑ Po101 shows SU (Switching, Up) and Eth1/1(P) — "P" = in port channel (LACP negotiated)</div>
+    <div style="color:var(--accent2);">      Before Phase 1, this showed Eth1/1(I) — "I" = Individual (no LACP negotiation)</div>
+    <div style="color:var(--accent2);">      The change from (I) to (P) proves ESXi's vDS LACP is working end-to-end with the Cisco switch</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">The I→P transition — what it proves</div>
+    <div class="decision-q">Before Phase 1, the Cisco switch showed Eth1/1(I) — Individual. After Phase 1 it shows Eth1/1(P) — in port channel. What exactly changed?</div>
+    <div class="decision-a"><strong>LACP PDU (Protocol Data Unit) exchange began between ESXi and the Cisco switch — and both sides agreed to form the logical bond.</strong><br/><br/>
+    In the Individual state: the Cisco switch was sending LACP PDUs on Eth1/1 but ESXi (using the standard vSwitch) was not responding — the standard vSwitch does not speak LACP. So the Cisco switch left Eth1/1 in Individual mode: the port carries traffic but without LACP negotiation. There is no partner to coordinate with.<br/><br/>
+    In the P (in port channel) state: ESXi's vDS LACP agent is now active on vmnic0. It sends LACP PDUs to the Cisco switch. The switch receives them, validates the system ID and port priority, and both sides agree to form Po101. The port transitions from Individual to P (active member of the port channel). The LAG is now a proper LACP bond — fault detection, load balancing, and flow hashing all work correctly. If vmnic0 fails or the cable is unplugged, the Cisco switch immediately detects the LACP partner has gone, withdraws the port from the channel, and generates a system log event. This level of fault detection is impossible in Individual mode.</div>
+  </div>
+</div>
+
+<!-- ══════ 25 — VERIFY PG ══════ -->
+<div class="page" id="page-verify-pg">
+  <div class="ey">VMware Series · vSphere-02 · Section 25</div>
+  <div class="pt">Verify all port groups are correct on all hosts</div>
+  <div class="ps">Confirming the vDS port groups are visible and correctly configured from every host's perspective</div>
+
+  <h2>vCenter verification — port group consistency check</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Click NCB-vDS-01 → Summary tab</div>
+        <p style="font-size:13.5px">The Summary tab shows: <strong>5 hosts</strong> (all five ESXi hosts attached), <strong>7 port groups</strong>, <strong>1 VM</strong> (vCenter itself, which will be migrated to the vDS in Phase 2), and the NIOC status showing Enabled.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click the "Configure" tab → Topology</div>
+        <p style="font-size:13.5px">The topology view shows a visual diagram of the vDS: each host on the left, the vDS uplinks in the centre, and port groups on the right. You should see all 5 hosts connected to NCB-vDS-01 with Uplink1 assigned on each host (vmnic0).</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Click each port group → verify VLAN ID and Connected hosts</div>
+        <p style="font-size:13.5px">Click <strong>PG-VLAN10-Management</strong>. The Summary tab shows VLAN 10 and lists all 5 ESXi hosts as connected (each host's vmk0 is now on this port group). Click through each port group and verify the VLAN ID matches the table from Section 10. All 7 port groups should show all 5 hosts as connected.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>The VLAN verification that prevents silent misconfiguration</h2>
+  <p>The most common silent error: a port group shows VLAN 0 instead of the correct VLAN. This happens when the wizard was completed too quickly and the VLAN field was left empty. VLAN 0 means "untagged" — frames arrive at the Cisco switch without a VLAN tag and land on native VLAN 1, which has no SVI. Any VMkernel or VM on a VLAN-0 port group is unreachable from the rest of the network, with no obvious error.</p>
+
+  <table>
+    <thead><tr><th>Port group</th><th>Expected VLAN in vCenter</th><th>Check</th></tr></thead>
+    <tbody>
+      <tr><td>PG-VLAN10-Management</td><td>10</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>PG-VLAN20-vMotion</td><td>20</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>PG-VLAN25-vSAN</td><td>25</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>PG-VLAN30-NFS</td><td>30</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>PG-VLAN50-OCP-Nodes</td><td>50</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>PG-VLAN60-VM-Production</td><td>60</td><td><span class="badge bg">✓</span></td></tr>
+      <tr><td>PG-VLAN70-Windows</td><td>70</td><td><span class="badge bg">✓</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 26 — PHASE 1 SUMMARY ══════ -->
+<div class="page" id="page-phase1-summary">
+  <div class="ey">VMware Series · vSphere-02 · Section 26</div>
+  <div class="pt">Phase 1 complete — what you now have</div>
+  <div class="ps">The vDS is operational for management traffic. Every decision made in this guide, and its reason, in one summary.</div>
+
+  <div class="callout success">
+    <div class="cl">Phase 1 achievement — the vDS is live and LACP is negotiated</div>
+    NCB-vDS-01 is created and configured. All 7 VLAN port groups exist with correct VLAN IDs. All 5 ESXi hosts are members of the vDS. vmk0 on every host has been migrated to PG-VLAN10-Management on the vDS. LACP PDUs are flowing between ESXi's vDS LACP agent and the Cisco leaf switches — all management NIC port channels on the leaf switches show (P) status. Management connectivity is confirmed on all hosts.
+  </div>
+
+  <h2>Decision summary — every why in one table</h2>
+  <table>
+    <thead><tr><th>Decision made</th><th>The reason — in one sentence</th></tr></thead>
+    <tbody>
+      <tr><td>One vDS for the entire cluster</td><td>Simplest correct architecture — consistent port groups, seamless vMotion, single management point.</td></tr>
+      <tr><td>vDS named NCB-vDS-01</td><td>Three-part name (org prefix + type + sequence) makes every object self-documenting at a glance.</td></tr>
+      <tr><td>6 uplinks defined</td><td>One uplink per physical NIC enables precise, per-NIC-pair traffic isolation at the vDS level.</td></tr>
+      <tr><td>Version 8.0.3 selected</td><td>Always use the latest version all hosts support — older versions lack LACP Enhanced and NIOC v3.</td></tr>
+      <tr><td>LACP Enhanced mode</td><td>Three NIC pairs require three LAGs — only Enhanced mode supports multiple LAGs per vDS.</td></tr>
+      <tr><td>NIOC enabled with shares</td><td>Prevents VM traffic bursts from starving vSAN or management — critical for banking-grade reliability.</td></tr>
+      <tr><td>No default port group created</td><td>Generic "DPortGroup" with VLAN 0 is a silent misconfiguration trap — all port groups created manually.</td></tr>
+      <tr><td>Port groups named PG-VLAN{n}-{purpose}</td><td>Self-documenting name tells any engineer the VLAN, the traffic type, and the object type immediately.</td></tr>
+      <tr><td>VLAN type: "VLAN" on all port groups</td><td>Trunk ports require tagged frames — "None" or "VLAN Trunking" would be incorrect for VMkernel adapters.</td></tr>
+      <tr><td>MTU 9000 only on vSAN and NFS</td><td>Jumbo frames must be end-to-end consistent — only the paths verified at 9000 in the Cisco guides qualify.</td></tr>
+      <tr><td>vMotion on separate NIC pair from management</td><td>vMotion bursts to 25 Gbps during large VM migrations — sharing with management would cause management packet loss.</td></tr>
+      <tr><td>vSAN and NFS share storage NIC pair</td><td>Both require MTU 9000 and the storage NIC pair connects to the MTU-9000-configured switch ports.</td></tr>
+      <tr><td>Windows VMs on management NIC pair</td><td>DC and CA traffic is low-volume; VLAN isolation provides security; NIOC 100 Mbps reservation protects management.</td></tr>
+      <tr><td>Migration done one host at a time</td><td>Sequential migration means a failure affects at most one host — parallel failure would be much harder to recover.</td></tr>
+      <tr><td>Phase 1 stops at management only</td><td>Confirm the vDS works on the management path before touching storage or vMotion — fail safe, not fail all.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What Phase 2 completes — after Windows DC and AD CS</h2>
+  <table>
+    <thead><tr><th>What Phase 2 does</th><th>Why it waits until after DC and AD CS</th></tr></thead>
+    <tbody>
+      <tr><td>Migrate vmnic1 to vDS Uplink2 (completes LAG-Management bond to 2 NICs)</td><td>Stable management connectivity confirmed first — LAG-Management is complete with vmnic0 in Phase 1</td></tr>
+      <tr><td>Migrate vmnic2/3 to Uplink3/4 — LAG-VM-OCP</td><td>VM network migration requires stable DNS (from DC) for any VMs that need name resolution during migration</td></tr>
+      <tr><td>Migrate vmnic4/5 to Uplink5/6 — LAG-Storage</td><td>Storage NICs cannot be migrated until vSAN VMkernel adapters (vmk2) are configured — which requires a stable cluster first</td></tr>
+      <tr><td>Create vMotion VMkernel (vmk1) on PG-VLAN20</td><td>vMotion works better once the cluster is stable with AD auth — avoids identity issues during live migration</td></tr>
+      <tr><td>Create vSAN VMkernel (vmk2) on PG-VLAN25</td><td>vSAN itself is configured in its own guide — vmk2 is part of that guide's work</td></tr>
+      <tr><td>Create NFS VMkernel (vmk3) on PG-VLAN30</td><td>NFS mount to NetApp requires stable DNS to resolve the NFS server name</td></tr>
+      <tr><td>Remove vSwitch0 from all hosts</td><td>Done last — only after every VMkernel and VM is fully on the vDS and working</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--accent)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

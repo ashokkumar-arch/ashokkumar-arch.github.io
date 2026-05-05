@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GITOPS-03 — The NovaCrestBank Pipeline · Jenkinsfile Walkthrough</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --ocp-red:#cc0000;--gl-orange:#fc6d26;
+    --jenkins:#d33833;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--jenkins);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--jenkins);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--jenkins);}
+  .pbadge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--jenkins);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--jenkins);}
+  .callout{border-left:3px solid var(--jenkins);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.blue{border-left-color:var(--accent);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.blue .cl{color:var(--accent);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.blue):not(.why) .cl{color:var(--jenkins);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  .bgl{background:#fff2e8;color:#7a3800;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+    .bgl{background:#3d2200;color:#ffb87a;}
+  }
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:230px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--jenkins);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+  /* Jenkinsfile code block */
+  .jf{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;}
+  .jf-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #30363d;}
+  .jf-dot{width:10px;height:10px;border-radius:50%;}
+  .jf-dot.r{background:#ff5f57;}.jf-dot.y{background:#febc2e;}.jf-dot.g{background:#28c840;}
+  .jf-label{font-size:11px;color:#8b949e;margin-left:6px;}
+  .jf-body{padding:14px 18px;overflow-x:auto;}
+  .jf-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;color:#c9d1d9;}
+  /* Groovy / Jenkinsfile syntax colours */
+  .jk{color:#ff7b72;}        /* keywords: pipeline, stage, steps, agent, etc */
+  .js{color:#a5d6ff;}        /* strings */
+  .jc{color:#8b949e;}        /* comments */
+  .jv{color:#7ee787;}        /* variable names / stage names */
+  .jn{color:#f8c555;}        /* numbers */
+  .jb{color:#d2a8ff;}        /* built-in steps: sh, echo, withCredentials */
+  .ja{color:#ffa657;}        /* annotations / annotations-like: @Library */
+  /* terminal */
+  .term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #333;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.65;}
+  .term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #333;}
+  .term-label{font-size:11px;color:#666;margin-left:6px;}
+  .term-body{padding:14px 18px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#608b7a;}.tw{color:#cca700;}
+  .tann{display:flex;gap:9px;background:#111;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#ccc;line-height:1.5;}
+  .tann.ok{border-left-color:#4ccd99;}.tann.warn{border-left-color:#cca700;}
+  .tann.info{border-left-color:#4da8da;}.tann.danger{border-left-color:#cc4444;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .layer-stack{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .layer{display:flex;align-items:flex-start;gap:14px;padding:13px 18px;
+    border-radius:var(--r2);border:0.5px solid var(--border2);}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:180px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  /* stage flow strip */
+  .stage-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:0;
+    margin:20px 0;border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+  .ss{padding:10px 8px;text-align:center;border-right:0.5px solid var(--border2);
+    font-size:11px;font-weight:600;}
+  .ss:last-child{border-right:none;}
+  .ss .sn{font-size:18px;display:block;margin-bottom:3px;}
+  .ss .sl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--text3);margin-top:3px;}
+  .ss.s1{background:#fff0f0;color:var(--jenkins);}
+  .ss.s2{background:#f0f5ff;color:var(--accent);}
+  .ss.s3{background:#fff8f0;color:var(--gl-orange);}
+  .ss.s4{background:#f5f0ff;color:var(--purple);}
+  .ss.s5{background:#fff5f0;color:var(--amber);}
+  .ss.s6{background:#f0fff5;color:var(--accent2);}
+  .ss.s7{background:#f0f5ff;color:var(--accent);}
+  .ss.s8{background:#fff0f0;color:var(--ocp-red);}
+  @media(prefers-color-scheme:dark){
+    .ss.s1{background:#2c0d0d;}.ss.s2{background:#0d1c2c;}
+    .ss.s3{background:#2c1800;}.ss.s4{background:#1a1040;}
+    .ss.s5{background:#2c1e00;}.ss.s6{background:#0d2c18;}
+    .ss.s7{background:#0d1c2c;}.ss.s8{background:#2c0d0d;}
+  }
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Phase 9 · GitOps</div>
+    <h1>GITOPS-03 — The Jenkinsfile</h1>
+    <p>8-stage pipeline · Buildah · cosign · Harbor · Argo CD · Production MR</p>
+  </div>
+
+  <div class="ngl">Overview</div>
+  <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — Pipeline overview — 8 stages, one complete Jenkinsfile</div>
+  <div class="ni" onclick="show('full-jenkinsfile')"><div class="nd"></div>02 — The complete Jenkinsfile — full source before the walkthrough <span class="pbadge bp">Key</span></div>
+
+  <div class="ngl">Stages 1–2: Source and quality</div>
+  <div class="ni" onclick="show('stage1-checkout')"><div class="nd"></div>03 — Stage 1 — Checkout and environment setup</div>
+  <div class="ni" onclick="show('stage2-build')"><div class="nd"></div>04 — Stage 2 — Maven build, unit tests, SonarQube gate</div>
+
+  <div class="ngl">Stages 3–4: Image build and signing</div>
+  <div class="ni" onclick="show('stage3-buildah')"><div class="nd"></div>05 — Stage 3 — Buildah image build — why not Docker <span class="pbadge bp">Decision</span></div>
+  <div class="ni" onclick="show('stage4-cosign')"><div class="nd"></div>06 — Stage 4 — Push to Harbor and sign with cosign — why cosign <span class="pbadge bp">Decision</span></div>
+
+  <div class="ngl">Stages 5–6: Security gates</div>
+  <div class="ni" onclick="show('stage5-acs-scan')"><div class="nd"></div>07 — Stage 5 — ACS vulnerability scan gate</div>
+  <div class="ni" onclick="show('stage6-staging')"><div class="nd"></div>08 — Stage 6 — GitOps staging deploy — commit image tag to config repo</div>
+
+  <div class="ngl">Stage 7: Validation</div>
+  <div class="ni" onclick="show('stage7-integration')"><div class="nd"></div>09 — Stage 7 — Integration tests against staging environment</div>
+
+  <div class="ngl">Stage 8: Production promotion</div>
+  <div class="ni" onclick="show('stage8-pr')"><div class="nd"></div>10 — Stage 8 — Production MR — why a pull request, not a direct push <span class="pbadge bp">Decision</span></div>
+  <div class="ni" onclick="show('mr-body')"><div class="nd"></div>11 — The production merge request — what it contains and why</div>
+
+  <div class="ngl">Pipeline mechanics</div>
+  <div class="ni" onclick="show('agent-declaration')"><div class="nd"></div>12 — Agent declaration — how containers are selected per stage</div>
+  <div class="ni" onclick="show('credentials-binding')"><div class="nd"></div>13 — Credentials binding — secrets in pipeline without hardcoding</div>
+  <div class="ni" onclick="show('environment-vars')"><div class="nd"></div>14 — Environment variables — traceability from commit to image</div>
+  <div class="ni" onclick="show('post-actions')"><div class="nd"></div>15 — Post actions — notifications, cleanup, and GitLab status</div>
+
+  <div class="ngl">Security analysis</div>
+  <div class="ni" onclick="show('trust-chain')"><div class="nd"></div>16 — The complete trust chain — from git push to signed running pod</div>
+  <div class="ni" onclick="show('what-pipeline-cannot-do')"><div class="nd"></div>17 — What the pipeline cannot do — intentional capability limits</div>
+
+  <div class="ngl">Operations</div>
+  <div class="ni" onclick="show('pipeline-failure')"><div class="nd"></div>18 — Diagnosing pipeline failures — reading the build log</div>
+  <div class="ni" onclick="show('checklist')"><div class="nd"></div>19 — Checklist and pipeline readiness confirmation</div>
+</nav>
+
+<main class="main">
+
+<!-- ══ 01 OVERVIEW ══ -->
+<div class="page active" id="page-overview">
+  <div class="ey">GITOPS-03 · Section 01</div>
+  <div class="pt">Pipeline overview — 8 stages, one complete Jenkinsfile</div>
+  <div class="ps">The NovaCrestBank banking microservice pipeline runs every time a commit merges to the main branch of a source repository. It takes a Java source commit and produces a signed, scanned, deployed container image in staging — and opens a reviewed merge request for production. Every stage has a specific security or quality purpose, not just a technical purpose.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-00<br/>GitLab</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-01<br/>Architecture</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>GITOPS-02<br/>Jenkins</div>
+    <div class="pt-step active"><span class="pt-n">→</span>GITOPS-03<br/>Pipeline</div>
+    <div class="pt-step"><span class="pt-n">5</span>GITOPS-04<br/>Argo CD</div>
+  </div>
+
+  <div class="stage-strip">
+    <div class="ss s1"><span class="sn">①</span>Checkout<span class="sl">Git clone</span></div>
+    <div class="ss s2"><span class="sn">②</span>Build &amp; Test<span class="sl">Maven + Sonar</span></div>
+    <div class="ss s3"><span class="sn">③</span>Image Build<span class="sl">Buildah</span></div>
+    <div class="ss s4"><span class="sn">④</span>Sign &amp; Push<span class="sl">cosign + Harbor</span></div>
+    <div class="ss s5"><span class="sn">⑤</span>ACS Gate<span class="sl">CVE scan</span></div>
+    <div class="ss s6"><span class="sn">⑥</span>Stage Deploy<span class="sl">Config repo</span></div>
+    <div class="ss s7"><span class="sn">⑦</span>Integration<span class="sl">E2E tests</span></div>
+    <div class="ss s8"><span class="sn">⑧</span>Prod MR<span class="sl">Human gate</span></div>
+  </div>
+
+  <h2>Why each stage exists — the security and compliance purpose</h2>
+  <table>
+    <thead><tr><th>Stage</th><th>Technical action</th><th>Security / compliance purpose</th><th>Failure consequence</th></tr></thead>
+    <tbody>
+      <tr><td><strong>① Checkout</strong></td><td>Clone source repo at exact commit SHA</td><td>Pins the build to a specific, immutable commit — reproducible builds</td><td>Build does not start</td></tr>
+      <tr><td><strong>② Build &amp; Test</strong></td><td>Maven build, unit tests, SonarQube gate</td><td>Prevents functionally broken code from reaching a container. SonarQube security hotspot detection catches OWASP Top 10 patterns in code before image build.</td><td>Pipeline stops — image never built</td></tr>
+      <tr><td><strong>③ Buildah</strong></td><td>OCI image build — non-root, no daemon</td><td>Eliminates privileged container requirement. Image built in an isolated user namespace — cannot affect the host node.</td><td>Pipeline stops — no image to push</td></tr>
+      <tr><td><strong>④ Push + cosign</strong></td><td>Push to Harbor, sign with NovaCrestBank key</td><td>Establishes cryptographic provenance — only images signed by this pipeline can run in production. Unsigned images are rejected at admission.</td><td>Pipeline stops — unsigned image blocked by ACS at admission</td></tr>
+      <tr><td><strong>⑤ ACS gate</strong></td><td>Vulnerability scan of the pushed image</td><td>Blocks images with critical CVEs from reaching staging or production. Satisfies PCI-DSS Req 6.4.1 (vulnerability management before deployment).</td><td>Pipeline stops — image quarantined in Harbor</td></tr>
+      <tr><td><strong>⑥ Stage deploy</strong></td><td>Commit image digest to staging overlay, wait for Argo CD sync</td><td>Tests that the deployment configuration itself is correct — Kustomize renders without error, OCP accepts the manifests, the pod starts.</td><td>Pipeline stops — staging config error caught before production</td></tr>
+      <tr><td><strong>⑦ Integration tests</strong></td><td>End-to-end API tests against live staging</td><td>Proves the application works correctly with real infrastructure (real NSX networking, real database, real downstream services) not just unit test mocks.</td><td>Pipeline stops — functional regression caught before production</td></tr>
+      <tr><td><strong>⑧ Production MR</strong></td><td>Open merge request against production overlay in config repo</td><td>Human review gate. Every production deployment has a reviewer, an approver, a timestamp, and a diff. Satisfies PCI-DSS Req 6.4 change management.</td><td>No production deployment — awaits human approval</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 02 FULL JENKINSFILE ══ -->
+<div class="page" id="page-full-jenkinsfile">
+  <div class="ey">GITOPS-03 · Section 02</div>
+  <div class="pt">The complete Jenkinsfile — full source before the stage walkthrough</div>
+  <div class="ps">The complete Jenkinsfile for the payment-service pipeline is shown here in its entirety before each stage is analysed in detail. This file lives in <code>gitlab.corp.novacrestbank.com/banking/payment-service</code> at the repository root. Sections 03–10 walk through each stage with full annotation.</div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">banking/payment-service/Jenkinsfile — complete pipeline</span></div>
+    <div class="jf-body"><pre><span class="jc">// NovaCrestBank — payment-service CI/CD pipeline
+// Triggered by: GitLab webhook on push to main branch
+// Agent: ncb-banking-agent pod template (GITOPS-02 Section 15)</span>
+
+<span class="jk">pipeline</span> {
+  <span class="jk">agent</span> {
+    <span class="jk">kubernetes</span> {
+      <span class="jb">label</span> <span class="js">'ncb-banking-agent'</span>
+      <span class="jb">defaultContainer</span> <span class="js">'jnlp'</span>
+    }
+  }
+
+  <span class="jk">environment</span> {
+    <span class="jv">SERVICE_NAME</span>    = <span class="js">'payment-service'</span>
+    <span class="jv">HARBOR_REGISTRY</span> = <span class="js">'harbor.apps.ocp.corp.novacrestbank.com'</span>
+    <span class="jv">HARBOR_PROJECT</span>  = <span class="js">'banking-apps'</span>
+    <span class="jv">IMAGE_BASE</span>      = <span class="js">"${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}"</span>
+    <span class="jv">IMAGE_TAG</span>       = <span class="js">"${env.GIT_COMMIT[0..7]}"</span>
+    <span class="jv">IMAGE_FULL</span>      = <span class="js">"${IMAGE_BASE}:${IMAGE_TAG}"</span>
+    <span class="jv">CONFIG_REPO</span>     = <span class="js">'git@gitlab.corp.novacrestbank.com:gitops/banking-config.git'</span>
+    <span class="jv">ARGO_APP_STAGING</span>  = <span class="js">'payment-service-staging'</span>
+    <span class="jv">ARGO_APP_PROD</span>     = <span class="js">'payment-service-production'</span>
+    <span class="jv">SONAR_PROJECT</span>   = <span class="js">'ncb-payment-service'</span>
+    <span class="jv">ACS_CENTRAL_URL</span> = <span class="js">'https://central.stackrox.svc:443'</span>
+  }
+
+  <span class="jk">options</span> {
+    <span class="jb">timeout</span>(time: <span class="jn">45</span>, unit: <span class="js">'MINUTES'</span>)
+    <span class="jb">buildDiscarder</span>(<span class="jb">logRotator</span>(numToKeepStr: <span class="js">'30'</span>))
+    <span class="jb">disableConcurrentBuilds</span>()
+    <span class="jb">gitLabConnection</span>(<span class="js">'NovaCrestBank GitLab'</span>)
+  }
+
+  <span class="jk">stages</span> {
+
+    <span class="jc">// ── STAGE 1: CHECKOUT ──────────────────────────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Checkout'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'jnlp'</span>) {
+          <span class="jb">checkout</span> <span class="jk">scm</span>
+          <span class="jb">script</span> {
+            <span class="jv">env</span>.GIT_COMMIT_FULL = <span class="jb">sh</span>(
+              script: <span class="js">'git rev-parse HEAD'</span>, returnStdout: <span class="jk">true</span>).trim()
+            <span class="jv">env</span>.GIT_AUTHOR     = <span class="jb">sh</span>(
+              script: <span class="js">'git log -1 --format="%an <%ae>"'</span>, returnStdout: <span class="jk">true</span>).trim()
+            <span class="jv">env</span>.GIT_MESSAGE    = <span class="jb">sh</span>(
+              script: <span class="js">'git log -1 --format="%s"'</span>, returnStdout: <span class="jk">true</span>).trim()
+          }
+          <span class="jb">updateGitlabCommitStatus</span> name: <span class="js">'jenkins-pipeline'</span>, state: <span class="js">'running'</span>
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 2: BUILD AND TEST ────────────────────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Build and Test'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'maven'</span>) {
+          <span class="jb">sh</span> <span class="js">'''
+            mvn clean verify \
+              -Dmaven.test.failure.ignore=false \
+              -B -q
+          '''</span>
+          <span class="jb">sh</span> <span class="js">"""
+            mvn sonar:sonar \
+              -Dsonar.projectKey=${SONAR_PROJECT} \
+              -Dsonar.host.url=https://sonarqube.apps.ocp.corp.novacrestbank.com \
+              -Dsonar.qualitygate.wait=true \
+              -B -q
+          """</span>
+          <span class="jb">junit</span> <span class="js">'target/surefire-reports/**/*.xml'</span>
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 3: BUILD IMAGE WITH BUILDAH ─────────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Build Image'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'buildah'</span>) {
+          <span class="jb">sh</span> <span class="js">"""
+            buildah bud \
+              --no-cache \
+              --layers \
+              --label "git.commit=${GIT_COMMIT_FULL}" \
+              --label "git.author=${GIT_AUTHOR}" \
+              --label "build.timestamp=\$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              --label "pipeline.build=${BUILD_NUMBER}" \
+              -t ${IMAGE_FULL} \
+              -f Dockerfile .
+          """</span>
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 4: PUSH TO HARBOR AND SIGN WITH COSIGN ──────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Push and Sign'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'buildah'</span>) {
+          <span class="jb">withCredentials</span>([[
+            <span class="jv">$class</span>: <span class="js">'UsernamePasswordMultiBinding'</span>,
+            <span class="jv">credentialsId</span>: <span class="js">'jenkins-harbor-push-credentials'</span>,
+            <span class="jv">usernameVariable</span>: <span class="js">'HARBOR_USER'</span>,
+            <span class="jv">passwordVariable</span>: <span class="js">'HARBOR_PASS'</span>
+          ]]) {
+            <span class="jb">sh</span> <span class="js">"""
+              buildah push \
+                --creds "${HARBOR_USER}:${HARBOR_PASS}" \
+                --tls-verify=true \
+                ${IMAGE_FULL} \
+                docker://${IMAGE_FULL}
+            """</span>
+            <span class="jb">script</span> {
+              <span class="jv">env</span>.IMAGE_DIGEST = <span class="jb">sh</span>(
+                script: <span class="js">"""skopeo inspect \
+                  --creds "${HARBOR_USER}:${HARBOR_PASS}" \
+                  docker://${IMAGE_FULL} \
+                  | python3 -c 'import json,sys; print(json.load(sys.stdin)["Digest"])'"""</span>,
+                returnStdout: <span class="jk">true</span>).trim()
+            }
+            <span class="jb">sh</span> <span class="js">"""
+              COSIGN_PASSWORD=\$(cat /etc/cosign/cosignPassword) \
+              cosign sign \
+                --key /etc/cosign/cosign.key \
+                --tls-verify=true \
+                --annotations="pipeline.build=${BUILD_NUMBER}" \
+                --annotations="git.commit=${GIT_COMMIT_FULL}" \
+                --annotations="signed.by=ncb-jenkins-pipeline" \
+                ${IMAGE_BASE}@${IMAGE_DIGEST}
+            """</span>
+          }
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 5: ACS VULNERABILITY SCAN GATE ──────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'ACS Scan Gate'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'jnlp'</span>) {
+          <span class="jb">withCredentials</span>([[
+            <span class="jv">$class</span>: <span class="js">'StringBinding'</span>,
+            <span class="jv">credentialsId</span>: <span class="js">'acs-api-token'</span>,
+            <span class="jv">variable</span>: <span class="js">'ACS_TOKEN'</span>
+          ]]) {
+            <span class="jb">sh</span> <span class="js">"""
+              roxctl image check \
+                --endpoint ${ACS_CENTRAL_URL} \
+                --token \${ACS_TOKEN} \
+                --image ${IMAGE_BASE}@${IMAGE_DIGEST} \
+                --severity CRITICAL \
+                --output table
+            """</span>
+          }
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 6: GITOPS STAGING DEPLOY ────────────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Deploy to Staging'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'jnlp'</span>) {
+          <span class="jb">withCredentials</span>([[
+            <span class="jv">$class</span>: <span class="js">'SSHUserPrivateKeyBinding'</span>,
+            <span class="jv">credentialsId</span>: <span class="js">'jenkins-config-repo-deploy-key'</span>,
+            <span class="jv">keyFileVariable</span>: <span class="js">'SSH_KEY'</span>
+          ]]) {
+            <span class="jb">sh</span> <span class="js">"""
+              export GIT_SSH_COMMAND="ssh -i \${SSH_KEY} -o StrictHostKeyChecking=no"
+              git clone ${CONFIG_REPO} config-repo
+              cd config-repo
+
+              cd apps/${SERVICE_NAME}/overlays/staging
+              kustomize edit set image \\
+                ${IMAGE_BASE}=${IMAGE_BASE}@${IMAGE_DIGEST}
+
+              git config user.email "ncb-pipeline@corp.novacrestbank.com"
+              git config user.name  "NovaCrestBank Pipeline"
+              git add kustomization.yaml
+              git commit -m "staging: promote ${SERVICE_NAME} to ${IMAGE_TAG}
+
+              Image: ${IMAGE_BASE}@${IMAGE_DIGEST}
+              Build: ${BUILD_URL}
+              Commit: ${GIT_COMMIT_FULL}
+              Author: ${GIT_AUTHOR}"
+
+              git push origin main
+            """</span>
+            <span class="jb">sh</span> <span class="js">"""
+              timeout 300 bash -c '
+              while true; do
+                STATUS=\$(argocd app get ${ARGO_APP_STAGING} \\
+                  --output json 2>/dev/null \\
+                  | python3 -c "import json,sys; d=json.load(sys.stdin); \\
+                    print(d[\"status\"][\"sync\"][\"status\"], \\
+                          d[\"status\"][\"health\"][\"status\"])")
+                echo "Argo CD staging: \${STATUS}"
+                echo "\${STATUS}" | grep -q "Synced Healthy" && break
+                sleep 15
+              done'
+            """</span>
+          }
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 7: INTEGRATION TESTS ────────────────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Integration Tests'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'maven'</span>) {
+          <span class="jb">sh</span> <span class="js">"""
+            mvn verify \
+              -Pintegration-tests \
+              -Dtarget.base.url=https://payment-service-staging.apps.ocp.corp.novacrestbank.com \
+              -Dmaven.test.failure.ignore=false \
+              -B -q
+          """</span>
+          <span class="jb">junit</span> <span class="js">'target/failsafe-reports/**/*.xml'</span>
+        }
+      }
+    }
+
+    <span class="jc">// ── STAGE 8: PRODUCTION MERGE REQUEST ─────────────────────────────────────</span>
+    <span class="jk">stage</span>(<span class="js">'Production Promotion MR'</span>) {
+      <span class="jk">steps</span> {
+        <span class="jk">container</span>(<span class="js">'jnlp'</span>) {
+          <span class="jb">withCredentials</span>([[
+            <span class="jv">$class</span>: <span class="js">'StringBinding'</span>,
+            <span class="jv">credentialsId</span>: <span class="js">'gitlab-api-token'</span>,
+            <span class="jv">variable</span>: <span class="js">'GL_TOKEN'</span>
+          ], [
+            <span class="jv">$class</span>: <span class="js">'SSHUserPrivateKeyBinding'</span>,
+            <span class="jv">credentialsId</span>: <span class="js">'jenkins-config-repo-deploy-key'</span>,
+            <span class="jv">keyFileVariable</span>: <span class="js">'SSH_KEY'</span>
+          ]]) {
+            <span class="jb">sh</span> <span class="js">"""
+              export GIT_SSH_COMMAND="ssh -i \${SSH_KEY} -o StrictHostKeyChecking=no"
+              cd config-repo
+
+              BRANCH="pipeline/promote-${SERVICE_NAME}-${IMAGE_TAG}"
+              git checkout -b \${BRANCH}
+
+              cd apps/${SERVICE_NAME}/overlays/production
+              kustomize edit set image \\
+                ${IMAGE_BASE}=${IMAGE_BASE}@${IMAGE_DIGEST}
+
+              git add kustomization.yaml
+              git commit -m "production: promote ${SERVICE_NAME} to ${IMAGE_TAG}
+
+              Image: ${IMAGE_BASE}@${IMAGE_DIGEST}
+              Source commit: ${GIT_COMMIT_FULL}
+              Author: ${GIT_AUTHOR}
+              Message: ${GIT_MESSAGE}
+              Jenkins build: ${BUILD_URL}
+              Integration tests: PASSED
+              ACS scan: PASSED (no CRITICAL CVEs)"
+
+              git push origin \${BRANCH}
+
+              curl -sk -X POST \\
+                "https://gitlab.corp.novacrestbank.com/api/v4/projects/\$(
+                  curl -sk "https://gitlab.corp.novacrestbank.com/api/v4/projects?search=banking-config" \\
+                    -H "PRIVATE-TOKEN: \${GL_TOKEN}" \\
+                  | python3 -c "import json,sys; print([p for p in json.load(sys.stdin) \\
+                      if 'gitops/banking-config' in p['path_with_namespace']][0]['id'])"
+                )/merge_requests" \\
+                -H "PRIVATE-TOKEN: \${GL_TOKEN}" \\
+                -H "Content-Type: application/json" \\
+                -d "{
+                  \\"source_branch\\": \\"\${BRANCH}\\",
+                  \\"target_branch\\": \\"main\\",
+                  \\"title\\": \\"production: promote ${SERVICE_NAME} to ${IMAGE_TAG}\\",
+                  \\"description\\": \\"$(cat << 'MRDESC'
+## Production Promotion — ${SERVICE_NAME} ${IMAGE_TAG}
+
+### Change Summary
+Promoting \`${SERVICE_NAME}\` from the previously running version to \`${IMAGE_TAG}\`.
+
+**Image digest (immutable reference):**
+\`${IMAGE_BASE}@${IMAGE_DIGEST}\`
+
+### Evidence
+| Gate | Result |
+|------|--------|
+| Unit tests | ✅ PASSED (see Jenkins build) |
+| SonarQube quality gate | ✅ PASSED |
+| Buildah image build | ✅ Non-root, no daemon |
+| cosign signature | ✅ Signed with NovaCrestBank key |
+| ACS vulnerability scan | ✅ No CRITICAL CVEs |
+| Staging deployment | ✅ Synced and Healthy |
+| Integration tests | ✅ PASSED |
+
+### Links
+- Jenkins build: ${BUILD_URL}
+- Source commit: ${GIT_COMMIT_FULL}
+- Author: ${GIT_AUTHOR}
+- Commit message: ${GIT_MESSAGE}
+
+### Reviewers
+@platform-engineers — please review and approve this production promotion.
+MRDESC
+                  )\\",
+                  \\"assignee_id\\": null,
+                  \\"labels\\": \\"production-promotion,pipeline-automated\\",
+                  \\"remove_source_branch\\": true
+                }"
+            """</span>
+          }
+        }
+      }
+    }
+  }
+
+  <span class="jk">post</span> {
+    <span class="jk">success</span> {
+      <span class="jb">updateGitlabCommitStatus</span> name: <span class="js">'jenkins-pipeline'</span>, state: <span class="js">'success'</span>
+      <span class="jb">addGitLabMRComment</span> comment: <span class="js">"""✅ Pipeline PASSED — ${SERVICE_NAME} ${IMAGE_TAG}
+        Image: \`${IMAGE_FULL}\`
+        Digest: \`${IMAGE_DIGEST ?: 'see build log'}\`
+        ACS scan: No CRITICAL CVEs
+        Staging: Synced and Healthy
+        Integration tests: PASSED
+        Production MR: opened — awaiting platform engineer approval"""</span>
+    }
+    <span class="jk">failure</span> {
+      <span class="jb">updateGitlabCommitStatus</span> name: <span class="js">'jenkins-pipeline'</span>, state: <span class="js">'failed'</span>
+      <span class="jb">addGitLabMRComment</span> comment: <span class="js">"❌ Pipeline FAILED at stage: ${currentBuild.displayName}. See ${BUILD_URL}console"</span>
+    }
+    <span class="jk">always</span> {
+      <span class="jb">cleanWs</span>()
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 03 STAGE 1 CHECKOUT ══ -->
+<div class="page" id="page-stage1-checkout">
+  <div class="ey">GITOPS-03 · Section 03</div>
+  <div class="pt">Stage 1 — Checkout and environment setup</div>
+  <div class="ps">The checkout stage does more than clone the repository. It establishes the complete traceability context for every subsequent artifact produced by this pipeline run — the commit SHA that becomes the image tag, the author that appears in audit logs, and the message that becomes the body of the production MR.</div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 1 — Checkout — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">stage</span>(<span class="js">'Checkout'</span>) {
+  <span class="jk">steps</span> {
+    <span class="jk">container</span>(<span class="js">'jnlp'</span>) {
+      <span class="jb">checkout</span> <span class="jk">scm</span>
+      <span class="jc">      // checkout scm: Jenkins checks out the commit that triggered this build.
+              // The GitLab webhook payload contained the commit SHA — Jenkins uses it
+              // to ensure it builds exactly the commit that was merged, not HEAD
+              // (which may have advanced if another commit merged simultaneously).</span>
+
+      <span class="jb">script</span> {
+        <span class="jv">env</span>.GIT_COMMIT_FULL = <span class="jb">sh</span>(
+          script: <span class="js">'git rev-parse HEAD'</span>, returnStdout: <span class="jk">true</span>).trim()
+        <span class="jc">        // GIT_COMMIT_FULL: the 40-character commit SHA.
+                  // Used in: image labels, cosign annotations, production MR body.
+                  // Every artifact is traceable back to this exact commit.</span>
+
+        <span class="jv">env</span>.GIT_AUTHOR = <span class="jb">sh</span>(
+          script: <span class="js">'git log -1 --format="%an <%ae>"'</span>, returnStdout: <span class="jk">true</span>).trim()
+        <span class="jc">        // GIT_AUTHOR: "Alice Smith <alice.smith@novacrestbank.com>"
+                  // Appears in: production MR body, image labels, build log.
+                  // Satisfies the PCI-DSS Req 10 "who initiated the change" requirement —
+                  // even the production MR (opened by the pipeline service account) names
+                  // the human whose commit triggered the build.</span>
+
+        <span class="jv">env</span>.GIT_MESSAGE = <span class="jb">sh</span>(
+          script: <span class="js">'git log -1 --format="%s"'</span>, returnStdout: <span class="jk">true</span>).trim()
+        <span class="jc">        // GIT_MESSAGE: the first line of the commit message.
+                  // "Add NPP payment rail adapter" becomes part of the production MR title,
+                  // giving reviewers context on what feature they are approving.</span>
+      }
+
+      <span class="jb">updateGitlabCommitStatus</span> name: <span class="js">'jenkins-pipeline'</span>, state: <span class="js">'running'</span>
+      <span class="jc">      // Immediately mark the commit as "pipeline running" in the GitLab UI.
+              // The merge request that triggered this build now shows a yellow dot
+              // indicating CI is in progress. Developers can see pipeline status
+              // in GitLab without opening Jenkins.</span>
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 04 STAGE 2 BUILD ══ -->
+<div class="page" id="page-stage2-build">
+  <div class="ey">GITOPS-03 · Section 04</div>
+  <div class="pt">Stage 2 — Maven build, unit tests, and SonarQube quality gate</div>
+  <div class="ps">The build stage runs in the <code>maven</code> container. It produces the application JAR, validates every unit test passes, and submits the code to SonarQube for static analysis. The SonarQube quality gate uses <code>-Dsonar.qualitygate.wait=true</code> — the pipeline blocks until SonarQube's server-side analysis completes and returns a pass or fail verdict.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why SonarQube is a blocking gate — not a non-blocking advisory scan</div>
+    <div class="decision-q">SonarQube could run as a non-blocking background scan — the image builds regardless and developers are notified of quality issues separately. Why does NovaCrestBank use <code>-Dsonar.qualitygate.wait=true</code> which blocks the pipeline?</div>
+    <div class="decision-a"><strong>A non-blocking SonarQube scan creates the advisory trap: developers see the scan results after the image is already in Harbor and deployed to staging, at which point fixing the issue requires another full pipeline run. If the quality issue is a CRITICAL security hotspot (SQL injection pattern, hardcoded credential, insecure random number generator), the code with the security flaw has already been built into an image that may have been pushed to Harbor before the vulnerability was discovered.</strong><br/><br/>
+    With <code>qualitygate.wait=true</code>: the SonarQube analysis completes before the image is built. A CRITICAL security hotspot detected by SonarQube stops the pipeline at Stage 2. No image is built. No container with that vulnerability enters Harbor. The developer fixes the issue and the pipeline re-runs from the beginning. This is the correct order: detect before build, not after deploy.<br/><br/>
+    The quality gate is configured in SonarQube with NovaCrestBank-specific thresholds: zero BLOCKER or CRITICAL security hotspots, code coverage above 70% for new code, and no new security vulnerabilities from the OWASP Top 10 categories. These thresholds are maintained by the platform team in SonarQube and applied consistently across all banking microservices.</div>
+  </div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 2 — Build and Test — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">stage</span>(<span class="js">'Build and Test'</span>) {
+  <span class="jk">steps</span> {
+    <span class="jk">container</span>(<span class="js">'maven'</span>) {
+      <span class="jb">sh</span> <span class="js">'''
+        mvn clean verify \
+          -Dmaven.test.failure.ignore=false \
+          -B -q
+      '''</span>
+      <span class="jc">      // clean verify: compile → unit test → package → verify.
+              // -Dmaven.test.failure.ignore=false: any failing unit test fails the build.
+              //   Default Maven behaviour is to continue on test failure with a warning.
+              //   This flag makes test failures hard failures — no image is built if tests fail.
+              // -B: batch mode — no interactive prompts (required in CI).
+              // -q: quiet — suppresses INFO logs, shows only warnings and errors.
+              //   Use -B without -q during debugging to see full Maven output.</span>
+
+      <span class="jb">sh</span> <span class="js">"""
+        mvn sonar:sonar \
+          -Dsonar.projectKey=${SONAR_PROJECT} \
+          -Dsonar.host.url=https://sonarqube.apps.ocp.corp.novacrestbank.com \
+          -Dsonar.qualitygate.wait=true \
+          -B -q
+      """</span>
+      <span class="jc">      // sonar:sonar: submit code to SonarQube for analysis.
+              // -Dsonar.qualitygate.wait=true: BLOCKING — Maven waits for SonarQube
+              //   to complete analysis (typically 30-60 seconds) and return the gate verdict.
+              //   If the quality gate fails: Maven exits with code 1 → stage fails → pipeline stops.
+              //   If the quality gate passes: Maven exits with code 0 → pipeline continues.</span>
+
+      <span class="jb">junit</span> <span class="js">'target/surefire-reports/**/*.xml'</span>
+      <span class="jc">      // junit: Jenkins parses the Maven Surefire XML reports and records
+              // test results in the build history. Enables trending graphs and
+              // per-test failure notifications in the Jenkins UI.</span>
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 05 STAGE 3 BUILDAH ══ -->
+<div class="page" id="page-stage3-buildah">
+  <div class="ey">GITOPS-03 · Section 05</div>
+  <div class="pt">Stage 3 — Buildah image build — why not Docker, why not root</div>
+  <div class="ps">The image build stage uses Buildah running in the <code>buildah</code> container. The choice of Buildah over Docker is not stylistic — it is a specific security requirement enforced by NovaCrestBank's ACS policy and OCP's SCC (Security Context Constraints). The section explains each Buildah flag and why Docker-in-Docker would be rejected.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why Buildah and not Docker — the three reasons</div>
+    <div class="decision-q">Docker is the industry-standard container build tool. Most CI examples use Docker. Why does NovaCrestBank's pipeline use Buildah?</div>
+    <div class="decision-a"><strong>Three specific reasons, each grounded in NovaCrestBank's OCP security posture.</strong><br/><br/>
+    <strong>Reason 1 — Docker-in-Docker requires a privileged container; OCP and NovaCrestBank's ACS policy prohibit privileged containers in the jenkins namespace.</strong> Docker requires a Docker daemon. Running a Docker daemon inside a Kubernetes pod requires either mounting the host's <code>/var/run/docker.sock</code> (giving the container full root access to the host's Docker daemon — worse than privileged) or running Docker-in-Docker (requiring a <code>privileged: true</code> security context). OCP's <code>restricted-v2</code> SCC — the default for all pods without explicit privilege escalation — prohibits both. The jenkins namespace does not have a SCC exception granting privileged access, and it should not. Buildah builds OCI images using Linux user namespace isolation with no daemon and no privileged mode. It satisfies the same <code>restricted-v2</code> SCC that all other pods run under.<br/><br/>
+    <strong>Reason 2 — Buildah produces standard OCI images, not Docker-specific images.</strong> The images Buildah produces are OCI-compliant and indistinguishable from Docker-built images in Harbor, in OCP's container runtime (CRI-O), and in any OCI-compliant registry. There is no compatibility trade-off — the image is just as functional, just built by a different tool.<br/><br/>
+    <strong>Reason 3 — NovaCrestBank's ACS policy for the jenkins namespace includes a check: "Image built with Docker daemon: FAIL."</strong> ACS inspects image labels during deployment. An image built via Docker-in-Docker carries Docker-specific metadata that ACS's policy engine can detect. Buildah images do not carry this metadata and pass the policy check.</div>
+  </div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 3 — Build Image — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">stage</span>(<span class="js">'Build Image'</span>) {
+  <span class="jk">steps</span> {
+    <span class="jk">container</span>(<span class="js">'buildah'</span>) {
+      <span class="jb">sh</span> <span class="js">"""
+        buildah bud \
+          --no-cache \
+          --layers \
+          --label "git.commit=${GIT_COMMIT_FULL}" \
+          --label "git.author=${GIT_AUTHOR}" \
+          --label "build.timestamp=\$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          --label "pipeline.build=${BUILD_NUMBER}" \
+          -t ${IMAGE_FULL} \
+          -f Dockerfile .
+      """</span>
+      <span class="jc">      // buildah bud: "Build Under Dockerfile" — compatible with standard Dockerfile syntax.
+              //   Same Dockerfile used in development works with Buildah in CI.
+
+              // --no-cache: always rebuild from scratch.
+              //   Agent pods are ephemeral (podRetention=never) — there is no layer cache
+              //   from a previous build. --no-cache makes this explicit and prevents
+              //   any stale cache from a previous workspace from affecting the build.
+
+              // --layers: enable layer caching within this build only (multi-stage Dockerfiles).
+              //   Speeds up builds that use multi-stage patterns (compile stage + runtime stage).
+              //   This is not a cross-build cache — it only applies to layers within one build.
+
+              // --label: embed traceability metadata into the image.
+              //   git.commit: the exact source code this image was built from.
+              //   git.author: who wrote the code — visible in image inspectors.
+              //   build.timestamp: when this image was built.
+              //   pipeline.build: the Jenkins build number for log correlation.
+              //   These labels appear in "docker inspect" / "skopeo inspect" output
+              //   and in Harbor's image detail view — full traceability without a separate SBOM.
+
+              // -t ${IMAGE_FULL}: tag the image as harbor.../banking-apps/payment-service:a1b2c3d4
+              //   The tag is the 8-character commit SHA (GIT_COMMIT[0..7]).
+              //   Not "latest" — never "latest" in production.
+              //   "latest" is a mutable tag. A mutable tag means the image referenced in
+              //   the config repo could change under Argo CD without a config change.
+              //   Commit SHA tags are immutable — the tag always refers to this exact image.</span>
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 STAGE 4 COSIGN ══ -->
+<div class="page" id="page-stage4-cosign">
+  <div class="ey">GITOPS-03 · Section 06</div>
+  <div class="pt">Stage 4 — Push to Harbor and sign with cosign — why cosign, why the digest</div>
+  <div class="ps">Stage 4 has two sequential operations: push the image to Harbor (producing an immutable digest), then sign that specific digest with cosign. The sequence matters — the signature is over the digest, not the tag. This section explains the cryptographic model and why the config repo references the digest, not the tag.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why sign the digest and not the tag — the mutable tag attack</div>
+    <div class="decision-q">The image is tagged <code>payment-service:a1b2c3d4</code>. The cosign sign command signs <code>payment-service@sha256:abc123...</code> (the digest). Why sign the digest and not the tag?</div>
+    <div class="decision-a"><strong>A tag is a mutable pointer. A digest is an immutable cryptographic identity. Signing a tag signs a pointer that could be moved to point at a different image without invalidating the signature.</strong><br/><br/>
+    If cosign signed the tag <code>payment-service:a1b2c3d4</code>: an attacker who compromises Harbor and replaces the content of that tag with a malicious image would not invalidate the cosign signature — the signature was on the tag name, not the content. The ACS admission controller would accept the malicious image because the tag has a valid signature.<br/><br/>
+    If cosign signs the digest <code>payment-service@sha256:abc123...</code>: the signature is cryptographically bound to the specific byte content of the image (SHA-256 of the image manifest). Any change to the image produces a different digest. A malicious image has a different digest — it does not have a valid NovaCrestBank cosign signature — and the ACS admission controller rejects it.<br/><br/>
+    <strong>This is also why the GitOps config repo uses digest references, not tags:</strong> <code>kustomize edit set image harbor.../payment-service=harbor.../payment-service@sha256:abc123</code> pins the Deployment to the exact signed image. Argo CD deploys exactly that image — a tag rotation in Harbor cannot silently change what Argo CD deploys.</div>
+  </div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 4 — Push and Sign — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">stage</span>(<span class="js">'Push and Sign'</span>) {
+  <span class="jk">steps</span> {
+    <span class="jk">container</span>(<span class="js">'buildah'</span>) {
+      <span class="jb">withCredentials</span>([[...]]) {
+
+        <span class="jb">sh</span> <span class="js">"""buildah push \
+          --creds "${HARBOR_USER}:${HARBOR_PASS}" \
+          --tls-verify=true \
+          ${IMAGE_FULL} \
+          docker://${IMAGE_FULL}"""</span>
+        <span class="jc">        // buildah push: send the locally-built image to Harbor.
+                  // --tls-verify=true: verify Harbor's TLS certificate.
+                  //   Harbor's cert is signed by NovaCrestBank-IssuingCA.
+                  //   The buildah container's /etc/ssl/certs includes the NCB CA bundle
+                  //   (deployed via MachineConfig to all worker nodes — UPG-03 Section 09).
+                  // docker://: push using the Docker registry protocol (OCI-compatible).
+                  // Harbor assigns the image an immutable SHA-256 digest on receipt.</span>
+
+        <span class="jb">script</span> {
+          <span class="jv">env</span>.IMAGE_DIGEST = <span class="jb">sh</span>(
+            script: <span class="js">"""skopeo inspect \
+              --creds "${HARBOR_USER}:${HARBOR_PASS}" \
+              docker://${IMAGE_FULL} \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["Digest"])'"""</span>,
+            returnStdout: <span class="jk">true</span>).trim()
+        }
+        <span class="jc">        // skopeo inspect: query Harbor for the digest of the image we just pushed.
+                  // Returns: {"Digest": "sha256:abc123def456..."}
+                  // IMAGE_DIGEST is now available to all subsequent stages as an env var.
+                  // This is the immutable identifier used in: cosign sign, config repo commit,
+                  // ACS scan command, and production MR body. Every subsequent reference
+                  // to this image uses @sha256:... — never the mutable tag again.</span>
+
+        <span class="jb">sh</span> <span class="js">"""
+          COSIGN_PASSWORD=\$(cat /etc/cosign/cosignPassword) \
+          cosign sign \
+            --key /etc/cosign/cosign.key \
+            --tls-verify=true \
+            --annotations="pipeline.build=${BUILD_NUMBER}" \
+            --annotations="git.commit=${GIT_COMMIT_FULL}" \
+            --annotations="signed.by=ncb-jenkins-pipeline" \
+            ${IMAGE_BASE}@${IMAGE_DIGEST}
+        """</span>
+        <span class="jc">        // cosign sign: cryptographically sign the image digest.
+                  // --key /etc/cosign/cosign.key: the NovaCrestBank signing private key,
+                  //   mounted as a Secret volume at /etc/cosign in the buildah container.
+                  // --annotations: embed verifiable metadata in the signature.
+                  //   These annotations are visible when running "cosign verify" —
+                  //   an auditor can verify that this specific pipeline build signed this image.
+                  // ${IMAGE_BASE}@${IMAGE_DIGEST}: signing the DIGEST, not the tag.
+                  //   The signature is stored in Harbor as an OCI artifact attached to
+                  //   the image manifest — no separate signature registry needed.
+                  // After this command: the image in Harbor has a cosign signature.
+                  //   The ACS admission controller can verify the signature at deployment time.
+                  //   An unsigned copy of this image (or a tampered copy) would fail admission.</span>
+      }
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 07 STAGE 5 ACS ══ -->
+<div class="page" id="page-stage5-acs-scan">
+  <div class="ey">GITOPS-03 · Section 07</div>
+  <div class="pt">Stage 5 — ACS vulnerability scan gate</div>
+  <div class="ps">After the image is in Harbor and signed, ACS scans it for known CVEs using <code>roxctl image check</code>. This is a blocking gate — a CRITICAL CVE fails the pipeline. The scan uses the image digest (not the tag) to ensure ACS scans the exact image that was pushed.</div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 5 — ACS Scan Gate — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">stage</span>(<span class="js">'ACS Scan Gate'</span>) {
+  <span class="jk">steps</span> {
+    <span class="jk">container</span>(<span class="js">'jnlp'</span>) {
+      <span class="jb">withCredentials</span>([[
+        <span class="jv">$class</span>: <span class="js">'StringBinding'</span>,
+        <span class="jv">credentialsId</span>: <span class="js">'acs-api-token'</span>,
+        <span class="jv">variable</span>: <span class="js">'ACS_TOKEN'</span>
+      ]]) {
+        <span class="jb">sh</span> <span class="js">"""
+          roxctl image check \
+            --endpoint ${ACS_CENTRAL_URL} \
+            --token \${ACS_TOKEN} \
+            --image ${IMAGE_BASE}@${IMAGE_DIGEST} \
+            --severity CRITICAL \
+            --output table
+        """</span>
+        <span class="jc">        // roxctl image check: ACS CLI command to check an image against policies.
+                  // --endpoint: ACS Central's internal service URL (in-cluster, no external call).
+                  // --token: ACS API token with permission to check images.
+                  // --image ${IMAGE_BASE}@${IMAGE_DIGEST}: scan the exact signed image by digest.
+                  //   ACS pulls the image manifest from Harbor using its scanner credentials.
+                  //   It compares package versions against its CVE database.
+
+                  // --severity CRITICAL: exit with code 1 if any CRITICAL CVE is found.
+                  //   CRITICAL = CVSS score ≥ 9.0 or ACS policy designation.
+                  //   LOW, MEDIUM, HIGH CVEs: pipeline continues (logged, visible in ACS UI).
+                  //   CRITICAL CVEs: pipeline STOPS. The image cannot proceed to staging.
+                  //   This threshold aligns with PCI-DSS Req 6.4.1 — critical vulnerabilities
+                  //   must be addressed before deployment. High/Medium have a defined
+                  //   remediation window (30/90 days respectively) per NovaCrestBank policy.
+
+                  // --output table: print the scan results as a formatted table in the build log.
+                  //   The build log (linked from the production MR) serves as the scan evidence
+                  //   for PCI-DSS compliance review. The table shows: CVE ID, package, severity,
+                  //   fix version, and the specific policy that triggered the violation.</span>
+      }
+    }
+  }
+}</pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">Example ACS scan output — PASSED (no CRITICAL CVEs)</span></div>
+    <div class="term-body"><pre><span class="tg">✓ Image scan check passed</span>
+
+<span class="tc">Policy                                Result  Severity  Description</span>
+<span class="td">────────────────────────────────────────────────────────────────────</span>
+<span class="tg">No High CVEs with Fixes Available      PASS    HIGH      0 violations</span>
+<span class="tg">No Critical CVEs                       PASS    CRITICAL  0 violations</span>
+<span class="tg">Signed by NovaCrestBank key            PASS    CRITICAL  Image signature verified</span>
+
+<span class="td">INFORMATIONAL (not policy violations):
+  CVE-2025-10234  spring-core:6.1.4  MEDIUM  Fix: 6.1.5 — remediation window: 90 days
+  CVE-2025-10891  jackson-databind    LOW     Fix: 2.15.3 — remediation window: 180 days</span>
+<span class="tg">
+All policy checks passed. Image approved for staging deployment.</span>
+    <div class="tann ok"><span class="tai">✓</span><span>ACS scan passed. No CRITICAL CVEs. 2 informational findings with fix versions available — these are tracked in the ACS dashboard and must be remediated within their policy windows. Pipeline proceeds to staging deployment.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 08 STAGE 6 STAGING ══ -->
+<div class="page" id="page-stage6-staging">
+  <div class="ey">GITOPS-03 · Section 08</div>
+  <div class="pt">Stage 6 — GitOps staging deploy — commit image digest to the config repo</div>
+  <div class="ps">Stage 6 is the handoff from CI to CD. Jenkins commits the new image digest reference to the staging overlay in the GitOps config repo, and then waits for Argo CD to sync staging to the new state. The wait confirms the deployment configuration is valid before integration tests run.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why push directly to main for staging but open an MR for production</div>
+    <div class="decision-q">Stage 6 commits directly to <code>main</code> in the config repo (for the staging overlay). Stage 8 opens a merge request (for the production overlay). Why different workflows for the two environments?</div>
+    <div class="decision-a"><strong>The asymmetry is intentional and reflects the different risk profiles of staging and production changes.</strong><br/><br/>
+    <strong>Staging:</strong> Staging exists to validate that the application works in a production-like environment before reaching production. If staging has a problem, the consequence is: a developer sees a failing staging deployment and integration tests, and the pipeline stops before opening the production MR. No customer is affected. A direct push to the staging overlay is appropriate — the staging environment's purpose is to absorb and surface failures quickly. Requiring a manual review for staging deployments would add 30+ minutes to every pipeline run with no additional safety benefit (a staging failure is already safe-to-fail by definition).<br/><br/>
+    <strong>Production:</strong> Production serves real banking transactions. A misconfigured deployment, an application regression, or a security issue that reached production affects real customers and creates regulatory exposure. The merge request is the mandatory human review gate. A platform engineer reads the diff (one line: the image digest reference), verifies the ACS scan result and integration test evidence are attached, and approves. This 5-minute human step is the investment NovaCrestBank makes to prevent production incidents caused by CI/CD automation errors.</div>
+  </div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 6 — Deploy to Staging — key section annotated</span></div>
+    <div class="jf-body"><pre><span class="jc">// Commit the new image digest to the staging overlay in the config repo</span>
+<span class="jb">sh</span> <span class="js">"""
+  cd config-repo/apps/${SERVICE_NAME}/overlays/staging
+  kustomize edit set image \\
+    ${IMAGE_BASE}=${IMAGE_BASE}@${IMAGE_DIGEST}
+"""</span>
+<span class="jc">// kustomize edit set image: Kustomize's CLI command to update an image reference.
+// Before: image: harbor.../payment-service:old-sha256@sha256:old-digest
+// After:  image: harbor.../payment-service@sha256:new-digest
+// The kustomization.yaml now references the exact signed image from Stage 4.
+// Kustomize produces a deterministic diff: exactly one line changes.</span>
+
+<span class="jb">sh</span> <span class="js">"""
+  cd config-repo
+  git commit -m "staging: promote ${SERVICE_NAME} to ${IMAGE_TAG}
+  
+  Image: ${IMAGE_BASE}@${IMAGE_DIGEST}
+  Build: ${BUILD_URL}
+  Commit: ${GIT_COMMIT_FULL}"
+  git push origin main
+"""</span>
+<span class="jc">// This commit to the config repo's main branch triggers Argo CD.
+// Argo CD polls GitLab every 3 minutes; the GitLab webhook to Argo CD
+// (if configured) accelerates this to near-immediate.
+
+// Then wait for Argo CD to sync and the app to become Healthy:</span>
+<span class="jb">sh</span> <span class="js">"""
+  timeout 300 bash -c '
+  while true; do
+    STATUS=\$(argocd app get ${ARGO_APP_STAGING} \
+      --output json 2>/dev/null \
+      | python3 -c "...")
+    echo "\${STATUS}" | grep -q "Synced Healthy" &amp;&amp; break
+    sleep 15
+  done'
+"""</span>
+<span class="jc">// timeout 300: if staging does not become Synced+Healthy within 5 minutes, fail.
+// The wait loop checks every 15 seconds.
+// "Synced Healthy" means: Argo CD applied the manifests AND the pods are Running.
+// If staging becomes Synced but Degraded (pods CrashLoopBackOff), the pipeline
+// fails here — the integration tests would fail anyway, but the explicit
+// Argo CD health check provides a clearer error message for the developer.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 09 STAGE 7 INTEGRATION ══ -->
+<div class="page" id="page-stage7-integration">
+  <div class="ey">GITOPS-03 · Section 09</div>
+  <div class="pt">Stage 7 — Integration tests against the live staging environment</div>
+  <div class="ps">Integration tests run against the real staging environment — not mocks. They call the deployed payment-service API, test real database connections, verify NSX network policies allow the expected traffic, and validate end-to-end payment flows. A unit test can pass while an integration test fails due to configuration drift between test stubs and real infrastructure.</div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">Stage 7 — Integration Tests — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">stage</span>(<span class="js">'Integration Tests'</span>) {
+  <span class="jk">steps</span> {
+    <span class="jk">container</span>(<span class="js">'maven'</span>) {
+      <span class="jb">sh</span> <span class="js">"""
+        mvn verify \
+          -Pintegration-tests \
+          -Dtarget.base.url=https://payment-service-staging.apps.ocp.corp.novacrestbank.com \
+          -Dmaven.test.failure.ignore=false \
+          -B -q
+      """</span>
+      <span class="jc">      // -Pintegration-tests: activates the Maven profile that includes
+              //   the Failsafe plugin (for integration tests) and excludes Surefire
+              //   (unit tests already ran in Stage 2).
+              //   Integration tests are in src/test/java/...IT.java by convention.
+
+              // -Dtarget.base.url: injects the staging endpoint into the integration test suite.
+              //   Tests call this URL to hit the real deployed staging service.
+              //   The URL is an OCP Route — DNS resolves to the OCP Router → NSX LB → pod.
+              //   This tests the full network path, not just the application logic in isolation.
+
+              // What integration tests verify for payment-service:
+              //   - POST /api/v1/payments: creates a payment, returns 201 with payment ID
+              //   - GET /api/v1/payments/{id}: retrieves the payment, returns 200 with details
+              //   - POST /api/v1/payments with invalid card: returns 422 (fraud detection integration)
+              //   - GET /api/v1/payments/health: returns 200 {"status": "UP"}
+              //   - Network policy: integration test runner (in jenkins namespace) CAN reach staging
+              //     because the NSX NetworkPolicy allows jenkins → banking-staging on port 443.
+              //     It CANNOT reach banking-production (different network policy). This
+              //     asymmetry is itself a test: if a misconfigured NetworkPolicy accidentally
+              //     allowed jenkins to reach production, this stage would need to detect it.</span>
+
+      <span class="jb">junit</span> <span class="js">'target/failsafe-reports/**/*.xml'</span>
+      <span class="jc">      // failsafe-reports: Maven Failsafe produces XML reports for integration tests.
+              // Jenkins archives these and they appear in the build report under
+              // "Test Results" → "integration-tests" alongside the unit test results from Stage 2.</span>
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 10 STAGE 8 PR ══ -->
+<div class="page" id="page-stage8-pr">
+  <div class="ey">GITOPS-03 · Section 10</div>
+  <div class="pt">Stage 8 — Production MR — why a pull request rather than a direct push</div>
+  <div class="ps">Stage 8 opens a merge request against the production overlay in the config repo. This is the only step in the pipeline that requires human action before production deployment occurs. The decision to use an MR rather than a direct push is the single most important architectural choice in the entire pipeline.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why a merge request rather than a direct push to the production overlay</div>
+    <div class="decision-q">The pipeline has already run unit tests, SonarQube quality gate, ACS vulnerability scan, staging deployment, and integration tests. At this point, the image is thoroughly validated. Why introduce a human approval step rather than promoting directly to production?</div>
+    <div class="decision-a"><strong>The merge request is not a technical gate — it is a regulatory and organisational gate. The six preceding stages validate the technical quality of the image. The MR validates that a human with production deployment authority has reviewed and authorised this specific deployment at this specific time.</strong><br/><br/>
+    <strong>Reason 1 — PCI-DSS Req 6.4 explicitly requires human authorisation for production changes.</strong> A fully automated production deployment — even one that passed six quality gates — does not satisfy Req 6.4.2 ("All changes to system components in the production environment are authorised through a formal change control process"). Automation can validate technical quality. It cannot provide human judgment about: is now the right time to deploy this change? Are there conflicting changes in flight? Is there a customer communication that needs to go out simultaneously? Is there a regulatory reason to delay this specific change?<br/><br/>
+    <strong>Reason 2 — The MR is the change management record.</strong> NovaCrestBank's CAB (Change Advisory Board) process for routine deployments is satisfied by the production promotion MR — it contains the change description, the evidence of testing, the approver's identity, and the timestamp. This is the "lightweight change record" approved by the CAB for fully-automated pipelines: a MR with defined approval criteria, not a full CAB meeting for every routine deployment.<br/><br/>
+    <strong>Reason 3 — The MR prevents the pipeline from becoming a production deployment backdoor.</strong> If the pipeline had direct push access to the production overlay, a compromise of the pipeline service account would give an attacker the ability to deploy arbitrary images to production (albeit still constrained by the cosign signing requirement). With the MR gate, even if the pipeline service account is compromised, the attacker can only open MRs — they cannot approve them. The approval requires a separate human user with Maintainer role in the config repo, whose credentials are independent of the pipeline service account.</div>
+  </div>
+</div>
+
+<!-- ══ 11 MR BODY ══ -->
+<div class="page" id="page-mr-body">
+  <div class="ey">GITOPS-03 · Section 11</div>
+  <div class="pt">The production merge request — what it contains and why every element matters</div>
+  <div class="ps">The production promotion MR is auto-generated by the pipeline but designed to be read by a platform engineer in 60 seconds. Every element of the MR body serves a specific review purpose — the reviewer should be able to approve or reject this MR without opening Jenkins or Harbor.</div>
+
+  <div class="card" style="border-left:4px solid var(--gl-orange);">
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gl-orange);margin-bottom:14px;">Production promotion MR — as seen in GitLab</p>
+
+    <p style="font-size:13.5px;font-weight:700;margin-bottom:4px;">production: promote payment-service to a1b2c3d4</p>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Opened by ncb-pipeline-svc · 1 commit · labels: production-promotion, pipeline-automated</p>
+
+    <div style="background:var(--bg3);padding:14px 16px;border-radius:var(--r2);font-size:13px;color:var(--text2);">
+      <p style="font-weight:700;color:var(--text);margin-bottom:8px;">Production Promotion — payment-service a1b2c3d4</p>
+
+      <p style="font-weight:600;margin-bottom:4px;">Change Summary</p>
+      <p style="margin-bottom:8px;">Promoting <code>payment-service</code> to <code>a1b2c3d4</code></p>
+      <p style="margin-bottom:12px;font-family:monospace;font-size:11px;background:var(--bg2);padding:6px 10px;border-radius:4px;">Image digest: harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service@sha256:abc123def456...</p>
+
+      <p style="font-weight:600;margin-bottom:8px;">Evidence</p>
+      <table style="font-size:12px;margin-bottom:12px;">
+        <thead><tr><th>Gate</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Unit tests</td><td><span class="badge bg">✅ PASSED</span> — see Jenkins build</td></tr>
+          <tr><td>SonarQube quality gate</td><td><span class="badge bg">✅ PASSED</span></td></tr>
+          <tr><td>Buildah image build</td><td><span class="badge bg">✅</span> Non-root, no daemon</td></tr>
+          <tr><td>cosign signature</td><td><span class="badge bg">✅</span> Signed with NovaCrestBank key</td></tr>
+          <tr><td>ACS vulnerability scan</td><td><span class="badge bg">✅</span> No CRITICAL CVEs</td></tr>
+          <tr><td>Staging deployment</td><td><span class="badge bg">✅</span> Synced and Healthy</td></tr>
+          <tr><td>Integration tests</td><td><span class="badge bg">✅ PASSED</span></td></tr>
+        </tbody>
+      </table>
+
+      <p style="font-weight:600;margin-bottom:4px;">Links</p>
+      <ul style="font-size:12px;margin-left:16px;margin-bottom:12px;">
+        <li>Jenkins build: <code>https://jenkins.apps.ocp.corp.novacrestbank.com/job/banking/job/payment-service/42/</code></li>
+        <li>Source commit: <code>a1b2c3d4e5f6...</code> by Alice Smith &lt;alice.smith@novacrestbank.com&gt;</li>
+        <li>Commit message: <em>Add NPP payment rail adapter</em></li>
+      </ul>
+
+      <p style="font-size:12px;color:var(--text3);">@platform-engineers — please review and approve this production promotion.</p>
+    </div>
+
+    <p style="font-size:11px;color:var(--text3);margin-top:12px;">The diff is exactly one line: the image digest in <code>apps/payment-service/overlays/production/kustomization.yaml</code>. The reviewer sees the old digest and the new digest — nothing else changed. A reviewer who cannot see seven green checkmarks in the evidence table and a one-line diff in the files changed view should not approve this MR.</p>
+  </div>
+</div>
+
+<!-- ══ 12 AGENT DECLARATION ══ -->
+<div class="page" id="page-agent-declaration">
+  <div class="ey">GITOPS-03 · Section 12</div>
+  <div class="pt">Agent declaration — how containers are selected per stage</div>
+  <div class="ps">The pipeline uses a single pod template (ncb-banking-agent) with multiple containers. Each stage declares which container its steps run in. Understanding the container selection model explains why <code>buildah</code> steps must be in the <code>buildah</code> container and not the <code>maven</code> container.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--text3);">
+      <div class="layer-num">Pod</div>
+      <div class="layer-title">One agent pod per pipeline run</div>
+      <div class="layer-desc">When the pipeline starts, one pod is created with four containers: <code>jnlp</code> (coordination), <code>maven</code> (Java builds), <code>buildah</code> (image builds and cosign). All four containers share: the same pod filesystem (workspace is shared via emptyDir), the same pod network (all containers can reach each other on localhost), and the same Secret mounts (cosign key at <code>/etc/cosign</code> is visible to the buildah container because it is mounted at the pod level).</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--jenkins);">
+      <div class="layer-num">Selection</div>
+      <div class="layer-title">container('name') selects where steps run</div>
+      <div class="layer-desc"><code>container('maven') { sh 'mvn ...' }</code> runs the shell command inside the <code>maven</code> container's process namespace — where the JDK and Maven binary exist. <code>container('buildah') { sh 'buildah bud ...' }</code> runs inside the <code>buildah</code> container — where the Buildah, Skopeo, and cosign binaries exist. Running a Buildah command outside the <code>buildah</code> container would fail: the binary does not exist in other containers.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num">Shared</div>
+      <div class="layer-title">Shared workspace across containers</div>
+      <div class="layer-desc">The Jenkins workspace (<code>/home/jenkins/agent/workspace/payment-service</code>) is a shared emptyDir volume mounted in all containers. The Maven JAR produced in Stage 2 (by the <code>maven</code> container) is visible to the <code>buildah</code> container in Stage 3 without any copy step — both containers see the same workspace directory. This is why the Buildah stage can run <code>buildah bud -f Dockerfile .</code> where the Dockerfile references <code>COPY target/payment-service.jar /app/</code> — the JAR is already in the shared workspace.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 13 CREDENTIALS BINDING ══ -->
+<div class="page" id="page-credentials-binding">
+  <div class="ey">GITOPS-03 · Section 13</div>
+  <div class="pt">Credentials binding — secrets in the pipeline without hardcoding</div>
+  <div class="ps">Every credential in the pipeline is bound from a Jenkins credential (itself stored as a Kubernetes Secret in the jenkins namespace) using <code>withCredentials</code>. The credential value is injected as an environment variable and is automatically masked in the build log — the raw value never appears in any log, file, or GitLab MR comment.</div>
+
+  <div class="card">
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:14px;">Credential mapping — Kubernetes Secret to Jenkins credential to pipeline variable</p>
+    <div class="spec-row"><span class="spec-label">Harbor push credentials</span><span class="spec-val">K8s Secret <code>jenkins-harbor-push-credentials</code> → Jenkins ID <code>jenkins-harbor-push-credentials</code> → <code>HARBOR_USER</code> / <code>HARBOR_PASS</code> env vars in Stage 4</span></div>
+    <div class="spec-row"><span class="spec-label">cosign signing key</span><span class="spec-val">K8s Secret <code>jenkins-cosign-signing-key</code> → mounted at <code>/etc/cosign/cosign.key</code> and <code>/etc/cosign/cosignPassword</code> in the buildah container via pod volume mount (GITOPS-02 Section 15)</span></div>
+    <div class="spec-row"><span class="spec-label">GitLab API token</span><span class="spec-val">K8s Secret <code>jenkins-gitlab-api-token</code> → Jenkins ID <code>gitlab-api-token</code> → <code>GL_TOKEN</code> env var in Stage 8</span></div>
+    <div class="spec-row"><span class="spec-label">Config repo SSH key</span><span class="spec-val">K8s Secret <code>banking-config-repo</code> → Jenkins ID <code>jenkins-config-repo-deploy-key</code> → <code>SSH_KEY</code> file path in Stage 6 and Stage 8</span></div>
+    <div class="spec-row"><span class="spec-label">ACS API token</span><span class="spec-val">K8s Secret <code>jenkins-acs-api-token</code> → Jenkins ID <code>acs-api-token</code> → <code>ACS_TOKEN</code> env var in Stage 5</span></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">Why credentials are never in the Jenkinsfile, in Git, or in environment variable blocks</div>
+    If a credential appeared in the Jenkinsfile (e.g., <code>environment { HARBOR_PASS = 'password123' }</code>), it would be committed to the source repo and visible to anyone with read access to the banking/payment-service repo — all banking developers. Even if removed later, the credential would remain in Git history. <code>withCredentials</code> binds values that exist only in the Jenkins credential store (which lives in <code>/var/jenkins_home</code>, not in Git) into environment variables that are masked in all log output. The Jenkinsfile can be public (or read by all developers) without leaking any credentials.
+  </div>
+</div>
+
+<!-- ══ 14 ENVIRONMENT VARS ══ -->
+<div class="page" id="page-environment-vars">
+  <div class="ey">GITOPS-03 · Section 14</div>
+  <div class="pt">Environment variables — traceability from git commit to running image</div>
+  <div class="ps">The environment block at the top of the Jenkinsfile defines the variables that thread traceability through every stage. The image tag is the commit SHA. The image is referenced by digest. Every artifact that the pipeline produces carries the commit SHA that produced it.</div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label"><code>IMAGE_TAG = env.GIT_COMMIT[0..7]</code></span><span class="spec-val">The 8-character commit SHA becomes the image tag. <strong>Never "latest".</strong> A mutable tag means the GitOps config repo could reference a tag that changes its meaning without a config change — defeating the immutability guarantee of GitOps.</span></div>
+    <div class="spec-row"><span class="spec-label"><code>IMAGE_DIGEST</code> (set in Stage 4)</span><span class="spec-val">The SHA-256 digest assigned by Harbor when the image is pushed. All subsequent stages reference the image by <code>@sha256:...</code> digest, not by tag. The production MR commits the digest to the config repo — Argo CD deploys the exact signed byte content, not a tag that could be updated.</span></div>
+    <div class="spec-row"><span class="spec-label"><code>CONFIG_REPO</code></span><span class="spec-val">The SSH URL of the GitOps config repo. Centralised here so if the GitLab hostname changes (domain migration, disaster recovery), only one line changes in the Jenkinsfile.</span></div>
+    <div class="spec-row"><span class="spec-label"><code>ARGO_APP_STAGING</code></span><span class="spec-val">The Argo CD Application name for staging. The <code>argocd app get</code> command in Stage 6 uses this name. Defined here rather than hardcoded in the stage script for maintainability.</span></div>
+    <div class="spec-row"><span class="spec-label"><code>ACS_CENTRAL_URL</code></span><span class="spec-val">ACS Central's internal service URL. Internal (in-cluster) URL — not the external Route. <code>roxctl</code> running in the agent pod reaches ACS Central via the cluster's internal service network, not via the public Route. This is faster, does not consume external bandwidth, and avoids dependence on the OCP Router during the scan.</span></div>
+  </div>
+</div>
+
+<!-- ══ 15 POST ACTIONS ══ -->
+<div class="page" id="page-post-actions">
+  <div class="ey">GITOPS-03 · Section 15</div>
+  <div class="pt">Post actions — notifications, cleanup, and GitLab status</div>
+  <div class="ps">The <code>post</code> block runs after all stages complete, regardless of pipeline outcome. The three post conditions — <code>success</code>, <code>failure</code>, and <code>always</code> — ensure the developer is notified in GitLab and the agent pod workspace is cleaned up.</div>
+
+  <div class="jf">
+    <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
+      <span class="jf-label">post block — success, failure, and always — annotated</span></div>
+    <div class="jf-body"><pre><span class="jk">post</span> {
+  <span class="jk">success</span> {
+    <span class="jb">updateGitlabCommitStatus</span> name: <span class="js">'jenkins-pipeline'</span>, state: <span class="js">'success'</span>
+    <span class="jc">    // Sets the GitLab commit status to "success" — the green ✓ icon
+        // appears on the merge request that triggered this build.
+        // Developers see the build result in GitLab without needing to open Jenkins.</span>
+
+    <span class="jb">addGitLabMRComment</span> comment: <span class="js">"""✅ Pipeline PASSED — ${SERVICE_NAME} ${IMAGE_TAG}
+      Image: \`${IMAGE_FULL}\`
+      ACS scan: No CRITICAL CVEs
+      Staging: Synced and Healthy
+      Integration tests: PASSED
+      Production MR: opened — awaiting platform engineer approval"""</span>
+    <span class="jc">    // Posts a comment on the GitLab MR that triggered the build.
+        // The developer sees build results inline in GitLab — no context switch to Jenkins.
+        // The comment references IMAGE_FULL (the Harbor image URL with tag) so the
+        // developer can inspect the image in Harbor if needed.</span>
+  }
+
+  <span class="jk">failure</span> {
+    <span class="jb">updateGitlabCommitStatus</span> name: <span class="js">'jenkins-pipeline'</span>, state: <span class="js">'failed'</span>
+    <span class="jb">addGitLabMRComment</span> comment: <span class="js">"❌ Pipeline FAILED at stage: ${currentBuild.displayName}. See ${BUILD_URL}console"</span>
+    <span class="jc">    // Posts the failure stage name and a direct link to the failed build log.
+        // currentBuild.displayName contains the last completed stage name — developers
+        // can see immediately which stage failed without clicking through to Jenkins.</span>
+  }
+
+  <span class="jk">always</span> {
+    <span class="jb">cleanWs</span>()
+    <span class="jc">    // Delete the Jenkins workspace — removes all checked-out source code,
+        // compiled JARs, and any temporary files from the agent pod's workspace.
+        // The agent pod is deleted by the Kubernetes plugin (podRetention=never),
+        // but cleanWs ensures the workspace is empty before pod deletion in case
+        // of a graceful shutdown. This prevents workspace accumulation if pod
+        // deletion is delayed.</span>
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 16 TRUST CHAIN ══ -->
+<div class="page" id="page-trust-chain">
+  <div class="ey">GITOPS-03 · Section 16</div>
+  <div class="pt">The complete trust chain — from git push to signed running pod</div>
+  <div class="ps">Every link in the trust chain from a developer's commit to a running pod in production is cryptographically anchored or policy-enforced. An attacker trying to insert a malicious workload into production must break multiple independent controls simultaneously.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num">Link 1</div>
+      <div class="layer-title">Commit author verification</div>
+      <div class="layer-desc">GitLab push rules enforce <code>@novacrestbank.com</code> email on all commits (GITOPS-00 Section 16). A commit from an anonymous or external email address is rejected at push time. Every commit is attributable to a specific AD-authenticated user.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--gl-orange);">
+      <div class="layer-num">Link 2</div>
+      <div class="layer-title">Source code review</div>
+      <div class="layer-desc">Protected branch (push_access_level=0) on main branch in the source repo. The commit reached main only because it passed peer review and was merged via MR. No developer can bypass the review process with a direct push.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--jenkins);">
+      <div class="layer-num">Link 3</div>
+      <div class="layer-title">Build provenance</div>
+      <div class="layer-desc">The image was built by an authorised Jenkins pipeline triggered by the GitLab webhook. The build embedded the commit SHA, author, and build number as immutable image labels. These labels are inspectable in Harbor and verifiable against the GitLab commit history.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--purple);">
+      <div class="layer-num">Link 4</div>
+      <div class="layer-title">cosign signature</div>
+      <div class="layer-desc">The image was signed with the NovaCrestBank signing key immediately after being pushed to Harbor. The signature is over the image digest — it is cryptographically impossible to modify the image without invalidating the signature. The signing key is accessible only to the Jenkins ServiceAccount in the jenkins namespace.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--red);">
+      <div class="layer-num">Link 5</div>
+      <div class="layer-title">ACS vulnerability gate</div>
+      <div class="layer-desc">ACS scanned the image at this specific digest before it could proceed. No CRITICAL CVEs were present at scan time. The scan result is recorded in the ACS audit log and in the Jenkins build log (linked from the production MR).</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num">Link 6</div>
+      <div class="layer-title">Production MR human approval</div>
+      <div class="layer-desc">A named platform engineer reviewed the evidence and approved the production promotion MR. The approval is timestamped and immutable in GitLab's audit log. The approval constitutes the formal change management authorisation required by PCI-DSS Req 6.4.2.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
+      <div class="layer-num">Link 7</div>
+      <div class="layer-title">ACS admission controller enforcement</div>
+      <div class="layer-desc">When Argo CD deploys the Deployment to the banking-production namespace, OCP's admission webhook calls ACS. ACS verifies the image has a valid NovaCrestBank cosign signature. An unsigned image, a signature from an unknown key, or a signature over a different digest — all rejected at admission, before any container starts.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 17 WHAT PIPELINE CANNOT DO ══ -->
+<div class="page" id="page-what-pipeline-cannot-do">
+  <div class="ey">GITOPS-03 · Section 17</div>
+  <div class="pt">What the pipeline cannot do — intentional capability limits</div>
+  <div class="ps">The pipeline's permissions are deliberately scoped. Understanding what the pipeline service account and Jenkins agent pods cannot do is as important as understanding what they can do — the boundaries define the blast radius if the pipeline is compromised.</div>
+
+  <table>
+    <thead><tr><th>Action</th><th>Can the pipeline do it?</th><th>Why not (the control)</th></tr></thead>
+    <tbody>
+      <tr><td>Push to the <code>main</code> branch of the production overlay in the config repo</td><td><span class="badge br">No</span></td><td>Branch protection: <code>push_access_level=0</code> (GITOPS-00 Section 12). The pipeline service account has Developer role — can open MRs, cannot merge to main.</td></tr>
+      <tr><td>Deploy directly to the banking-production OCP namespace</td><td><span class="badge br">No</span></td><td>Jenkins ServiceAccount RBAC (GITOPS-02 Section 09): can only create pods in the jenkins namespace. No access to any other namespace.</td></tr>
+      <tr><td>Push images to the platform/ or openshift-release-dev/ Harbor projects</td><td><span class="badge br">No</span></td><td>Harbor RBAC: ncb-pipeline-svc has Project Admin role on banking-apps only. Harbor rejects push requests to other projects.</td></tr>
+      <tr><td>Sign images with the NovaCrestBank cosign key outside of this pipeline</td><td><span class="badge br">No</span></td><td>The cosign private key is in a Kubernetes Secret in the jenkins namespace, accessible only to the Jenkins ServiceAccount. An attacker who does not have Kubernetes API access to the jenkins namespace cannot obtain the key.</td></tr>
+      <tr><td>Approve the production promotion MR it opened</td><td><span class="badge br">No</span></td><td>GitLab RBAC: the pipeline service account (ncb-pipeline-svc) has Developer role in the gitops group. Only Maintainer or higher can approve MRs in the config repo. The approver must be a different account with a different credential.</td></tr>
+      <tr><td>Read Secrets in the banking-production namespace</td><td><span class="badge br">No</span></td><td>Jenkins ServiceAccount RBAC: Secrets/get permission is scoped to the jenkins namespace only.</td></tr>
+      <tr><td>Run ACS scans against images from other teams' Harbor projects</td><td><span class="badge br">No</span></td><td>ACS API token scope: the jenkins-acs-api-token credential has permission to scan images in the banking-apps Harbor project only.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 18 PIPELINE FAILURE ══ -->
+<div class="page" id="page-pipeline-failure">
+  <div class="ey">GITOPS-03 · Section 18</div>
+  <div class="pt">Diagnosing pipeline failures — reading the build log</div>
+  <div class="ps">When the pipeline fails, the build log is the first diagnostic tool. Each stage produces specific error patterns. This section maps the most common failure modes to their root causes.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--red);">
+      <div class="layer-num">Stage 2</div>
+      <div class="layer-title">Maven build fails — unit test failure vs compilation failure</div>
+      <div class="layer-desc"><strong>Compilation failure:</strong> <code>BUILD FAILURE ... COMPILATION ERROR</code> — a syntax error in Java code. Fix: review the failing file, the compiler error shows the exact line. <strong>Unit test failure:</strong> <code>Tests run: X, Failures: Y, Errors: Z</code> — check the Surefire report linked in the build. <strong>SonarQube quality gate failure:</strong> <code>ANALYSIS FAILED due to Quality Gate failure</code> — log into SonarQube at <code>sonarqube.apps.ocp.corp.novacrestbank.com</code> and view the project dashboard to see which specific condition failed (security hotspot, coverage below threshold).</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
+      <div class="layer-num">Stage 4</div>
+      <div class="layer-title">Harbor push failure — auth vs network vs certificate</div>
+      <div class="layer-desc"><strong>Auth failure:</strong> <code>unauthorized: authentication required</code> — the <code>jenkins-harbor-push-credentials</code> credential may be expired or incorrect. Verify the Harbor service account is active. <strong>Network failure:</strong> <code>connection refused</code> or <code>no such host</code> — the buildah container cannot reach Harbor. Check: NSX DFW rules allowing jenkins namespace → Harbor. <strong>Certificate failure:</strong> <code>x509: certificate signed by unknown authority</code> — the NCB CA bundle is not in the buildah container's trust store. Verify the MachineConfig (UPG-03 Section 09) that deploys the CA bundle to worker nodes is applied.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--red);">
+      <div class="layer-num">Stage 5</div>
+      <div class="layer-title">ACS scan failure — CVE found vs connectivity</div>
+      <div class="layer-desc"><strong>CVE gate failure:</strong> <code>FAIL: Policy "No Critical CVEs" — 1 violation found</code> — the build log shows the CVE ID, affected package, and fix version. The developer must update the dependency and re-run the pipeline. <strong>ACS connectivity failure:</strong> <code>connection refused to central.stackrox.svc:443</code> — ACS Central pod may be down or the jenkins namespace NetworkPolicy blocks the connection. Check <code>oc get pods -n stackrox</code> for Central pod health.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
+      <div class="layer-num">Stage 6</div>
+      <div class="layer-title">Staging deploy timeout — Argo CD sync issue</div>
+      <div class="layer-desc"><strong>Timeout after 300s:</strong> Argo CD did not sync and mark staging Healthy within 5 minutes. Check: <code>argocd app get payment-service-staging</code> — if Degraded, the pod is CrashLoopBackOff. Check the staging pod logs: <code>oc logs -n banking-staging -l app=payment-service</code>. Common cause: the new image has a startup configuration error that unit tests did not catch (missing environment variable, wrong database connection string). <strong>GitLab push failure:</strong> <code>Permission denied (publickey)</code> — the <code>jenkins-config-repo-deploy-key</code> SSH key may have expired in GitLab.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num">Stage 7</div>
+      <div class="layer-title">Integration test failure — application vs infrastructure</div>
+      <div class="layer-desc"><strong>HTTP 4xx from the API:</strong> an application-level regression — the new code returns an unexpected response. Check the integration test failure report (linked from the build) and the staging application logs. <strong>Connection refused / timeout:</strong> an infrastructure issue — the NSX NetworkPolicy may not allow the jenkins namespace to reach banking-staging on port 443, or the staging Route is not reachable. Check: <code>oc get route -n banking-staging</code> and NSX DFW rule for jenkins → banking-staging.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 19 CHECKLIST ══ -->
+<div class="page" id="page-checklist">
+  <div class="ey">GITOPS-03 · Section 19</div>
+  <div class="pt">Checklist and pipeline readiness confirmation</div>
+  <div class="ps">The Jenkinsfile is complete and all supporting infrastructure is confirmed. The pipeline is ready to execute on the first commit to the main branch of any banking microservice repository.</div>
+
+  <div class="callout success">
+    <div class="cl">GITOPS-03 complete — the NovaCrestBank banking pipeline is production-ready</div>
+    The complete 8-stage pipeline executes from a developer's Git commit to a signed, scanned, staged, and production-ready image in 10–15 minutes. Every security decision — Buildah over Docker, digest over tag, cosign signature, ACS gate, production MR over direct push — is grounded in a specific regulatory or security requirement. The pipeline does not just build and deploy software: it produces a complete, verifiable, tamper-evident chain of custody from source code to running pod.
+  </div>
+
+  <h2>Pipeline readiness checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Jenkinsfile in banking/payment-service root</span><span class="spec-val"><span class="badge bgr">□ Commit</span> Jenkinsfile at repo root — GitLab webhook triggers Jenkins on merge to main</span></div>
+    <div class="spec-row"><span class="spec-label">Jenkins job created and linked to GitLab repo</span><span class="spec-val"><span class="badge bgr">□ Create</span> Multibranch Pipeline job — scans banking/payment-service for Jenkinsfile</span></div>
+    <div class="spec-row"><span class="spec-label">All five credentials in Jenkins credential store</span><span class="spec-val"><span class="badge bg">✓</span> harbor-push · cosign-key · gitlab-api-token · config-repo-deploy-key · acs-api-token</span></div>
+    <div class="spec-row"><span class="spec-label">GitOps config repo has staging and production overlays</span><span class="spec-val"><span class="badge bgr">□ Verify</span> apps/payment-service/overlays/{staging,production}/kustomization.yaml exists</span></div>
+    <div class="spec-row"><span class="spec-label">Argo CD Application for payment-service-staging exists</span><span class="spec-val"><span class="badge bgr">□ Verify</span> oc get application payment-service-staging -n gitops — must exist before Stage 6 runs</span></div>
+    <div class="spec-row"><span class="spec-label">ACS policy "No Critical CVEs" active on banking-apps</span><span class="spec-val"><span class="badge bg">✓</span> OPS-03 — ACS policy enforced on banking-production namespace</span></div>
+    <div class="spec-row"><span class="spec-label">ACS policy "Image signed by NovaCrestBank key" active</span><span class="spec-val"><span class="badge bg">✓</span> cosign public key registered in ACS signature integration</span></div>
+    <div class="spec-row"><span class="spec-label">SonarQube project ncb-payment-service configured</span><span class="spec-val"><span class="badge bgr">□ Configure</span> SonarQube quality gate with NovaCrestBank thresholds applied to project</span></div>
+    <div class="spec-row"><span class="spec-label">First pipeline run triggered and passed</span><span class="spec-val"><span class="badge bgr">□ Run</span> Merge a test commit to main — verify all 8 stages pass and production MR opens</span></div>
+  </div>
+
+  <h2>What GITOPS-04 adds on top of GITOPS-03</h2>
+  <p>GITOPS-03 defines what gets promoted to production (the image digest). GITOPS-04 defines how Argo CD deploys it across multiple environments using an ApplicationSet — the Kustomize base-plus-overlay pattern, sync waves for deployment ordering, health checks, and the Argo CD web UI walkthrough. The config repo structure introduced in Section 07 of this guide (<code>base/</code> and <code>overlays/{dev,staging,production}/</code>) is the exact structure that the GITOPS-04 ApplicationSet configuration reads.</p>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

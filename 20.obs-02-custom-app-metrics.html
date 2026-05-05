@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OBS-02 — Custom Application Metrics · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --ocp-red:#cc0000;--ocp-red-bg:#fff0f0;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ocp-red);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--ocp-red);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--ocp-red);}
+  .pbadge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ocp-red);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--ocp-red);}
+  .callout{border-left:3px solid var(--ocp-red);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.blue{border-left-color:var(--accent);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.blue .cl{color:var(--accent);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.blue):not(.why) .cl{color:var(--ocp-red);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:230px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--ocp-red);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+  .yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;}
+  .yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #30363d;}
+  .yaml-dot{width:10px;height:10px;border-radius:50%;}
+  .yaml-dot.r{background:#ff5f57;}.yaml-dot.y{background:#febc2e;}.yaml-dot.g{background:#28c840;}
+  .yaml-label{font-size:11px;color:#8b949e;margin-left:6px;}
+  .yaml-body{padding:14px 18px;overflow-x:auto;}
+  .yaml-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;color:#c9d1d9;}
+  .yk{color:#7ee787;}.yv{color:#a5d6ff;}.yn{color:#f8c555;}
+  .yc{color:#8b949e;}.ys{color:#ff7b72;}.yb{color:#d2a8ff;}
+  .term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #333;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.65;}
+  .term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #333;}
+  .term-label{font-size:11px;color:#666;margin-left:6px;}
+  .term-body{padding:14px 18px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#608b7a;}.tw{color:#cca700;}
+  .tann{display:flex;gap:9px;background:#111;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#ccc;line-height:1.5;}
+  .tann.ok{border-left-color:#4ccd99;}.tann.info{border-left-color:#4da8da;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .layer-stack{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .layer{display:flex;align-items:flex-start;gap:14px;padding:13px 18px;
+    border-radius:var(--r2);border:0.5px solid var(--border2);}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:190px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  /* prometheus query block */
+  .prom-box{background:#0d1117;border:1px solid #30363d;border-radius:var(--r);
+    padding:14px 18px;margin:14px 0;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.8;overflow-x:auto;}
+  .pq-metric{color:#e6522c;}.pq-label{color:#5ba3d9;}.pq-val{color:#6dcf6d;}
+  .pq-fn{color:#d4a010;}.pq-op{color:#c9d1d9;}.pq-str{color:#a8d5a2;}
+  .pq-num{color:#f4c55e;}.pq-comment{color:#608b7a;font-style:italic;}
+  /* grafana panel mock */
+  .panel-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+  .panel-row.three{grid-template-columns:1fr 1fr 1fr;}
+  @media(max-width:700px){.panel-row,.panel-row.three{grid-template-columns:1fr;}}
+  .panel{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--r);
+    padding:14px 16px;}
+  .panel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--text3);margin-bottom:8px;}
+  .panel-value{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+  .panel-sub{font-size:11.5px;color:var(--text3);}
+  .panel-green .panel-value{color:var(--accent2);}
+  .panel-amber .panel-value{color:var(--amber);}
+  .panel-red .panel-value{color:var(--red);}
+  .panel-blue .panel-value{color:var(--accent);}
+  .signal-card{border-radius:var(--r);padding:16px 20px;margin:10px 0;
+    border:0.5px solid var(--border2);}
+  .signal-card.latency{border-left:5px solid var(--accent);}
+  .signal-card.traffic{border-left:5px solid var(--accent2);}
+  .signal-card.errors{border-left:5px solid var(--red);}
+  .signal-card.saturation{border-left:5px solid var(--amber);}
+  .signal-title{font-size:13px;font-weight:700;margin-bottom:6px;}
+  .signal-card.latency .signal-title{color:var(--accent);}
+  .signal-card.traffic .signal-title{color:var(--accent2);}
+  .signal-card.errors .signal-title{color:var(--red);}
+  .signal-card.saturation .signal-title{color:var(--amber);}
+  .signal-body{font-size:13px;color:var(--text2);line-height:1.65;}
+  /* java code block */
+  .java{background:#1e1e2e;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #313244;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.75;}
+  .java-bar{background:#181825;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #313244;}
+  .java-label{font-size:11px;color:#6c7086;margin-left:6px;}
+  .java-body{padding:14px 18px;overflow-x:auto;}
+  .java-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#cdd6f4;white-space:pre;}
+  .jk{color:#cba6f7;}   /* keyword */
+  .ja{color:#89b4fa;}   /* annotation */
+  .js{color:#a6e3a1;}   /* string */
+  .jt{color:#89dceb;}   /* type */
+  .jm{color:#fab387;}   /* method */
+  .jc{color:#6c7086;font-style:italic;} /* comment */
+  .jn{color:#f9e2af;}   /* number */
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Phase 7 · Observability</div>
+    <h1>OBS-02 — Custom App Metrics</h1>
+    <p>Micrometer · ServiceMonitor · Four golden signals · Grafana dashboards</p>
+  </div>
+
+  <div class="ngl">Concepts</div>
+  <div class="ni active" onclick="show('four-signals')"><div class="nd"></div>01 — The four golden signals — applied to banking APIs</div>
+  <div class="ni" onclick="show('what-to-measure')"><div class="nd"></div>02 — What to measure and what not to measure</div>
+  <div class="ni" onclick="show('micrometer-concept')"><div class="nd"></div>03 — Micrometer — the instrumentation library for Spring Boot <span class="pbadge bp">Concept</span></div>
+
+  <div class="ngl">Instrumenting the payment-service</div>
+  <div class="ni" onclick="show('pom-dependency')"><div class="nd"></div>04 — Adding Micrometer to the payment-service — pom.xml</div>
+  <div class="ni" onclick="show('application-config')"><div class="nd"></div>05 — Spring Boot Actuator configuration — application.yaml</div>
+  <div class="ni" onclick="show('custom-metrics-code')"><div class="nd"></div>06 — Writing custom metrics — Counter, Timer, and Gauge in Java <span class="pbadge bp">Code</span></div>
+  <div class="ni" onclick="show('metrics-endpoint')"><div class="nd"></div>07 — The /actuator/prometheus endpoint — what it looks like</div>
+
+  <div class="ngl">User workload monitoring</div>
+  <div class="ni" onclick="show('namespace-setup')"><div class="nd"></div>08 — User workload monitoring namespace setup</div>
+  <div class="ni" onclick="show('servicemonitor-apply')"><div class="nd"></div>09 — Apply the ServiceMonitor and verify scraping</div>
+  <div class="ni" onclick="show('promql-golden')"><div class="nd"></div>10 — PromQL expressions for the four golden signals <span class="pbadge bp">Key PromQL</span></div>
+
+  <div class="ngl">SLO alert rules</div>
+  <div class="ni" onclick="show('slo-concepts')"><div class="nd"></div>11 — SLI, SLO, and error budget — the banking reliability model</div>
+  <div class="ni" onclick="show('latency-alert')"><div class="nd"></div>12 — Latency SLO alert — P99 above threshold</div>
+  <div class="ni" onclick="show('error-rate-alert')"><div class="nd"></div>13 — Error rate alert — transaction failures above threshold</div>
+  <div class="ni" onclick="show('saturation-alert')"><div class="nd"></div>14 — Saturation alert — thread pool and JVM heap</div>
+
+  <div class="ngl">Grafana dashboards</div>
+  <div class="ni" onclick="show('dashboard-structure')"><div class="nd"></div>15 — Dashboard structure — the NovaCrestBank banking dashboard layout</div>
+  <div class="ni" onclick="show('panel-throughput')"><div class="nd"></div>16 — Transaction throughput panel — requests per second</div>
+  <div class="ni" onclick="show('panel-latency')"><div class="nd"></div>17 — Latency panels — P50, P95, P99 time series</div>
+  <div class="ni" onclick="show('panel-errors')"><div class="nd"></div>18 — Error rate and saturation panels</div>
+  <div class="ni" onclick="show('checklist')"><div class="nd"></div>19 — Handover checklist — application metrics fully operational</div>
+</nav>
+
+<main class="main">
+
+<!-- ══ 01 FOUR GOLDEN SIGNALS ══ -->
+<div class="page active" id="page-four-signals">
+  <div class="ey">OBS-02 · Section 01</div>
+  <div class="pt">The four golden signals — applied to NovaCrestBank banking APIs</div>
+  <div class="ps">Google's Site Reliability Engineering book identifies four signals that, when measured together, give a complete picture of a service's health. For banking APIs, these four signals map directly to the customer experience and regulatory expectations. Everything in this guide is built around them.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>OBS-01<br/>Monitoring</div>
+    <div class="pt-step active"><span class="pt-n">→</span>OBS-02<br/>App Metrics</div>
+    <div class="pt-step"><span class="pt-n">3</span>OBS-03<br/>Logging</div>
+    <div class="pt-step"><span class="pt-n">4</span>OBS-04<br/>Tracing</div>
+    <div class="pt-step"><span class="pt-n">5</span>ESO<br/>GITOPS-05</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why four signals — not twenty metrics — is the correct starting point</div>
+    <div class="decision-q">A banking microservice can expose hundreds of metrics — JVM heap, thread count, database connection pool, cache hit rate, HTTP response codes, GC pause duration, and many more. Why start with four signals rather than monitoring everything?</div>
+    <div class="decision-a"><strong>More metrics is not better monitoring. It is more noise with the same signal buried deeper. The danger of measuring everything is alert fatigue — when Grafana dashboards show 40 panels and Alertmanager fires on 15 different thresholds, engineers stop reading the dashboards and start dismissing alerts. The four golden signals are the minimum set that answers the question an on-call engineer actually asks at 2 AM: "Is the service working? Is it working well? Is it going to keep working?"</strong><br/><br/>
+    For a banking payments API specifically, the four signals map to concrete customer and regulatory consequences. Latency above 500ms on a payment API means customers experience a "hung" transaction — they do not know whether the payment submitted or not, which causes duplicate submission attempts. Traffic below baseline means customers are not reaching the service — something upstream has failed. Error rate above 0.1% on a payment endpoint means real failed transactions — customer complaints and potential regulatory reporting. Saturation approaching 100% thread pool usage means the service is about to start rejecting requests with 503 responses.<br/><br/>
+    Start with the four signals. Make them work perfectly — the right metrics, the right PromQL, the right alert thresholds, the right Grafana panels. Add additional metrics only when the four signals are insufficient to diagnose a real incident that occurred.</div>
+  </div>
+
+  <div class="signal-card latency">
+    <div class="signal-title">Signal 1 — Latency: how long does a request take?</div>
+    <div class="signal-body">
+      <strong>What it is:</strong> The time between a client sending a request and receiving the response. Measured as a distribution (not an average) because the tail — P99 or P99.9 — is what customers experience when things go wrong.<br/><br/>
+      <strong>Banking relevance:</strong> UK and Australian payment schemes (BPAY, NPP, Faster Payments) have defined SLAs for payment processing latency. A payment API that processes 99% of requests in under 200ms but takes 30 seconds for 1% has an unacceptable tail even though its average looks healthy. Only a percentile measure reveals the tail.<br/><br/>
+      <strong>NovaCrestBank SLO:</strong> P99 latency &lt; 500ms for the payment submission endpoint. P50 &lt; 80ms. Measured over a 5-minute rolling window. Alert when P99 exceeds 500ms for 5 consecutive minutes.
+    </div>
+  </div>
+
+  <div class="signal-card traffic">
+    <div class="signal-title">Signal 2 — Traffic: how much demand is the service receiving?</div>
+    <div class="signal-body">
+      <strong>What it is:</strong> The rate of requests hitting the service — typically measured as requests per second (RPS) or transactions per second (TPS). For a database, it might be queries per second or bytes transferred per second.<br/><br/>
+      <strong>Banking relevance:</strong> Banking traffic has strong diurnal patterns — peak during business hours (9 AM–5 PM), end-of-month batch processing spikes, low overnight. A traffic drop outside business hours is normal. A traffic drop during business hours at 2 PM on a weekday is an incident — it means customers cannot reach the service. Traffic monitoring detects upstream failures (load balancer misconfiguration, DNS failure) that no service-internal metric can catch.<br/><br/>
+      <strong>NovaCrestBank SLO:</strong> Alert when traffic drops below 20% of the rolling 7-day average for the same hour of the week during business hours. Alert when traffic exceeds 200% of the rolling average (possible DDoS or loop).
+    </div>
+  </div>
+
+  <div class="signal-card errors">
+    <div class="signal-title">Signal 3 — Errors: what fraction of requests are failing?</div>
+    <div class="signal-body">
+      <strong>What it is:</strong> The rate of explicitly failed requests — HTTP 5xx responses, business logic errors (insufficient funds returned as 422), or requests that succeed technically but return incorrect results. Includes both infrastructure errors (the service is crashing) and application errors (a payment is rejected for a business reason).<br/><br/>
+      <strong>Banking relevance:</strong> Payment API errors fall into two categories that must be measured separately. Infrastructure errors (5xx) represent service failures — the payment may or may not have been processed; the client does not know. Business errors (4xx — insufficient funds, invalid account) are expected and should be monitored for anomaly detection (a sudden spike in "insufficient funds" responses at 3 AM is suspicious). Only 5xx errors affect the SLO; 4xx errors affect fraud detection.<br/><br/>
+      <strong>NovaCrestBank SLO:</strong> 5xx error rate &lt; 0.1% over any 5-minute window. Alert at 0.05% (warning) and 0.1% (critical). Separately track 4xx business errors for fraud anomaly detection.
+    </div>
+  </div>
+
+  <div class="signal-card saturation">
+    <div class="signal-title">Signal 4 — Saturation: how full is the service?</div>
+    <div class="signal-body">
+      <strong>What it is:</strong> How much of the service's capacity is being used — what fraction of the service's ability to handle additional load remains. For a thread-pool-based Java service like the payment-service, saturation is thread pool utilisation. For a CPU-bound service, it is CPU utilisation. For a memory-bound process, it is heap usage as a fraction of the max heap.<br/><br/>
+      <strong>Banking relevance:</strong> Saturation is the predictive signal — high saturation precedes latency increases and errors. A payment-service running at 90% thread pool utilisation will have higher latency (threads queue) and eventually return 503 (thread pool exhausted) before any error rate metric rises. Measuring saturation at 80% and alerting before the service degrades gives the operations team time to scale before customers notice.<br/><br/>
+      <strong>NovaCrestBank SLO:</strong> Thread pool utilisation &lt; 80% sustained. JVM heap utilisation &lt; 75% sustained. Alert at 80% (warning). Above 90%, latency increases are already occurring — alert critical and scale immediately.
+    </div>
+  </div>
+</div>
+
+<!-- ══ 02 WHAT TO MEASURE ══ -->
+<div class="page" id="page-what-to-measure">
+  <div class="ey">OBS-02 · Section 02</div>
+  <div class="pt">What to measure and what not to measure</div>
+  <div class="ps">Every metric the payment-service exposes is scraped by Prometheus every 30 seconds, stored in TSDB, and queried by Grafana. Cardinality — the number of unique label combinations — determines whether a metric is sustainable or will cause storage and performance problems.</div>
+
+  <div class="decision">
+    <div class="decision-label">The cardinality problem — why high-cardinality labels destroy monitoring</div>
+    <div class="decision-q">Should the payment-service include a label for the customer account ID or the transaction ID in its metrics? That would allow per-customer latency analysis.</div>
+    <div class="decision-a"><strong>Never use high-cardinality values — customer IDs, transaction IDs, user email addresses, session tokens — as Prometheus metric labels. This is one of the most common and most damaging mistakes in Prometheus instrumentation.</strong><br/><br/>
+    Here is why. A single metric with a customer ID label — <code>payment_processing_seconds{customer_id="NC-12345678"}</code> — creates one Prometheus time series per unique customer ID. NovaCrestBank has 500,000 customers. That single metric creates 500,000 time series — each scraped every 30 seconds, each stored in TSDB, each tracked by Prometheus's memory index. At 500,000 time series for one metric, Prometheus's memory usage balloons by several gigabytes. The TSDB becomes enormous. Queries against this metric take minutes instead of milliseconds. Prometheus starts dropping samples. The monitoring system collapses under the weight of one badly instrumented metric.<br/><br/>
+    <strong>The rule:</strong> labels should have low, bounded cardinality — a small, known set of possible values that will not grow proportionally with the number of users or transactions. Good label values: <code>endpoint</code> (10–20 possible values), <code>status_code</code> (5–10 values), <code>environment</code> (3 values), <code>payment_type</code> (5 values: BPAY, NPP, OSKO, Direct Debit, Direct Credit). Bad label values: customer ID, transaction ID, user email, session token, correlation ID.<br/><br/>
+    For per-transaction analysis, use distributed tracing (OBS-04 — Tempo) or structured logs (OBS-03 — LokiStack) — both are designed for high-cardinality data. Prometheus is not.</div>
+  </div>
+
+  <h2>The approved label taxonomy for NovaCrestBank banking metrics</h2>
+  <table>
+    <thead><tr><th>Label name</th><th>Example values</th><th>Cardinality</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td><code>endpoint</code></td><td><code>/api/v1/payments/submit</code>, <code>/api/v1/accounts/balance</code></td><td>~20 total</td><td>Latency and error rate per API endpoint</td></tr>
+      <tr><td><code>method</code></td><td><code>POST</code>, <code>GET</code>, <code>PUT</code></td><td>5 total</td><td>HTTP method breakdown</td></tr>
+      <tr><td><code>status</code></td><td><code>2xx</code>, <code>4xx</code>, <code>5xx</code></td><td>3 total</td><td>Response category (not raw status code — 200 vs 201 is irrelevant)</td></tr>
+      <tr><td><code>payment_type</code></td><td><code>BPAY</code>, <code>NPP</code>, <code>OSKO</code>, <code>DirectDebit</code></td><td>5 total</td><td>Payment rail breakdown for capacity planning</td></tr>
+      <tr><td><code>outcome</code></td><td><code>success</code>, <code>insufficient_funds</code>, <code>invalid_account</code>, <code>timeout</code></td><td>8 total</td><td>Business outcome tracking for fraud detection</td></tr>
+      <tr><td><code>pod</code></td><td>Injected by ServiceMonitor relabelling</td><td>3–10 total</td><td>Per-replica breakdown — set by Prometheus, not by the application</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 03 MICROMETER CONCEPT ══ -->
+<div class="page" id="page-micrometer-concept">
+  <div class="ey">OBS-02 · Section 03</div>
+  <div class="pt">Micrometer — the instrumentation library for Spring Boot</div>
+  <div class="ps">Micrometer is to metrics what SLF4J is to logging — a vendor-neutral instrumentation facade. The payment-service uses Micrometer with the Prometheus registry backend. Understanding Micrometer's abstraction model makes the code in Section 06 obvious.</div>
+
+  <div class="decision">
+    <div class="decision-label">Why Micrometer rather than the Prometheus Java client directly</div>
+    <div class="decision-q">The Prometheus project provides its own Java client library (io.prometheus:simpleclient). Why use Micrometer instead?</div>
+    <div class="decision-a"><strong>The Prometheus Java client is Prometheus-specific — if NovaCrestBank later needs to send metrics to a different backend (Datadog, New Relic, StatsD, or a future system), all instrumentation code must be rewritten. Micrometer is a metrics facade — the application code uses Micrometer's API, and a registry backend translates to the specific wire format. Changing from Prometheus to another system is a configuration change, not a code change.</strong><br/><br/>
+    More practically: Micrometer integrates with Spring Boot Actuator out of the box. Adding one dependency and two configuration lines gives the payment-service automatic instrumentation for: all HTTP request latency and counts (via <code>@Timed</code> and Spring MVC instrumentation), JVM metrics (heap, GC pauses, thread count, class loading), Spring data source metrics (connection pool size, active connections, pending requests), Tomcat/Undertow thread pool metrics. The application team gets the platform metrics for free and only writes custom Micrometer code for business-domain metrics (payment outcome, processing time by payment type).</div>
+  </div>
+
+  <h2>Micrometer's three core instruments — mapped to Prometheus types</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
+      <div class="layer-num" style="color:var(--ocp-red);">Counter</div>
+      <div class="layer-title"><code>MeterRegistry.counter()</code></div>
+      <div class="layer-desc">Increments only. Maps to a Prometheus Counter. Use for: total payment submissions, total payment successes, total payment failures, total API requests. The raw counter value is meaningless — always use <code>rate(counter[5m])</code> in PromQL to get the per-second rate. Micrometer automatically appends <code>_total</code> to the metric name to follow Prometheus naming convention: <code>payment_submissions</code> becomes <code>payment_submissions_total</code> in the <code>/metrics</code> output.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num" style="color:var(--accent);">Timer</div>
+      <div class="layer-title"><code>MeterRegistry.timer()</code></div>
+      <div class="layer-desc">Measures durations. Maps to a Prometheus Histogram (with configurable buckets) plus an accompanying Counter for total call count. Use for: HTTP request duration, payment processing duration, database query duration. Micrometer automatically records both the count and the duration. In PromQL, use <code>histogram_quantile(0.99, rate(timer_name_seconds_bucket[5m]))</code> to get P99 latency. The Timer is the most important instrument for banking API monitoring — it gives you both throughput (the count) and latency (the histogram) from a single instrument.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
+      <div class="layer-num" style="color:var(--accent2);">Gauge</div>
+      <div class="layer-title"><code>MeterRegistry.gauge()</code></div>
+      <div class="layer-desc">Observes a current value. Maps to a Prometheus Gauge. Use for: queue depth (how many payments are awaiting processing), connection pool active connections, cache size, thread pool active threads. The Gauge reads the value each time Prometheus scrapes the <code>/metrics</code> endpoint — you provide a supplier function that returns the current value. Unlike Counter and Timer, Gauge values are queried directly in PromQL without a rate function.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 04 POM DEPENDENCY ══ -->
+<div class="page" id="page-pom-dependency">
+  <div class="ey">OBS-02 · Section 04</div>
+  <div class="pt">Adding Micrometer to the payment-service — pom.xml</div>
+  <div class="ps">Two Maven dependencies add Prometheus metrics exposition to the payment-service. The Spring Boot Actuator BOM manages version compatibility automatically — no version numbers need to be specified for Micrometer artifacts.</div>
+
+  <div class="java">
+    <div class="java-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="java-label">pom.xml — Micrometer and Spring Boot Actuator dependencies</span></div>
+    <div class="java-body"><pre><span class="jc">&lt;!-- Spring Boot Actuator — provides /actuator/prometheus endpoint --&gt;</span>
+<span class="jk">&lt;dependency&gt;</span>
+  <span class="jk">&lt;groupId&gt;</span>org.springframework.boot<span class="jk">&lt;/groupId&gt;</span>
+  <span class="jk">&lt;artifactId&gt;</span>spring-boot-starter-actuator<span class="jk">&lt;/artifactId&gt;</span>
+  <span class="jc">  &lt;!-- No version — inherited from spring-boot-starter-parent BOM --&gt;</span>
+<span class="jk">&lt;/dependency&gt;</span>
+
+<span class="jc">&lt;!-- Micrometer Prometheus registry — translates Micrometer metrics to Prometheus format --&gt;</span>
+<span class="jk">&lt;dependency&gt;</span>
+  <span class="jk">&lt;groupId&gt;</span>io.micrometer<span class="jk">&lt;/groupId&gt;</span>
+  <span class="jk">&lt;artifactId&gt;</span>micrometer-registry-prometheus<span class="jk">&lt;/artifactId&gt;</span>
+  <span class="jc">  &lt;!-- No version — managed by spring-boot-dependencies BOM --&gt;</span>
+  <span class="jc">  &lt;!-- This is all that is needed to enable Prometheus metrics.
+       With these two dependencies, the /actuator/prometheus endpoint is
+       automatically available when the application starts.
+       Spring Boot auto-configuration detects the Prometheus registry on the
+       classpath and registers it — zero additional Java code required for
+       the automatic platform metrics (JVM, HTTP, datasource, thread pool). --&gt;</span>
+<span class="jk">&lt;/dependency&gt;</span>
+
+<span class="jc">&lt;!-- Optional: Micrometer tracing bridge for Tempo/Zipkin (used in OBS-04) --&gt;</span>
+<span class="jk">&lt;dependency&gt;</span>
+  <span class="jk">&lt;groupId&gt;</span>io.micrometer<span class="jk">&lt;/groupId&gt;</span>
+  <span class="jk">&lt;artifactId&gt;</span>micrometer-tracing-bridge-otel<span class="jk">&lt;/artifactId&gt;</span>
+<span class="jk">&lt;/dependency&gt;</span></pre>
+    </div>
+  </div>
+
+  <div class="callout blue">
+    <div class="cl">What automatic metrics you get for free — before writing a single line of instrumentation code</div>
+    With these two dependencies, the payment-service automatically exposes: all JVM metrics (heap by pool, GC pause duration and frequency, thread count by state, class loading), all Tomcat/Undertow thread pool metrics (active threads, max threads, pending queue), all Spring MVC HTTP metrics (request count and latency by URI, method, and status), all HikariCP connection pool metrics (active connections, idle connections, pending acquires, acquisition time), and all Spring Cache metrics (if caching is used). This set of automatic metrics covers three of the four golden signals — traffic (HTTP request count), latency (HTTP request duration), and saturation (thread pool, connection pool, heap) — before any custom code is written. Only the business-domain metrics (payment outcome by type) require custom instrumentation.
+  </div>
+</div>
+
+<!-- ══ 05 APPLICATION CONFIG ══ -->
+<div class="page" id="page-application-config">
+  <div class="ey">OBS-02 · Section 05</div>
+  <div class="pt">Spring Boot Actuator configuration — application.yaml</div>
+  <div class="ps">Spring Boot Actuator is disabled for most endpoints by default for security reasons. The application.yaml enables the Prometheus endpoint, configures metric tags that appear as labels on every metric, and sets histogram bucket boundaries for latency measurement.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">application.yaml — Actuator and Micrometer configuration — every field explained</span></div>
+    <div class="yaml-body"><pre><span class="yk">management</span>:
+  <span class="yk">endpoints</span>:
+    <span class="yk">web</span>:
+      <span class="yk">exposure</span>:
+        <span class="yk">include</span>: <span class="yv">prometheus,health,info</span>
+        <span class="yc">  # Expose only these three endpoints. Never expose "env", "beans",
+              # "mappings", or "*" — these reveal internal application structure.
+              # prometheus: the Prometheus metrics scrape endpoint (/actuator/prometheus)
+              # health:     liveness and readiness probes — required by OCP DeploymentConfig
+              # info:       application version information — useful for dashboards</span>
+  <span class="yk">endpoint</span>:
+    <span class="yk">prometheus</span>:
+      <span class="yk">enabled</span>: <span class="yb">true</span>
+    <span class="yk">health</span>:
+      <span class="yk">show-details</span>: <span class="yv">never</span>
+      <span class="yc">  # never: health endpoint returns {"status":"UP"} only — not the detailed
+            # component health breakdown (DB connection status, disk space, etc.)
+            # That detail is only for internal monitoring, not external exposure.
+            # For Prometheus liveness/readiness, "UP" is sufficient.</span>
+  <span class="yk">metrics</span>:
+    <span class="yk">tags</span>:
+      <span class="yk">application</span>: <span class="yv">payment-service</span>
+      <span class="yk">team</span>: <span class="yv">banking-platform</span>
+      <span class="yk">environment</span>: <span class="yv">${spring.profiles.active:production}</span>
+      <span class="yc">  # Common tags: added as labels to EVERY metric this application exposes.
+            # application: "payment-service" — allows filtering all metrics from this service
+            # team: "banking-platform" — for multi-team Grafana dashboards
+            # environment: injected from Spring profile — "production" by default.
+            # These tags mean every metric looks like:
+            # http_server_requests_seconds_count{application="payment-service",
+            #   environment="production", team="banking-platform", ...}</span>
+    <span class="yk">distribution</span>:
+      <span class="yk">percentiles-histogram</span>:
+        <span class="yk">http.server.requests</span>: <span class="yb">true</span>
+        <span class="yk">payment.processing.duration</span>: <span class="yb">true</span>
+        <span class="yc">  # percentiles-histogram: true tells Micrometer to emit histogram buckets
+              # (the _bucket time series) for these metrics instead of just count+sum.
+              # WITHOUT this: Micrometer emits count, sum, and max — enough to compute
+              # average latency but NOT P99 (you need buckets for histogram_quantile()).
+              # WITH this: Micrometer emits _bucket, _count, _sum — enabling P99/P95/P50.
+              # Must be true for every Timer metric where you want percentile queries.</span>
+      <span class="yk">sla</span>:
+        <span class="yk">http.server.requests</span>: 50ms,100ms,200ms,500ms,1s,2s,5s
+        <span class="yk">payment.processing.duration</span>: 100ms,200ms,500ms,1s,2s,5s,10s
+        <span class="yc">  # sla: the histogram bucket boundaries (upper bounds).
+              # Prometheus records how many requests fell BELOW each boundary.
+              # For payment processing: boundaries at 100ms, 200ms, 500ms, 1s, 2s, 5s, 10s
+              # match NovaCrestBank's SLO tiers. Fine-grained buckets near the SLO threshold
+              # (500ms) allow precise histogram_quantile() computation.
+              # Bucket boundaries are configured HERE in application.yaml — they cannot
+              # be changed without a code deployment and service restart.</span>
+    <span class="yk">enable</span>:
+      <span class="yk">jvm</span>: <span class="yb">true</span>
+      <span class="yk">process</span>: <span class="yb">true</span>
+      <span class="yk">tomcat</span>: <span class="yb">true</span>
+      <span class="yk">hikaricp</span>: <span class="yb">true</span>
+      <span class="yc">  # Explicitly enable each metric group. All are enabled by default when
+            # the dependency is on the classpath, but being explicit documents the intent.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 CUSTOM METRICS CODE ══ -->
+<div class="page" id="page-custom-metrics-code">
+  <div class="ey">OBS-02 · Section 06</div>
+  <div class="pt">Writing custom metrics — Counter, Timer, and Gauge in Java</div>
+  <div class="ps">The automatic Micrometer metrics cover platform signals. The business-domain signals — payment outcome rates, processing time by payment type, queue depth — require custom instrumentation in the payment-service Java code. This section shows the complete pattern for each instrument type.</div>
+
+  <div class="java">
+    <div class="java-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="java-label">PaymentMetrics.java — custom instrumentation for the four golden signals</span></div>
+    <div class="java-body"><pre><span class="ja">@Component</span>
+<span class="jk">public class</span> <span class="jt">PaymentMetrics</span> {
+
+    <span class="jk">private final</span> <span class="jt">MeterRegistry</span> registry;
+
+    <span class="jc">// ── SIGNAL 1: LATENCY — Timer per endpoint and payment type ─────────────────</span>
+    <span class="jk">private final</span> <span class="jt">Timer</span> paymentSubmitTimer;
+    <span class="jk">private final</span> <span class="jt">Timer</span> paymentAuthoriseTimer;
+
+    <span class="jc">// ── SIGNAL 2: TRAFFIC — Counter by payment type and outcome ─────────────────</span>
+    <span class="jk">private final</span> <span class="jt">Counter.Builder</span> paymentCounterBuilder;
+
+    <span class="jc">// ── SIGNAL 4: SATURATION — Gauge for processing queue depth ─────────────────</span>
+    <span class="jk">private final</span> <span class="jt">Queue</span>&lt;<span class="jt">PaymentRequest</span>&gt; processingQueue;
+
+    <span class="jk">public</span> <span class="jm">PaymentMetrics</span>(<span class="jt">MeterRegistry</span> registry,
+                          <span class="jt">Queue</span>&lt;<span class="jt">PaymentRequest</span>&gt; processingQueue) {
+        <span class="jk">this</span>.registry = registry;
+        <span class="jk">this</span>.processingQueue = processingQueue;
+
+        <span class="jc">// Timer: payment submission latency with histogram buckets
+        // Metric name: payment_submit_duration_seconds
+        // Additional tags: payment_type is added per-call (see recordPayment() below)</span>
+        paymentSubmitTimer = <span class="jt">Timer</span>.builder(<span class="js">"payment.submit.duration"</span>)
+            .description(<span class="js">"End-to-end payment submission latency including authorisation"</span>)
+            .publishPercentileHistogram()   <span class="jc">// emit _bucket series for histogram_quantile()</span>
+            .minimumExpectedValue(<span class="jt">Duration</span>.ofMillis(<span class="jn">10</span>))   <span class="jc">// bucket lower bound</span>
+            .maximumExpectedValue(<span class="jt">Duration</span>.ofSeconds(<span class="jn">10</span>))  <span class="jc">// bucket upper bound</span>
+            .register(registry);
+
+        paymentAuthoriseTimer = <span class="jt">Timer</span>.builder(<span class="js">"payment.authorise.duration"</span>)
+            .description(<span class="js">"Time to receive authorisation from the payment rail"</span>)
+            .publishPercentileHistogram()
+            .register(registry);
+
+        <span class="jc">// Counter builder: payment outcomes — low cardinality labels only
+        // Metric name: payment_outcomes_total
+        // Labels: payment_type (BPAY/NPP/OSKO/etc), outcome (success/failed/declined)</span>
+        paymentCounterBuilder = <span class="jt">Counter</span>.builder(<span class="js">"payment.outcomes"</span>)
+            .description(<span class="js">"Count of payment outcomes by type and result"</span>);
+
+        <span class="jc">// Gauge: processing queue depth — reads queue size on each Prometheus scrape
+        // Metric name: payment_queue_depth
+        // This is the saturation signal — high queue depth precedes latency increases</span>
+        <span class="jt">Gauge</span>.builder(<span class="js">"payment.queue.depth"</span>, processingQueue, <span class="jt">Queue</span>::size)
+            .description(<span class="js">"Number of payments currently awaiting processing"</span>)
+            .tag(<span class="js">"queue"</span>, <span class="js">"main-processing"</span>)
+            .register(registry);
+    }
+
+    <span class="jc">/**
+     * Record a completed payment with its outcome.
+     * Called after every payment submission attempt — success or failure.
+     * 
+     * @param paymentType  BPAY, NPP, OSKO, DirectDebit, DirectCredit
+     * @param outcome      success, insufficient_funds, invalid_account, timeout, system_error
+     * @param duration     measured by the caller with System.nanoTime() or Instant
+     */</span>
+    <span class="jk">public void</span> <span class="jm">recordPayment</span>(<span class="jt">String</span> paymentType, <span class="jt">String</span> outcome, <span class="jt">Duration</span> duration) {
+        <span class="jc">// Record the Timer — captures duration for latency percentiles</span>
+        paymentSubmitTimer.record(duration);
+
+        <span class="jc">// Increment the Counter — captures throughput and outcome distribution
+        // Labels (tags) are added per-call — low cardinality values from the approved list</span>
+        paymentCounterBuilder
+            .tag(<span class="js">"payment_type"</span>, paymentType)  <span class="jc">// ~5 values: BPAY, NPP, OSKO, ...</span>
+            .tag(<span class="js">"outcome"</span>, outcome)            <span class="jc">// ~8 values: success, declined, ...</span>
+            .register(registry)
+            .increment();
+    }
+
+    <span class="jc">/**
+     * @Timed annotation on service methods — alternative to manual Timer.record().
+     * Spring AOP intercepts the method call and records the duration automatically.
+     * Use @Timed for methods where Duration is not already available.
+     */</span>
+    <span class="ja">@Timed</span>(value = <span class="js">"payment.validation.duration"</span>,
+           description = <span class="js">"Time to validate payment request fields"</span>,
+           percentiles = {<span class="jn">0.5</span>, <span class="jn">0.95</span>, <span class="jn">0.99</span>},
+           histogram = <span class="jk">true</span>)
+    <span class="jk">public</span> <span class="jt">ValidationResult</span> <span class="jm">validatePayment</span>(<span class="jt">PaymentRequest</span> request) {
+        <span class="jc">// Spring AOP records start/end time automatically.
+        // The @Timed annotation handles everything — no Timer.record() call needed here.</span>
+        <span class="jk">return</span> validator.validate(request);
+    }
+}</pre>
+    </div>
+  </div>
+
+  <div class="callout why">
+    <div class="cl">Why the Timer is registered once but tagged per-call</div>
+    The <code>paymentSubmitTimer</code> is built once in the constructor without tags. Tags are added in <code>recordPayment()</code> via <code>.tag("payment_type", paymentType)</code>. This is Micrometer's tag-per-call pattern — it creates one time series per unique tag combination (BPAY/success, BPAY/failed, NPP/success, etc.) rather than one monolithic timer. Building the Timer once prevents re-registering it on every call. This is safe because Micrometer's registry is idempotent — registering the same name with the same tags returns the existing meter.
+  </div>
+</div>
+
+<!-- ══ 07 METRICS ENDPOINT ══ -->
+<div class="page" id="page-metrics-endpoint">
+  <div class="ey">OBS-02 · Section 07</div>
+  <div class="pt">The /actuator/prometheus endpoint — what it looks like and how to read it</div>
+  <div class="ps">The <code>/actuator/prometheus</code> endpoint is what Prometheus scrapes every 30 seconds. Understanding the exposition format lets you verify your instrumentation is correct before creating a ServiceMonitor.</div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">curl the /actuator/prometheus endpoint from a payment-service pod</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n banking-production \
+  deployment/payment-service -- \
+  curl -s http://localhost:8080/actuator/prometheus | head -60</span>
+<span class="tg"># HELP jvm_memory_used_bytes The amount of used memory
+# TYPE jvm_memory_used_bytes gauge
+jvm_memory_used_bytes{application="payment-service",area="heap",id="G1 Eden Space",} 1.34217728E8</span>
+<span class="td">  # Every metric block has three parts:
+    # HELP: human-readable description (from .description() in Micrometer)
+    # TYPE: gauge, counter, histogram, or summary
+    # metric_name{labels} value</span>
+
+<span class="tg"># HELP payment_submit_duration_seconds_bucket End-to-end payment submission latency
+# TYPE payment_submit_duration_seconds histogram
+payment_submit_duration_seconds_bucket{application="payment-service",le="0.01",} 1847.0</span>
+<span class="td">   ↑ le="0.01" = count of requests that completed in ≤ 10ms: 1847</span>
+<span class="tg">payment_submit_duration_seconds_bucket{application="payment-service",le="0.025",} 3291.0
+payment_submit_duration_seconds_bucket{application="payment-service",le="0.05",}  4102.0
+payment_submit_duration_seconds_bucket{application="payment-service",le="0.1",}   4821.0
+payment_submit_duration_seconds_bucket{application="payment-service",le="0.25",}  4998.0
+payment_submit_duration_seconds_bucket{application="payment-service",le="0.5",}   5000.0</span>
+<span class="td">   ↑ le="0.5" = count of requests ≤ 500ms: 5000 (all of them)
+     This means 100% of requests are within 500ms — P99 is well under the SLO</span>
+<span class="tg">payment_submit_duration_seconds_bucket{application="payment-service",le="+Inf",}  5000.0
+payment_submit_duration_seconds_count{application="payment-service",} 5000.0
+payment_submit_duration_seconds_sum{application="payment-service",} 312.4</span>
+<span class="td">   ↑ count=5000 total requests, sum=312.4 seconds total → average 62ms</span>
+
+<span class="tg"># HELP payment_outcomes_total Count of payment outcomes by type and result
+# TYPE payment_outcomes_total counter
+payment_outcomes_total{application="payment-service",outcome="success",payment_type="NPP",} 4823.0
+payment_outcomes_total{application="payment-service",outcome="success",payment_type="BPAY",} 177.0
+payment_outcomes_total{application="payment-service",outcome="insufficient_funds",payment_type="NPP",} 38.0</span>
+<span class="td">   ↑ Low-cardinality counters — 3 time series here, bounded set of label values ✓</span>
+
+<span class="tg"># HELP payment_queue_depth Number of payments currently awaiting processing
+# TYPE payment_queue_depth gauge
+payment_queue_depth{application="payment-service",queue="main-processing",} 3.0</span>
+<span class="td">   ↑ Queue depth right now: 3 payments waiting. Queried directly (no rate()). ✓</span>
+
+<span class="tg"># HELP http_server_requests_seconds_count Total number of requests — auto-instrumented
+# TYPE http_server_requests_seconds counter
+http_server_requests_seconds_count{application="payment-service",method="POST",
+  outcome="SUCCESS",status="200",uri="/api/v1/payments/submit",} 4823.0
+http_server_requests_seconds_count{application="payment-service",method="GET",
+  outcome="SUCCESS",status="200",uri="/actuator/health",} 15284.0</span>
+<span class="td">   ↑ Automatic HTTP instrumentation from Spring MVC — free from the dependency ✓</span>
+    <div class="tann ok"><span class="tai">✓</span><span>Metrics endpoint is healthy. Custom business metrics (payment_outcomes_total, payment_submit_duration_seconds, payment_queue_depth) and automatic platform metrics (jvm_memory, http_server_requests) all present. Low cardinality confirmed — bounded label sets.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 08 NAMESPACE SETUP ══ -->
+<div class="page" id="page-namespace-setup">
+  <div class="ey">OBS-02 · Section 08</div>
+  <div class="pt">User workload monitoring namespace setup</div>
+  <div class="ps">With <code>enableUserWorkload: true</code> set in OBS-01, the User Workload Prometheus watches all namespaces for ServiceMonitor objects. The banking-production namespace needs one configuration object — a <code>user-workload-monitoring-config</code> ConfigMap — to tune the user workload Prometheus for this namespace's scrape volume.</div>
+
+  <div class="callout blue">
+    <div class="cl">Two ConfigMaps — one for the platform stack, one for the user workload stack</div>
+    OBS-01 configured <code>cluster-monitoring-config</code> in <code>openshift-monitoring</code> — this controls the platform Prometheus. The user workload Prometheus is configured separately via <code>user-workload-monitoring-config</code> in <code>openshift-user-workload-monitoring</code>. These are independent — changes to one do not affect the other. For NovaCrestBank's banking application metrics, the user workload ConfigMap sets scrape limits that prevent a badly instrumented application from overwhelming the User Workload Prometheus with millions of time series.
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">user-workload-monitoring-config — user workload Prometheus tuning</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
+<span class="yk">kind</span>: <span class="yv">ConfigMap</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">user-workload-monitoring-config</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-user-workload-monitoring</span>
+  <span class="yc">  # This exact name and namespace — the CMO reads only from here.</span>
+<span class="yk">data</span>:
+  <span class="yk">config.yaml</span>: <span class="yv">|</span>
+    <span class="yv">    prometheus:</span>
+    <span class="yv">      retention: 24h</span>
+    <span class="yc">        # User workload Prometheus retains only 24 hours of data locally.
+              # This is intentional — the platform Prometheus (15 days) captures
+              # infrastructure metrics long-term. Application metrics are queried
+              # via Thanos Querier which spans both Prometheus instances.
+              # 24h retention keeps the user workload PVC small.</span>
+    <span class="yv">      enforcedSampleLimit: 50000</span>
+    <span class="yc">        # Maximum samples (individual metric values) per scrape across
+              # ALL ServiceMonitors in ALL namespaces.
+              # If a single scrape returns more than 50,000 samples, Prometheus
+              # drops the excess and records a scrape error.
+              # This prevents a badly instrumented service (for example, one that
+              # inadvertently creates high-cardinality metrics) from overwhelming
+              # the User Workload Prometheus.
+              # With 50 banking services × ~200 metrics each = ~10,000 samples
+              # per full scrape cycle. 50,000 provides substantial headroom.</span>
+    <span class="yv">      enforcedTargetLimit: 200</span>
+    <span class="yc">        # Maximum number of scrape targets (individual pod endpoints) across
+              # all ServiceMonitors. 200 covers 50 services × 4 replicas each.
+              # Prevents runaway autodiscovery from targeting unexpected pods.</span>
+    <span class="yv">      nodeSelector:</span>
+    <span class="yv">        node-role.kubernetes.io/infra: ""</span>
+    <span class="yv">      tolerations:</span>
+    <span class="yv">        - key: node-role.kubernetes.io/infra</span>
+    <span class="yv">          effect: NoSchedule</span>
+    <span class="yc">        # User Workload Prometheus also runs on infra nodes — same isolation
+              # as the platform Prometheus. Application metrics scraping should not
+              # compete with application workloads for resources on worker nodes.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — apply config and grant banking developers query access</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f user-workload-monitoring-config.yaml</span>
+<span class="tg">configmap/user-workload-monitoring-config created</span>
+
+<span class="td"># Grant banking developers the ability to query metrics in their namespace
+# from the OCP console Observe → Metrics section</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm policy add-role-to-group \
+  monitoring-rules-view \
+  ncb-banking-developers \
+  -n banking-production</span>
+<span class="tg">clusterrole.rbac.authorization.k8s.io/monitoring-rules-view added: "ncb-banking-developers"</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm policy add-role-to-group \
+  monitoring-edit \
+  ncb-banking-platform-engineers \
+  -n banking-production</span>
+<span class="tg">clusterrole.rbac.authorization.k8s.io/monitoring-edit added: "ncb-banking-platform-engineers"</span>
+<span class="td">  # monitoring-rules-view: can view metrics and PrometheusRules — not create them
+    # monitoring-edit: can create ServiceMonitors and PrometheusRules in this namespace
+    # Platform engineers create the ServiceMonitors; developers can query and view</span>
+    <div class="tann ok"><span class="tai">✓</span><span>User workload monitoring configured. 24h retention, 50,000 sample limit, 200 target limit. Banking developers can query their namespace metrics from the OCP console. Platform engineers can create ServiceMonitors in banking-production.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 09 SERVICEMONITOR APPLY ══ -->
+<div class="page" id="page-servicemonitor-apply">
+  <div class="ey">OBS-02 · Section 09</div>
+  <div class="pt">Apply the ServiceMonitor and verify end-to-end scraping</div>
+  <div class="ps">The ServiceMonitor from OBS-01 Section 10 is applied to banking-production. This section verifies the complete chain: ServiceMonitor → Service → Endpoints → Pod scrape → metric stored in Prometheus.</div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply ServiceMonitor and trace the discovery chain</span></div>
+    <div class="term-body"><pre><span class="td"># Apply the payment-service ServiceMonitor</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f payment-service-servicemonitor.yaml \
+  -n banking-production</span>
+<span class="tg">servicemonitor.monitoring.coreos.com/payment-service-monitor created</span>
+
+<span class="td"># Step 1: Verify the Service has the correct labels (app: payment-service)
+# The ServiceMonitor selector must match these labels</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get service payment-service -n banking-production \
+  --show-labels</span>
+<span class="tg">NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)           LABELS
+payment-service   ClusterIP   10.96.x.x      none          8080/TCP          app=payment-service,...</span>
+<span class="td">  ↑ Service has label app=payment-service — matches ServiceMonitor selector ✓</span>
+
+<span class="td"># Step 2: Verify the Service has a port NAMED "metrics"
+# The ServiceMonitor references the port by name, not number</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get service payment-service -n banking-production \
+  -o jsonpath='{.spec.ports[*].name}'</span>
+<span class="tg">metrics</span>
+<span class="td">  ↑ Port named "metrics" exists on the Service ✓
+    If this returned empty, the ServiceMonitor cannot find the port to scrape.
+    Fix: add a named port to the Service spec:
+    ports:
+      - name: metrics   ← this name must match ServiceMonitor spec.endpoints[0].port
+        port: 8080
+        targetPort: 8080</span>
+
+<span class="td"># Step 3: Wait 60s for Prometheus Operator to pick up the ServiceMonitor
+# then query the user workload Prometheus for the new scrape targets</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">sleep 60 && \
+  oc exec -n openshift-user-workload-monitoring \
+  prometheus-user-workload-0 \
+  -c prometheus -- \
+  promtool query instant http://localhost:9090 \
+  'up{job="payment-service", namespace="banking-production"}' 2>/dev/null</span>
+<span class="tg">up{job="payment-service",namespace="banking-production",pod="payment-service-abc123",...}  =>  1
+up{job="payment-service",namespace="banking-production",pod="payment-service-def456",...}  =>  1
+up{job="payment-service",namespace="banking-production",pod="payment-service-ghi789",...}  =>  1</span>
+<span class="td">  ↑ up=1 for all 3 pods — Prometheus is successfully scraping all replicas ✓</span>
+
+<span class="td"># Step 4: Verify a custom business metric is present</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n openshift-user-workload-monitoring \
+  prometheus-user-workload-0 \
+  -c prometheus -- \
+  promtool query instant http://localhost:9090 \
+  'payment_outcomes_total{namespace="banking-production"}' 2>/dev/null</span>
+<span class="tg">payment_outcomes_total{namespace="banking-production",outcome="success",payment_type="NPP",...}  =>  4823
+payment_outcomes_total{namespace="banking-production",outcome="success",payment_type="BPAY",...}  =>  177
+payment_outcomes_total{namespace="banking-production",outcome="insufficient_funds",...}  =>  38</span>
+<span class="td">  ↑ Custom business metrics visible in Prometheus ✓
+    Low cardinality confirmed: payment_type and outcome have bounded value sets.</span>
+    <div class="tann ok"><span class="tai">✓</span><span>End-to-end verification complete. ServiceMonitor → Service (port: metrics) → Endpoints (3 pod IPs) → Prometheus scrape (up=1 for all) → custom metrics stored (payment_outcomes_total, payment_submit_duration_seconds). The full instrumentation chain is working.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 10 PROMQL GOLDEN SIGNALS ══ -->
+<div class="page" id="page-promql-golden">
+  <div class="ey">OBS-02 · Section 10</div>
+  <div class="pt">PromQL expressions for the four golden signals</div>
+  <div class="ps">The definitive PromQL expressions for each signal — ready to use in Grafana panels and alert rules. Each expression is explained line by line so it can be adapted for any banking microservice.</div>
+
+  <div class="prom-box">
+    <pre><span class="pq-comment"># ══ SIGNAL 1: LATENCY ════════════════════════════════════════════════════════</span>
+
+<span class="pq-comment"># P99 payment submission latency — the primary SLO metric</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.99</span>,
+  <span class="pq-fn">sum</span>(
+    <span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{
+      <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+      <span class="pq-label">application</span>=<span class="pq-str">"payment-service"</span>
+    }[<span class="pq-num">5m</span>])
+  ) <span class="pq-op">by</span> (<span class="pq-label">le</span>)  <span class="pq-comment">← "le" is the histogram bucket label — must be kept in the "by" clause</span>
+)
+<span class="pq-comment"># Returns: single value — the 99th percentile latency in seconds.
+# SLO threshold: < 0.5 (500ms). Alert when > 0.5 for 5 minutes.</span>
+
+<span class="pq-comment"># P99 latency broken down per pod — for identifying which replica is slow</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.99</span>,
+  <span class="pq-fn">sum</span>(
+    <span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{
+      <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>
+    }[<span class="pq-num">5m</span>])
+  ) <span class="pq-op">by</span> (<span class="pq-label">le</span>, <span class="pq-label">pod</span>)  <span class="pq-comment">← add "pod" to the "by" clause for per-replica breakdown</span>
+)
+<span class="pq-comment"># Returns: one P99 value per pod. If pod-abc123 is at 800ms and others at 60ms,
+# that pod has a problem (memory pressure, GC pause, database connection issue).</span>
+
+<span class="pq-comment"># P50 / P95 / P99 side by side — for the latency panel showing all three</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.50</span>, <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])) <span class="pq-op">by</span> (<span class="pq-label">le</span>))
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.95</span>, <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])) <span class="pq-op">by</span> (<span class="pq-label">le</span>))
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.99</span>, <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])) <span class="pq-op">by</span> (<span class="pq-label">le</span>))
+
+<span class="pq-comment"># ══ SIGNAL 2: TRAFFIC ════════════════════════════════════════════════════════</span>
+
+<span class="pq-comment"># Total payment submission rate — requests per second across all pods</span>
+<span class="pq-fn">sum</span>(
+  <span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{
+    <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>
+  }[<span class="pq-num">5m</span>])
+)
+<span class="pq-comment"># Returns: total payment submissions per second (all types, all outcomes).</span>
+
+<span class="pq-comment"># Traffic by payment type — for capacity planning per rail</span>
+<span class="pq-fn">sum</span>(
+  <span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])
+) <span class="pq-op">by</span> (<span class="pq-label">payment_type</span>)
+<span class="pq-comment"># Returns: one RPS value per payment type (NPP, BPAY, OSKO, etc.)
+# Useful for: identifying which payment rail is busiest, detecting NPP outage
+# (NPP volume drops to zero while BPAY continues — upstream rail issue, not our service).</span>
+
+<span class="pq-comment"># ══ SIGNAL 3: ERRORS ═════════════════════════════════════════════════════════</span>
+
+<span class="pq-comment"># 5xx HTTP error rate — infrastructure failures (what the SLO measures)</span>
+<span class="pq-fn">sum</span>(
+  <span class="pq-fn">rate</span>(<span class="pq-metric">http_server_requests_seconds_count</span>{
+    <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+    <span class="pq-label">status</span>=~<span class="pq-str">"5.."</span>,
+    <span class="pq-label">uri</span>=<span class="pq-str">"/api/v1/payments/submit"</span>
+  }[<span class="pq-num">5m</span>])
+)
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(
+  <span class="pq-fn">rate</span>(<span class="pq-metric">http_server_requests_seconds_count</span>{
+    <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+    <span class="pq-label">uri</span>=<span class="pq-str">"/api/v1/payments/submit"</span>
+  }[<span class="pq-num">5m</span>])
+)
+<span class="pq-comment"># Returns: fraction of requests returning 5xx (0.001 = 0.1%).
+# SLO threshold: < 0.001 (0.1%). Alert when >= 0.0005 (warning) or 0.001 (critical).</span>
+
+<span class="pq-comment"># Business error rate — payment declines (separate from infrastructure errors)</span>
+<span class="pq-fn">sum</span>(
+  <span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{
+    <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+    <span class="pq-label">outcome</span>!=<span class="pq-str">"success"</span>
+  }[<span class="pq-num">5m</span>])
+)
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(
+  <span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-num">5m</span>])
+)
+<span class="pq-comment"># Returns: fraction of payments that did not succeed (includes declines, timeouts).
+# Anomaly threshold: if this spikes above the 7-day rolling average, possible fraud wave.</span>
+
+<span class="pq-comment"># ══ SIGNAL 4: SATURATION ═════════════════════════════════════════════════════</span>
+
+<span class="pq-comment"># Thread pool saturation — active threads as fraction of maximum</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">tomcat_threads_current_threads</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>})
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">tomcat_threads_config_max_threads</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>})
+<span class="pq-comment"># Returns: fraction of thread pool in use (0.8 = 80%).
+# Alert when > 0.80 (warning) or > 0.90 (critical).</span>
+
+<span class="pq-comment"># JVM heap saturation</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">jvm_memory_used_bytes</span>{<span class="pq-label">area</span>=<span class="pq-str">"heap"</span>, <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>})
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">jvm_memory_max_bytes</span>{<span class="pq-label">area</span>=<span class="pq-str">"heap"</span>, <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>})
+<span class="pq-comment"># Returns: heap utilisation as fraction. Above 0.75, GC pressure increases significantly.
+# Alert when > 0.75 (warning). Above 0.90, OOMKill is imminent.</span>
+
+<span class="pq-comment"># Payment processing queue depth (direct gauge — no rate() needed)</span>
+<span class="pq-metric">payment_queue_depth</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}
+<span class="pq-comment"># Returns: current number of payments waiting to be processed.
+# Alert when > 100 sustained for 2 minutes — queue buildup indicates processing slowdown.</span></pre>
+  </div>
+</div>
+
+<!-- ══ 11 SLO CONCEPTS ══ -->
+<div class="page" id="page-slo-concepts">
+  <div class="ey">OBS-02 · Section 11</div>
+  <div class="pt">SLI, SLO, and error budget — the banking reliability model</div>
+  <div class="ps">Alert thresholds are not arbitrary numbers — they derive from SLOs (Service Level Objectives) which derive from SLIs (Service Level Indicators). Understanding the relationship makes every alert threshold a business decision, not a technical guess.</div>
+
+  <div class="decision">
+    <div class="decision-label">SLI, SLO, and error budget — what each term means in operational terms</div>
+    <div class="decision-q">What is the difference between an SLI, an SLO, and an error budget? And how do they relate to Prometheus alert thresholds?</div>
+    <div class="decision-a"><strong>An SLI (Service Level Indicator) is a measurable metric that quantifies user experience. An SLO (Service Level Objective) is a target for that metric. An error budget is the amount of time the SLO can be missed before consequences occur.</strong><br/><br/>
+    For the payment-service payment submission endpoint:<br/><br/>
+    <strong>SLI:</strong> The fraction of payment submission requests that complete with P99 latency under 500ms, measured over a rolling 30-day window.<br/>
+    <strong>SLO:</strong> This fraction must be at least 99.5% — meaning fewer than 0.5% of requests can exceed 500ms P99 over any rolling 30-day period.<br/>
+    <strong>Error budget:</strong> 0.5% of requests can exceed 500ms. Over 30 days with an average of 5 TPS, that is approximately 0.005 × 5 × 86400 × 30 = 64,800 "slow" requests per month before the SLO is breached.<br/><br/>
+    <strong>The alert threshold relationship:</strong> The Prometheus alert fires when the P99 exceeds 500ms for 5 consecutive minutes. This is a burn rate alert — it fires when the service is consuming the error budget faster than it can sustain for the full 30-day window. 5 minutes at double the SLO threshold burns through 10 minutes of error budget. The alert gives the team time to investigate and resolve before the 30-day SLO is actually breached.<br/><br/>
+    <strong>Why this matters for banking regulation:</strong> The SLO is the technical basis for the service's availability commitments to customers. For payment APIs under the Australian Banking Code of Practice, Faster Payment obligations, or NPP Participant Agreement, the bank must demonstrate it can meet defined processing time SLAs. Prometheus SLO alerts with error budgets provide the continuous monitoring evidence that auditors and regulators expect.</div>
+  </div>
+
+  <h2>NovaCrestBank payment-service SLO definition</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Service</span><span class="spec-val">payment-service — <code>/api/v1/payments/submit</code> endpoint</span></div>
+    <div class="spec-row"><span class="spec-label">Latency SLI</span><span class="spec-val">P99 response time for successful payment submissions (HTTP 200)</span></div>
+    <div class="spec-row"><span class="spec-label">Latency SLO</span><span class="spec-val">99.5% of requests under 500ms, measured over rolling 30 days</span></div>
+    <div class="spec-row"><span class="spec-label">Error rate SLI</span><span class="spec-val">Fraction of requests returning HTTP 5xx</span></div>
+    <div class="spec-row"><span class="spec-label">Error rate SLO</span><span class="spec-val">Less than 0.1% of requests return 5xx, measured over rolling 30 days</span></div>
+    <div class="spec-row"><span class="spec-label">Availability SLO</span><span class="spec-val">99.9% — service is available and accepting requests (≤ 43.8 minutes downtime per month)</span></div>
+    <div class="spec-row"><span class="spec-label">Alert — latency warning</span><span class="spec-val">P99 &gt; 500ms for 5 consecutive minutes → warning email to platform team</span></div>
+    <div class="spec-row"><span class="spec-label">Alert — latency critical</span><span class="spec-val">P99 &gt; 1000ms for 2 consecutive minutes → PagerDuty P2</span></div>
+    <div class="spec-row"><span class="spec-label">Alert — error rate warning</span><span class="spec-val">5xx rate &gt; 0.05% for 5 minutes → warning email</span></div>
+    <div class="spec-row"><span class="spec-label">Alert — error rate critical</span><span class="spec-val">5xx rate &gt; 0.1% for 2 minutes → PagerDuty P1</span></div>
+  </div>
+</div>
+
+<!-- ══ 12 LATENCY ALERT ══ -->
+<div class="page" id="page-latency-alert">
+  <div class="ey">OBS-02 · Section 12</div>
+  <div class="pt">Latency SLO alert — P99 above the 500ms threshold</div>
+  <div class="ps">The latency SLO alert fires when the payment-service P99 latency exceeds the 500ms threshold. Two severity levels — warning at 500ms and critical at 1000ms — with different routing to give the team a graduated response.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — payment-service latency SLO alerts</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-slo-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-production</span>
+  <span class="yc">  # In the application namespace — picked up by User Workload Prometheus</span>
+  <span class="yk">labels</span>:
+    <span class="yk">role</span>: <span class="yv">alert-rules</span>
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.payment-service.latency</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceLatencyHigh</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    histogram_quantile(0.99,</span>
+            <span class="yv">      sum(rate(payment_submit_duration_seconds_bucket{</span>
+            <span class="yv">        namespace="banking-production"</span>
+            <span class="yv">      }[5m])) by (le)</span>
+            <span class="yv">    ) > 0.5</span>
+          <span class="yc">  # Fires when P99 latency exceeds 500ms (0.5 seconds).
+                # The histogram_quantile expression computes the actual P99 from the
+                # bucket data — not a pre-computed percentile.
+                # 5m rate window: long enough to smooth noise, short enough to respond
+                # to real latency spikes within 2-3 evaluation cycles (1-1.5 minutes).</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yc">  # Must be above threshold for 5 full minutes before firing.
+                # Prevents alerts from momentary spikes (a single slow GC pause
+                # may push P99 above 500ms for 30 seconds — not alertworthy).
+                # 5 minutes of sustained elevated P99 is a genuine issue.</span>
+          <span class="yk">labels</span>:
+            <span class="yk">severity</span>: <span class="yv">warning</span>
+            <span class="yk">team</span>: <span class="yv">banking-platform</span>
+            <span class="yk">slo</span>: <span class="yv">latency</span>
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">payment-service P99 latency {{ $value | humanizeDuration }} exceeds 500ms SLO</span>
+            <span class="yk">description</span>: <span class="yv">|</span>
+              <span class="yv">              Payment submission P99 latency is {{ $value | humanizeDuration }}.</span>
+              <span class="yv">              SLO target: < 500ms. Check:</span>
+              <span class="yv">              1. Database connection pool saturation (HikariCP metrics)</span>
+              <span class="yv">              2. JVM GC pressure (jvm_gc_pause_seconds)</span>
+              <span class="yv">              3. Downstream payment rail latency (payment_authorise_duration)</span>
+              <span class="yv">              4. Node memory pressure on payment-service pods</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-latency-high</span>
+            <span class="yk">grafana_dashboard</span>: <span class="yv">https://grafana-monitoring.apps.ocp.novacrestbank.local/d/payment-service</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceLatencyCritical</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    histogram_quantile(0.99,</span>
+            <span class="yv">      sum(rate(payment_submit_duration_seconds_bucket{</span>
+            <span class="yv">        namespace="banking-production"</span>
+            <span class="yv">      }[5m])) by (le)</span>
+            <span class="yv">    ) > 1.0</span>
+          <span class="yc">  # Fires at 1000ms (1 second) — double the SLO threshold.
+                # At this level: customers are experiencing obvious payment hangs.
+                # The error budget is burning rapidly. Immediate intervention needed.</span>
+          <span class="yk">for</span>: <span class="yv">2m</span>
+          <span class="yc">  # Shorter for duration (2 min not 5 min) — at 1s P99, every minute matters.</span>
+          <span class="yk">labels</span>:
+            <span class="yk">severity</span>: <span class="yv">critical</span>
+            <span class="yk">team</span>: <span class="yv">banking-platform</span>
+            <span class="yk">slo</span>: <span class="yv">latency</span>
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">CRITICAL — payment-service P99 latency {{ $value | humanizeDuration }} — customers experiencing payment failures</span>
+            <span class="yk">description</span>: <span class="yv">"Payment API P99 latency is {{ $value | humanizeDuration }}. This is 2× the SLO threshold. Customers are experiencing payment timeouts. Immediate investigation and possible rollback required."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-latency-critical</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 13 ERROR RATE ALERT ══ -->
+<div class="page" id="page-error-rate-alert">
+  <div class="ey">OBS-02 · Section 13</div>
+  <div class="pt">Error rate alert — transaction failures above the SLO threshold</div>
+  <div class="ps">The error rate alert measures Signal 3 — the fraction of payment submissions returning HTTP 5xx. These are infrastructure failures where the client does not know whether the payment was processed. The SLO threshold is 0.1%.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — payment-service error rate SLO alerts</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-error-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-production</span>
+  <span class="yk">labels</span>: {<span class="yk">role</span>: <span class="yv">alert-rules</span>}
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.payment-service.errors</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceErrorRateHigh</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    sum(rate(http_server_requests_seconds_count{</span>
+            <span class="yv">      namespace="banking-production",</span>
+            <span class="yv">      application="payment-service",</span>
+            <span class="yv">      status=~"5..",</span>
+            <span class="yv">      uri="/api/v1/payments/submit"</span>
+            <span class="yv">    }[5m]))</span>
+            <span class="yv">  /</span>
+            <span class="yv">    sum(rate(http_server_requests_seconds_count{</span>
+            <span class="yv">      namespace="banking-production",</span>
+            <span class="yv">      application="payment-service",</span>
+            <span class="yv">      uri="/api/v1/payments/submit"</span>
+            <span class="yv">    }[5m]))</span>
+            <span class="yv">  > 0.0005</span>
+          <span class="yc">  # > 0.0005 = more than 0.05% error rate (half the SLO threshold).
+                # Early warning — fires at half the SLO threshold to give time to
+                # investigate before the SLO breach at 0.1% is reached.
+                # status=~"5.." regex matches 500, 503, 504 etc.
+                # uri filter is important: only count payment submission endpoint errors,
+                # not health check or actuator endpoint errors.</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">banking-platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">payment-service 5xx error rate {{ $value | humanizePercentage }} — approaching SLO threshold</span>
+            <span class="yk">description</span>: <span class="yv">"Payment submission endpoint is returning {{ $value | humanizePercentage }} 5xx errors. SLO breach at 0.1%. Investigate: pod logs for exceptions, database connection errors, downstream service health."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-error-rate</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceErrorRateCritical</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    sum(rate(http_server_requests_seconds_count{</span>
+            <span class="yv">      namespace="banking-production",</span>
+            <span class="yv">      application="payment-service",</span>
+            <span class="yv">      status=~"5.."</span>
+            <span class="yv">    }[5m]))</span>
+            <span class="yv">  /</span>
+            <span class="yv">    sum(rate(http_server_requests_seconds_count{</span>
+            <span class="yv">      namespace="banking-production",</span>
+            <span class="yv">      application="payment-service"</span>
+            <span class="yv">    }[5m]))</span>
+            <span class="yv">  > 0.001</span>
+          <span class="yc">  # > 0.001 = more than 0.1% error rate — the SLO breach threshold.
+                # No URI filter here (all endpoints) — at 0.1% total error rate,
+                # the entire service is failing, not just one endpoint.
+                # P1 incident: payment customers are experiencing failures right now.</span>
+          <span class="yk">for</span>: <span class="yv">2m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>, <span class="yk">team</span>: <span class="yv">banking-platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">CRITICAL — payment-service SLO BREACH: {{ $value | humanizePercentage }} error rate</span>
+            <span class="yk">description</span>: <span class="yv">"SLO BREACHED. Payment API 5xx error rate is {{ $value | humanizePercentage }}. Customers are experiencing payment failures. Consider immediate rollback to the previous version."</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-slo-breach</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 14 SATURATION ALERT ══ -->
+<div class="page" id="page-saturation-alert">
+  <div class="ey">OBS-02 · Section 14</div>
+  <div class="pt">Saturation alert — thread pool and JVM heap approaching limits</div>
+  <div class="ps">Saturation alerts are the predictive signal — they fire before customers see latency increases or errors. High thread pool or heap utilisation is the early warning that the service is approaching its capacity limit.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRule — saturation alerts (thread pool, heap, queue depth)</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">payment-service-saturation-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">banking-production</span>
+  <span class="yk">labels</span>: {<span class="yk">role</span>: <span class="yv">alert-rules</span>}
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb.payment-service.saturation</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceThreadPoolSaturated</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    sum(tomcat_threads_current_threads{namespace="banking-production",application="payment-service"})</span>
+            <span class="yv">  / sum(tomcat_threads_config_max_threads{namespace="banking-production",application="payment-service"})</span>
+            <span class="yv">  > 0.80</span>
+          <span class="yc">  # Thread pool utilisation above 80%.
+                # tomcat_threads_current_threads: threads currently handling requests.
+                # tomcat_threads_config_max_threads: configured maximum (e.g. 200).
+                # At 80%: queuing is beginning, latency is about to increase.
+                # Action: check if a scale-out is needed (increase replicas via HPA),
+                # or if a slow downstream dependency is holding threads (check DB latency).</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">banking-platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">payment-service thread pool is {{ $value | humanizePercentage }} saturated</span>
+            <span class="yk">description</span>: <span class="yv">"payment-service Tomcat thread pool is {{ $value | humanizePercentage }} in use. Latency increases are likely. Scale out or investigate thread-blocking operations (database, downstream services)."</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceHeapHigh</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    sum(jvm_memory_used_bytes{area="heap",namespace="banking-production",application="payment-service"})</span>
+            <span class="yv">  / sum(jvm_memory_max_bytes{area="heap",namespace="banking-production",application="payment-service"})</span>
+            <span class="yv">  > 0.75</span>
+          <span class="yc">  # JVM heap utilisation above 75%.
+                # Above 75%, the GC is running more frequently to reclaim space.
+                # GC pauses appear in latency measurements as P99 spikes.
+                # Action: check for memory leaks (heap dump analysis), increase -Xmx,
+                # or increase pod memory limits and restart pods rolling.</span>
+          <span class="yk">for</span>: <span class="yv">10m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>, <span class="yk">team</span>: <span class="yv">banking-platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">payment-service JVM heap is {{ $value | humanizePercentage }} — GC pressure increasing</span>
+            <span class="yk">description</span>: <span class="yv">"JVM heap usage is {{ $value | humanizePercentage }}. G1GC will begin more frequent collections above 75% heap utilisation. Check for memory leaks: oc exec -n banking-production deployment/payment-service -- jcmd 1 VM.native_memory"</span>
+
+        - <span class="yk">alert</span>: <span class="yv">NCBPaymentQueueDepthHigh</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">payment_queue_depth{namespace="banking-production"} > 100</span>
+          <span class="yc">  # Processing queue depth above 100 — payments backing up.
+                # Queue depth growing means the service is consuming payments
+                # slower than they are arriving — unsustainable.
+                # At 100+ queued payments: latency for queued payments is already high.</span>
+          <span class="yk">for</span>: <span class="yv">2m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>, <span class="yk">team</span>: <span class="yv">banking-platform</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">Payment processing queue depth is {{ $value }} — payments backing up</span>
+            <span class="yk">description</span>: <span class="yv">"{{ $value }} payments are queued for processing. Processing throughput has fallen behind submission rate. Investigate: payment processor thread starvation, downstream rail timeouts, database deadlocks."</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 15 DASHBOARD STRUCTURE ══ -->
+<div class="page" id="page-dashboard-structure">
+  <div class="ey">OBS-02 · Section 15</div>
+  <div class="pt">Dashboard structure — the NovaCrestBank banking microservice dashboard layout</div>
+  <div class="ps">The Grafana dashboard for the payment-service is organised in five rows, each addressing one aspect of the service's health. The layout is designed for on-call engineers who need to locate a problem in under 30 seconds.</div>
+
+  <div class="decision">
+    <div class="decision-label">Dashboard design principle — what an on-call engineer needs at 2 AM</div>
+    <div class="decision-q">How should the Grafana dashboard be organised? Should each panel show a different metric?</div>
+    <div class="decision-a"><strong>An on-call engineer woken at 2 AM by a PagerDuty alert has one question: "What is broken and how bad is it?" The dashboard must answer that question in under 30 seconds without requiring the engineer to scroll, think, or run queries. This determines the entire layout.</strong><br/><br/>
+    Row 1 — Status overview (stat panels): four large numbers answering "is everything broadly OK right now?" — current P99 latency, current error rate, current request rate, current queue depth. Colour-coded green/amber/red. If all four are green, scroll to the relevant detail row. If one is red, the specific rows below explain why.<br/><br/>
+    Row 2 — Traffic: request rate over time. A traffic drop at an unexpected time is immediately visible as a cliff edge on the graph. A traffic spike causing the saturation issue is visible as a spike.<br/><br/>
+    Row 3 — Latency: P50, P95, and P99 time series overlaid. The gap between P50 and P99 reveals tail latency — a service where P50=50ms but P99=800ms has a specific class of problem (intermittent slow operations, GC pauses, connection pool waits) that differs from a service where P50 and P99 are both 800ms (general overload).<br/><br/>
+    Row 4 — Errors: 5xx rate over time, broken down by status code. A spike of 503s (service unavailable) means something different from a spike of 500s (internal server error) or 502s (bad gateway — upstream issue).<br/><br/>
+    Row 5 — Saturation: thread pool %, heap %, queue depth over time. This row answers "is this an overload issue or a correctness issue?" — if thread pool is at 95% when latency spiked, the cause is capacity exhaustion. If thread pool is at 20% when latency spiked, the cause is a slow external dependency.</div>
+  </div>
+
+  <h2>The payment-service dashboard — stat row (Row 1)</h2>
+  <div class="panel-row three">
+    <div class="panel panel-green">
+      <div class="panel-title">P99 Latency</div>
+      <div class="panel-value">68ms</div>
+      <div class="panel-sub">SLO target: &lt; 500ms · 5m window</div>
+    </div>
+    <div class="panel panel-green">
+      <div class="panel-title">5xx Error Rate</div>
+      <div class="panel-value">0.00%</div>
+      <div class="panel-sub">SLO target: &lt; 0.1% · 5m window</div>
+    </div>
+    <div class="panel panel-blue">
+      <div class="panel-title">Request Rate</div>
+      <div class="panel-value">47.3 rps</div>
+      <div class="panel-sub">7-day avg: 44.1 rps · normal</div>
+    </div>
+  </div>
+  <div class="panel-row">
+    <div class="panel panel-green">
+      <div class="panel-title">Thread Pool Utilisation</div>
+      <div class="panel-value">34%</div>
+      <div class="panel-sub">Alert at 80% · max 200 threads</div>
+    </div>
+    <div class="panel panel-green">
+      <div class="panel-title">JVM Heap Utilisation</div>
+      <div class="panel-value">51%</div>
+      <div class="panel-sub">Alert at 75% · max 1024 Mi</div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--text3);margin-top:4px;">These stat panels show the current state. Green = within SLO. Amber = approaching threshold. Red = SLO breached or alert firing. At a glance: the service is healthy.</p>
+</div>
+
+<!-- ══ 16 PANEL THROUGHPUT ══ -->
+<div class="page" id="page-panel-throughput">
+  <div class="ey">OBS-02 · Section 16</div>
+  <div class="pt">Transaction throughput panel — the traffic signal in Grafana</div>
+  <div class="ps">The throughput panel shows payment submission rate over time. It is the first place to look when something is wrong — a traffic drop means the service is not receiving requests it should be receiving.</div>
+
+  <h2>Grafana panel configuration — throughput time series</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Panel type</span><span class="spec-val">Time series</span></div>
+    <div class="spec-row"><span class="spec-label">Panel title</span><span class="spec-val">Payment submission throughput (requests/sec)</span></div>
+    <div class="spec-row"><span class="spec-label">Unit</span><span class="spec-val">reqps (requests per second) — Grafana formats automatically</span></div>
+    <div class="spec-row"><span class="spec-label">Fill opacity</span><span class="spec-val">10 — light fill under the line for readability</span></div>
+    <div class="spec-row"><span class="spec-label">Thresholds</span><span class="spec-val">Green: normal · Amber: &gt; 200 rps (approaching capacity) · Red: &lt; 5 rps during business hours (traffic drop)</span></div>
+  </div>
+
+  <div class="prom-box">
+    <pre><span class="pq-comment"># Query A: Total payment submission rate</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+<span class="pq-comment"># Legend: "Total"
+# $__rate_interval: Grafana variable — automatically set to match the dashboard time range.
+# Use $__rate_interval instead of hardcoded [5m] for Grafana panels — it adjusts
+# the rate window proportionally as the engineer zooms in or out.</span>
+
+<span class="pq-comment"># Query B: Rate by payment type — stacked area chart showing rail composition</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>])) <span class="pq-op">by</span> (<span class="pq-label">payment_type</span>)
+<span class="pq-comment"># Legend: "{{payment_type}}" — Grafana renders one line per payment type label value
+# Stacked mode: shows the composition of traffic (NPP vs BPAY vs OSKO)
+# Useful for detecting when a specific payment rail drops while others continue.</span>
+
+<span class="pq-comment"># Query C: Successful payments only — the throughput that matters for the business</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>, <span class="pq-label">outcome</span>=<span class="pq-str">"success"</span>}[<span class="pq-str">$__rate_interval</span>]))
+<span class="pq-comment"># Legend: "Successful"
+# The gap between total and successful gives the failure rate visually on the same panel.</span></pre>
+  </div>
+
+  <div class="callout blue">
+    <div class="cl">The $__rate_interval variable — always use it in Grafana panels</div>
+    Grafana's <code>$__rate_interval</code> is automatically calculated as <code>4 × scrape_interval</code>, but it adjusts when the engineer changes the dashboard time range. When viewing the last 5 minutes, Grafana uses a 2-minute rate window for fine granularity. When viewing the last 30 days, it uses a 4-hour rate window to avoid enormous query results. Hardcoding <code>[5m]</code> in a Grafana panel means the panel shows a jagged, useless graph when zoomed out to 30 days. Always use <code>$__rate_interval</code> in Grafana PromQL queries.
+  </div>
+</div>
+
+<!-- ══ 17 PANEL LATENCY ══ -->
+<div class="page" id="page-panel-latency">
+  <div class="ey">OBS-02 · Section 17</div>
+  <div class="pt">Latency panels — P50, P95, P99 time series in Grafana</div>
+  <div class="ps">The latency panel is the most diagnostic panel in the dashboard. The relationship between P50, P95, and P99 reveals the shape of the latency distribution and points to specific root causes.</div>
+
+  <h2>Reading the latency panel — what the P50/P95/P99 divergence tells you</h2>
+  <div class="grid-2">
+    <div class="card" style="border-left:4px solid var(--accent2);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent2);margin-bottom:8px;">P50 ≈ P95 ≈ P99 (all high)</p>
+      <p style="font-size:13px;color:var(--text2);">All percentiles elevated equally. Cause: the service is overloaded — every request is slow. Look at: thread pool saturation, database slow queries, downstream service degradation. All requests are waiting, not just the unlucky ones.</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--amber);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);margin-bottom:8px;">P50 low, P99 high (tail latency)</p>
+      <p style="font-size:13px;color:var(--text2);">Most requests are fast; a small fraction are very slow. Cause: intermittent issue — GC pauses, occasional database lock contention, periodic cache invalidation, connection pool exhaustion affecting only some requests. Investigate: JVM GC pauses, DB lock wait metrics, HikariCP pending acquires.</p>
+    </div>
+  </div>
+
+  <div class="prom-box">
+    <pre><span class="pq-comment"># Query A: P50 median latency — "what does a typical request experience?"</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.50</span>,
+  <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+  <span class="pq-op">by</span> (<span class="pq-label">le</span>)
+)
+<span class="pq-comment"># Legend: "P50 (median)"</span>
+
+<span class="pq-comment"># Query B: P95 — "what do the slower 5% of requests experience?"</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.95</span>,
+  <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+  <span class="pq-op">by</span> (<span class="pq-label">le</span>)
+)
+<span class="pq-comment"># Legend: "P95"</span>
+
+<span class="pq-comment"># Query C: P99 — the SLO metric, the worst 1% experience</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.99</span>,
+  <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+  <span class="pq-op">by</span> (<span class="pq-label">le</span>)
+)
+<span class="pq-comment"># Legend: "P99 (SLO)"</span>
+
+<span class="pq-comment"># Panel configuration for a single chart showing all three:
+# Panel type: Time series
+# Unit: seconds (s)
+# Y-axis max: 1 (1 second — keeps the chart readable for normal conditions)
+# Thresholds (horizontal lines):
+#   0.5 = amber (SLO warning threshold)
+#   1.0 = red (SLO critical threshold)
+# Line colours:
+#   P50: green  P95: amber  P99: red
+# These colours make the SLO status immediately visible.</span></pre>
+  </div>
+
+  <h2>A second latency panel — per-pod breakdown</h2>
+  <div class="prom-box">
+    <pre><span class="pq-comment"># Per-pod P99 — identifies which replica is causing the tail latency</span>
+<span class="pq-fn">histogram_quantile</span>(<span class="pq-num">0.99</span>,
+  <span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_submit_duration_seconds_bucket</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+  <span class="pq-op">by</span> (<span class="pq-label">le</span>, <span class="pq-label">pod</span>)  <span class="pq-comment">← "pod" label added — one line per replica</span>
+)
+<span class="pq-comment"># Legend: "{{pod}}"
+# Grafana renders one line per pod name.
+# If payment-service-abc123 is at 800ms and the other two pods are at 60ms:
+# → that specific pod has a problem (memory pressure, bad DB connection, etc.)
+# → solution: delete the pod (rolling update will replace it) then investigate the root cause</span></pre>
+  </div>
+</div>
+
+<!-- ══ 18 ERROR AND SATURATION PANELS ══ -->
+<div class="page" id="page-panel-errors">
+  <div class="ey">OBS-02 · Section 18</div>
+  <div class="pt">Error rate and saturation panels — completing the dashboard</div>
+  <div class="ps">Rows 4 and 5 complete the dashboard — error rate over time and saturation metrics that predict problems before they cause latency spikes. These panels close the picture: latency tells you what is happening now; saturation tells you why and how close to failure the service is.</div>
+
+  <h2>Error rate panel — Row 4</h2>
+  <div class="prom-box">
+    <pre><span class="pq-comment"># 5xx error rate as percentage (× 100 for readability)</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">http_server_requests_seconds_count</span>{
+  <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+  <span class="pq-label">application</span>=<span class="pq-str">"payment-service"</span>,
+  <span class="pq-label">status</span>=~<span class="pq-str">"5.."</span>
+}[<span class="pq-str">$__rate_interval</span>]))
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">http_server_requests_seconds_count</span>{
+  <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+  <span class="pq-label">application</span>=<span class="pq-str">"payment-service"</span>
+}[<span class="pq-str">$__rate_interval</span>])) <span class="pq-op">* 100</span>
+<span class="pq-comment"># Legend: "5xx error rate %"
+# Unit: percent (0-100) — × 100 converts the fraction to a percentage
+# Thresholds: 0.05% amber, 0.1% red — matches the SLO definition exactly
+# Y-axis max: 1% — keeps scale readable during normal operation</span>
+
+<span class="pq-comment"># Business error rate — payment declines (separate line, for context)</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{
+  <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>,
+  <span class="pq-label">outcome</span>=<span class="pq-str">"insufficient_funds"</span>
+}[<span class="pq-str">$__rate_interval</span>])) <span class="pq-op">* 100</span>
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">payment_outcomes_total</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+<span class="pq-comment"># Legend: "Insufficient funds %"
+# A sudden spike in insufficient_funds at 3 AM is suspicious — fraud signal.
+# Shown on the same panel for correlation: if 5xx spikes and declines spike together,
+# the cause may be a payment rail outage causing timeouts and spurious declines.</span></pre>
+  </div>
+
+  <h2>Saturation panels — Row 5</h2>
+  <div class="prom-box">
+    <pre><span class="pq-comment"># Thread pool utilisation — the primary saturation signal for a Java web service</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">tomcat_threads_current_threads</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>})
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">tomcat_threads_config_max_threads</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}) <span class="pq-op">* 100</span>
+<span class="pq-comment"># Legend: "Thread pool %"
+# Unit: percent (0-100)
+# Thresholds: 80% amber, 90% red
+# Correlation: thread pool spike + latency spike = confirmed overload cause</span>
+
+<span class="pq-comment"># JVM heap utilisation per pod — shows which pod has the memory issue</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">jvm_memory_used_bytes</span>{<span class="pq-label">area</span>=<span class="pq-str">"heap"</span>, <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}) <span class="pq-op">by</span> (<span class="pq-label">pod</span>)
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-metric">jvm_memory_max_bytes</span>{<span class="pq-label">area</span>=<span class="pq-str">"heap"</span>, <span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}) <span class="pq-op">by</span> (<span class="pq-label">pod</span>)
+<span class="pq-op">* 100</span>
+<span class="pq-comment"># Legend: "{{pod}} heap %"
+# One line per pod — heap divergence between pods indicates a memory leak
+# in a specific instance (not replicated to others yet)</span>
+
+<span class="pq-comment"># GC pause duration — leading indicator for latency spikes caused by GC</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">jvm_gc_pause_seconds_sum</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+<span class="pq-op">/</span>
+<span class="pq-fn">sum</span>(<span class="pq-fn">rate</span>(<span class="pq-metric">jvm_gc_pause_seconds_count</span>{<span class="pq-label">namespace</span>=<span class="pq-str">"banking-production"</span>}[<span class="pq-str">$__rate_interval</span>]))
+<span class="pq-comment"># Legend: "Avg GC pause"
+# Unit: seconds
+# Shows the average GC pause duration over time.
+# Correlation: P99 latency spike simultaneously with GC pause spike = GC is the cause.
+# Action: increase heap (-Xmx), switch GC algorithm (ZGC for low-pause), investigate leaks.</span></pre>
+  </div>
+</div>
+
+<!-- ══ 19 CHECKLIST ══ -->
+<div class="page" id="page-checklist">
+  <div class="ey">OBS-02 · Section 19</div>
+  <div class="pt">Handover checklist — application metrics fully operational</div>
+  <div class="ps">The payment-service exposes Micrometer metrics, Prometheus scrapes them via ServiceMonitor, banking-specific alert rules fire when SLOs are breached, and Grafana dashboards provide real-time and historical visibility into the four golden signals.</div>
+
+  <div class="callout success">
+    <div class="cl">OBS-02 complete — the payment-service is fully observable</div>
+    The four golden signals are instrumented, scraped, alerted, and visualised. Latency alerts fire before customers notice payment slowdowns. Error rate alerts fire with enough lead time to roll back before a breach is reportable. Saturation alerts fire before overload causes latency or errors. Grafana dashboards let an on-call engineer locate the root cause of a payment-service incident within 30 seconds of opening the dashboard. Every other NovaCrestBank banking microservice can use this guide as the template — add the same two Maven dependencies, the same application.yaml configuration, copy the ServiceMonitor, and create the same four PromQL alert rules with the service's specific metric names substituted.
+  </div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">pom.xml — Micrometer dependencies added</span><span class="spec-val"><span class="badge bg">✓</span> spring-boot-starter-actuator + micrometer-registry-prometheus · no version management needed</span></div>
+    <div class="spec-row"><span class="spec-label">application.yaml — Actuator configured</span><span class="spec-val"><span class="badge bg">✓</span> prometheus endpoint exposed · percentiles-histogram enabled · SLO bucket boundaries set</span></div>
+    <div class="spec-row"><span class="spec-label">PaymentMetrics.java — custom instrumentation</span><span class="spec-val"><span class="badge bg">✓</span> Counter (payment_outcomes_total) · Timer (payment_submit_duration) · Gauge (payment_queue_depth)</span></div>
+    <div class="spec-row"><span class="spec-label">/actuator/prometheus endpoint verified</span><span class="spec-val"><span class="badge bg">✓</span> Custom metrics present · low cardinality confirmed · histogram buckets present</span></div>
+    <div class="spec-row"><span class="spec-label">user-workload-monitoring-config applied</span><span class="spec-val"><span class="badge bg">✓</span> 24h retention · 50,000 sample limit · 200 target limit · on infra nodes</span></div>
+    <div class="spec-row"><span class="spec-label">Developer RBAC — monitoring-rules-view</span><span class="spec-val"><span class="badge bg">✓</span> ncb-banking-developers can query metrics in banking-production from OCP console</span></div>
+    <div class="spec-row"><span class="spec-label">ServiceMonitor applied — up=1 for all pods</span><span class="spec-val"><span class="badge bg">✓</span> All 3 payment-service replicas scraped successfully · custom metrics in Prometheus</span></div>
+    <div class="spec-row"><span class="spec-label">PromQL expressions verified for all 4 signals</span><span class="spec-val"><span class="badge bg">✓</span> Latency (histogram_quantile P50/P95/P99) · traffic · errors (5xx fraction) · saturation</span></div>
+    <div class="spec-row"><span class="spec-label">SLO definition documented</span><span class="spec-val"><span class="badge bg">✓</span> Latency SLO: P99 &lt; 500ms · Error SLO: &lt; 0.1% · Availability SLO: 99.9%</span></div>
+    <div class="spec-row"><span class="spec-label">Latency SLO alerts applied — 2 severity levels</span><span class="spec-val"><span class="badge bg">✓</span> NCBPaymentServiceLatencyHigh (warning 500ms/5m) · NCBPaymentServiceLatencyCritical (critical 1000ms/2m)</span></div>
+    <div class="spec-row"><span class="spec-label">Error rate SLO alerts applied — 2 severity levels</span><span class="spec-val"><span class="badge bg">✓</span> NCBPaymentServiceErrorRateHigh (warning 0.05%/5m) · NCBPaymentServiceErrorRateCritical (critical 0.1%/2m)</span></div>
+    <div class="spec-row"><span class="spec-label">Saturation alerts applied — thread pool and heap</span><span class="spec-val"><span class="badge bg">✓</span> Thread pool 80% warning · heap 75% warning · queue depth 100 critical</span></div>
+    <div class="spec-row"><span class="spec-label">Grafana dashboard created — 5-row layout</span><span class="spec-val"><span class="badge bg">✓</span> Stat row (4 signals) · traffic · latency (P50/P95/P99) · errors · saturation · linked from alert annotations</span></div>
+    <div class="spec-row"><span class="spec-label">Dashboard linked from alert runbooks</span><span class="spec-val"><span class="badge bg">✓</span> grafana_dashboard annotation in all PrometheusRule alerts links to the payment-service dashboard</span></div>
+    <div class="spec-row"><span class="spec-label">Template documented for other microservices</span><span class="spec-val"><span class="badge bg">✓</span> This guide is the template — substitute service name and metric names for each additional banking microservice</span></div>
+  </div>
+
+  <h2>Applying this template to other NovaCrestBank microservices</h2>
+  <table>
+    <thead><tr><th>Microservice</th><th>Key custom metric</th><th>SLO P99 threshold</th><th>Error SLO</th></tr></thead>
+    <tbody>
+      <tr><td>payment-service</td><td><code>payment_outcomes_total</code> by type and outcome</td><td>500ms</td><td>0.1% 5xx</td></tr>
+      <tr><td>account-service</td><td><code>account_balance_queries_total</code> by query_type</td><td>200ms</td><td>0.05% 5xx</td></tr>
+      <tr><td>notification-service</td><td><code>notifications_sent_total</code> by channel (SMS, email, push)</td><td>2000ms</td><td>1% 5xx (delivery, not send)</td></tr>
+      <tr><td>fraud-detection-service</td><td><code>fraud_scores_computed_total</code> with <code>decision</code> label</td><td>100ms (must respond before payment timeout)</td><td>0.01% 5xx</td></tr>
+      <tr><td>statement-service</td><td><code>statements_generated_total</code> by format (PDF, CSV)</td><td>5000ms (batch generation)</td><td>0.5% 5xx</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>vSphere-01 — vCenter Deployment · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --r:10px;--r2:6px;
+    /* VMware UI colours */
+    --vm-bg:#f0f0f0;--vm-sidebar:#1a2a3a;--vm-header:#0e1e2e;
+    --vm-blue:#007bff;--vm-dkblue:#1e3a5c;--vm-text:#333;
+    --vm-light:#e8f0fe;--vm-border:#c8d4e0;--vm-green:#28a745;
+    --vm-grey:#6c757d;
+    /* installer wizard */
+    --wiz-bg:#1c2b3c;--wiz-side:#142030;--wiz-text:#ccdae8;
+    --wiz-blue:#3a8fc8;--wiz-active:#4da8da;--wiz-done:#4cad6a;
+    --wiz-pending:#4a6a8a;--wiz-border:#253d54;
+    --wiz-input:#243650;--wiz-input-border:#3a6090;
+    --wiz-input-focus:#4da8da;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .nav-group{padding:4px 0;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--accent);}
+
+  /* ── MAIN ── */
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1040px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--accent);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.vmware{border-left-color:#6db33f;}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.vmware .cl{color:#6db33f;}
+  .callout:not(.warn):not(.danger):not(.success):not(.vmware) .cl{color:var(--accent);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}
+  .ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}
+  .bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}
+  .bgr{background:#eeecea;color:#3c3c38;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:20px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:200px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ══════════════════════════════════════════════════════════
+     VCSA INSTALLER WIZARD MOCKUP
+     The two-stage wizard that runs on the laptop
+  ══════════════════════════════════════════════════════════ */
+  .wizard{background:var(--wiz-bg);border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid var(--wiz-border);
+    box-shadow:0 4px 24px rgba(0,0,0,.4);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+  .wizard-titlebar{background:var(--wiz-side);padding:8px 14px;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--wiz-border);}
+  .wdt{width:10px;height:10px;border-radius:50%;}
+  .wdt.r{background:#e05252;}.wdt.y{background:#d4a331;}.wdt.g{background:#5ccb6f;}
+  .wizard-label{font-size:11px;color:var(--wiz-pending);margin-left:8px;}
+  .wizard-body{display:flex;min-height:340px;}
+
+  /* Left progress panel */
+  .wizard-nav{width:220px;flex-shrink:0;background:var(--wiz-side);
+    padding:16px 0;border-right:1px solid var(--wiz-border);}
+  .wizard-stage{padding:6px 18px;font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.07em;color:var(--wiz-pending);
+    margin-bottom:4px;margin-top:10px;}
+  .wizard-stage:first-child{margin-top:0;}
+  .wizard-step{display:flex;align-items:center;gap:9px;padding:6px 18px;
+    font-size:12.5px;color:var(--wiz-pending);cursor:default;}
+  .wizard-step.active{color:var(--wiz-active);background:rgba(77,168,218,.08);}
+  .wizard-step.done{color:var(--wiz-done);}
+  .ws-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;flex-shrink:0;}
+  .wizard-step.active .ws-dot{background:var(--wiz-active);border-color:var(--wiz-active);color:#fff;}
+  .wizard-step.done .ws-dot{background:var(--wiz-done);border-color:var(--wiz-done);color:#fff;}
+
+  /* Right content area */
+  .wizard-content{flex:1;padding:24px 28px;overflow-y:auto;}
+  .wiz-title{font-size:16px;font-weight:700;color:var(--wiz-active);margin-bottom:4px;}
+  .wiz-subtitle{font-size:12px;color:var(--wiz-pending);margin-bottom:18px;}
+  .wiz-text{font-size:13px;color:var(--wiz-text);margin-bottom:10px;line-height:1.6;}
+
+  /* Input fields inside wizard */
+  .wiz-field{margin-bottom:14px;}
+  .wiz-label{font-size:11.5px;color:#8098b0;margin-bottom:4px;
+    display:flex;align-items:center;gap:6px;}
+  .wiz-required{color:#e05252;font-size:10px;}
+  .wiz-input{width:100%;background:var(--wiz-input);
+    border:1px solid var(--wiz-input-border);border-radius:4px;
+    padding:7px 11px;font-size:13px;color:var(--wiz-active);
+    font-family:inherit;}
+  .wiz-input.filled{border-color:var(--wiz-done);color:#c8e8c8;}
+  .wiz-input.error{border-color:#e05252;color:#f0a0a0;}
+  .wiz-dropdown{width:100%;background:var(--wiz-input);
+    border:1px solid var(--wiz-input-border);border-radius:4px;
+    padding:7px 11px;font-size:13px;color:var(--wiz-text);}
+  .wiz-hint{font-size:11px;color:var(--wiz-pending);margin-top:3px;}
+  .wiz-ok{font-size:11px;color:var(--wiz-done);margin-top:3px;}
+  .wiz-err{font-size:11px;color:#e05252;margin-top:3px;}
+
+  /* Info box inside wizard */
+  .wiz-info{background:rgba(77,168,218,.08);border:1px solid rgba(77,168,218,.2);
+    border-radius:5px;padding:10px 14px;font-size:12px;
+    color:var(--wiz-text);margin:12px 0;}
+  .wiz-warn{background:rgba(212,163,49,.08);border:1px solid rgba(212,163,49,.2);
+    border-radius:5px;padding:10px 14px;font-size:12px;
+    color:#d4a331;margin:12px 0;}
+
+  /* Wizard bottom bar */
+  .wizard-footer{background:var(--wiz-side);padding:10px 28px;
+    display:flex;justify-content:flex-end;gap:10px;
+    border-top:1px solid var(--wiz-border);}
+  .wiz-btn{padding:6px 18px;border-radius:4px;font-size:13px;
+    font-weight:600;cursor:pointer;border:none;}
+  .wiz-btn.secondary{background:transparent;color:var(--wiz-pending);
+    border:1px solid var(--wiz-border);}
+  .wiz-btn.primary{background:var(--wiz-blue);color:#fff;}
+  .wiz-btn.finish{background:var(--wiz-done);color:#fff;}
+
+  /* Progress bar (stage 2 deployment) */
+  .wiz-progress{margin:16px 0;}
+  .wiz-progress-label{font-size:12px;color:var(--wiz-text);margin-bottom:6px;}
+  .wiz-progress-track{background:#142030;border:1px solid var(--wiz-border);
+    border-radius:4px;overflow:hidden;height:18px;}
+  .wiz-progress-fill{height:100%;display:flex;align-items:center;padding-left:10px;
+    font-size:10px;color:#fff;font-weight:600;}
+  .wiz-progress-fill.blue{background:linear-gradient(90deg,#1e6aad,#4da8da);}
+  .wiz-progress-fill.green{background:linear-gradient(90deg,#0e6b45,#4cad6a);}
+
+  /* Screen annotation */
+  .screen-ann{display:flex;gap:9px;background:#1a2030;
+    border-left:3px solid #d4a331;padding:7px 13px;margin:0 0 8px;
+    border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;
+    font-size:12px;color:#c8d8e8;line-height:1.5;}
+  .screen-ann.ok{border-left-color:#5ccb6f;}
+  .screen-ann.info{border-left-color:#4da8da;}
+  .screen-ann.danger{border-left-color:#e05252;}
+  .sai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* ── vCenter UI mockup (post-login) ── */
+  .vc-ui{background:var(--vm-bg);border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid var(--vm-border);box-shadow:0 2px 16px rgba(0,0,0,.15);}
+  .vc-topbar{background:var(--vm-header);padding:8px 16px;
+    display:flex;align-items:center;gap:14px;}
+  .vc-logo{font-size:13px;font-weight:700;color:#7bc4f8;letter-spacing:.02em;}
+  .vc-topnav{display:flex;gap:18px;margin-left:10px;}
+  .vc-topnav-item{font-size:12px;color:#8ab8d8;cursor:pointer;padding:2px 0;}
+  .vc-topnav-item.active{color:#fff;border-bottom:2px solid #4da8da;}
+  .vc-body{display:flex;min-height:280px;}
+  .vc-sidebar{width:200px;flex-shrink:0;background:#f5f5f5;
+    border-right:1px solid var(--vm-border);padding:10px 0;}
+  .vc-side-item{padding:7px 14px;font-size:12.5px;color:var(--vm-grey);cursor:pointer;}
+  .vc-side-item.active{color:var(--vm-blue);background:var(--vm-light);
+    border-left:3px solid var(--vm-blue);}
+  .vc-main{flex:1;padding:18px 22px;}
+  .vc-title{font-size:15px;font-weight:700;color:var(--vm-dkblue);margin-bottom:4px;}
+  .vc-subtitle{font-size:12px;color:var(--vm-grey);margin-bottom:14px;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--accent);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · VMware Series</div>
+    <h1>vSphere-01 — vCenter Deployment</h1>
+    <p>VCSA installer · Two-stage wizard · SSO</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Concepts and preparation</div>
+    <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — What vCenter is and what it does</div>
+    <div class="ni" onclick="show('vcsa-architecture')"><div class="nd"></div>02 — VCSA architecture — embedded vs external</div>
+    <div class="ni" onclick="show('prereqs')"><div class="nd"></div>03 — Prerequisites before starting</div>
+    <div class="ni" onclick="show('installer-download')"><div class="nd"></div>04 — Downloading and mounting the VCSA installer</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Stage 1 — Deploy the appliance</div>
+    <div class="ni" onclick="show('s1-launch')"><div class="nd"></div>05 — Launching the VCSA installer</div>
+    <div class="ni" onclick="show('s1-intro')"><div class="nd"></div>06 — Introduction screen</div>
+    <div class="ni" onclick="show('s1-eula')"><div class="nd"></div>07 — EULA acceptance</div>
+    <div class="ni" onclick="show('s1-esxi-target')"><div class="nd"></div>08 — Target ESXi host — connecting to esxi01</div>
+    <div class="ni" onclick="show('s1-cert-warning')"><div class="nd"></div>09 — Certificate warning — what to do</div>
+    <div class="ni" onclick="show('s1-appliance-name')"><div class="nd"></div>10 — Appliance VM name and root password</div>
+    <div class="ni" onclick="show('s1-deployment-size')"><div class="nd"></div>11 — Deployment size — choosing the right tier</div>
+    <div class="ni" onclick="show('s1-storage')"><div class="nd"></div>12 — Datastore selection</div>
+    <div class="ni" onclick="show('s1-network')"><div class="nd"></div>13 — Network configuration — IP and hostname</div>
+    <div class="ni" onclick="show('s1-review')"><div class="nd"></div>14 — Stage 1 review and deploy</div>
+    <div class="ni" onclick="show('s1-progress')"><div class="nd"></div>15 — Deployment progress — what is happening</div>
+    <div class="ni" onclick="show('s1-complete')"><div class="nd"></div>16 — Stage 1 complete</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Stage 2 — Configure the appliance</div>
+    <div class="ni" onclick="show('s2-intro')"><div class="nd"></div>17 — Stage 2 introduction</div>
+    <div class="ni" onclick="show('s2-ntp-ssh')"><div class="nd"></div>18 — NTP and SSH settings</div>
+    <div class="ni" onclick="show('s2-sso')"><div class="nd"></div>19 — SSO domain — the vCenter identity backbone</div>
+    <div class="ni" onclick="show('s2-ceip')"><div class="nd"></div>20 — CEIP — customer experience programme</div>
+    <div class="ni" onclick="show('s2-review')"><div class="nd"></div>21 — Stage 2 review and finish</div>
+    <div class="ni" onclick="show('s2-progress')"><div class="nd"></div>22 — Stage 2 progress — services starting</div>
+    <div class="ni" onclick="show('s2-complete')"><div class="nd"></div>23 — Stage 2 complete — vCenter is live</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Post-deployment</div>
+    <div class="ni" onclick="show('first-login')"><div class="nd"></div>24 — Logging into vCenter for the first time</div>
+    <div class="ni" onclick="show('datacenter-cluster')"><div class="nd"></div>25 — Create Datacenter and Cluster</div>
+    <div class="ni" onclick="show('add-hosts')"><div class="nd"></div>26 — Add all 5 ESXi hosts to the cluster</div>
+    <div class="ni" onclick="show('licence')"><div class="nd"></div>27 — Apply vSphere licences</div>
+    <div class="ni" onclick="show('verify')"><div class="nd"></div>28 — Verify — vCenter healthy and hosts connected</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 — OVERVIEW ══════ -->
+<div class="page active" id="page-overview">
+  <div class="ey">VMware Series · vSphere-01 · Section 01</div>
+  <div class="pt">What vCenter is — and why the entire cluster depends on it</div>
+  <div class="ps">vCenter Server is VMware's centralised management platform. Without it, each ESXi host is an island. With it, all five hosts become one unified compute cluster.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Cisco<br/>fabric</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>ESXi<br/>install</div>
+    <div class="pt-step active"><span class="pt-n">→</span>vCenter<br/>deploy</div>
+    <div class="pt-step"><span class="pt-n">4</span>vDS<br/>Phase 1</div>
+    <div class="pt-step"><span class="pt-n">5</span>Windows<br/>DC/DNS</div>
+    <div class="pt-step"><span class="pt-n">6</span>AD CS<br/>PKI</div>
+    <div class="pt-step"><span class="pt-n">7+</span>vSAN<br/>HA/DRS</div>
+  </div>
+
+  <div class="callout vmware">
+    <div class="cl">vCenter Server — the management brain of the vSphere cluster</div>
+    Each ESXi host you installed in ESXi-01 can independently run virtual machines — but it has no knowledge of the other four hosts. vCenter Server is the centralised platform that sees all five hosts simultaneously and provides the features that require cross-host coordination: vMotion (live VM migration between hosts), HA (automatic VM restart if a host fails), DRS (automatic workload balancing), vSAN (distributed storage), and the Distributed Virtual Switch (vDS). Without vCenter, none of these features exist. With vCenter, the five hosts become a single unified cluster with shared resources.
+  </div>
+
+  <h2>What vCenter provides that individual ESXi hosts cannot</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>ESXi alone</th><th>With vCenter</th></tr></thead>
+    <tbody>
+      <tr><td><strong>vMotion</strong></td><td>Not possible — VMs are locked to one host</td><td>Live migration of running VMs between hosts with zero downtime</td></tr>
+      <tr><td><strong>HA (High Availability)</strong></td><td>Not possible — no host can see another host's state</td><td>VMs automatically restart on surviving hosts if a host fails</td></tr>
+      <tr><td><strong>DRS</strong></td><td>Not possible — resource balancing requires cluster-wide view</td><td>VMs automatically migrate to balance CPU/RAM load across hosts</td></tr>
+      <tr><td><strong>vSAN</strong></td><td>Not possible — vSAN requires cluster management</td><td>Distributed storage pool across all hosts' SSDs</td></tr>
+      <tr><td><strong>Distributed Switch (vDS)</strong></td><td>Only standard vSwitch — per-host configuration</td><td>Single virtual switch spanning all hosts — one config, consistent everywhere</td></tr>
+      <tr><td><strong>AD authentication</strong></td><td>Root only — no AD integration</td><td>AD groups mapped to vCenter roles — no shared root password</td></tr>
+      <tr><td><strong>Audit logs</strong></td><td>Per-host only</td><td>Centralised event log for all hosts, all VMs, all operations</td></tr>
+    </tbody>
+  </table>
+
+  <h2>vCenter is itself a VM — deployed onto esxi01</h2>
+  <p>vCenter Server ships as a pre-built Linux virtual appliance called the VCSA (vCenter Server Appliance). You do not install it from scratch — VMware provides a finished VM image. You run an installer application on your laptop, which connects to esxi01 over the network, uploads the VCSA image, creates a new VM, and configures it. The VCSA VM then runs permanently on esxi01 — or later on any host in the cluster.</p>
+
+  <div class="callout">
+    <div class="cl">Where vCenter runs in NovaCrestBank's environment</div>
+    vCenter will be deployed as a VM on esxi01, using a temporary standard vSwitch for network access during the initial deployment. After the vDS is configured (vSphere-02), vCenter's VM network adapter will be migrated to the vDS port group. vCenter's IP address will be 10.10.0.100 on VLAN 10 (the ESXi management network) — configured in the deployment wizard and permanent from that point forward.
+  </div>
+</div>
+
+<!-- ══════ 02 — VCSA ARCHITECTURE ══════ -->
+<div class="page" id="page-vcsa-architecture">
+  <div class="ey">VMware Series · vSphere-01 · Section 02</div>
+  <div class="pt">VCSA architecture — embedded PSC vs external PSC</div>
+  <div class="ps">Understanding the deployment model before the installer asks — so you know exactly what to select and why</div>
+
+  <div class="callout vmware">
+    <div class="cl">The deployment model question — answered before the installer asks</div>
+    The VCSA installer will ask you to choose a deployment model. In older versions of vCenter (6.x and earlier), there were complex choices about Platform Services Controllers (PSC). In vCenter 7.0 and later, VMware simplified this: the PSC is always embedded inside the vCenter appliance — you cannot separate them anymore. For NovaCrestBank running vCenter 8.0, there is only one choice: <strong>vCenter Server with an embedded Platform Services Controller</strong>. This is selected automatically. You do not need to worry about external PSC architecture.
+  </div>
+
+  <h2>What the embedded PSC means</h2>
+  <p>The Platform Services Controller (PSC) handles identity and authentication for vCenter — specifically the Single Sign-On (SSO) service that manages the <code>vsphere.local</code> SSO domain. In the embedded model, the PSC runs inside the same VCSA virtual machine as vCenter itself. This is the correct and recommended architecture for NovaCrestBank because:</p>
+  <ul>
+    <li>NovaCrestBank has a single vCenter instance — no multi-site topology requiring a separate PSC</li>
+    <li>The embedded model has fewer components to manage, fewer failure points, and is easier to backup and restore</li>
+    <li>VMware deprecated the external PSC in vCenter 7.0 — it no longer exists as an option in vCenter 8.0</li>
+  </ul>
+
+  <h2>SSO domain — vsphere.local</h2>
+  <p>During setup, vCenter creates a private SSO domain named <code>vsphere.local</code> by default. This is NOT the same as Active Directory — it is vCenter's own internal identity store. The SSO domain contains one built-in administrator account: <code>administrator@vsphere.local</code>. This account is what you use to log into vCenter immediately after deployment — before AD integration is configured. After the Windows DC and AD integration are set up (in a later guide), you will add AD groups to vCenter roles and use your normal AD accounts for daily operations. The <code>administrator@vsphere.local</code> account becomes a break-glass account used only when AD is unavailable.</p>
+</div>
+
+<!-- ══════ 03 — PREREQS ══════ -->
+<div class="page" id="page-prereqs">
+  <div class="ey">VMware Series · vSphere-01 · Section 03</div>
+  <div class="pt">Prerequisites — what must be confirmed before starting</div>
+  <div class="ps">The VCSA deployment is a 30-minute automated process. Checking these before starting prevents failures that are difficult to recover from mid-deployment.</div>
+
+  <h2>esxi01 prerequisites</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">esxi01 management IP</span><span class="spec-val">10.10.0.11 — reachable from your laptop (confirmed in ESXi-01)</span></div>
+    <div class="spec-row"><span class="spec-label">esxi01 SSH access</span><span class="spec-val">root / NovaCrest$ESXi2026! — confirmed working</span></div>
+    <div class="spec-row"><span class="spec-label">Available datastore on esxi01</span><span class="spec-val">The M.2 RAID-1 volume is presented as a VMFS datastore after ESXi install — must have ≥ 400 GB free</span></div>
+    <div class="spec-row"><span class="spec-label">Standard vSwitch on esxi01</span><span class="spec-val">vSwitch0 with vmnic0 uplink exists by default after ESXi install — vCenter deploys onto this</span></div>
+    <div class="spec-row"><span class="spec-label">Port group on esxi01</span><span class="spec-val">"VM Network" port group exists by default on vSwitch0 — vCenter uses this during deployment</span></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">The temporary network path — why this works before the vDS exists</div>
+    ESXi creates a default standard vSwitch (vSwitch0) with vmnic0 and a port group called "VM Network" during installation. This port group carries untagged traffic on the native VLAN. The Cisco leaf switch trunk port (Po101) has native VLAN 1 — which means untagged traffic from the VM Network port group lands on VLAN 1. VLAN 1 has no SVI and no routing. This means vCenter's VM cannot reach the internet or other VLANs — but that is fine. vCenter only needs to reach the ESXi management network (VLAN 10, 10.10.0.0/24) for deployment. However, there is a problem: the VM Network port group does not carry VLAN 10 because it is untagged. We need to fix this before deploying vCenter.
+  </div>
+
+  <h2>The required fix — create a VLAN 10 port group on esxi01 before deploying vCenter</h2>
+  <p>Before running the VCSA installer, you must create a port group on esxi01's vSwitch0 that carries VLAN 10. vCenter's network configuration during the wizard will specify this port group — and vCenter's management VMkernel must reach 10.10.0.0/24. Without this port group, vCenter deploys but is unreachable on the network.</p>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open esxi01's Host Client — https://10.10.0.11/ui</div>
+        <p style="font-size:13.5px">Log in as root with NovaCrest$ESXi2026!.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Go to Networking → Port groups → Add port group</div>
+        <p style="font-size:13.5px">In the left sidebar click <strong>Networking</strong>. Click the <strong>Port groups</strong> tab. Click the <strong>Add port group</strong> button in the top right. A dialog box opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Fill in the port group details</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>Name:         <strong style="color:var(--accent);">PG-VLAN10-Management</strong></div>
+          <div style="margin-top:4px;">VLAN ID:      <strong style="color:var(--accent);">10</strong></div>
+          <div style="margin-top:4px;">Virtual switch: <strong style="color:var(--accent);">vSwitch0</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Add</strong>. The port group appears in the list with VLAN ID 10.</p>
+      </div>
+    </li>
+  </ul>
+
+  <p>Now when the VCSA installer asks which network port group to attach vCenter to, you will select <strong>PG-VLAN10-Management</strong> — and vCenter will receive an IP on VLAN 10, making it reachable at 10.10.0.100 immediately after deployment.</p>
+
+  <h2>Resource requirements — confirm esxi01 has enough</h2>
+  <table>
+    <thead><tr><th>Resource</th><th>Small deployment (≤ 100 hosts, ≤ 1000 VMs)</th><th>esxi01 available</th></tr></thead>
+    <tbody>
+      <tr><td>vCPUs for VCSA</td><td>2 vCPUs</td><td>2× Intel Xeon Gold = 64+ cores — easily available</td></tr>
+      <tr><td>RAM for VCSA</td><td>12 GB</td><td>512 GB — easily available</td></tr>
+      <tr><td>Storage for VCSA</td><td>415 GB</td><td>~930 GB free on M.2 RAID-1 VMFS datastore</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <div class="cl">NovaCrestBank uses "Small" deployment size</div>
+    With 5 ESXi hosts and a projected maximum of ~50 VMs initially, NovaCrestBank qualifies for the Small deployment size — the smallest available. Small gives a fully functional vCenter with all features, using minimal resources. You can always reconfigure the VCSA to a larger size later if needed (this is done in the vCenter Management Interface — no reinstall required).
+  </div>
+</div>
+
+<!-- ══════ 04 — INSTALLER DOWNLOAD ══════ -->
+<div class="page" id="page-installer-download">
+  <div class="ey">VMware Series · vSphere-01 · Section 04</div>
+  <div class="pt">Downloading and mounting the VCSA installer</div>
+  <div class="ps">The VCSA installer is a large ISO file that contains both the appliance image and the installer application — here is how to get it and run it</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Download the VCSA ISO from VMware Customer Connect</div>
+        <p style="font-size:13.5px">Go to <code>customerconnect.vmware.com</code>. Log in. Navigate to <strong>Products → VMware vSphere → VMware vCenter Server → Download</strong>. Select version <strong>8.0 Update 3</strong>. Download the file labelled <strong>VMware vCenter Server Appliance</strong> — the filename looks like:<br/><code>VMware-VCSA-all-8.0.3-24022515.iso</code><br/>This file is approximately <strong>9.5 GB</strong>. Download it to your laptop.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Mount the ISO as a virtual drive on your laptop</div>
+        <p style="font-size:13.5px"><strong>On Windows 10/11:</strong> Right-click the ISO file in File Explorer → <strong>Mount</strong>. Windows mounts it as a drive letter (e.g., D: or E:). A File Explorer window opens showing the ISO contents.<br/><br/><strong>On macOS:</strong> Double-click the ISO file. macOS mounts it and shows it in Finder under Locations. A new volume appears with the VMware name.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Navigate to the installer folder</div>
+        <p style="font-size:13.5px">Inside the mounted ISO, open the folder <strong>vcsa-ui-installer</strong>. Inside that folder you will see three subfolders: <strong>win32</strong>, <strong>mac</strong>, and <strong>lin64</strong>. Open the folder matching your laptop's operating system.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Run the installer application</div>
+        <p style="font-size:13.5px"><strong>On Windows:</strong> Inside the <strong>win32</strong> folder, double-click <strong>installer.exe</strong>. A Windows security dialog may appear asking "Do you want to allow this app to make changes to your device?" — click <strong>Yes</strong>.<br/><br/><strong>On macOS:</strong> Inside the <strong>mac</strong> folder, double-click <strong>Installer.app</strong>. macOS may show a Gatekeeper warning: "This app cannot be opened because it is from an unidentified developer." If this appears, go to <strong>System Preferences → Security &amp; Privacy → General</strong> and click <strong>Open Anyway</strong> next to the VMware Installer entry.</p>
+        <p style="font-size:13.5px;margin-top:8px;">The VCSA installer application window opens — a dark blue interface with the VMware vCenter Server logo. This is the installer you will use for the next 30 minutes.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 05 — S1 LAUNCH ══════ -->
+<div class="page" id="page-s1-launch">
+  <div class="ey">VMware Series · vSphere-01 · Section 05</div>
+  <div class="pt">Launching the VCSA installer — the opening screen</div>
+  <div class="ps">What you see when the installer first opens — and which button to click</div>
+
+  <h2>The VCSA installer opening screen</h2>
+  <p>The installer window opens with a dark blue background and three large action buttons in the centre:</p>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">VMware vCenter Server 8.0.3 Installer</span>
+    </div>
+    <div style="background:var(--wiz-side);padding:40px 48px;text-align:center;">
+      <div style="font-size:22px;font-weight:700;color:var(--wiz-active);margin-bottom:4px;">VMware vCenter Server</div>
+      <div style="font-size:13px;color:var(--wiz-pending);margin-bottom:32px;">Version 8.0.3 · Build 24022515</div>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <div style="background:var(--wiz-blue);color:#fff;padding:14px 24px;border-radius:6px;cursor:pointer;min-width:160px;font-weight:600;font-size:14px;">
+          Install
+          <div style="font-size:11px;font-weight:400;margin-top:4px;opacity:.8;">Deploy a new vCenter Server</div>
+        </div>
+        <div style="background:var(--wiz-input);color:var(--wiz-text);padding:14px 24px;border-radius:6px;cursor:pointer;min-width:160px;font-weight:600;font-size:14px;border:1px solid var(--wiz-border);">
+          Upgrade
+          <div style="font-size:11px;font-weight:400;margin-top:4px;opacity:.8;">Upgrade existing vCenter</div>
+        </div>
+        <div style="background:var(--wiz-input);color:var(--wiz-text);padding:14px 24px;border-radius:6px;cursor:pointer;min-width:160px;font-weight:600;font-size:14px;border:1px solid var(--wiz-border);">
+          Migrate
+          <div style="font-size:11px;font-weight:400;margin-top:4px;opacity:.8;">Migrate Windows vCenter</div>
+        </div>
+        <div style="background:var(--wiz-input);color:var(--wiz-text);padding:14px 24px;border-radius:6px;cursor:pointer;min-width:160px;font-weight:600;font-size:14px;border:1px solid var(--wiz-border);">
+          Restore
+          <div style="font-size:11px;font-weight:400;margin-top:4px;opacity:.8;">Restore from backup</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p>Click <strong>Install</strong> — the large blue button. This starts the process of deploying a new vCenter Server for the first time. The installer transitions to the two-stage wizard. Stage 1 deploys the VCSA virtual machine. Stage 2 configures it.</p>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>Upgrade, Migrate, and Restore are not relevant for NovaCrestBank — this is a brand-new deployment. Always click Install for a first-time vCenter setup.</span></div>
+</div>
+
+<!-- ══════ 06 — S1 INTRO ══════ -->
+<div class="page" id="page-s1-intro">
+  <div class="ey">VMware Series · vSphere-01 · Section 06</div>
+  <div class="pt">Stage 1 — Introduction screen</div>
+  <div class="ps">The first screen of Stage 1 — confirming you understand the two-stage process</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Deploy Appliance</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Introduction</div>
+        <div class="wizard-step"><div class="ws-dot">2</div>End user license</div>
+        <div class="wizard-step"><div class="ws-dot">3</div>vCenter target</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>Appliance settings</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Deployment size</div>
+        <div class="wizard-step"><div class="ws-dot">6</div>Datastore</div>
+        <div class="wizard-step"><div class="ws-dot">7</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+        <div class="wizard-stage">Stage 2: Configure</div>
+        <div class="wizard-step"><div class="ws-dot">1</div>Introduction</div>
+        <div class="wizard-step"><div class="ws-dot">2</div>Appliance config</div>
+        <div class="wizard-step"><div class="ws-dot">3</div>SSO config</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>CEIP</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Introduction</div>
+        <div class="wiz-subtitle">Deploy the vCenter Server Appliance</div>
+        <div class="wiz-text">This wizard deploys the vCenter Server Appliance on an ESXi host.</div>
+        <div class="wiz-text">The vCenter Server Appliance is a preconfigured Linux-based virtual machine optimised for running vCenter Server and associated services.</div>
+        <div class="wiz-info">
+          <strong>Two-stage deployment process:</strong><br/>
+          Stage 1: The wizard deploys the vCenter Server appliance VM onto the target ESXi host.<br/>
+          Stage 2: The wizard sets up and configures the appliance (SSO, NTP, network settings).
+        </div>
+        <div class="wiz-text" style="margin-top:12px;">Ensure the target ESXi host (esxi01) is running and reachable before proceeding.</div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">Cancel</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <p>Read the introduction. Click <strong>Next</strong>. The left panel shows your progress — you are on Introduction, and the wizard will walk through each step in order.</p>
+</div>
+
+<!-- ══════ 07 — S1 EULA ══════ -->
+<div class="page" id="page-s1-eula">
+  <div class="ey">VMware Series · vSphere-01 · Section 07</div>
+  <div class="pt">Stage 1 — EULA acceptance</div>
+  <div class="ps">Accepting the VMware licence agreement</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Deploy Appliance</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>End user license</div>
+        <div class="wizard-step"><div class="ws-dot">3</div>vCenter target</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>Appliance settings</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Deployment size</div>
+        <div class="wizard-step"><div class="ws-dot">6</div>Datastore</div>
+        <div class="wizard-step"><div class="ws-dot">7</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">End User License Agreement</div>
+        <div class="wiz-subtitle">Read and accept the end user license agreement</div>
+        <div style="background:var(--wiz-input);border:1px solid var(--wiz-border);border-radius:5px;padding:12px;height:120px;overflow-y:auto;font-size:11.5px;color:#8098b0;margin-bottom:14px;">
+          VMWARE END USER LICENSE AGREEMENT...<br/><br/>
+          PLEASE NOTE THAT THE TERMS OF THIS END USER LICENSE AGREEMENT SHALL GOVERN YOUR USE OF THE SOFTWARE, REGARDLESS OF ANY TERMS THAT MAY APPEAR DURING THE INSTALLATION OF THE SOFTWARE...
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--wiz-text);cursor:pointer;">
+          <div style="width:14px;height:14px;border:1.5px solid var(--wiz-done);border-radius:3px;background:var(--wiz-done);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;">✓</div>
+          I accept the terms of the license agreement
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <p>Tick the checkbox: <strong>"I accept the terms of the license agreement"</strong>. The Next button becomes active. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 08 — S1 ESXI TARGET ══════ -->
+<div class="page" id="page-s1-esxi-target">
+  <div class="ey">VMware Series · vSphere-01 · Section 08</div>
+  <div class="pt">Stage 1 — vCenter Server deployment target</div>
+  <div class="ps">Telling the installer which ESXi host to deploy vCenter onto — and proving it can connect</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Deploy Appliance</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>End user license</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>vCenter target</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>Appliance settings</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Deployment size</div>
+        <div class="wizard-step"><div class="ws-dot">6</div>Datastore</div>
+        <div class="wizard-step"><div class="ws-dot">7</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">vCenter Server deployment target</div>
+        <div class="wiz-subtitle">Specify the ESXi host on which to deploy vCenter Server Appliance</div>
+        <div class="wiz-field">
+          <div class="wiz-label">ESXi host name or IP address <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">10.10.0.11</div>
+          <div class="wiz-ok">✓ ESXi host is reachable</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">HTTPS port</div>
+          <div class="wiz-input filled">443</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">User name <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">root</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Password <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>What to type</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>ESXi host name or IP address: <strong style="color:var(--accent);">10.10.0.11</strong></div>
+    <div style="margin-top:4px;">HTTPS port:                    <strong style="color:var(--accent);">443</strong>  (leave as default)</div>
+    <div style="margin-top:4px;">User name:                     <strong style="color:var(--accent);">root</strong></div>
+    <div style="margin-top:4px;">Password:                      <strong style="color:var(--accent);">NovaCrest$ESXi2026!</strong></div>
+  </div>
+
+  <p style="margin-top:12px;">Click <strong>Next</strong>. The installer connects to esxi01's API over HTTPS port 443. After a few seconds it either confirms "ESXi host is reachable" and proceeds, or shows an error. The most common error at this stage is that the port group for VLAN 10 was not created on vSwitch0 — if the installer cannot connect, verify esxi01 is reachable with a browser ping from your laptop first.</p>
+</div>
+
+<!-- ══════ 09 — S1 CERT WARNING ══════ -->
+<div class="page" id="page-s1-cert-warning">
+  <div class="ey">VMware Series · vSphere-01 · Section 09</div>
+  <div class="pt">Stage 1 — The certificate warning</div>
+  <div class="ps">After connecting to esxi01, the installer shows a certificate warning — here is exactly what to do</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Certificate Warning</span>
+    </div>
+    <div class="wizard-body" style="min-height:220px;">
+      <div class="wizard-content">
+        <div class="wiz-title" style="color:#d4a331;">Certificate Warning</div>
+        <div class="wiz-warn" style="margin-top:14px;">
+          <strong>The authenticity of the host 10.10.0.11 cannot be established.</strong><br/><br/>
+          The installer has received the following certificate from 10.10.0.11:<br/><br/>
+          SHA1 Fingerprint: A4:B2:3C:1D:5E:8F:22:44:67:89:AB:CD:EF:01:23:45:67:89:AB:CD<br/><br/>
+          Subject: C=US, O=VMware, OU=VMware ESXi, CN=esxi01.novacrestbank.local<br/>
+          Issued by: C=US, O=VMware, OU=VMware ESXi, CN=esxi01.novacrestbank.local<br/><br/>
+          This is a self-signed certificate from the ESXi host. It has not been verified by a certificate authority.
+        </div>
+        <div style="display:flex;gap:14px;margin-top:16px;">
+          <div class="wiz-btn primary" style="padding:8px 20px;">Yes — Accept Certificate</div>
+          <div class="wiz-btn secondary" style="padding:8px 20px;">No — Cancel</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p>This warning appears because esxi01 uses a self-signed TLS certificate — the same reason the browser warned you in the ESXi-01 guide. The certificate is legitimate (it is the one ESXi generated during installation). Click <strong>Yes</strong> to accept and continue.</p>
+
+  <div class="callout">
+    <div class="cl">Note the SHA1 fingerprint — this is how you verify authenticity</div>
+    A production-grade check: before clicking Yes, verify the SHA1 fingerprint shown here matches the fingerprint you can retrieve from esxi01 directly. Log into esxi01's Host Client → Host → Manage → Security &amp; Users → Certificates → View Certificate Details. If the fingerprints match, you are connecting to the real esxi01 and not a man-in-the-middle. For the initial lab build this check is optional — but it is a good habit for production deployments. In a later guide, you will replace this self-signed certificate with one issued by the AD CS Issuing CA, eliminating this warning permanently.
+  </div>
+</div>
+
+<!-- ══════ 10 — S1 APPLIANCE NAME ══════ -->
+<div class="page" id="page-s1-appliance-name">
+  <div class="ey">VMware Series · vSphere-01 · Section 10</div>
+  <div class="pt">Stage 1 — Appliance VM name and root password</div>
+  <div class="ps">Setting the name of the vCenter VM as it appears in the ESXi host inventory — and the VCSA's own root password</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Appliance Settings</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>End user license</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>vCenter target</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Appliance settings</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Deployment size</div>
+        <div class="wizard-step"><div class="ws-dot">6</div>Datastore</div>
+        <div class="wizard-step"><div class="ws-dot">7</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Appliance deployment target</div>
+        <div class="wiz-subtitle">Set the appliance VM name and root password</div>
+        <div class="wiz-field">
+          <div class="wiz-label">VM name <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">vcenter.novacrestbank.local</div>
+          <div class="wiz-hint">This is the name of the VM in the ESXi host inventory. Use the FQDN so it is self-describing.</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Set root password <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+          <div class="wiz-hint">Root password for the VCSA Linux OS — not the vCenter SSO password.</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Confirm root password <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+          <div class="wiz-ok">✓ Passwords match. Strength: Strong</div>
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>What to type</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>VM name:           <strong style="color:var(--accent);">vcenter.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">Root password:     <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
+    <div style="margin-top:4px;">Confirm password:  <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">Two different passwords — VCSA root vs SSO administrator</div>
+    There are two separate accounts being created during the VCSA deployment: (1) The <strong>VCSA Linux root account</strong> — set on this screen. This is the root user of the underlying Linux OS inside the appliance. You use it to SSH into the VCSA itself for appliance-level maintenance. (2) The <strong>SSO administrator account</strong> (administrator@vsphere.local) — set in Stage 2. This is the account you use to log into the vCenter web interface. They are completely separate accounts with separate passwords. Both go into CyberArk.
+  </div>
+
+  <p>The VM name <code>vcenter.novacrestbank.local</code> is the name that appears in the ESXi host inventory list. Using the FQDN as the VM name makes it immediately identifiable — no ambiguity about which VM this is. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 11 — S1 DEPLOYMENT SIZE ══════ -->
+<div class="page" id="page-s1-deployment-size">
+  <div class="ey">VMware Series · vSphere-01 · Section 11</div>
+  <div class="pt">Stage 1 — Deployment size</div>
+  <div class="ps">Choosing how many resources vCenter gets — this determines how many hosts and VMs your vCenter can manage</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Deployment Size</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>End user license</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>vCenter target</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance settings</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Deployment size</div>
+        <div class="wizard-step"><div class="ws-dot">6</div>Datastore</div>
+        <div class="wizard-step"><div class="ws-dot">7</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Select deployment size</div>
+        <div class="wiz-subtitle">Choose vCenter Server Appliance size based on your inventory</div>
+        <div class="wiz-field">
+          <div class="wiz-label">Deployment size</div>
+          <div class="wiz-dropdown">Tiny (up to 10 hosts, up to 100 VMs)</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Storage size</div>
+          <div class="wiz-dropdown">Default</div>
+        </div>
+        <div class="wiz-info">
+          <strong>Selected size resources:</strong><br/>
+          CPU: 2 vCPUs &nbsp;·&nbsp; Memory: 12 GB &nbsp;·&nbsp; Storage: 415 GB
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:#8098b0;">
+          <table style="font-size:12px;border-collapse:collapse;width:100%;">
+            <tr style="border-bottom:1px solid #253d54;">
+              <th style="padding:5px 8px;text-align:left;background:transparent;color:#4a6a8a;">Size</th>
+              <th style="padding:5px 8px;text-align:left;background:transparent;color:#4a6a8a;">Hosts</th>
+              <th style="padding:5px 8px;text-align:left;background:transparent;color:#4a6a8a;">VMs</th>
+              <th style="padding:5px 8px;text-align:left;background:transparent;color:#4a6a8a;">vCPU</th>
+              <th style="padding:5px 8px;text-align:left;background:transparent;color:#4a6a8a;">RAM</th>
+            </tr>
+            <tr style="background:rgba(77,168,218,.08);">
+              <td style="padding:5px 8px;color:#4da8da;font-weight:600;">Tiny ← select this</td>
+              <td style="padding:5px 8px;color:#c8d8e8;">≤ 10</td>
+              <td style="padding:5px 8px;color:#c8d8e8;">≤ 100</td>
+              <td style="padding:5px 8px;color:#c8d8e8;">2</td>
+              <td style="padding:5px 8px;color:#c8d8e8;">12 GB</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 8px;color:#8098b0;">Small</td>
+              <td style="padding:5px 8px;color:#6a8090;">≤ 100</td>
+              <td style="padding:5px 8px;color:#6a8090;">≤ 1000</td>
+              <td style="padding:5px 8px;color:#6a8090;">4</td>
+              <td style="padding:5px 8px;color:#6a8090;">19 GB</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 8px;color:#8098b0;">Medium</td>
+              <td style="padding:5px 8px;color:#6a8090;">≤ 400</td>
+              <td style="padding:5px 8px;color:#6a8090;">≤ 4000</td>
+              <td style="padding:5px 8px;color:#6a8090;">8</td>
+              <td style="padding:5px 8px;color:#6a8090;">28 GB</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>What to select</h2>
+  <p><strong>Deployment size: Tiny</strong></p>
+  <p>NovaCrestBank has 5 ESXi hosts. The Tiny size supports up to 10 hosts and 100 VMs — this comfortably covers the current environment and expected near-term growth. Tiny uses only 2 vCPUs and 12 GB RAM, which leaves plenty of resources on esxi01 for actual workload VMs.</p>
+  <p><strong>Storage size: Default</strong> — leave as Default. This selects the standard storage allocation for the chosen deployment size (415 GB for Tiny). The storage is thin-provisioned — it only consumes as much actual disk space as vCenter's data actually uses, not the full 415 GB immediately.</p>
+  <p>Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 12 — S1 STORAGE ══════ -->
+<div class="page" id="page-s1-storage">
+  <div class="ey">VMware Series · vSphere-01 · Section 12</div>
+  <div class="pt">Stage 1 — Datastore selection</div>
+  <div class="ps">Choosing which datastore on esxi01 to store the vCenter VM — the only one available is the correct one</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Datastore</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>End user license</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>vCenter target</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance settings</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Deployment size</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Datastore</div>
+        <div class="wizard-step"><div class="ws-dot">7</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Select a datastore</div>
+        <div class="wiz-subtitle">The datastore where vCenter Server will be stored on esxi01</div>
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(77,168,218,.1);border:1px solid rgba(77,168,218,.3);border-radius:5px;cursor:pointer;">
+            <div style="width:14px;height:14px;border-radius:50%;background:var(--wiz-active);flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--wiz-active);">datastore1  (HPE MR416i-p)</div>
+              <div style="font-size:11.5px;color:#8098b0;margin-top:2px;">930.25 GB free of 953.75 GB total  ·  VMFS6  ·  Thin provisioning available</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--wiz-text);cursor:pointer;margin-top:12px;">
+          <div style="width:14px;height:14px;border:1.5px solid var(--wiz-done);border-radius:3px;background:var(--wiz-done);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;">✓</div>
+          Enable thin disk mode
+        </div>
+        <div class="wiz-hint" style="margin-top:4px;margin-left:24px;">Thin provisioning allocates disk space on demand rather than reserving it upfront. Recommended for initial deployment.</div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>What to select</h2>
+  <p>You will see one datastore: <strong>datastore1</strong> — the VMFS volume that ESXi created on the M.2 RAID-1 array during installation. It has approximately 930 GB free. Click it to select it (it may already be selected). Tick <strong>Enable thin disk mode</strong>.</p>
+
+  <div class="callout">
+    <div class="cl">Thin provisioning — why it is correct here</div>
+    Thin provisioning means the 415 GB storage allocation for the VCSA is not immediately consumed on disk. The VCSA VM starts by using only the actual data written (perhaps 50–80 GB initially) and grows toward 415 GB over time as vCenter accumulates logs, statistics, and configuration data. This is the correct choice for the initial deployment — it leaves more space on datastore1 for the Windows Server VMs (DC1, DC2, Root CA, Issuing CA) that will be created before vCenter is moved to vSAN.
+  </div>
+  <p>Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 13 — S1 NETWORK ══════ -->
+<div class="page" id="page-s1-network">
+  <div class="ey">VMware Series · vSphere-01 · Section 13</div>
+  <div class="pt">Stage 1 — Network configuration</div>
+  <div class="ps">Setting vCenter's permanent IP address, hostname, and DNS — the most important screen in Stage 1</div>
+
+  <div class="callout danger">
+    <div class="cl">The IP and hostname set here are permanent — choose correctly</div>
+    vCenter's IP address and FQDN are embedded in TLS certificates, SSO tokens, vDS configurations, host connections, and numerous internal service registrations. Changing the vCenter IP or hostname after deployment requires running a complex reconfiguration procedure (the vCenter FQDN change workflow) which takes hours and risks breaking the entire environment. Get this right the first time.
+  </div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Network Settings</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>End user license</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>vCenter target</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance settings</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Deployment size</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Datastore</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Network settings</div>
+        <div class="wizard-step"><div class="ws-dot">8</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Network settings</div>
+        <div class="wiz-subtitle">Configure the network settings for the appliance</div>
+        <div class="wiz-field">
+          <div class="wiz-label">Network (port group) <span class="wiz-required">*</span></div>
+          <div class="wiz-dropdown">PG-VLAN10-Management</div>
+          <div class="wiz-hint">Select the VLAN 10 port group you created on vSwitch0 before starting.</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">IP version</div>
+          <div class="wiz-dropdown">IPv4</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">IP assignment</div>
+          <div class="wiz-dropdown">Static</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">FQDN <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">vcenter.novacrestbank.local</div>
+          <div class="wiz-hint">The fully qualified domain name. Must match a DNS A record once the DC is built.</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">IP address <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">10.10.0.100</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Subnet mask <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">255.255.255.0</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Default gateway <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">10.10.0.1</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">DNS servers <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">10.70.0.10, 10.70.0.11</div>
+          <div class="wiz-hint">DC1 and DC2. Not available yet — the VCSA will retry DNS resolution after DCs are built.</div>
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>Every field — exactly what to type</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Network (port group):  <strong style="color:var(--accent);">PG-VLAN10-Management</strong>  (the one you created on vSwitch0)</div>
+    <div style="margin-top:4px;">IP version:            <strong style="color:var(--accent);">IPv4</strong></div>
+    <div style="margin-top:4px;">IP assignment:         <strong style="color:var(--accent);">Static</strong></div>
+    <div style="margin-top:4px;">FQDN:                  <strong style="color:var(--accent);">vcenter.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">IP address:            <strong style="color:var(--accent);">10.10.0.100</strong></div>
+    <div style="margin-top:4px;">Subnet mask:           <strong style="color:var(--accent);">255.255.255.0</strong></div>
+    <div style="margin-top:4px;">Default gateway:       <strong style="color:var(--accent);">10.10.0.1</strong>  (leaf01 VLAN 10 SVI)</div>
+    <div style="margin-top:4px;">DNS servers:           <strong style="color:var(--accent);">10.70.0.10, 10.70.0.11</strong></div>
+  </div>
+
+  <p style="margin-top:12px;">For the <strong>Network</strong> dropdown: click the dropdown and you will see the port groups available on esxi01. Select <strong>PG-VLAN10-Management</strong> — the one created in the prerequisites step. If you see only "VM Network" and no VLAN 10 port group, click Back, fix the port group on esxi01's Host Client, and return here.</p>
+  <p>Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 14 — S1 REVIEW ══════ -->
+<div class="page" id="page-s1-review">
+  <div class="ey">VMware Series · vSphere-01 · Section 14</div>
+  <div class="pt">Stage 1 — Ready to complete review</div>
+  <div class="ps">The final summary before the deployment begins — read every line before clicking Finish</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Ready to Complete</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 1: Deploy</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>End user license</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>vCenter target</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance settings</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Deployment size</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Datastore</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Network settings</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Ready to complete Stage 1</div>
+        <div class="wiz-subtitle">Review your settings before deployment begins</div>
+        <div class="wiz-warn">Once you click Finish, Stage 1 will begin and cannot be cancelled.</div>
+        <table style="margin-top:14px;font-size:12.5px;">
+          <tr><td style="color:#8098b0;padding:4px 0;min-width:180px;">Target ESXi host</td><td style="color:#c8d8e8;">10.10.0.11 (esxi01)</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">VM name</td><td style="color:#c8d8e8;">vcenter.novacrestbank.local</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">Deployment size</td><td style="color:#c8d8e8;">Tiny</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">vCPU / Memory</td><td style="color:#c8d8e8;">2 vCPUs / 12 GB RAM</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">Datastore</td><td style="color:#c8d8e8;">datastore1 (thin provisioned)</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">Network</td><td style="color:#c8d8e8;">PG-VLAN10-Management</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">IP address</td><td style="color:#4da8da;font-weight:600;">10.10.0.100</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">FQDN</td><td style="color:#4da8da;font-weight:600;">vcenter.novacrestbank.local</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">Gateway</td><td style="color:#c8d8e8;">10.10.0.1</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">DNS servers</td><td style="color:#c8d8e8;">10.70.0.10, 10.70.0.11</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn finish">Finish — Begin Deployment</div>
+    </div>
+  </div>
+
+  <h2>What to verify before clicking Finish</h2>
+  <ul>
+    <li>IP address shows <strong>10.10.0.100</strong> — if it shows anything else, click Back and fix it</li>
+    <li>FQDN shows <strong>vcenter.novacrestbank.local</strong> — correct capitalisation and spelling</li>
+    <li>Network shows <strong>PG-VLAN10-Management</strong> — not "VM Network"</li>
+    <li>Deployment size shows <strong>Tiny</strong></li>
+    <li>Datastore shows <strong>datastore1</strong></li>
+  </ul>
+  <p>If everything is correct, click <strong>Finish</strong>. The deployment starts immediately and cannot be cancelled.</p>
+</div>
+
+<!-- ══════ 15 — S1 PROGRESS ══════ -->
+<div class="page" id="page-s1-progress">
+  <div class="ey">VMware Series · vSphere-01 · Section 15</div>
+  <div class="pt">Stage 1 — Deployment in progress</div>
+  <div class="ps">What the installer is doing during the 15–20 minute deployment — and what the progress screen looks like</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Deploying Appliance</span>
+    </div>
+    <div class="wizard-body" style="min-height:300px;">
+      <div class="wizard-content" style="padding:28px 32px;">
+        <div class="wiz-title">Deploying vCenter Server Appliance...</div>
+        <div class="wiz-subtitle">Please wait. Do not close this window.</div>
+        <div class="wiz-progress" style="margin-top:20px;">
+          <div class="wiz-progress-label">Uploading appliance (9.2 GB) — this is the longest step</div>
+          <div class="wiz-progress-track">
+            <div class="wiz-progress-fill blue" style="width:68%;">68%</div>
+          </div>
+        </div>
+        <div class="wiz-progress" style="margin-top:14px;">
+          <div class="wiz-progress-label">Overall progress</div>
+          <div class="wiz-progress-track">
+            <div class="wiz-progress-fill blue" style="width:42%;">42%</div>
+          </div>
+        </div>
+        <div style="margin-top:18px;font-size:12px;color:#8098b0;border-top:1px solid var(--wiz-border);padding-top:14px;">
+          <div style="color:#4da8da;margin-bottom:6px;font-weight:600;">Progress log:</div>
+          <div style="color:#5ccb6f;">✓ Connected to target ESXi host 10.10.0.11</div>
+          <div style="color:#5ccb6f;">✓ Created VM: vcenter.novacrestbank.local</div>
+          <div style="color:#5ccb6f;">✓ Configured VM hardware (2 vCPUs, 12 GB RAM)</div>
+          <div style="color:#d4a331;">→ Uploading disk image... (6.2 GB of 9.2 GB)</div>
+          <div style="color:#4a6a8a;">○ Configure boot options</div>
+          <div style="color:#4a6a8a;">○ Power on VM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What happens during Stage 1 deployment</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">VM is created on esxi01 (seconds)</div>
+        <p style="font-size:13.5px">The installer connects to esxi01's API and creates a new VM with the specified hardware configuration (2 vCPUs, 12 GB RAM). The VM appears in the esxi01 Host Client inventory almost immediately.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">The VCSA disk image is uploaded (15–20 minutes)</div>
+        <p style="font-size:13.5px">The installer uploads the 9.2 GB VCSA disk image from your laptop to esxi01 over the network. This is the longest step — and the speed depends entirely on your network connection to esxi01. On a gigabit connection with low latency it takes about 5–8 minutes. On a slower connection or VPN it may take 20+ minutes. Do not close the installer window or let your laptop sleep.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">VM is powered on and boots (2–3 minutes)</div>
+        <p style="font-size:13.5px">After the upload, the installer powers on the VCSA VM. The VM boots a Linux OS (Photon OS — VMware's purpose-built Linux), initialises its services, and applies the network configuration (IP, hostname, gateway, DNS) that you specified. The progress log shows "Power on VM" completing.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="screen-ann info"><span class="sai">ℹ</span><span>You can open a browser tab to https://10.10.0.11/ui (esxi01 Host Client) and watch the VCSA VM appear in the Virtual Machines list. You will see it power on and begin consuming CPU and memory as it boots. This is a good sanity check that the deployment is progressing correctly.</span></div>
+</div>
+
+<!-- ══════ 16 — S1 COMPLETE ══════ -->
+<div class="page" id="page-s1-complete">
+  <div class="ey">VMware Series · vSphere-01 · Section 16</div>
+  <div class="pt">Stage 1 complete — the appliance is deployed</div>
+  <div class="ps">What you see when Stage 1 finishes — and what to do next</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 1: Complete</span>
+    </div>
+    <div class="wizard-body" style="min-height:220px;">
+      <div class="wizard-content" style="text-align:center;padding:32px 28px;">
+        <div style="font-size:36px;margin-bottom:12px;">🎉</div>
+        <div class="wiz-title" style="font-size:18px;color:#5ccb6f;">Stage 1 of 2 Complete!</div>
+        <div class="wiz-subtitle" style="margin-top:8px;">The vCenter Server appliance has been deployed successfully on esxi01.</div>
+        <div class="wiz-info" style="text-align:left;margin-top:20px;">
+          <strong>Next step:</strong> Click "Continue" to proceed to Stage 2 — configuring the appliance.<br/><br/>
+          Stage 2 will set up the SSO domain, NTP synchronisation, and finalise the vCenter configuration. It takes approximately 10–15 minutes.<br/><br/>
+          <strong>Note:</strong> Do not power off or restart the VCSA VM during Stage 2.
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">Close</div>
+      <div class="wiz-btn primary">Continue to Stage 2 →</div>
+    </div>
+  </div>
+
+  <p>Click <strong>Continue to Stage 2</strong>. The installer automatically opens a browser connection to the VCSA's management interface (https://10.10.0.100:5480) and loads the Stage 2 wizard. Do not click Close — clicking Continue is essential for a seamless handoff to Stage 2.</p>
+
+  <div class="callout warn">
+    <div class="cl">If Stage 1 fails — what to do</div>
+    If the deployment fails mid-way, the installer shows an error message with a description. Common causes: (1) No VLAN 10 port group on vSwitch0 — the VM deployed but cannot get a network connection. Fix: create the port group, then delete the failed VCSA VM from esxi01's Host Client and restart the installer. (2) Not enough disk space — the datastore was full. Fix: check available space on datastore1 in the Host Client. (3) Network timeout — your laptop connection to esxi01 was interrupted during upload. Fix: check your network path to esxi01 and restart the installer. In all cases, delete the partially-created VM from esxi01 before restarting.
+  </div>
+</div>
+
+<!-- ══════ 17 — S2 INTRO ══════ -->
+<div class="page" id="page-s2-intro">
+  <div class="ey">VMware Series · vSphere-01 · Section 17</div>
+  <div class="pt">Stage 2 — Introduction</div>
+  <div class="ps">The second stage of the deployment — configuring the appliance that Stage 1 just created</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 2: Configure Appliance (https://10.10.0.100:5480)</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 2: Configure</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Introduction</div>
+        <div class="wizard-step"><div class="ws-dot">2</div>Appliance config</div>
+        <div class="wizard-step"><div class="ws-dot">3</div>SSO config</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>CEIP</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Introduction to Stage 2</div>
+        <div class="wiz-subtitle">Configure the vCenter Server Appliance</div>
+        <div class="wiz-text">In this stage, you will configure the vCenter Server Appliance deployed in Stage 1.</div>
+        <div class="wiz-info">
+          <strong>What Stage 2 configures:</strong><br/>
+          · Time synchronisation (NTP)<br/>
+          · SSH access to the appliance<br/>
+          · Single Sign-On (SSO) domain — vsphere.local<br/>
+          · Customer Experience Improvement Programme (CEIP)
+        </div>
+        <div class="wiz-text" style="margin-top:12px;">The appliance is running and ready for configuration. Stage 2 takes approximately 10–15 minutes.</div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <p>Read the introduction. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 18 — S2 NTP SSH ══════ -->
+<div class="page" id="page-s2-ntp-ssh">
+  <div class="ey">VMware Series · vSphere-01 · Section 18</div>
+  <div class="pt">Stage 2 — Appliance configuration: NTP and SSH</div>
+  <div class="ps">Setting time synchronisation and enabling SSH on the vCenter appliance</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 2: Appliance Configuration</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 2: Configure</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Appliance config</div>
+        <div class="wizard-step"><div class="ws-dot">3</div>SSO config</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>CEIP</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Appliance configuration</div>
+        <div class="wiz-subtitle">Configure time synchronisation and SSH access</div>
+        <div class="wiz-field">
+          <div class="wiz-label">Time synchronisation mode</div>
+          <div class="wiz-dropdown">Synchronise time with NTP servers</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">NTP servers</div>
+          <div class="wiz-input filled">10.70.0.10, 10.70.0.11, 216.239.35.0</div>
+          <div class="wiz-hint">DC1, DC2 (not available yet), and public NTP as temporary fallback.</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">SSH access</div>
+          <div class="wiz-dropdown">Enabled</div>
+          <div class="wiz-hint">Enables SSH to the VCSA Linux appliance for maintenance and troubleshooting.</div>
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>What to configure</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Time synchronisation mode: <strong style="color:var(--accent);">Synchronise time with NTP servers</strong></div>
+    <div style="margin-top:4px;">NTP servers: <strong style="color:var(--accent);">10.70.0.10, 10.70.0.11, 216.239.35.0</strong></div>
+    <div style="margin-top:4px;">SSH access:  <strong style="color:var(--accent);">Enabled</strong></div>
+  </div>
+
+  <p style="margin-top:12px;"><strong>Time synchronisation mode:</strong> From the dropdown, select <strong>"Synchronise time with NTP servers"</strong> (not "Synchronise time with the ESXi host" — the ESXi host itself uses NTP so this creates an unnecessary chain; direct NTP is cleaner).</p>
+  <p><strong>NTP servers:</strong> Enter the three NTP servers separated by commas: <code>10.70.0.10, 10.70.0.11, 216.239.35.0</code>. The public NTP server (216.239.35.0) serves as a temporary fallback until the Windows DCs are built. Once the DCs are running, the VCSA will sync to them primarily.</p>
+  <p><strong>SSH access:</strong> Select <strong>Enabled</strong>. This allows you to SSH directly to the VCSA Linux appliance on port 22 using the root credentials set in Stage 1. Used for maintenance tasks like certificate management and appliance configuration.</p>
+  <p>Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 19 — S2 SSO ══════ -->
+<div class="page" id="page-s2-sso">
+  <div class="ey">VMware Series · vSphere-01 · Section 19</div>
+  <div class="pt">Stage 2 — SSO domain configuration</div>
+  <div class="ps">The most important screen in Stage 2 — creating the SSO domain and the administrator@vsphere.local account</div>
+
+  <div class="callout danger">
+    <div class="cl">The administrator@vsphere.local password — store it immediately in CyberArk</div>
+    The administrator@vsphere.local account is the only account that can log into vCenter immediately after deployment. Until AD integration is configured (in a later guide), this is the ONLY account that works. If you lose this password before AD integration is complete, you are locked out of vCenter — recovery requires connecting to the VCSA console directly and running a password reset procedure. Store this password in CyberArk before clicking Finish in Stage 2.
+  </div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 2: SSO Configuration</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 2: Configure</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance config</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>SSO config</div>
+        <div class="wizard-step"><div class="ws-dot">4</div>CEIP</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">SSO configuration</div>
+        <div class="wiz-subtitle">Create a new SSO domain for this vCenter Server</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(77,168,218,.08);border-radius:5px;margin-bottom:14px;cursor:pointer;">
+          <div style="width:12px;height:12px;border-radius:50%;background:var(--wiz-active);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--wiz-text);">Create a new SSO domain</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">SSO domain name <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">vsphere.local</div>
+          <div class="wiz-hint">The SSO domain. vsphere.local is the VMware default — leave it unless you have a specific reason to change it.</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">SSO password <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+          <div class="wiz-hint">Password for administrator@vsphere.local</div>
+        </div>
+        <div class="wiz-field">
+          <div class="wiz-label">Confirm SSO password <span class="wiz-required">*</span></div>
+          <div class="wiz-input filled">●●●●●●●●●●●●●●●●●●●●</div>
+          <div class="wiz-ok">✓ Passwords match. Strength: Strong</div>
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <h2>What to configure</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>SSO domain type:  <strong style="color:var(--accent);">Create a new SSO domain</strong></div>
+    <div style="margin-top:4px;">SSO domain name:  <strong style="color:var(--accent);">vsphere.local</strong></div>
+    <div style="margin-top:4px;">SSO password:     <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
+    <div style="margin-top:4px;">Confirm password: <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Should you change the SSO domain name from "vsphere.local"?</div>
+    Some organisations change this to match their AD domain (e.g., <code>novacrestbank.local</code>). VMware does not recommend this — it creates confusion because two different identity systems would share the same domain name. Leave it as <strong>vsphere.local</strong>. The SSO domain is for vCenter's internal authentication only. AD authentication is added separately via the Identity Sources feature — the SSO domain name does not need to match AD.
+  </div>
+
+  <p>Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 20 — S2 CEIP ══════ -->
+<div class="page" id="page-s2-ceip">
+  <div class="ey">VMware Series · vSphere-01 · Section 20</div>
+  <div class="pt">Stage 2 — CEIP</div>
+  <div class="ps">Customer Experience Improvement Programme — the one checkbox you decide based on NovaCrestBank's data policy</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 2: CEIP</span>
+    </div>
+    <div class="wizard-body" style="min-height:200px;">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 2: Configure</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance config</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>SSO config</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>CEIP</div>
+        <div class="wizard-step"><div class="ws-dot">5</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Customer Experience Improvement Programme</div>
+        <div class="wiz-text">Join the VMware Customer Experience Improvement Programme to help VMware improve the products and services it offers.</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--wiz-text);cursor:pointer;margin-top:14px;">
+          <div style="width:14px;height:14px;border:1.5px solid var(--wiz-border);border-radius:3px;flex-shrink:0;background:transparent;"></div>
+          Join the VMware Customer Experience Improvement Programme
+        </div>
+        <div class="wiz-info" style="margin-top:14px;font-size:12px;">If you join, VMware collects technical configuration and usage data including but not limited to configuration data, software usage data, and performance data. By joining, you agree to the VMware Privacy Policy at http://www.vmware.com/help/privacy.html</div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn primary">Next →</div>
+    </div>
+  </div>
+
+  <p>CEIP sends anonymous usage statistics to VMware. For NovaCrestBank — a financial institution — this checkbox should be <strong>left unticked (not joined)</strong>. Banking regulatory frameworks (PSD2, GDPR, FCA guidelines) require careful control over what data leaves the organisation's systems. Anonymous telemetry may seem harmless, but the compliance stance for a UK bank is to not opt into any data-sharing programme without explicit review by the Data Protection Officer. Leave the checkbox empty. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 21 — S2 REVIEW ══════ -->
+<div class="page" id="page-s2-review">
+  <div class="ey">VMware Series · vSphere-01 · Section 21</div>
+  <div class="pt">Stage 2 — Review and finish</div>
+  <div class="ps">The final summary before the configuration process runs — verify and then click Finish</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 2: Ready to Complete</span>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-nav">
+        <div class="wizard-stage">Stage 2: Configure</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Introduction</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>Appliance config</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>SSO config</div>
+        <div class="wizard-step done"><div class="ws-dot">✓</div>CEIP</div>
+        <div class="wizard-step active"><div class="ws-dot">→</div>Ready to complete</div>
+      </div>
+      <div class="wizard-content">
+        <div class="wiz-title">Ready to complete Stage 2</div>
+        <div class="wiz-subtitle">Review the configuration before finishing</div>
+        <div class="wiz-warn">Once you click Finish, Stage 2 will begin. vCenter services will start and the process cannot be cancelled.</div>
+        <table style="margin-top:14px;font-size:12.5px;">
+          <tr><td style="color:#8098b0;padding:4px 0;min-width:180px;">Time synchronisation</td><td style="color:#c8d8e8;">NTP — 10.70.0.10, 10.70.0.11, 216.239.35.0</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">SSH access</td><td style="color:#c8d8e8;">Enabled</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">SSO domain</td><td style="color:#4da8da;font-weight:600;">vsphere.local</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">SSO administrator</td><td style="color:#4da8da;font-weight:600;">administrator@vsphere.local</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">CEIP</td><td style="color:#c8d8e8;">Not joined</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn secondary">← Back</div>
+      <div class="wiz-btn finish">Finish</div>
+    </div>
+  </div>
+
+  <p>Verify the SSO domain is <strong>vsphere.local</strong> and SSH is <strong>Enabled</strong>. Click <strong>Finish</strong>. Stage 2 begins — it cannot be cancelled. The process takes 10–15 minutes as vCenter's services start up one by one.</p>
+</div>
+
+<!-- ══════ 22 — S2 PROGRESS ══════ -->
+<div class="page" id="page-s2-progress">
+  <div class="ey">VMware Series · vSphere-01 · Section 22</div>
+  <div class="pt">Stage 2 — Services starting up</div>
+  <div class="ps">Watching Stage 2 complete — what is happening inside the VCSA as each service starts</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Stage 2: Configuring Appliance</span>
+    </div>
+    <div class="wizard-body" style="min-height:320px;">
+      <div class="wizard-content" style="padding:28px 32px;">
+        <div class="wiz-title">Configuring vCenter Server...</div>
+        <div class="wiz-subtitle">Please wait. This process takes 10–15 minutes.</div>
+        <div class="wiz-progress" style="margin-top:18px;">
+          <div class="wiz-progress-label">Overall progress</div>
+          <div class="wiz-progress-track">
+            <div class="wiz-progress-fill green" style="width:65%;">65%</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;font-size:12px;color:#8098b0;border-top:1px solid var(--wiz-border);padding-top:14px;">
+          <div style="color:#4da8da;margin-bottom:6px;font-weight:600;">Service startup log:</div>
+          <div style="color:#5ccb6f;">✓ Applying initial configuration</div>
+          <div style="color:#5ccb6f;">✓ Starting VMware PostgreSQL database service</div>
+          <div style="color:#5ccb6f;">✓ Starting VMware vCenter Server</div>
+          <div style="color:#5ccb6f;">✓ Starting VMware Platform Services Controller</div>
+          <div style="color:#5ccb6f;">✓ Starting VMware HTTPS Reverse Proxy</div>
+          <div style="color:#d4a331;">→ Starting VMware vSphere Client (web interface)...</div>
+          <div style="color:#4a6a8a;">○ Starting VMware vCenter Statistics service</div>
+          <div style="color:#4a6a8a;">○ Starting VMware vSAN Health service</div>
+          <div style="color:#4a6a8a;">○ Completing configuration</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What is happening during Stage 2</h2>
+  <p>Stage 2 starts approximately a dozen services inside the VCSA Linux VM, in order:</p>
+  <ol>
+    <li><strong>PostgreSQL database</strong> — vCenter's internal database, stores all configuration, events, and statistics</li>
+    <li><strong>VMware vCenter Server core service</strong> — the main vCenter daemon that handles API calls and VM management</li>
+    <li><strong>Platform Services Controller / SSO</strong> — creates the vsphere.local domain, sets up the administrator@vsphere.local account</li>
+    <li><strong>HTTPS reverse proxy</strong> — the web server that handles HTTPS connections on port 443</li>
+    <li><strong>vSphere Client</strong> — the web-based UI (the interface you will use to manage everything)</li>
+    <li><strong>Statistics and events services</strong> — performance data collection and event logging</li>
+    <li><strong>vSAN health and other extensions</strong> — optional services that start last</li>
+  </ol>
+  <p>Do not close the installer window or power off the VCSA VM during this process.</p>
+</div>
+
+<!-- ══════ 23 — S2 COMPLETE ══════ -->
+<div class="page" id="page-s2-complete">
+  <div class="ey">VMware Series · vSphere-01 · Section 23</div>
+  <div class="pt">Stage 2 complete — vCenter is live</div>
+  <div class="ps">Both stages are complete — vCenter Server is running and accessible</div>
+
+  <div class="wizard">
+    <div class="wizard-titlebar">
+      <div class="wdt r"></div><div class="wdt y"></div><div class="wdt g"></div>
+      <span class="wizard-label">vCenter Server — Deployment Complete!</span>
+    </div>
+    <div class="wizard-body" style="min-height:240px;">
+      <div class="wizard-content" style="text-align:center;padding:32px 28px;">
+        <div style="font-size:40px;margin-bottom:12px;">✅</div>
+        <div class="wiz-title" style="font-size:18px;color:#5ccb6f;">vCenter Server is now running!</div>
+        <div class="wiz-subtitle" style="margin-top:8px;">Both stages completed successfully. vCenter Server 8.0.3 is deployed and configured.</div>
+        <div class="wiz-info" style="text-align:left;margin-top:20px;">
+          <strong>vCenter Server access:</strong><br/>
+          vSphere Client (HTML5): <span style="color:#4da8da;">https://vcenter.novacrestbank.local/ui</span><br/>
+          (or directly by IP): <span style="color:#4da8da;">https://10.10.0.100/ui</span><br/><br/>
+          <strong>Login credentials:</strong><br/>
+          Username: <span style="color:#4da8da;">administrator@vsphere.local</span><br/>
+          Password: (the SSO password set in Stage 2)<br/><br/>
+          <strong>Appliance management:</strong><br/>
+          VAMI: <span style="color:#4da8da;">https://10.10.0.100:5480</span> (root credentials)
+        </div>
+      </div>
+    </div>
+    <div class="wizard-footer">
+      <div class="wiz-btn primary">Launch vSphere Client →</div>
+    </div>
+  </div>
+
+  <p>Click <strong>Launch vSphere Client</strong>. This opens a browser tab to <code>https://10.10.0.100/ui</code> — the vCenter web interface. The first thing you will see is another certificate warning (vCenter uses self-signed certs initially — same as ESXi and iLO). Accept it and proceed to the login screen.</p>
+</div>
+
+<!-- ══════ 24 — FIRST LOGIN ══════ -->
+<div class="page" id="page-first-login">
+  <div class="ey">VMware Series · vSphere-01 · Section 24</div>
+  <div class="pt">Logging into vCenter for the first time</div>
+  <div class="ps">What the vSphere Client login screen looks like — and what you see after logging in for the first time</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">The vSphere Client login screen</div>
+        <p style="font-size:13.5px">A clean VMware-branded page appears with the heading <strong>"VMware vSphere"</strong> and a login form. There is one text field for <strong>User name</strong> and one for <strong>Password</strong>. A dropdown below labelled <strong>"Authentication source"</strong> shows <strong>"vsphere.local"</strong> — this is the SSO domain created during Stage 2.</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>User name: <strong style="color:var(--accent);">administrator@vsphere.local</strong></div>
+          <div style="margin-top:4px;">Password:  <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Login</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">The vSphere Client dashboard — what you see</div>
+        <p style="font-size:13.5px">After a few seconds of loading, the vCenter interface appears. The screen is divided into:</p>
+        <ul>
+          <li>A <strong>top navigation bar</strong> with menus: Home, Shortcuts, Menu (hamburger), Search, and your username</li>
+          <li>A <strong>left-side inventory tree</strong> — currently showing only the vCenter node with no clusters, hosts, or VMs underneath it</li>
+          <li>A <strong>main content area</strong> showing the vCenter summary — its name, version, and basic health</li>
+        </ul>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">A "Getting Started" popup may appear</div>
+        <p style="font-size:13.5px">VMware may display a "Getting Started with vCenter Server" popup with quick action cards. You can close this by clicking the X in the top right corner — you will perform these tasks manually in the following sections.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="vc-ui">
+    <div class="vc-topbar">
+      <div class="vc-logo">VMware vSphere</div>
+      <div class="vc-topnav">
+        <div class="vc-topnav-item">Shortcuts</div>
+        <div class="vc-topnav-item active">Hosts and Clusters</div>
+        <div class="vc-topnav-item">VMs and Templates</div>
+        <div class="vc-topnav-item">Storage</div>
+        <div class="vc-topnav-item">Networking</div>
+      </div>
+    </div>
+    <div class="vc-body">
+      <div class="vc-sidebar">
+        <div class="vc-side-item active">📦 vcenter.novacrestbank.local</div>
+        <div style="padding:6px 14px;font-size:11px;color:#aaa;">No datacenters yet</div>
+      </div>
+      <div class="vc-main">
+        <div class="vc-title">vcenter.novacrestbank.local</div>
+        <div class="vc-subtitle">VMware vCenter Server 8.0.3 · Build 24022515</div>
+        <table style="font-size:12.5px;margin-top:10px;">
+          <tr><td style="color:#6c757d;padding:4px 0;min-width:140px;">Datacenters</td><td style="color:#333;">0</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Clusters</td><td style="color:#333;">0</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Hosts</td><td style="color:#333;">0</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">VMs</td><td style="color:#333;">1 (vCenter itself)</td></tr>
+          <tr><td style="color:#6c757d;padding:4px 0;">Alarms</td><td style="color:#28a745;">0 active alarms</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>vCenter is running and accessible. The inventory tree is empty — no datacenters, no clusters, no hosts. The next steps add these objects so the cluster has structure before ESXi hosts are joined to it.</span></div>
+</div>
+
+<!-- ══════ 25 — DATACENTER AND CLUSTER ══════ -->
+<div class="page" id="page-datacenter-cluster">
+  <div class="ey">VMware Series · vSphere-01 · Section 25</div>
+  <div class="pt">Create Datacenter and Cluster objects</div>
+  <div class="ps">Setting up the vCenter inventory hierarchy — Datacenter contains the Cluster, Cluster contains the hosts</div>
+
+  <h2>The vCenter inventory hierarchy</h2>
+  <p>vCenter organises everything in a tree: <strong>vCenter → Datacenter → Cluster → Host → VM</strong>. Before you can add ESXi hosts, you must create a Datacenter object and a Cluster object to put them in.</p>
+
+  <h2>Step 1: Create the Datacenter</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click the vCenter node in the inventory tree</div>
+        <p style="font-size:13.5px">In the left-side inventory tree, right-click on <strong>vcenter.novacrestbank.local</strong>. A context menu appears with options including <strong>New Datacenter</strong>, <strong>New Cluster</strong>, <strong>Add Host</strong>, and others. Click <strong>New Datacenter</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Name the Datacenter</div>
+        <p style="font-size:13.5px">A small dialog box appears with a single text field labelled <strong>"Datacenter Name"</strong>. Type:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          Datacenter name: <strong style="color:var(--accent);">NovaCrestBank-DC1</strong>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>OK</strong>. The Datacenter object appears in the inventory tree as a folder icon labelled NovaCrestBank-DC1.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Step 2: Create the Cluster inside the Datacenter</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NovaCrestBank-DC1 → New Cluster</div>
+        <p style="font-size:13.5px">Right-click <strong>NovaCrestBank-DC1</strong> in the inventory tree. Click <strong>New Cluster</strong>. The New Cluster wizard opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">The New Cluster wizard — what you see and what to configure</div>
+        <p style="font-size:13.5px">The wizard has a name field at the top and toggle switches for cluster features. Configure as follows:</p>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div><strong>Cluster name:</strong> <code>NovaCrestBank-Cluster01</code></div>
+          <div style="margin-top:10px;"><strong>vSphere DRS:</strong> <span class="badge ba">OFF for now</span> — DRS requires shared storage (vSAN), which does not exist yet. Enable after vSAN is configured.</div>
+          <div style="margin-top:8px;"><strong>vSphere HA:</strong> <span class="badge ba">OFF for now</span> — HA also requires shared storage. Enable after vSAN.</div>
+          <div style="margin-top:8px;"><strong>vSAN:</strong> <span class="badge ba">OFF for now</span> — vSAN is configured in its own dedicated guide after the vDS is set up.</div>
+          <div style="margin-top:8px;"><strong>vSphere Lifecycle Manager (vLCM):</strong> <span class="badge bgr">Leave default</span> — handles ESXi patch management. Configure after initial setup.</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:10px;">Click <strong>OK</strong>. The cluster appears in the inventory tree inside the Datacenter.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout">
+    <div class="cl">Why DRS and HA are left off — the dependency chain</div>
+    DRS automatically migrates VMs between hosts to balance load. HA automatically restarts VMs on surviving hosts when a host fails. Both features require that VMs can be migrated between hosts — which requires shared storage. vSAN is NovaCrestBank's shared storage. Until vSAN is configured and VMs are stored on vSAN, there is nothing to migrate. Enabling DRS and HA now would generate warnings about missing shared storage and attempt to activate features that cannot work. Enable them in the correct order: vSAN first, then HA, then DRS.
+  </div>
+</div>
+
+<!-- ══════ 26 — ADD HOSTS ══════ -->
+<div class="page" id="page-add-hosts">
+  <div class="ey">VMware Series · vSphere-01 · Section 26</div>
+  <div class="pt">Add all 5 ESXi hosts to the cluster</div>
+  <div class="ps">Connecting vCenter to each ESXi host — the moment the five islands become one cluster</div>
+
+  <h2>Adding hosts — the process for each host</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NovaCrestBank-Cluster01 → Add Hosts</div>
+        <p style="font-size:13.5px">Right-click the <strong>NovaCrestBank-Cluster01</strong> object in the inventory tree. Click <strong>Add Hosts</strong>. The Add Hosts wizard opens. You can add multiple hosts in a single wizard run.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Screen: "New hosts" — enter all 5 ESXi host IPs</div>
+        <p style="font-size:13.5px">The first screen of the Add Hosts wizard asks you to specify the hosts. Click <strong>Add hosts</strong> (the blue link or button). A row appears for each host. Enter the IP addresses and credentials:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>Host 1: <strong style="color:var(--accent);">10.10.0.11</strong>  root  /  NovaCrest$ESXi2026!</div>
+          <div style="margin-top:4px;">Host 2: <strong style="color:var(--accent);">10.10.0.12</strong>  root  /  NovaCrest$ESXi2026!</div>
+          <div style="margin-top:4px;">Host 3: <strong style="color:var(--accent);">10.10.0.13</strong>  root  /  NovaCrest$ESXi2026!</div>
+          <div style="margin-top:4px;">Host 4: <strong style="color:var(--accent);">10.10.0.14</strong>  root  /  NovaCrest$ESXi2026!</div>
+          <div style="margin-top:4px;">Host 5: <strong style="color:var(--accent);">10.10.0.15</strong>  root  /  NovaCrest$ESXi2026!</div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Certificate warnings for each host — accept all</div>
+        <p style="font-size:13.5px">The wizard connects to each ESXi host and shows SHA1 fingerprints for the self-signed certificates — one per host. A table shows all five hosts with a checkbox next to each. Tick <strong>"Accept all host certificate fingerprints"</strong> at the bottom (or tick each host individually). Click <strong>OK</strong> or <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Screen: "Host summary" — review each host's details</div>
+        <p style="font-size:13.5px">vCenter shows a summary table of all five hosts: hostname, version (ESXi 8.0.3), CPU count, memory, VMs (1 on esxi01 — vCenter itself). All should show green ticks. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Screen: "Assign license" — skip for now</div>
+        <p style="font-size:13.5px">The wizard asks you to assign a licence to each host. Select <strong>"Assign an existing license key"</strong> if you have vSphere licence keys. If not, select <strong>"Assign a new license key"</strong> and enter the key. Alternatively, skip for now — hosts will run in evaluation mode (60 days). Licences are applied in the next section. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Screen: "Lockdown mode" — leave disabled</div>
+        <p style="font-size:13.5px">Lockdown mode restricts direct ESXi host access — all management must go through vCenter. Leave it <strong>Disabled</strong> for now. After vCenter is fully configured and stable, you can enable lockdown mode for security hardening. Enabling it now would prevent direct ESXi Host Client access, which you still need during the build. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <div class="step-title">Screen: "VM location" — accept default</div>
+        <p style="font-size:13.5px">This determines where existing VMs on each host appear in the vCenter inventory. Accept the default (place them in the cluster). Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">8</div>
+      <div class="step-content">
+        <div class="step-title">Screen: "Ready to complete" — click Finish</div>
+        <p style="font-size:13.5px">A summary of all hosts being added. Review and click <strong>Finish</strong>. vCenter begins connecting to each host. You will see a progress task in the Tasks panel at the bottom of the vCenter interface — "Add host" tasks appear and complete one by one. Within 2–3 minutes all five hosts are added to the cluster.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 27 — LICENCE ══════ -->
+<div class="page" id="page-licence">
+  <div class="ey">VMware Series · vSphere-01 · Section 27</div>
+  <div class="pt">Apply vSphere licences</div>
+  <div class="ps">Entering the VMware licence keys so the environment does not expire after the 60-day evaluation period</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Navigate to Administration → Licences</div>
+        <p style="font-size:13.5px">In the vSphere Client, click the <strong>Menu</strong> icon (three horizontal lines / hamburger icon) in the top navigation bar. Click <strong>Administration</strong>. In the Administration page, click <strong>Licences</strong> in the left sidebar. The Licences page shows the current licence status.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Click "Add new licenses" and enter the licence keys</div>
+        <p style="font-size:13.5px">Click <strong>Add new licenses</strong> (a button with a + icon). Enter your VMware licence keys. NovaCrestBank needs at least two licence types: a <strong>vCenter Server licence key</strong> and <strong>vSphere ESXi licence keys</strong> (one per host, or a site licence). Enter each key in the text field (format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX). Click <strong>Next</strong> then <strong>Finish</strong> for each key.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Assign licences to each host and to vCenter</div>
+        <p style="font-size:13.5px">After adding the licence keys, go to the <strong>Assets</strong> tab on the Licences page. You will see each ESXi host listed as an asset in "Evaluation" mode. Click each host → <strong>Assign licence</strong> → select the ESXi licence key you added → <strong>OK</strong>. Do the same for the vCenter Server asset itself. After assigning, all assets should show the licence key and expiry date (not "Evaluation").</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 28 — VERIFY ══════ -->
+<div class="page" id="page-verify">
+  <div class="ey">VMware Series · vSphere-01 · Section 28</div>
+  <div class="pt">Verify — vCenter healthy and all hosts connected</div>
+  <div class="ps">The final checks confirming the vCenter deployment is complete and all five hosts are connected and healthy</div>
+
+  <div class="callout success">
+    <div class="cl">vCenter deployment complete — what you now have</div>
+    vCenter Server 8.0.3 is running as a VM on esxi01. All five ESXi hosts are connected to vCenter and visible in the NovaCrestBank-Cluster01 cluster. The inventory hierarchy is: vCenter → NovaCrestBank-DC1 → NovaCrestBank-Cluster01 → esxi01, esxi02, esxi03, esxi04, esxi05.
+  </div>
+
+  <h2>Verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">vCenter web UI accessible</span><span class="spec-val badge bg">✓ https://10.10.0.100/ui loads — vSphere Client shows</span></div>
+    <div class="spec-row"><span class="spec-label">Login with administrator@vsphere.local</span><span class="spec-val badge bg">✓ Login succeeds — vCenter dashboard visible</span></div>
+    <div class="spec-row"><span class="spec-label">NovaCrestBank-DC1 exists</span><span class="spec-val badge bg">✓ Visible in inventory tree</span></div>
+    <div class="spec-row"><span class="spec-label">NovaCrestBank-Cluster01 exists</span><span class="spec-val badge bg">✓ Inside NovaCrestBank-DC1</span></div>
+    <div class="spec-row"><span class="spec-label">esxi01 (10.10.0.11) connected</span><span class="spec-val badge bg">✓ Green "Connected" state in cluster</span></div>
+    <div class="spec-row"><span class="spec-label">esxi02 (10.10.0.12) connected</span><span class="spec-val badge bg">✓ Green "Connected" state</span></div>
+    <div class="spec-row"><span class="spec-label">esxi03 (10.10.0.13) connected</span><span class="spec-val badge bg">✓ Green "Connected" state</span></div>
+    <div class="spec-row"><span class="spec-label">esxi04 (10.10.0.14) connected</span><span class="spec-val badge bg">✓ Green "Connected" state</span></div>
+    <div class="spec-row"><span class="spec-label">esxi05 (10.10.0.15) connected</span><span class="spec-val badge bg">✓ Green "Connected" state</span></div>
+    <div class="spec-row"><span class="spec-label">vCenter VM (10.10.0.100) running</span><span class="spec-val badge bg">✓ Shows as a VM under esxi01 with power state "On"</span></div>
+    <div class="spec-row"><span class="spec-label">Licences assigned</span><span class="spec-val badge bg">✓ All hosts and vCenter show licence key, not "Evaluation"</span></div>
+    <div class="spec-row"><span class="spec-label">No critical alarms</span><span class="spec-val badge bg">✓ Alarm panel shows no red alarms (yellow NTP warnings are expected — DCs not built yet)</span></div>
+    <div class="spec-row"><span class="spec-label">CyberArk entries created</span><span class="spec-val badge ba">⚠ administrator@vsphere.local and VCSA root passwords stored</span></div>
+  </div>
+
+  <h2>What comes next — vSphere-02: vDS Phase 1</h2>
+  <p>vCenter is running but the network is still using temporary standard vSwitches on each ESXi host. The next guide creates a Distributed Virtual Switch (vDS) — a single virtual switch that spans all five hosts. The vDS is what makes consistent networking possible across the cluster: one configuration, consistent port groups on every host, LACP for the ESXi-to-leaf trunk ports. The vDS migration is done in phases to avoid losing connectivity to any host during the switchover.</p>
+
+  <table>
+    <thead><tr><th>What currently exists</th><th>What vDS Phase 1 creates</th></tr></thead>
+    <tbody>
+      <tr><td>Standard vSwitch0 on each host with vmnic0 only</td><td>vDS spanning all 5 hosts with LACP on all 6 NICs per host</td></tr>
+      <tr><td>Temporary PG-VLAN10-Management port group on vSwitch0</td><td>vDS port groups for all 7 VLANs (10, 20, 25, 30, 50, 60, 70)</td></tr>
+      <tr><td>vmnic1–5 completely unused</td><td>All 6 NICs in LACP bonds — two per NIC pair (management, VM/OCP, vSAN)</td></tr>
+      <tr><td>Per-host network configuration</td><td>Single vDS configuration — change once, applies everywhere</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--accent)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

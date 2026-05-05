@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cisco Fabric Guide 1 — Physical Foundation · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f8f7f4;--bg2:#ffffff;--bg3:#f1f0eb;
+    --text:#1a1a18;--text2:#5a5955;--text3:#8a8880;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --accent:#1a6b3c;--accent2:#0f4f8c;
+    --blue:#185fa5;--green:#0f6e56;--amber:#ba7517;
+    --red:#a32d2d;--purple:#534ab7;--teal:#0d6e6e;
+    --r:10px;--r2:6px;
+    --term-bg:#0d1117;--term-text:#c9d1d9;
+    --term-green:#3fb950;--term-yellow:#d29922;--term-red:#f85149;
+    --term-blue:#58a6ff;--term-cyan:#39d0d8;--term-gray:#6e7681;
+    --term-white:#f0f6fc;--term-orange:#ffa657;--term-dim:#484f58;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#13130f;--bg2:#1c1c18;--bg3:#252520;--text:#e8e6de;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.08);
+    --border2:rgba(255,255,255,0.15);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.75;}
+
+  .sidebar{position:fixed;top:0;left:0;width:272px;height:100vh;background:var(--bg2);border-right:0.5px solid var(--border);overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;}
+  .sh h1{font-size:13.5px;font-weight:600;color:var(--text);}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);padding:6px 20px 4px;}
+  .nav-group{padding:6px 0;}
+  .ni{display:flex;align-items:center;gap:8px;padding:7px 20px;font-size:12.5px;color:var(--text2);border-left:2px solid transparent;cursor:pointer;transition:all 0.13s;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nd{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;}
+  .ni.active .nd{background:var(--accent);}
+
+  .main{margin-left:272px;padding:40px 56px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+  .pt{font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid var(--border);}
+  h2{font-size:18px;font-weight:600;margin:32px 0 10px;color:var(--text);}
+  h3{font-size:15px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 22px;color:var(--text);}
+  li{margin-bottom:6px;font-size:14px;line-height:1.7;}
+
+  .terminal{background:var(--term-bg);border-radius:var(--r);overflow:hidden;margin:18px 0;border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .ttb{background:#161b22;padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #30363d;}
+  .tdt{width:12px;height:12px;border-radius:50%;}
+  .tdt.r{background:#ff5f57;}.tdt.y{background:#ffbd2e;}.tdt.g{background:#28c840;}
+  .ttt{font-size:11.5px;color:#6e7681;margin-left:8px;font-family:inherit;}
+  .tb{padding:16px 20px;overflow-x:auto;}
+  .tb pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:var(--term-text);white-space:pre;}
+  .tg{color:var(--term-green);}.ty{color:var(--term-yellow);}.tr{color:var(--term-red);}
+  .tblu{color:var(--term-blue);}.tc{color:var(--term-cyan);}.tgr{color:var(--term-gray);}
+  .tw{color:var(--term-white);}.to{color:var(--term-orange);}.td{color:var(--term-dim);}
+  .tpr{color:var(--term-green);}.tcmd{color:var(--term-white);}
+  .ann{display:flex;gap:10px;background:#1c2128;border-left:3px solid var(--term-yellow);padding:8px 14px;margin:8px 0;border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;font-size:12px;color:#c9d1d9;line-height:1.5;}
+  .ann.ok{border-left-color:var(--term-green);}.ann.info{border-left-color:var(--term-blue);}.ann.warn{border-left-color:var(--term-yellow);}
+  .ai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  .callout{border-left:3px solid var(--blue);background:var(--bg3);padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}.callout.danger{border-left-color:var(--red);}.callout.success{border-left-color:var(--green);}.callout.cisco{border-left-color:var(--accent2);}
+  .cl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;}
+  .callout.warn .cl{color:var(--amber);}.callout.danger .cl{color:var(--red);}.callout.success .cl{color:var(--green);}.callout.cisco .cl{color:var(--accent2);}
+  .callout:not(.warn):not(.danger):not(.success):not(.cisco) .cl{color:var(--blue);}
+
+  .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0;}
+  @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  code{font-family:"SF Mono","Fira Code",monospace;font-size:12px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:0.04em;}
+  .bg{background:#eaf3de;color:#27500a;}.ba{background:#faeeda;color:#633806;}
+  .br{background:#fcebeb;color:#501313;}.bb{background:#e6f1fb;color:#0c447c;}
+  .bp{background:#eeedfe;color:#26215c;}.bgr{background:#f1efe8;color:#444441;}
+  .bc{background:#e1f5ee;color:#085041;}
+  @media(prefers-color-scheme:dark){.bg{background:#173404;color:#c0dd97;}.ba{background:#412402;color:#fac775;}.br{background:#501313;color:#f7c1c1;}.bb{background:#042c53;color:#b5d4f4;}.bp{background:#26215c;color:#cecbf6;}.bgr{background:#2c2c2a;color:#d3d1c7;}.bc{background:#04342c;color:#9fe1cb;}}
+
+  .device-card{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;margin:14px 0;}
+  .dc-header{padding:12px 18px;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid var(--border);}
+  .dc-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+  .dc-title{font-size:14px;font-weight:600;}
+  .dc-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+  .dc-body{padding:12px 18px 16px;}
+  .spec-row{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:13px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:160px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  .rack-diagram{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:20px;margin:18px 0;font-family:"SF Mono","Fira Code",monospace;font-size:12px;line-height:1.7;}
+  .rack-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;font-family:-apple-system,sans-serif;}
+  .rack-unit{display:flex;align-items:center;gap:0;margin-bottom:2px;}
+  .ru-num{color:var(--text3);min-width:28px;font-size:11px;text-align:right;padding-right:8px;}
+  .ru-device{flex:1;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:500;}
+  .ru-empty{color:var(--text3);font-size:11px;padding:4px 10px;}
+  .ru-spine{background:#e6f1fb;color:#0c447c;}
+  .ru-leaf{background:#eaf3de;color:#27500a;}
+  .ru-esxi{background:#f1efe8;color:#444441;}
+  .ru-oob{background:#faeeda;color:#633806;}
+  .ru-patch{background:#eeedfe;color:#26215c;}
+  .ru-pdu{background:#fcebeb;color:#791f1f;}
+  @media(prefers-color-scheme:dark){
+    .ru-spine{background:#042c53;color:#b5d4f4;}
+    .ru-leaf{background:#173404;color:#c0dd97;}
+    .ru-esxi{background:#2c2c2a;color:#d3d1c7;}
+    .ru-oob{background:#412402;color:#fac775;}
+    .ru-patch{background:#26215c;color:#cecbf6;}
+    .ru-pdu{background:#501313;color:#f7c1c1;}
+  }
+
+  .cable-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px;}
+  .cable-row:last-child{border-bottom:none;}
+  .cable-from{font-weight:600;min-width:220px;flex-shrink:0;}
+  .cable-arrow{color:var(--text3);flex-shrink:0;}
+  .cable-to{flex:1;}
+  .cable-type{font-size:11px;font-weight:600;padding:1px 7px;border-radius:4px;flex-shrink:0;}
+  .ct-dac{background:#eaf3de;color:#27500a;}
+  .ct-smf{background:#e6f1fb;color:#0c447c;}
+  .ct-cat6{background:#faeeda;color:#633806;}
+  @media(prefers-color-scheme:dark){.ct-dac{background:#173404;color:#c0dd97;}.ct-smf{background:#042c53;color:#b5d4f4;}.ct-cat6{background:#412402;color:#fac775;}}
+
+  .vlan-row-highlight{background:var(--bg3);}
+
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:20px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}.step-title{font-weight:600;margin-bottom:4px;font-size:14px;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Cisco Fabric</div>
+    <h1>Guide 1 — Physical Foundation</h1>
+    <p>Racks · Cabling · VLANs · IP Plan</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Why before how</div>
+    <div class="ni active" onclick="show('why-leafspine')"><div class="nd"></div>01 — Why leaf-spine? Not 3-tier?</div>
+    <div class="ni" onclick="show('our-devices')"><div class="nd"></div>02 — NovaCrestBank device inventory</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Physical layout</div>
+    <div class="ni" onclick="show('rack-layout')"><div class="nd"></div>03 — Rack layout — what goes where</div>
+    <div class="ni" onclick="show('cabling')"><div class="nd"></div>04 — Physical cabling — port by port</div>
+    <div class="ni" onclick="show('cable-types')"><div class="nd"></div>05 — Cable types — DAC vs fibre vs Cat6</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">The master plans</div>
+    <div class="ni" onclick="show('vlan-plan')"><div class="nd"></div>06 — VLAN master plan — every network</div>
+    <div class="ni" onclick="show('ip-plan')"><div class="nd"></div>07 — IP addressing master plan</div>
+    <div class="ni" onclick="show('naming')"><div class="nd"></div>08 — Naming conventions — every device</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Console &amp; OOB access</div>
+    <div class="ni" onclick="show('console-access')"><div class="nd"></div>09 — Console access — first connection</div>
+    <div class="ni" onclick="show('oob-plan')"><div class="nd"></div>10 — OOB management plan</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Before you configure anything</div>
+    <div class="ni" onclick="show('pre-config')"><div class="nd"></div>11 — Pre-configuration checklist</div>
+    <div class="ni" onclick="show('handoff')"><div class="nd"></div>12 — What the next guide builds on</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ════════════ 01 — WHY LEAF SPINE ════════════ -->
+<div class="page active" id="page-why-leafspine">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 01</div>
+  <div class="pt">Why leaf-spine? Not the old 3-tier design?</div>
+  <div class="ps">The mental model behind NovaCrestBank's fabric — understanding the design before touching a single cable</div>
+
+  <div class="callout cisco">
+    <div class="cl">The key insight that changes how you think about networks</div>
+    Traditional data center networking used a 3-tier design: access switches at the bottom, distribution switches in the middle, core switches at the top. This worked well when most traffic went north-south (server to internet). Modern data centers — especially those running VMware vMotion, vSAN, and container platforms like OpenShift — have mostly east-west traffic (server to server). Leaf-spine is designed specifically for east-west traffic dominance.
+  </div>
+
+  <h2>3-tier vs leaf-spine — side by side</h2>
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--red);">
+      <h3 style="color:var(--red);">Traditional 3-tier (old way)</h3>
+      <p style="font-size:13px;">Server A → access switch → distribution switch → core switch → distribution switch → access switch → Server B. That is <strong>6 hops</strong> for server-to-server traffic. vMotion, vSAN replication, and pod-to-pod traffic all suffer from this latency.</p>
+      <p style="font-size:13px;">Also: spanning tree. 3-tier networks use Spanning Tree Protocol (STP) to prevent loops — which means half your uplinks are blocked as standby. Wasted capacity.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green);">
+      <h3 style="color:var(--green);">Leaf-spine (NovaCrestBank's design)</h3>
+      <p style="font-size:13px;">Server A → leaf switch → spine switch → leaf switch → Server B. That is always exactly <strong>2 hops</strong>, regardless of where the two servers are. Consistent, predictable, low latency.</p>
+      <p style="font-size:13px;">Also: no spanning tree. The spine is pure Layer 3 (routing). Loops cannot form at Layer 3. All uplinks are active simultaneously via ECMP (Equal-Cost Multi-Path). Full bandwidth, all the time.</p>
+    </div>
+  </div>
+
+  <h2>The two golden rules of leaf-spine</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Every leaf connects to every spine — never to another leaf</div>
+        <p style="font-size:13.5px">In NovaCrestBank's fabric: Leaf-1 connects to Spine-1 and Spine-2. Leaf-2 connects to Spine-1 and Spine-2. Leaf-3 connects to Spine-1 and Spine-2. Leaf-1 does NOT connect directly to Leaf-2 or Leaf-3. All leaf-to-leaf traffic goes via a spine. This guarantees the 2-hop maximum and allows the spines to do ECMP load balancing.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Spines are pure Layer 3 — they route, they do not switch</div>
+        <p style="font-size:13.5px">The Nexus 9504 spine switches in NovaCrestBank run only IP routing. No VLANs, no MAC address tables, no spanning tree. Every interface on a spine switch is a routed (Layer 3) interface with its own IP address. VLANs are a leaf concern — only the leaf switches carry VLAN tags for the servers connected to them.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>How NovaCrestBank traffic flows — concrete example</h2>
+  <div class="callout">
+    <div class="cl">Real example — vSAN replication</div>
+    ESXi Host 1 (on Leaf-1) writes a vSAN chunk. It must replicate to ESXi Host 3 (on Leaf-3). Path: Host 1 NIC → 25G link to Leaf-1 → Leaf-1 routes packet to Spine-1 (100G) → Spine-1 routes packet to Leaf-3 (100G) → Leaf-3 → Host 3 NIC. Two hops. Under 1ms latency. This is why vSAN works well on leaf-spine — the replication traffic gets consistent, low-latency paths. On a traditional 3-tier network, the same replication could take 6 hops with inconsistent latency.
+  </div>
+
+  <h2>Why NovaCrestBank chose 2 spines and 3 leafs</h2>
+  <table>
+    <thead><tr><th>Decision</th><th>Reason</th><th>What it gives you</th></tr></thead>
+    <tbody>
+      <tr><td>2 spine switches</td><td>Minimum for redundancy — if one spine fails, all traffic continues via the other spine</td><td>Zero single point of failure in the spine layer</td></tr>
+      <tr><td>3 leaf switches (one per rack)</td><td>3 racks of equipment — one ToR (Top of Rack) leaf per rack, so every server has a local switch</td><td>Short, clean cable runs; failure of one leaf only affects one rack</td></tr>
+      <tr><td>100G spine uplinks</td><td>6 leaf ports × 25G = 150G per leaf's total server bandwidth; 100G to each spine = 200G total uplink; oversubscription ~1.5:1 which is excellent</td><td>Plenty of headroom for vSAN, vMotion, and OCP traffic simultaneously</td></tr>
+      <tr><td>25G downlinks to servers</td><td>25G per NIC provides enough bandwidth for modern workloads; ESXi hosts have 6 NICs so 150G total per host</td><td>ESXi hosts are never the network bottleneck</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════ 02 — DEVICE INVENTORY ════════════ -->
+<div class="page" id="page-our-devices">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 02</div>
+  <div class="pt">NovaCrestBank device inventory</div>
+  <div class="ps">Every network device in the data center — what it is, what it does, and where it lives</div>
+
+  <div class="callout cisco">
+    <div class="cl">Read your draw.io diagram with new eyes</div>
+    Every device shown here is in the diagram you drew. Now that you understand leaf-spine design, each device's role becomes clear. As you read this section, mentally place each device in the fabric topology.
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#e6f1fb;color:#0c447c;">S1</div>
+      <div>
+        <div class="dc-title">Spine Switch 1 — <code>spine01.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Nexus 9504 (modular chassis) · Rack 2, RU 1–8</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Role</span><span class="spec-val">Pure Layer 3 spine — routes between all leafs. Never holds VLANs.</span></div>
+      <div class="spec-row"><span class="spec-label">Chassis</span><span class="spec-val">9504 = 4-slot chassis. We use line cards with 100G QSFP28 ports.</span></div>
+      <div class="spec-row"><span class="spec-label">Uplinks used</span><span class="spec-val">3 × 100G to leaf01, leaf02, leaf03 (one per leaf). 1 × routed port to Palo Alto inside.</span></div>
+      <div class="spec-row"><span class="spec-label">Peer link</span><span class="spec-val">1 × 100G link to Spine-2 (spine peer link for route exchange)</span></div>
+      <div class="spec-row"><span class="spec-label">Management</span><span class="spec-val">mgmt0 interface → OOB switch (Catalyst 9200) on VLAN 40</span></div>
+      <div class="spec-row"><span class="spec-label">Key feature</span><span class="spec-val">ECMP — load balances traffic equally across both spines. No spanning tree needed.</span></div>
+    </div>
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#e6f1fb;color:#0c447c;">S2</div>
+      <div>
+        <div class="dc-title">Spine Switch 2 — <code>spine02.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Nexus 9504 (modular chassis) · Rack 2, RU 9–16</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Role</span><span class="spec-val">Identical to Spine-1 — redundant spine. Traffic distributes equally across both spines.</span></div>
+      <div class="spec-row"><span class="spec-label">Failure scenario</span><span class="spec-val">If spine01 fails: all traffic automatically routes via spine02 only. No manual intervention. ECMP detects the failure within 1–3 seconds and reroutes.</span></div>
+    </div>
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#eaf3de;color:#27500a;">L1</div>
+      <div>
+        <div class="dc-title">Leaf Switch 1 (ToR Rack 1) — <code>leaf01.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Nexus 93180YC-FX · Rack 1, RU 42 (top of rack)</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Role</span><span class="spec-val">Top-of-Rack access switch for Rack 1. Connects ESXi Host 1 and ESXi Host 2 at 25G.</span></div>
+      <div class="spec-row"><span class="spec-label">Downlinks</span><span class="spec-val">48 × 25G SFP28 ports → ESXi host NICs. Each host gets 6 × 25G ports (3 bonded pairs).</span></div>
+      <div class="spec-row"><span class="spec-label">Uplinks</span><span class="spec-val">6 × 100G QSFP28 uplinks: 3 to spine01, 3 to spine02.</span></div>
+      <div class="spec-row"><span class="spec-label">VLANs</span><span class="spec-val">All VLANs (10, 20, 25, 30, 40, 50, 60, 70) trunked on ESXi downlinks. SVIs (IP gateways) for local routing.</span></div>
+      <div class="spec-row"><span class="spec-label">vPC</span><span class="spec-val">Virtual Port Channel with Leaf-2 for dual-homed uplinks from shared equipment (if needed).</span></div>
+    </div>
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#eaf3de;color:#27500a;">L2</div>
+      <div>
+        <div class="dc-title">Leaf Switch 2 (ToR Rack 2) — <code>leaf02.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Nexus 93180YC-FX · Rack 2, RU 42</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Connected to</span><span class="spec-val">ESXi Host 3 and ESXi Host 4 at 25G. Also connects the Spine switches (spine01 and spine02 sit in this rack).</span></div>
+      <div class="spec-row"><span class="spec-label">Special note</span><span class="spec-val">The spine switches also connect to leaf02 — NOT for data traffic from the servers, but because the spine switches' own management interfaces need to reach the rest of the network. The spine switches' traffic interfaces connect directly to each leaf's uplinks.</span></div>
+    </div>
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#eaf3de;color:#27500a;">L3</div>
+      <div>
+        <div class="dc-title">Leaf Switch 3 (ToR Rack 3) — <code>leaf03.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Nexus 93180YC-FX · Rack 3, RU 42</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Connected to</span><span class="spec-val">ESXi Host 5 at 25G. Also the NetApp AFF A400 NAS (25G for NFS) and the Dell EMC PowerStore (via FC switches, not this leaf).</span></div>
+      <div class="spec-row"><span class="spec-label">NAS connection</span><span class="spec-val">NetApp AFF A400 connects to leaf03 on VLAN 30 (NFS traffic). Two 25G connections for redundancy and throughput.</span></div>
+    </div>
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#faeeda;color:#633806;">OOB</div>
+      <div>
+        <div class="dc-title">OOB Management Switch — <code>oob-sw01.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Catalyst 9200 · Rack 2, RU 40</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Role</span><span class="spec-val">Out-of-Band management switch. Physically separate from production network. Used to manage all devices when production network is down.</span></div>
+      <div class="spec-row"><span class="spec-label">Connected to</span><span class="spec-val">iLO port on every ESXi host (1G). mgmt0 port on every Nexus switch (1G). Management port on Palo Alto PA-5250 (1G). Management port on ASR 1002-X (1G).</span></div>
+      <div class="spec-row"><span class="spec-label">VLAN</span><span class="spec-val">VLAN 40 only — 10.40.0.0/24. This switch carries NOTHING except management traffic.</span></div>
+      <div class="spec-row"><span class="spec-label">Why critical</span><span class="spec-val">If the production fabric goes down, you still need to SSH into the broken switches to fix them. Without OOB, you physically drive to the data center with a console cable. With OOB, you fix it remotely.</span></div>
+    </div>
+  </div>
+
+  <div class="device-card">
+    <div class="dc-header">
+      <div class="dc-icon" style="background:#eeedfe;color:#26215c;">DMZ</div>
+      <div>
+        <div class="dc-title">DMZ Transit Switch — <code>dmz-sw01.novacrestbank.local</code></div>
+        <div class="dc-sub">Cisco Catalyst 9300 · DMZ Rack, RU 20</div>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div class="spec-row"><span class="spec-label">Role</span><span class="spec-val">Connects all DMZ devices together: F5 BIG-IP outside interface, Cisco ASA/Palo Alto VPN gateway, Palo Alto PA-5250 DMZ interface.</span></div>
+      <div class="spec-row"><span class="spec-label">Isolation</span><span class="spec-val">Physically separate rack section. No direct connection to the trust zone leaf-spine fabric.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 03 — RACK LAYOUT ════════════ -->
+<div class="page" id="page-rack-layout">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 03</div>
+  <div class="pt">Rack layout — what goes where and why</div>
+  <div class="ps">The physical arrangement of every device across the three production racks — and the reasoning behind placement</div>
+
+  <div class="callout">
+    <div class="cl">Why rack layout matters before cabling</div>
+    Cable length is finite. A patch panel in the wrong rack means you need a 10-metre cable where a 1-metre one would do. Short cables mean less clutter, less signal degradation, easier troubleshooting. Plan the rack layout before buying a single cable. Rule of thumb: things that talk to each other most go in the same rack or adjacent racks.
+  </div>
+
+  <h2>Rack 1 — Primary compute</h2>
+  <div class="rack-diagram">
+    <div class="rack-title">Rack 1 — Primary Compute · novacrestbank-rack01</div>
+    <div class="rack-unit"><div class="ru-num">U42</div><div class="ru-device ru-leaf">Leaf-01 · Cisco Nexus 93180YC-FX · leaf01.novacrestbank.local</div></div>
+    <div class="rack-unit"><div class="ru-num">U41</div><div class="ru-device ru-patch">Patch Panel 1A — 24-port Cat6A (1G management)</div></div>
+    <div class="rack-unit"><div class="ru-num">U40</div><div class="ru-device ru-patch">Patch Panel 1B — 24-port LC/LC (25G fibre uplinks)</div></div>
+    <div class="rack-unit"><div class="ru-num">U39</div><div class="ru-empty">— empty —</div></div>
+    <div class="rack-unit"><div class="ru-num">U38</div><div class="ru-empty">— empty —</div></div>
+    <div class="rack-unit"><div class="ru-num">U37</div><div class="ru-empty">— empty —</div></div>
+    <div class="rack-unit"><div class="ru-num">U14</div><div class="ru-esxi">ESXi Host 1 · HP ProLiant DL380 Gen11 · esxi01.novacrestbank.local (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U12</div><div class="ru-esxi">ESXi Host 2 · HP ProLiant DL380 Gen11 · esxi02.novacrestbank.local (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U10</div><div class="ru-empty">— future expansion —</div></div>
+    <div class="rack-unit"><div class="ru-num">U2</div><div class="ru-pdu">PDU A (primary power) — rack-mounted, vertical</div></div>
+    <div class="rack-unit"><div class="ru-num">U1</div><div class="ru-pdu">PDU B (secondary power) — rack-mounted, vertical</div></div>
+  </div>
+
+  <h2>Rack 2 — Core switching and compute</h2>
+  <div class="rack-diagram">
+    <div class="rack-title">Rack 2 — Core Switching + Compute · novacrestbank-rack02</div>
+    <div class="rack-unit"><div class="ru-num">U42</div><div class="ru-device ru-leaf">Leaf-02 · Cisco Nexus 93180YC-FX · leaf02.novacrestbank.local</div></div>
+    <div class="rack-unit"><div class="ru-num">U41</div><div class="ru-device ru-oob">OOB Mgmt Switch · Cisco Catalyst 9200 · oob-sw01.novacrestbank.local</div></div>
+    <div class="rack-unit"><div class="ru-num">U40</div><div class="ru-device ru-patch">Patch Panel 2A — 24-port Cat6A (iLO and management)</div></div>
+    <div class="rack-unit"><div class="ru-num">U39</div><div class="ru-empty">— empty —</div></div>
+    <div class="rack-unit"><div class="ru-num">U33</div><div class="ru-device ru-spine">Spine-01 · Cisco Nexus 9504 chassis · spine01.novacrestbank.local (8U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U25</div><div class="ru-device ru-spine">Spine-02 · Cisco Nexus 9504 chassis · spine02.novacrestbank.local (8U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U14</div><div class="ru-esxi">ESXi Host 3 · HP ProLiant DL380 Gen11 · esxi03.novacrestbank.local (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U12</div><div class="ru-esxi">ESXi Host 4 · HP ProLiant DL380 Gen11 · esxi04.novacrestbank.local (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U2</div><div class="ru-pdu">PDU A + PDU B</div></div>
+  </div>
+
+  <h2>Rack 3 — Storage and compute</h2>
+  <div class="rack-diagram">
+    <div class="rack-title">Rack 3 — Storage + Compute · novacrestbank-rack03</div>
+    <div class="rack-unit"><div class="ru-num">U42</div><div class="ru-device ru-leaf">Leaf-03 · Cisco Nexus 93180YC-FX · leaf03.novacrestbank.local</div></div>
+    <div class="rack-unit"><div class="ru-num">U41</div><div class="ru-device ru-patch">Patch Panel 3A — 24-port Cat6A + 24-port LC/LC</div></div>
+    <div class="rack-unit"><div class="ru-num">U40</div><div class="ru-empty">— empty —</div></div>
+    <div class="rack-unit"><div class="ru-num">U14</div><div class="ru-esxi">ESXi Host 5 · HP ProLiant DL380 Gen11 · esxi05.novacrestbank.local (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U12</div><div class="ru-empty">— future ESXi host —</div></div>
+    <div class="rack-unit"><div class="ru-num">U8</div><div class="ru-device" style="background:#d5e8d4;color:#2d6a4f;">NetApp AFF A400 · NAS storage (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U6</div><div class="ru-device" style="background:#f8cecc;color:#7f2a2a;">Dell EMC PowerStore 1000T · SAN storage (2U)</div></div>
+    <div class="rack-unit"><div class="ru-num">U4</div><div class="ru-device" style="background:#fff2cc;color:#6a4500;">Thales Luna HSM × 2 (1U each)</div></div>
+    <div class="rack-unit"><div class="ru-num">U2</div><div class="ru-pdu">PDU A + PDU B</div></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">Rack placement principle — anti-affinity for critical pairs</div>
+    Notice that Spine-01 and Spine-02 are both in Rack 2. This is acceptable because they are in the same physical cabinet with dual power feeds. However, in a stricter design, you would put one spine in Rack 1 and one in Rack 3 so that a rack-level power failure cannot take both spines. For NovaCrestBank's initial deployment, both spines in Rack 2 is the chosen design — the cabinet has dual PDUs on separate power circuits.
+  </div>
+</div>
+
+<!-- ════════════ 04 — CABLING ════════════ -->
+<div class="page" id="page-cabling">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 04</div>
+  <div class="pt">Physical cabling — port by port</div>
+  <div class="ps">Every cable in NovaCrestBank's fabric — exactly which port on which device connects to which port on which other device</div>
+
+  <div class="callout">
+    <div class="cl">Why document cabling before you run it</div>
+    A data center with undocumented cabling is a data center that is impossible to troubleshoot at 3 AM. Before any cable is run, every connection is documented in a cabling matrix. When a link goes down, you look up the cable, find both ends, and trace it physically. This document is also what you hand to the cabling contractor — it is their work order.
+  </div>
+
+  <h2>Spine-to-leaf uplinks (100G) — the most critical cables</h2>
+  <div class="card">
+    <div class="cable-row">
+      <div class="cable-from">spine01 · Eth1/1</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">leaf01 · Eth1/49 (100G uplink port 1)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+    <div class="cable-row">
+      <div class="cable-from">spine01 · Eth1/2</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">leaf02 · Eth1/49 (100G uplink port 1)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+    <div class="cable-row">
+      <div class="cable-from">spine01 · Eth1/3</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">leaf03 · Eth1/49 (100G uplink port 1)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+    <div class="cable-row">
+      <div class="cable-from">spine02 · Eth1/1</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">leaf01 · Eth1/50 (100G uplink port 2)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+    <div class="cable-row">
+      <div class="cable-from">spine02 · Eth1/2</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">leaf02 · Eth1/50 (100G uplink port 2)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+    <div class="cable-row">
+      <div class="cable-from">spine02 · Eth1/3</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">leaf03 · Eth1/50 (100G uplink port 2)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+    <div class="cable-row">
+      <div class="cable-from">spine01 · Eth1/10</div>
+      <div class="cable-arrow">→</div>
+      <div class="cable-to">spine02 · Eth1/10 (spine peer link)</div>
+      <div class="cable-type ct-smf">100G SMF</div>
+    </div>
+  </div>
+
+  <h2>ESXi host downlinks (25G) — leaf to server</h2>
+  <div class="card">
+    <h3>leaf01 → ESXi Host 1 (esxi01)</h3>
+    <div class="cable-row"><div class="cable-from">leaf01 · Eth1/1</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · vmnic0 (management NIC — team A)</div><div class="cable-type ct-dac">25G DAC</div></div>
+    <div class="cable-row"><div class="cable-from">leaf01 · Eth1/2</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · vmnic1 (management NIC — team B)</div><div class="cable-type ct-dac">25G DAC</div></div>
+    <div class="cable-row"><div class="cable-from">leaf01 · Eth1/3</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · vmnic2 (VM traffic + VXLAN A)</div><div class="cable-type ct-dac">25G DAC</div></div>
+    <div class="cable-row"><div class="cable-from">leaf01 · Eth1/4</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · vmnic3 (VM traffic + VXLAN B)</div><div class="cable-type ct-dac">25G DAC</div></div>
+    <div class="cable-row"><div class="cable-from">leaf01 · Eth1/5</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · vmnic4 (vSAN NIC A)</div><div class="cable-type ct-dac">25G DAC</div></div>
+    <div class="cable-row"><div class="cable-from">leaf01 · Eth1/6</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · vmnic5 (vSAN NIC B)</div><div class="cable-type ct-dac">25G DAC</div></div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Why 6 NICs per ESXi host and why they are split this way</div>
+    Each ESXi host has 6 × 25G NICs. They are paired into 3 purposes: <strong>vmnic0/vmnic1</strong> handle ESXi management, vCenter management, and iSCSI/NFS. <strong>vmnic2/vmnic3</strong> handle VM traffic and the vSAN/NSX-T overlay traffic (VXLAN). <strong>vmnic4/vmnic5</strong> handle vSAN storage traffic exclusively — on a dedicated VLAN with dedicated bandwidth. The pairing (A and B) means both members of each pair go to the SAME leaf switch for the shortest path — they are bonded (LACP) for bandwidth and redundancy, not split across two leaf switches.
+  </div>
+
+  <h2>OOB management cabling (1G) — Cat6 to Catalyst 9200</h2>
+  <div class="card">
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/1</div><div class="cable-arrow">→</div><div class="cable-to">esxi01 · iLO port (dedicated management NIC on motherboard)</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/2</div><div class="cable-arrow">→</div><div class="cable-to">esxi02 · iLO port</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/3</div><div class="cable-arrow">→</div><div class="cable-to">esxi03 · iLO port</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/4</div><div class="cable-arrow">→</div><div class="cable-to">esxi04 · iLO port</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/5</div><div class="cable-arrow">→</div><div class="cable-to">esxi05 · iLO port</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/10</div><div class="cable-arrow">→</div><div class="cable-to">leaf01 · mgmt0 (management interface)</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/11</div><div class="cable-arrow">→</div><div class="cable-to">leaf02 · mgmt0</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/12</div><div class="cable-arrow">→</div><div class="cable-to">leaf03 · mgmt0</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/13</div><div class="cable-arrow">→</div><div class="cable-to">spine01 · mgmt0</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/14</div><div class="cable-arrow">→</div><div class="cable-to">spine02 · mgmt0</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/20</div><div class="cable-arrow">→</div><div class="cable-to">Palo Alto PA-5250 · MGMT port</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/21</div><div class="cable-arrow">→</div><div class="cable-to">ASR 1002-X (edge01) · GigE management</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+    <div class="cable-row"><div class="cable-from">oob-sw01 · Gi1/0/22</div><div class="cable-arrow">→</div><div class="cable-to">ASR 1002-X (edge02) · GigE management</div><div class="cable-type ct-cat6">Cat6 1G</div></div>
+  </div>
+</div>
+
+<!-- ════════════ 05 — CABLE TYPES ════════════ -->
+<div class="page" id="page-cable-types">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 05</div>
+  <div class="pt">Cable types — DAC, fibre, and Cat6 explained</div>
+  <div class="ps">What each cable type is, when to use it, and exactly how to identify and handle it in the real world</div>
+
+  <h2>The three cable types in NovaCrestBank</h2>
+
+  <div class="card" style="border-left:4px solid var(--green);">
+    <h3 style="color:var(--green);">DAC — Direct Attach Copper (25G, short runs)</h3>
+    <p style="font-size:13.5px">A DAC cable is a fixed cable with SFP28 transceivers permanently attached at both ends. You do not buy the cable and the transceivers separately — they come as one assembled unit. The electrical signal travels over the copper cable directly from one transceiver to the other without converting to optical (light).</p>
+    <p style="font-size:13.5px"><strong>When you use it:</strong> Any 25G connection where the two devices are in the same rack or within 5 metres of each other. In NovaCrestBank: leaf switch downlinks to ESXi hosts (same rack). DAC cables are cheaper than optical fibre + separate SFP transceivers and have less latency.</p>
+    <p style="font-size:13.5px"><strong>What it looks like:</strong> A thick, rigid black cable with a silver SFP28 module permanently crimped at each end. The cable itself is typically 1m, 2m, or 3m. You cannot change the transceivers — if the transceiver fails, replace the whole cable.</p>
+    <div class="callout success" style="margin:10px 0 0">
+      <div class="cl">NovaCrestBank usage</div>
+      Leaf-to-ESXi host connections (6 cables per host × 5 hosts = 30 DAC cables, all 25G, all 2m or 3m)
+    </div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--blue);">
+    <h3 style="color:var(--blue);">SMF — Single-Mode Fibre (100G, inter-rack)</h3>
+    <p style="font-size:13.5px">Optical fibre carries data as pulses of laser light. Single-Mode Fibre (SMF) uses a very thin glass core (9 microns) that allows light to travel in a single straight path — suitable for long distances. In a data center, you use SMF for inter-rack connections because the signal can travel 100+ metres without degradation.</p>
+    <p style="font-size:13.5px"><strong>When you use it:</strong> Any 100G connection between racks — spine-to-leaf uplinks. The fibre cable itself is separate from the transceiver. You buy QSFP28 transceivers that plug into the switch port, and LC/LC fibre patch cables that plug into the transceivers.</p>
+    <p style="font-size:13.5px"><strong>What it looks like:</strong> A thin, yellow cable (SMF is always yellow; multimode is orange or aqua). LC connectors at each end — a small rectangular plug with a latch. Handle carefully: do not bend tightly, do not touch the glass end, always keep dust caps on unused connectors.</p>
+    <p style="font-size:13.5px"><strong>The transceiver:</strong> A QSFP28 (Quad Small Form-factor Pluggable 28 Gbps × 4 = 112 Gbps ≈ 100G) module. It has a gold-coloured body and pulls out of the switch port with a bail latch. Always use Cisco-approved optics — Nexus switches will alert on third-party optics but will still work if you use the override command.</p>
+    <div class="callout success" style="margin:10px 0 0">
+      <div class="cl">NovaCrestBank usage</div>
+      All spine-to-leaf uplinks (6 uplinks × 2 spines = 12 SMF cables, all 100G). Spine peer link (1 cable). Total: 13 SMF patch cables, all LC-LC, 10m (to reach between racks).
+    </div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--amber);">
+    <h3 style="color:var(--amber);">Cat6A — Copper Ethernet (1G, management only)</h3>
+    <p style="font-size:13.5px">Standard Cat6A (Category 6A) copper Ethernet cable with RJ45 connectors. The same cable you plug into a laptop. Used for 1G management connections — iLO ports, switch mgmt0 interfaces, console server. Not used for production data traffic in NovaCrestBank — all production traffic runs on 25G or 100G.</p>
+    <p style="font-size:13.5px"><strong>What it looks like:</strong> The familiar blue, grey, or yellow Ethernet patch cable with clear plastic RJ45 plugs at each end. Always use pre-terminated (factory-made) patch cables in a data center — never field-terminate in a production environment. Pre-terminated cables are tested to spec. Field-terminated cables introduce variation and potential failure.</p>
+    <div class="callout success" style="margin:10px 0 0">
+      <div class="cl">NovaCrestBank usage</div>
+      All OOB management connections from Catalyst 9200 to iLO ports and mgmt0 interfaces. Console cables (RJ45 to RJ45 rollover cable) for initial device setup.
+    </div>
+  </div>
+
+  <h2>Fibre handling — the rules every data center engineer knows</h2>
+  <ul>
+    <li>Never bend fibre cable tighter than a 30mm radius. The glass core cracks under tight bends and the signal degrades permanently.</li>
+    <li>Always keep dust caps on unused fibre ports and on cables not in use. A single dust particle on a fibre end face causes signal loss. Clean fibre end faces with an IEC 61300-3-35 compliant cleaner before inserting.</li>
+    <li>Never pull a fibre cable by the cable itself — always push and pull by the connector body.</li>
+    <li>LC connectors have a small latch on top — press the latch while pulling to disconnect. Never yank without pressing the latch.</li>
+    <li>QSFP28 transceivers have a bail latch — rotate it 90 degrees downward to unlock before pulling the transceiver from the port.</li>
+  </ul>
+</div>
+
+<!-- ════════════ 06 — VLAN PLAN ════════════ -->
+<div class="page" id="page-vlan-plan">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 06</div>
+  <div class="pt">VLAN master plan — every network NovaCrestBank needs</div>
+  <div class="ps">Every VLAN, its purpose, its subnet, and exactly which ports carry it — the single most important planning document in the data center</div>
+
+  <div class="callout cisco">
+    <div class="cl">Why VLANs must be planned before any switch is configured</div>
+    A VLAN is a logical separation of traffic within the physical fabric. Getting VLAN IDs wrong after deployment means reconfiguring every switch, every ESXi host, every VM, and every IP address. Plan once, configure once. This plan becomes the source of truth for every team — networking, virtualisation, storage, and security — for the life of this data center.
+  </div>
+
+  <h2>NovaCrestBank VLAN master plan</h2>
+  <table>
+    <thead>
+      <tr><th>VLAN ID</th><th>Name</th><th>Subnet</th><th>Gateway</th><th>Purpose</th><th>Carried on</th></tr>
+    </thead>
+    <tbody>
+      <tr class="vlan-row-highlight">
+        <td><strong>10</strong></td>
+        <td><code>ESXi-Management</code></td>
+        <td>10.10.0.0/24</td>
+        <td>10.10.0.1</td>
+        <td>ESXi host management — VMkernel0 for vCenter, SSH, vMotion coordination. Windows AD/DNS servers also live here.</td>
+        <td>All leafs (trunk), OOB switch (access for DNS/DHCP servers)</td>
+      </tr>
+      <tr>
+        <td><strong>20</strong></td>
+        <td><code>vMotion</code></td>
+        <td>10.20.0.0/24</td>
+        <td>10.20.0.1</td>
+        <td>VMware vMotion — live VM migration traffic between ESXi hosts. High bandwidth, low latency required. Completely separate from other traffic.</td>
+        <td>All leafs (trunk on ESXi downlinks only)</td>
+      </tr>
+      <tr class="vlan-row-highlight">
+        <td><strong>25</strong></td>
+        <td><code>vSAN</code></td>
+        <td>10.25.0.0/24</td>
+        <td>10.25.0.1</td>
+        <td>vSAN storage replication and heartbeat traffic between ESXi hosts. Must never be congested — jumbo frames (MTU 9000) required.</td>
+        <td>All leafs (trunk on vmnic4/vmnic5 only)</td>
+      </tr>
+      <tr>
+        <td><strong>30</strong></td>
+        <td><code>NAS-NFS</code></td>
+        <td>10.30.0.0/24</td>
+        <td>10.30.0.1</td>
+        <td>NFS traffic to NetApp AFF A400. Used by ESXi hosts and OpenShift pods via Trident. Jumbo frames (MTU 9000) required.</td>
+        <td>leaf03 (NetApp connections) + all leafs trunk for ESXi access</td>
+      </tr>
+      <tr class="vlan-row-highlight">
+        <td><strong>40</strong></td>
+        <td><code>OOB-Management</code></td>
+        <td>10.40.0.0/24</td>
+        <td>10.40.0.1</td>
+        <td>Out-of-band management. iLO, switch mgmt0, firewall management, HSM management. ONLY traffic on the Catalyst 9200 OOB switch.</td>
+        <td>Catalyst 9200 OOB switch only — NOT on leaf/spine fabric</td>
+      </tr>
+      <tr>
+        <td><strong>50</strong></td>
+        <td><code>OCP-Nodes</code></td>
+        <td>10.50.0.0/24</td>
+        <td>10.50.0.1</td>
+        <td>OpenShift node IPs — master, infra, worker nodes. All OCP API, ingress VIPs, and node-to-node traffic.</td>
+        <td>All leafs (trunk on ESXi downlinks)</td>
+      </tr>
+      <tr class="vlan-row-highlight">
+        <td><strong>60</strong></td>
+        <td><code>VM-Production</code></td>
+        <td>10.60.0.0/24</td>
+        <td>10.60.0.1</td>
+        <td>General VM production traffic — Windows application servers, Oracle VMs, banking application VMs that are not OpenShift pods.</td>
+        <td>All leafs (trunk on ESXi downlinks)</td>
+      </tr>
+      <tr>
+        <td><strong>70</strong></td>
+        <td><code>Windows-Infrastructure</code></td>
+        <td>10.70.0.0/24</td>
+        <td>10.70.0.1</td>
+        <td>Windows Server VMs — Active Directory DCs, AD CS servers, DHCP servers, DNS servers, management servers. Separate from VM-Production for security isolation.</td>
+        <td>All leafs (trunk on ESXi downlinks)</td>
+      </tr>
+      <tr class="vlan-row-highlight">
+        <td><strong>100</strong></td>
+        <td><code>DMZ-Transit</code></td>
+        <td>172.16.100.0/24</td>
+        <td>172.16.100.1</td>
+        <td>DMZ zone — F5 BIG-IP, VPN gateway, Palo Alto DMZ interface. RFC1918 private but non-overlapping with trust zone.</td>
+        <td>Catalyst 9300 DMZ switch only — NOT on trust zone leaf/spine</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>The trunk configuration rule — which VLANs go on which port type</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>ESXi host downlink ports (Leaf → ESXi)</h3>
+      <p style="font-size:13px">These are <strong>trunk ports</strong> carrying ALL production VLANs: 10, 20, 25, 30, 50, 60, 70. The ESXi host's virtual switch (vDS) then separates traffic onto different VMkernel adapters and VM port groups based on VLAN ID.</p>
+      <code>switchport mode trunk<br/>switchport trunk allowed vlan 10,20,25,30,50,60,70</code>
+    </div>
+    <div class="card">
+      <h3>Spine uplink ports (Leaf → Spine)</h3>
+      <p style="font-size:13px">These are <strong>routed (Layer 3) ports</strong> — no VLANs at all. Each uplink has its own /30 IP address. The spine runs BGP and routes between the leaf SVIs. No <code>switchport</code> command — instead <code>no switchport</code>.</p>
+      <code>no switchport<br/>ip address 10.0.12.1/30<br/>ip router ospf 1 area 0</code>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 07 — IP PLAN ════════════ -->
+<div class="page" id="page-ip-plan">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 07</div>
+  <div class="pt">IP addressing master plan</div>
+  <div class="ps">Every IP address in NovaCrestBank's infrastructure — assigned, documented, and understood before anything is configured</div>
+
+  <h2>Network infrastructure IPs (switches, routers, firewalls)</h2>
+  <table>
+    <thead><tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>spine01</strong></td><td>mgmt0</td><td>10.40.0.10/24</td><td>OOB management (SSH, SNMP)</td></tr>
+      <tr><td><strong>spine01</strong></td><td>Eth1/1 (to leaf01)</td><td>10.0.11.1/30</td><td>BGP underlay link — spine01 to leaf01</td></tr>
+      <tr><td><strong>spine01</strong></td><td>Eth1/2 (to leaf02)</td><td>10.0.12.1/30</td><td>BGP underlay link — spine01 to leaf02</td></tr>
+      <tr><td><strong>spine01</strong></td><td>Eth1/3 (to leaf03)</td><td>10.0.13.1/30</td><td>BGP underlay link — spine01 to leaf03</td></tr>
+      <tr><td><strong>spine01</strong></td><td>Eth1/10 (to spine02)</td><td>10.0.99.1/30</td><td>Spine peer link</td></tr>
+      <tr><td><strong>spine02</strong></td><td>mgmt0</td><td>10.40.0.11/24</td><td>OOB management</td></tr>
+      <tr><td><strong>spine02</strong></td><td>Eth1/1 (to leaf01)</td><td>10.0.21.1/30</td><td>BGP underlay link — spine02 to leaf01</td></tr>
+      <tr><td><strong>spine02</strong></td><td>Eth1/2 (to leaf02)</td><td>10.0.22.1/30</td><td>BGP underlay link — spine02 to leaf02</td></tr>
+      <tr><td><strong>spine02</strong></td><td>Eth1/3 (to leaf03)</td><td>10.0.23.1/30</td><td>BGP underlay link — spine02 to leaf03</td></tr>
+      <tr><td><strong>spine02</strong></td><td>Eth1/10 (to spine01)</td><td>10.0.99.2/30</td><td>Spine peer link</td></tr>
+      <tr><td><strong>leaf01</strong></td><td>mgmt0</td><td>10.40.0.20/24</td><td>OOB management</td></tr>
+      <tr><td><strong>leaf01</strong></td><td>Eth1/49 (to spine01)</td><td>10.0.11.2/30</td><td>BGP underlay link — leaf01 to spine01</td></tr>
+      <tr><td><strong>leaf01</strong></td><td>Eth1/50 (to spine02)</td><td>10.0.21.2/30</td><td>BGP underlay link — leaf01 to spine02</td></tr>
+      <tr><td><strong>leaf01</strong></td><td>SVI VLAN 10</td><td>10.10.0.1/24</td><td>Default gateway for ESXi management on Rack 1</td></tr>
+      <tr><td><strong>leaf01</strong></td><td>SVI VLAN 20</td><td>10.20.0.1/24</td><td>Default gateway for vMotion</td></tr>
+      <tr><td><strong>leaf01</strong></td><td>SVI VLAN 25</td><td>10.25.0.1/24</td><td>Default gateway for vSAN</td></tr>
+      <tr><td><strong>leaf02</strong></td><td>mgmt0</td><td>10.40.0.21/24</td><td>OOB management</td></tr>
+      <tr><td><strong>leaf03</strong></td><td>mgmt0</td><td>10.40.0.22/24</td><td>OOB management</td></tr>
+      <tr><td><strong>oob-sw01</strong></td><td>VLAN 40 SVI</td><td>10.40.0.1/24</td><td>OOB management gateway — default route to Palo Alto inside interface</td></tr>
+    </tbody>
+  </table>
+
+  <h2>ESXi host IP assignments</h2>
+  <table>
+    <thead><tr><th>Host</th><th>VLAN 10 (Mgmt)</th><th>VLAN 20 (vMotion)</th><th>VLAN 25 (vSAN)</th><th>iLO (OOB)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>esxi01</strong></td><td>10.10.0.11/24</td><td>10.20.0.11/24</td><td>10.25.0.11/24</td><td>10.40.0.31/24</td></tr>
+      <tr><td><strong>esxi02</strong></td><td>10.10.0.12/24</td><td>10.20.0.12/24</td><td>10.25.0.12/24</td><td>10.40.0.32/24</td></tr>
+      <tr><td><strong>esxi03</strong></td><td>10.10.0.13/24</td><td>10.20.0.13/24</td><td>10.25.0.13/24</td><td>10.40.0.33/24</td></tr>
+      <tr><td><strong>esxi04</strong></td><td>10.10.0.14/24</td><td>10.20.0.14/24</td><td>10.25.0.14/24</td><td>10.40.0.34/24</td></tr>
+      <tr><td><strong>esxi05</strong></td><td>10.10.0.15/24</td><td>10.20.0.15/24</td><td>10.25.0.15/24</td><td>10.40.0.35/24</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Windows infrastructure IPs</h2>
+  <table>
+    <thead><tr><th>Server</th><th>Hostname</th><th>IP</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>DC1 (primary)</td><td>dc01.novacrestbank.local</td><td>10.70.0.10/24</td><td>AD DC, DNS primary, DHCP, NTP</td></tr>
+      <tr><td>DC2 (secondary)</td><td>dc02.novacrestbank.local</td><td>10.70.0.11/24</td><td>AD DC, DNS secondary, DHCP failover</td></tr>
+      <tr><td>Root CA (offline)</td><td>rootca.novacrestbank.local</td><td>10.70.0.20/24</td><td>AD CS Root CA — powered off after issuing Issuing CA cert</td></tr>
+      <tr><td>Issuing CA (online)</td><td>issuingca.novacrestbank.local</td><td>10.70.0.21/24</td><td>AD CS Issuing CA — online, issues day-to-day certs</td></tr>
+      <tr><td>vCenter</td><td>vcenter.novacrestbank.local</td><td>10.10.0.100/24</td><td>VMware vCenter Server Appliance (VCSA)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════ 08 — NAMING ════════════ -->
+<div class="page" id="page-naming">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 08</div>
+  <div class="pt">Naming conventions — every device, every interface</div>
+  <div class="ps">How every hostname, interface, VLAN name, and port group is named — consistency that makes troubleshooting fast</div>
+
+  <div class="callout warn">
+    <div class="cl">Naming conventions are not optional in an enterprise</div>
+    An engineer who joined the team 6 months after deployment must be able to look at a hostname, an interface name, or a port group name and immediately understand what it is and where it connects. Poor naming is the silent cause of countless troubleshooting delays and configuration errors.
+  </div>
+
+  <h2>Device hostname format</h2>
+  <table>
+    <thead><tr><th>Pattern</th><th>Example</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>{role}{number}.novacrestbank.local</code></td><td><code>spine01.novacrestbank.local</code></td><td>First spine switch</td></tr>
+      <tr><td></td><td><code>leaf02.novacrestbank.local</code></td><td>Second leaf switch</td></tr>
+      <tr><td></td><td><code>esxi03.novacrestbank.local</code></td><td>Third ESXi host</td></tr>
+      <tr><td></td><td><code>dc01.novacrestbank.local</code></td><td>First Domain Controller</td></tr>
+      <tr><td></td><td><code>oob-sw01.novacrestbank.local</code></td><td>First OOB management switch</td></tr>
+      <tr><td></td><td><code>dmz-sw01.novacrestbank.local</code></td><td>First DMZ switch</td></tr>
+      <tr><td></td><td><code>edge01.novacrestbank.local</code></td><td>First edge router (ASR)</td></tr>
+      <tr><td></td><td><code>vcenter.novacrestbank.local</code></td><td>vCenter (singular — no number unless multiple)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>NX-OS interface description format</h2>
+  <p>Every interface on every Nexus switch has a description set. An engineer who sees <code>interface Ethernet1/49</code> with no description does not know what it connects to. With a description, it is self-documenting.</p>
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">leaf01 — interface description format</span>
+    </div>
+    <div class="tb"><pre><span class="td"># Format: {remote-device}:{remote-interface} — {purpose}</span>
+
+<span class="td">interface Ethernet1/1</span>
+<span class="td">  description esxi01:vmnic0 — ESXi01 management NIC A</span>
+
+<span class="td">interface Ethernet1/5</span>
+<span class="td">  description esxi01:vmnic4 — ESXi01 vSAN NIC A</span>
+
+<span class="td">interface Ethernet1/49</span>
+<span class="td">  description spine01:Eth1/1 — 100G uplink to spine01</span>
+
+<span class="td">interface Ethernet1/50</span>
+<span class="td">  description spine02:Eth1/1 — 100G uplink to spine02</span>
+
+<span class="td">interface mgmt0</span>
+<span class="td">  description oob-sw01:Gi1/0/10 — OOB management</span></pre>
+    </div>
+  </div>
+
+  <h2>VLAN name format (in NX-OS)</h2>
+  <table>
+    <thead><tr><th>VLAN ID</th><th>NX-OS name command</th><th>vCenter port group name</th></tr></thead>
+    <tbody>
+      <tr><td>10</td><td><code>vlan 10 / name ESXi-Management</code></td><td><code>PG-VLAN10-ESXi-Management</code></td></tr>
+      <tr><td>20</td><td><code>vlan 20 / name vMotion</code></td><td><code>PG-VLAN20-vMotion</code></td></tr>
+      <tr><td>25</td><td><code>vlan 25 / name vSAN</code></td><td><code>PG-VLAN25-vSAN</code></td></tr>
+      <tr><td>30</td><td><code>vlan 30 / name NAS-NFS</code></td><td><code>PG-VLAN30-NAS-NFS</code></td></tr>
+      <tr><td>40</td><td><code>vlan 40 / name OOB-Management</code></td><td>N/A — not a VM network</td></tr>
+      <tr><td>50</td><td><code>vlan 50 / name OCP-Nodes</code></td><td><code>PG-VLAN50-OCP-Nodes</code></td></tr>
+      <tr><td>60</td><td><code>vlan 60 / name VM-Production</code></td><td><code>PG-VLAN60-VM-Production</code></td></tr>
+      <tr><td>70</td><td><code>vlan 70 / name Windows-Infrastructure</code></td><td><code>PG-VLAN70-Windows-Infrastructure</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════ 09 — CONSOLE ACCESS ════════════ -->
+<div class="page" id="page-console-access">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 09</div>
+  <div class="pt">Console access — your first connection to a new Nexus switch</div>
+  <div class="ps">Before any IP address is configured, you connect via console cable — exactly what you see and exactly what you do</div>
+
+  <div class="callout">
+    <div class="cl">Console access — the only way in on day zero</div>
+    A brand-new Nexus switch has no IP address, no SSH keys, and no management configuration. The ONLY way to configure it for the first time is via the physical console port. You connect a laptop to the switch's console port with a rollover cable (RJ45 to RJ45), open a terminal emulator, and type commands directly into the switch's command line. This is called the setup wizard — you are about to see it in Guide 2.
+  </div>
+
+  <h2>What you need for console access</h2>
+  <div class="grid-3">
+    <div class="card">
+      <h3>Console cable (rollover)</h3>
+      <p style="font-size:13px">A blue RJ45-to-RJ45 cable (Cisco standard rollover cable) or a USB-to-RJ45 console adapter (more common on modern laptops). The Nexus switches have a console port labelled <strong>CON</strong> or <strong>CONSOLE</strong> on the front or rear panel. It looks like an Ethernet port but is NOT Ethernet — it is a serial console port.</p>
+    </div>
+    <div class="card">
+      <h3>Terminal emulator software</h3>
+      <p style="font-size:13px">On Windows: <strong>PuTTY</strong> (free download). On macOS: <strong>screen</strong> command or <strong>Serial</strong> app. Connect at settings: <strong>9600 baud, 8 data bits, no parity, 1 stop bit, no flow control</strong> (written as 9600 8N1). This is the standard console speed for Cisco Nexus switches.</p>
+    </div>
+    <div class="card">
+      <h3>USB-to-Serial adapter</h3>
+      <p style="font-size:13px">Modern laptops have no RS-232 serial port. Use a USB-to-RS232 adapter plus a DB9-to-RJ45 converter, or use a purpose-built USB console cable (Cisco USB console cable, Part CONSADPT). Install the driver for the USB adapter — it appears as a COM port (Windows) or /dev/tty.usbserial (macOS).</p>
+    </div>
+  </div>
+
+  <h2>Opening PuTTY for console access — step by step</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Find your COM port number</div>
+        <p style="font-size:13.5px">In Windows: Right-click Start → Device Manager → Ports (COM &amp; LPT). Look for "USB Serial Port (COM3)" or similar. Note the COM number — you will need it in PuTTY. If you see nothing: the USB driver is not installed. Download the driver for your specific USB adapter.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Open PuTTY → Connection Type: Serial</div>
+        <p style="font-size:13.5px">Open PuTTY. Under "Connection type" select <strong>Serial</strong>. In the "Serial line" box type <strong>COM3</strong> (or your COM number). In the "Speed" box type <strong>9600</strong>. Click "Open". A black terminal window opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Press Enter — the switch responds</div>
+        <p style="font-size:13.5px">If the switch is already booted: press Enter once or twice. You will see the switch prompt or the setup wizard. If the switch is just powering on: wait 3–5 minutes for NX-OS to boot. You will see boot messages scrolling — do not press anything until the wizard appears.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout warn">
+    <div class="cl">What you will see when a Nexus switch boots for the first time</div>
+    On first boot, NX-OS runs a setup wizard that asks you a series of questions. This is covered in detail in Guide 2. It takes about 10 minutes to answer all questions. After completing the wizard, the switch saves the config and you can then SSH to it via the management IP you set. From that point on, you use SSH instead of console — except for emergencies.
+  </div>
+</div>
+
+<!-- ════════════ 10 — OOB PLAN ════════════ -->
+<div class="page" id="page-oob-plan">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 10</div>
+  <div class="pt">Out-of-band management plan</div>
+  <div class="ps">The network you build first — because without OOB, you cannot safely manage anything else</div>
+
+  <div class="callout danger">
+    <div class="cl">OOB is built BEFORE the production fabric — this is not optional</div>
+    If you configure the production leaf-spine fabric and make a mistake that breaks connectivity, you have no way to fix it remotely. You must physically go to the data center with a console cable — which may not be possible at 3 AM. With OOB in place first, every device has a management IP on a separate physical network that is independent of the production fabric. A broken production network does not affect OOB access.
+  </div>
+
+  <h2>OOB IP address assignments — complete list</h2>
+  <table>
+    <thead><tr><th>Device</th><th>OOB IP (VLAN 40)</th><th>Connected to OOB switch port</th></tr></thead>
+    <tbody>
+      <tr><td>oob-sw01 itself</td><td>10.40.0.1/24 (SVI)</td><td>— (self)</td></tr>
+      <tr><td>spine01 mgmt0</td><td>10.40.0.10/24</td><td>oob-sw01 Gi1/0/13</td></tr>
+      <tr><td>spine02 mgmt0</td><td>10.40.0.11/24</td><td>oob-sw01 Gi1/0/14</td></tr>
+      <tr><td>leaf01 mgmt0</td><td>10.40.0.20/24</td><td>oob-sw01 Gi1/0/10</td></tr>
+      <tr><td>leaf02 mgmt0</td><td>10.40.0.21/24</td><td>oob-sw01 Gi1/0/11</td></tr>
+      <tr><td>leaf03 mgmt0</td><td>10.40.0.22/24</td><td>oob-sw01 Gi1/0/12</td></tr>
+      <tr><td>esxi01 iLO</td><td>10.40.0.31/24</td><td>oob-sw01 Gi1/0/1</td></tr>
+      <tr><td>esxi02 iLO</td><td>10.40.0.32/24</td><td>oob-sw01 Gi1/0/2</td></tr>
+      <tr><td>esxi03 iLO</td><td>10.40.0.33/24</td><td>oob-sw01 Gi1/0/3</td></tr>
+      <tr><td>esxi04 iLO</td><td>10.40.0.34/24</td><td>oob-sw01 Gi1/0/4</td></tr>
+      <tr><td>esxi05 iLO</td><td>10.40.0.35/24</td><td>oob-sw01 Gi1/0/5</td></tr>
+      <tr><td>Palo Alto MGMT</td><td>10.40.0.50/24</td><td>oob-sw01 Gi1/0/20</td></tr>
+      <tr><td>edge01 (ASR) MGMT</td><td>10.40.0.51/24</td><td>oob-sw01 Gi1/0/21</td></tr>
+      <tr><td>edge02 (ASR) MGMT</td><td>10.40.0.52/24</td><td>oob-sw01 Gi1/0/22</td></tr>
+      <tr><td>hsm01 (Luna HSM)</td><td>10.40.0.80/24</td><td>oob-sw01 Gi1/0/24</td></tr>
+      <tr><td>hsm02 (Luna HSM)</td><td>10.40.0.81/24</td><td>oob-sw01 Gi1/0/25</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The OOB default gateway — how traffic leaves VLAN 40</h2>
+  <p>The Catalyst 9200 OOB switch needs a default route so that engineers working from home (via VPN) can reach the OOB addresses. The default gateway for VLAN 40 is the Palo Alto PA-5250's inside interface, which has a trust zone policy allowing VPN users (on the jump host) to reach 10.40.0.0/24.</p>
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">Catalyst 9200 — OOB switch routing config (preview — full config in Guide 3)</span>
+    </div>
+    <div class="tb"><pre><span class="td">! OOB switch default route — traffic to/from management IPs</span>
+<span class="td">! goes via Palo Alto inside interface (10.10.0.2)</span>
+<span class="tcmd">ip default-gateway 10.10.0.2</span>
+
+<span class="td">! The OOB switch itself — VLAN 40 SVI</span>
+<span class="tcmd">interface Vlan40</span>
+<span class="tcmd"> ip address 10.40.0.1 255.255.255.0</span>
+<span class="tcmd"> no shutdown</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 11 — PRE-CONFIG CHECKLIST ════════════ -->
+<div class="page" id="page-pre-config">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 11</div>
+  <div class="pt">Pre-configuration checklist</div>
+  <div class="ps">Everything that must be physically in place and verified before Guide 2 (NX-OS first boot) begins</div>
+
+  <div class="callout success">
+    <div class="cl">The rule — physical before logical</div>
+    Configuration mistakes are recoverable. Physical mistakes (wrong cable in the wrong port, wrong SFP in the wrong slot) discovered after weeks of configuration are costly and sometimes require downtime to fix. Verify every physical connection before any software configuration begins.
+  </div>
+
+  <h2>Physical verification checklist — run through this in the data center</h2>
+
+  <table>
+    <thead><tr><th>#</th><th>Check</th><th>How to verify</th><th>Expected result</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>All switches are racked and powered on</td><td>Visual — front panel power LED green</td><td>All LEDs green, no amber/red</td></tr>
+      <tr><td>2</td><td>Console cables connected to all Nexus switches</td><td>Physical — cable seated, latch clicked</td><td>PuTTY opens and shows NX-OS prompt or setup wizard</td></tr>
+      <tr><td>3</td><td>All DAC cables (leaf → ESXi) seated and latched</td><td>Physical — tug test (should not pull out without pressing latch)</td><td>Link LEDs on both switch port and NIC are green</td></tr>
+      <tr><td>4</td><td>All SMF fibre cables (spine → leaf) connected with correct QSFP28 transceivers</td><td>Physical — check both ends, dust caps removed, connectors fully seated</td><td>Link LEDs green on both connected ports</td></tr>
+      <tr><td>5</td><td>All Cat6 OOB cables connected (iLO, mgmt0 ports) to Catalyst 9200</td><td>Physical — trace each cable from source to destination</td><td>Link LEDs green on Catalyst 9200 ports 1-25</td></tr>
+      <tr><td>6</td><td>Dual power feeds connected on all critical devices</td><td>Physical — PSU A and PSU B both show green LED</td><td>Both PSUs on each spine and leaf show healthy</td></tr>
+      <tr><td>7</td><td>Cabling matches the cabling matrix in Section 04</td><td>Trace each cable end-to-end with a cable tester or by visual inspection with label tags</td><td>Every cable connects exactly as documented</td></tr>
+      <tr><td>8</td><td>All switch ports show correct LED state</td><td>On the Nexus 93180YC-FX: port LED is off if no cable, amber if connected but no link, green if link is up</td><td>All cabled ports show green (link up)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="cl">A port showing amber (not green) means a link negotiation failure</div>
+    Common causes: wrong cable type (DAC in an SFP28 slot that needs an SFP28, or vice versa), transceiver not fully seated (push it in further until you hear/feel it click), or speed mismatch (100G transceiver in a port configured for 10G). In Guide 2 you will configure interface speeds explicitly to eliminate mismatches.
+  </div>
+</div>
+
+<!-- ════════════ 12 — HANDOFF ════════════ -->
+<div class="page" id="page-handoff">
+  <div class="ey">Cisco Fabric · Guide 1 · Section 12</div>
+  <div class="pt">What Guide 2 builds on</div>
+  <div class="ps">The complete summary of what is physically in place — and exactly what Guide 2 starts with</div>
+
+  <div class="callout success">
+    <div class="cl">Guide 1 complete — what you now have</div>
+    After completing this guide, NovaCrestBank's physical data center fabric is documented and verified. Every device is racked, powered, and cabled correctly. You have a complete VLAN plan, IP addressing plan, naming convention, and physical cabling matrix that every team can work from.
+  </div>
+
+  <h2>The state of the fabric right now</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Status</th><th>What exists</th></tr></thead>
+    <tbody>
+      <tr><td>Physical</td><td><span class="badge bg">Complete</span></td><td>All switches racked, powered, cabled. LEDs green. Console access working.</td></tr>
+      <tr><td>Management (OOB)</td><td><span class="badge ba">Guide 3</span></td><td>Catalyst 9200 cabled but not yet configured. No OOB IPs assigned yet.</td></tr>
+      <tr><td>NX-OS base config</td><td><span class="badge ba">Guide 2</span></td><td>Switches powered on, at factory defaults. Setup wizard not yet run.</td></tr>
+      <tr><td>Leaf-spine routing</td><td><span class="badge br">Guides 4–5</span></td><td>Not yet configured. No BGP, no VLANs, no SVIs.</td></tr>
+      <tr><td>VLAN trunking</td><td><span class="badge br">Guide 6</span></td><td>Planned but not yet configured in switches.</td></tr>
+      <tr><td>VMware layer</td><td><span class="badge br">VMware series</span></td><td>ESXi hosts cabled but not yet installed.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Guide 2 starts here — what you will do first</h2>
+  <p>Guide 2 covers the NX-OS setup wizard on every Nexus switch — the very first commands you type on each switch. You will see the exact wizard prompts, the exact answers to give, and the exact output after each step. By the end of Guide 2, every switch will have:</p>
+  <ul>
+    <li>A hostname matching the naming convention</li>
+    <li>A management IP address on VLAN 40 / mgmt0</li>
+    <li>SSH access enabled with a key pair generated</li>
+    <li>NTP synchronised to the Windows DC (which we will configure later — for now, we point to a public NTP temporarily)</li>
+    <li>All required NX-OS features enabled (BGP, LACP, LLDP, VXLAN)</li>
+    <li>Passwords set and <code>copy running-config startup-config</code> saved</li>
+  </ul>
+
+  <div class="terminal">
+    <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
+      <span class="ttt">Preview — what Guide 2 opens with (first boot of spine01)</span>
+    </div>
+    <div class="tb"><pre><span class="td">         ---- System Admin Account Setup ----</span>
+
+<span class="tw">Do you want to enforce secure password standard (yes/no) [y]:</span> <span class="tcmd">yes</span>
+
+<span class="tw">Enter the password for "admin":</span> <span class="tcmd">NovaCrest$Admin2026!</span>
+<span class="tw">Confirm the password for "admin":</span> <span class="tcmd">NovaCrest$Admin2026!</span>
+
+<span class="td">         ---- Basic System Configuration Dialog VDC: 1 ----</span>
+
+<span class="tw">Would you like to enter the basic configuration dialog (yes/no):</span> <span class="tcmd">yes</span>
+
+<span class="tw">Create another login account (yes/no) [n]:</span> <span class="tcmd">no</span>
+
+<span class="tw">Configure read-only SNMP community string (yes/no) [n]:</span> <span class="tcmd">yes</span>
+<span class="tw">  SNMP community string:</span> <span class="tcmd">NovaCrest-RO-2026</span>
+
+<span class="tw">Enter the switch name:</span> <span class="tcmd">spine01</span>
+
+<span class="tw">Continue with Out-of-band (mgmt0) management configuration? (yes/no) [y]:</span> <span class="tcmd">yes</span>
+<span class="tw">  Mgmt0 IPv4 address:</span> <span class="tcmd">10.40.0.10</span>
+<span class="tw">  Mgmt0 IPv4 netmask:</span> <span class="tcmd">255.255.255.0</span>
+
+<span class="tw">Configure the default gateway? (yes/no) [y]:</span> <span class="tcmd">yes</span>
+<span class="tw">  IPv4 address of the default gateway:</span> <span class="tcmd">10.40.0.1</span>
+
+<span class="tw">Enable the telnet service? (yes/no) [n]:</span> <span class="tcmd">no</span>
+
+<span class="tw">Enable the ssh service? (yes/no) [y]:</span> <span class="tcmd">yes</span>
+<span class="tw">  Type of ssh key you would like to generate (dsa/rsa) [rsa]:</span> <span class="tcmd">rsa</span>
+<span class="tw">  Number of rsa key bits &lt;1024-2048&gt; [1024]:</span> <span class="tcmd">2048</span>
+
+<span class="td">... and so on — every prompt covered in full in Guide 2 ...</span></pre>
+
+      <div class="ann info"><span class="ai">ℹ</span><span>That is exactly what the NX-OS setup wizard looks like the first time a Nexus switch boots. Guide 2 covers every single prompt, what each one means, what to answer, and why. Nothing is skipped.</span></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  var page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    var dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--accent)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

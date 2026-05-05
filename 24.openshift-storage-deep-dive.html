@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OCP Storage Deep-Dive — NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f8f7f4;--bg2:#ffffff;--bg3:#f1f0eb;
+    --text:#1a1a18;--text2:#5a5955;--text3:#8a8880;
+    --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+    --accent:#c8102e;--blue:#185fa5;--green:#0f6e56;
+    --amber:#ba7517;--red:#a32d2d;--purple:#534ab7;--teal:#0f6e56;
+    --r:10px;--r2:6px;
+    --term-bg:#0d1117;--term-text:#c9d1d9;
+    --term-green:#3fb950;--term-yellow:#d29922;--term-red:#f85149;
+    --term-blue:#58a6ff;--term-cyan:#39d0d8;--term-gray:#6e7681;
+    --term-white:#f0f6fc;--term-orange:#ffa657;--term-dim:#484f58;
+    --term-purple:#d2a8ff;--term-teal:#79c0ff;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#13130f;--bg2:#1c1c18;--bg3:#252520;--text:#e8e6de;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.08);
+    --border2:rgba(255,255,255,0.15);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.75;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:272px;height:100vh;background:var(--bg2);border-right:0.5px solid var(--border);overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sidebar-header{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sidebar-header .logo{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;}
+  .sidebar-header h1{font-size:13.5px;font-weight:600;color:var(--text);}
+  .sidebar-header p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .nav-group{padding:10px 0;}
+  .nav-group-label{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);padding:0 20px 5px;}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-size:12.5px;color:var(--text2);border-left:2px solid transparent;cursor:pointer;transition:all 0.13s;}
+  .nav-item:hover,.nav-item.active{color:var(--text);background:var(--bg3);border-left-color:var(--accent);}
+  .nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;}
+  .nav-item.active .nav-dot{background:var(--accent);}
+
+  /* ── MAIN ── */
+  .main{margin-left:272px;padding:40px 56px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .page-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+  .page-title{font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3;}
+  .page-subtitle{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid var(--border);}
+  h2{font-size:18px;font-weight:600;margin:32px 0 10px;color:var(--text);}
+  h3{font-size:15px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 22px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+
+  /* ── TERMINAL ── */
+  .terminal{background:var(--term-bg);border-radius:var(--r);overflow:hidden;margin:18px 0;border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .term-titlebar{background:#161b22;padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #30363d;}
+  .term-dot{width:12px;height:12px;border-radius:50%;}
+  .term-dot.r{background:#ff5f57;}.term-dot.y{background:#ffbd2e;}.term-dot.g{background:#28c840;}
+  .term-title{font-size:11.5px;color:#6e7681;margin-left:8px;font-family:inherit;}
+  .term-body{padding:16px 20px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:var(--term-text);white-space:pre;}
+  .tc-g{color:var(--term-green);}.tc-y{color:var(--term-yellow);}.tc-r{color:var(--term-red);}
+  .tc-b{color:var(--term-blue);}.tc-c{color:var(--term-cyan);}.tc-gr{color:var(--term-gray);}
+  .tc-w{color:var(--term-white);}.tc-o{color:var(--term-orange);}.tc-d{color:var(--term-dim);}
+  .tc-p{color:var(--term-purple);}.tc-prompt{color:var(--term-green);}.tc-cmd{color:var(--term-white);}
+  .ann{display:flex;gap:10px;background:#1c2128;border-left:3px solid var(--term-yellow);padding:8px 14px;margin:8px 0;border-radius:0 4px 4px 0;font-family:-apple-system,sans-serif;font-size:12px;color:#c9d1d9;line-height:1.5;}
+  .ann.ok{border-left-color:var(--term-green);}.ann.no{border-left-color:var(--term-red);}.ann.info{border-left-color:var(--term-blue);}
+  .ann-i{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--blue);background:var(--bg3);padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}.callout.danger{border-left-color:var(--red);}.callout.success{border-left-color:var(--green);}
+  .callout-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;}
+  .callout.warn .callout-label{color:var(--amber);}.callout.danger .callout-label{color:var(--red);}
+  .callout.success .callout-label{color:var(--green);}
+  .callout:not(.warn):not(.danger):not(.success) .callout-label{color:var(--blue);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .card h3{margin-top:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  code{font-family:"SF Mono","Fira Code",monospace;font-size:12px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:0.04em;}
+  .bg{background:#eaf3de;color:#27500a;}.ba{background:#faeeda;color:#633806;}
+  .br{background:#fcebeb;color:#501313;}.bb{background:#e6f1fb;color:#0c447c;}
+  .bp{background:#eeedfe;color:#26215c;}.bgr{background:#f1efe8;color:#444441;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#173404;color:#c0dd97;}.ba{background:#412402;color:#fac775;}
+    .br{background:#501313;color:#f7c1c1;}.bb{background:#042c53;color:#b5d4f4;}
+    .bp{background:#26215c;color:#cecbf6;}.bgr{background:#2c2c2a;color:#d3d1c7;}
+  }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow{display:flex;align-items:center;gap:0;margin:20px 0;flex-wrap:wrap;}
+  .flow-box{background:var(--bg2);border:0.5px solid var(--border2);padding:12px 14px;flex:1;min-width:100px;font-size:12.5px;text-align:center;}
+  .flow-box:first-child{border-radius:var(--r2) 0 0 var(--r2);}
+  .flow-box:last-child{border-radius:0 var(--r2) var(--r2) 0;}
+  .flow-box .fn{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.05em;margin-bottom:3px;}
+  .flow-box .ft{font-weight:600;font-size:12px;}
+  .flow-box .fs{font-size:11px;color:var(--text2);margin-top:2px;}
+  .flow-arrow{display:flex;align-items:center;padding:0 6px;color:var(--text3);font-size:18px;flex-shrink:0;}
+  .flow-box.active-flow{border-color:var(--green);border-width:1px;}
+
+  /* ── LAYER DIAGRAM ── */
+  .layer-stack{margin:20px 0;display:flex;flex-direction:column;gap:6px;}
+  .layer{padding:14px 20px;border-radius:var(--r2);border:0.5px solid var(--border2);display:flex;align-items:center;gap:14px;}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:20px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:180px;}
+  .layer-desc{font-size:13px;color:var(--text2);}
+  .layer-tag{margin-left:auto;flex-shrink:0;}
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:18px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .step-content{flex:1;}.step-title{font-weight:600;margin-bottom:4px;font-size:14px;}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:150px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">NovaCrestBank · OpenShift</div>
+    <h1>Storage Deep-Dive</h1>
+    <p>NetApp Trident + vSphere CSI · Guide 4</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Foundation</div>
+    <div class="nav-item active" onclick="show('concepts')"><div class="nav-dot"></div>01 — How OCP storage works</div>
+    <div class="nav-item" onclick="show('two-systems')"><div class="nav-dot"></div>02 — Two storage systems explained</div>
+    <div class="nav-item" onclick="show('pvc-lifecycle')"><div class="nav-dot"></div>03 — PVC lifecycle — end to end</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">vSphere CSI (vSAN)</div>
+    <div class="nav-item" onclick="show('vsphere-arch')"><div class="nav-dot"></div>04 — vSphere CSI architecture</div>
+    <div class="nav-item" onclick="show('vsphere-verify')"><div class="nav-dot"></div>05 — Verify vSphere CSI is healthy</div>
+    <div class="nav-item" onclick="show('vsphere-sc')"><div class="nav-dot"></div>06 — StorageClasses for vSAN</div>
+    <div class="nav-item" onclick="show('vsphere-demo')"><div class="nav-dot"></div>07 — Live demo — developer requests storage</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">NetApp Trident (NFS)</div>
+    <div class="nav-item" onclick="show('netapp-arch')"><div class="nav-dot"></div>08 — NetApp AFF A400 &amp; Trident architecture</div>
+    <div class="nav-item" onclick="show('netapp-prep')"><div class="nav-dot"></div>09 — NetApp prep — SVM, exports, user</div>
+    <div class="nav-item" onclick="show('trident-install')"><div class="nav-dot"></div>10 — Install Trident operator</div>
+    <div class="nav-item" onclick="show('trident-backend')"><div class="nav-dot"></div>11 — Configure Trident backend</div>
+    <div class="nav-item" onclick="show('trident-sc')"><div class="nav-dot"></div>12 — StorageClasses for NFS</div>
+    <div class="nav-item" onclick="show('trident-demo')"><div class="nav-dot"></div>13 — Live demo — RWX shared volume</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Real-world decisions</div>
+    <div class="nav-item" onclick="show('which-storage')"><div class="nav-dot"></div>14 — Which storage for which workload?</div>
+    <div class="nav-item" onclick="show('debug-storage')"><div class="nav-dot"></div>15 — Debugging stuck PVCs</div>
+    <div class="nav-item" onclick="show('developer-view')"><div class="nav-dot"></div>16 — The developer's view — zero infrastructure knowledge</div>
+  </div>
+</nav>
+
+<!-- ══════════════════════ MAIN ══════════════════════ -->
+<main class="main">
+
+<!-- ════════════ 01 — CONCEPTS ════════════ -->
+<div class="page active" id="page-concepts">
+  <div class="page-eyebrow">Guide 4 · Foundation · Section 01</div>
+  <div class="page-title">How OpenShift storage actually works</div>
+  <div class="page-subtitle">The full mental model — from a developer's PVC request to a physical disk on the NetApp or vSAN — before touching a single command</div>
+
+  <div class="callout">
+    <div class="callout-label">The key insight that makes everything clear</div>
+    OpenShift storage has three layers of abstraction. A developer never sees the NetApp or the vSAN. They see only a PersistentVolumeClaim — a request that says "I need 50 GB, readable by multiple pods at the same time." The infrastructure team configures what happens underneath. This separation is intentional and powerful.
+  </div>
+
+  <h2>The three-layer model</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-color:var(--blue);">
+      <div class="layer-num">L1</div>
+      <div class="layer-title" style="color:var(--blue);">Developer layer</div>
+      <div class="layer-desc">Developer creates a <strong>PersistentVolumeClaim (PVC)</strong>. Specifies: how much storage, what access mode, which StorageClass. Knows nothing about NetApp, vSAN, NFS, or Fibre Channel.</div>
+      <div class="layer-tag"><span class="badge bb">PVC</span></div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-color:var(--purple);">
+      <div class="layer-num">L2</div>
+      <div class="layer-title" style="color:var(--purple);">Kubernetes / OpenShift layer</div>
+      <div class="layer-desc">OpenShift reads the PVC, looks at the requested <strong>StorageClass</strong>, calls the matching <strong>CSI driver</strong> (Trident for NetApp, vSphere CSI for vSAN) to provision a volume. Binds the resulting <strong>PersistentVolume (PV)</strong> to the PVC.</div>
+      <div class="layer-tag"><span class="badge bp">PV + StorageClass</span></div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-color:var(--green);">
+      <div class="layer-num">L3</div>
+      <div class="layer-title" style="color:var(--green);">Infrastructure layer</div>
+      <div class="layer-desc">The CSI driver calls the actual storage system API. For NetApp Trident: creates an NFS volume on the AFF A400, returns the NFS mount path. For vSphere CSI: creates a VMDK on the vSAN datastore, attaches it to the correct ESXi host.</div>
+      <div class="layer-tag"><span class="badge bg">NetApp / vSAN</span></div>
+    </div>
+  </div>
+
+  <h2>The full request flow — one diagram</h2>
+  <div class="flow">
+    <div class="flow-box"><div class="fn">Developer</div><div class="ft">oc apply PVC</div><div class="fs">50Gi, RWX, nfs-standard</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box"><div class="fn">OCP</div><div class="ft">Reads StorageClass</div><div class="fs">provisioner: netapp-trident</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box"><div class="fn">CSI Driver</div><div class="ft">Trident calls NetApp API</div><div class="fs">Creates NFS qtree/volume</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box"><div class="fn">NetApp AFF A400</div><div class="ft">Volume created</div><div class="fs">Returns NFS export path</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box"><div class="fn">OCP</div><div class="ft">PV created &amp; bound</div><div class="fs">Pod gets NFS mount</div></div>
+  </div>
+
+  <h2>Key terminology — crystal clear definitions</h2>
+  <table>
+    <thead><tr><th>Term</th><th>What it is</th><th>Who creates it</th><th>Analogy</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>PVC</strong><br/>PersistentVolumeClaim</td>
+        <td>A request for storage. Says "I need this much, with this access mode, from this StorageClass."</td>
+        <td>Developer / application team</td>
+        <td>Ordering a parking space — you specify size and location preference</td>
+      </tr>
+      <tr>
+        <td><strong>PV</strong><br/>PersistentVolume</td>
+        <td>The actual storage object in Kubernetes. Created by the CSI driver when a PVC is made. Represents a real volume on NetApp or vSAN.</td>
+        <td>CSI driver (automatically)</td>
+        <td>The actual parking space that was assigned to you</td>
+      </tr>
+      <tr>
+        <td><strong>StorageClass</strong></td>
+        <td>A template that defines: which CSI driver to use, what parameters (tier, replication, reclaim policy). Like a product catalogue entry.</td>
+        <td>Infrastructure team (you)</td>
+        <td>The parking space category — standard, premium, covered</td>
+      </tr>
+      <tr>
+        <td><strong>CSI driver</strong><br/>Container Storage Interface</td>
+        <td>A plugin that translates Kubernetes storage requests into calls to the actual storage system API. Trident = NetApp. vSphere CSI = vSAN.</td>
+        <td>Infrastructure team installs it</td>
+        <td>The car park management system that actually assigns spaces</td>
+      </tr>
+      <tr>
+        <td><strong>Access mode</strong></td>
+        <td>RWO = ReadWriteOnce (one pod, one node). RWX = ReadWriteMany (many pods, many nodes). ROX = ReadOnlyMany.</td>
+        <td>Developer specifies in PVC</td>
+        <td>Private space vs shared car park floor</td>
+      </tr>
+      <tr>
+        <td><strong>Reclaim policy</strong></td>
+        <td>What happens to the PV when the PVC is deleted. Delete = delete the underlying volume too. Retain = keep the data.</td>
+        <td>Infrastructure team sets in StorageClass</td>
+        <td>What happens to the parking space when you cancel — cleared or kept reserved</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════ 02 — TWO SYSTEMS ════════════ -->
+<div class="page" id="page-two-systems">
+  <div class="page-eyebrow">Guide 4 · Foundation · Section 02</div>
+  <div class="page-title">Two storage systems — what each one does</div>
+  <div class="page-subtitle">vSphere CSI (vSAN) and NetApp Trident (NFS) — how they differ, when to use each, what they can and cannot do</div>
+
+  <div class="callout">
+    <div class="callout-label">NovaCrestBank has both — they serve different purposes</div>
+    Your environment has a vSAN datastore (built from local NVMe/SSD across all 5 ESXi hosts) and a NetApp AFF A400 (NFS over 25GbE to the leaf switch). They are not interchangeable — each has a specific set of jobs. Understanding which to use for which workload is a senior engineer decision.
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--blue);">
+      <h3 style="color:var(--blue);">vSphere CSI — vSAN</h3>
+      <div class="spec-row"><span class="spec-label">Protocol</span><span class="spec-val">VMDK (virtual disk) — block storage</span></div>
+      <div class="spec-row"><span class="spec-label">Access mode</span><span class="spec-val">ReadWriteOnce ONLY — one pod on one node</span></div>
+      <div class="spec-row"><span class="spec-label">Performance</span><span class="spec-val">Very high — NVMe/SSD local to ESXi hosts</span></div>
+      <div class="spec-row"><span class="spec-label">Best for</span><span class="spec-val">Databases, single-instance stateful apps, monitoring (Prometheus data), etcd</span></div>
+      <div class="spec-row"><span class="spec-label">Cannot do</span><span class="spec-val">ReadWriteMany — multiple pods on different nodes cannot mount the same VMDK simultaneously</span></div>
+      <div class="spec-row"><span class="spec-label">Already configured?</span><span class="spec-val">Yes — IPI auto-installed vSphere CSI and created thin-csi StorageClass</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green);">
+      <h3 style="color:var(--green);">NetApp Trident — NFS</h3>
+      <div class="spec-row"><span class="spec-label">Protocol</span><span class="spec-val">NFS v3/v4.1 — file storage over network</span></div>
+      <div class="spec-row"><span class="spec-label">Access mode</span><span class="spec-val">ReadWriteMany — many pods on many nodes, all at once</span></div>
+      <div class="spec-row"><span class="spec-label">Performance</span><span class="spec-val">High — 25GbE to leaf, all-NVMe AFF A400</span></div>
+      <div class="spec-row"><span class="spec-label">Best for</span><span class="spec-val">Shared content (KYC docs, PDF statements), internal image registry, logging, any app needing shared file access</span></div>
+      <div class="spec-row"><span class="spec-label">Cannot do</span><span class="spec-val">Block semantics — not suitable for databases needing direct disk access (use vSAN for those)</span></div>
+      <div class="spec-row"><span class="spec-label">Already configured?</span><span class="spec-val">No — needs Trident installation (this guide)</span></div>
+    </div>
+  </div>
+
+  <h2>Quick decision guide — which storage for which workload?</h2>
+  <table>
+    <thead><tr><th>Workload</th><th>Access needed</th><th>Use</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>PostgreSQL / Oracle</td><td>RWO</td><td><span class="badge bb">vSphere CSI</span></td><td>Databases need block semantics and exclusive access. High IOPS from NVMe vSAN.</td></tr>
+      <tr><td>Internal image registry</td><td>RWX</td><td><span class="badge bg">Trident NFS</span></td><td>Multiple registry pods on different nodes must read/write the same image layers.</td></tr>
+      <tr><td>Prometheus monitoring data</td><td>RWO</td><td><span class="badge bb">vSphere CSI</span></td><td>Single Prometheus pod writes time-series data. Block storage is more efficient.</td></tr>
+      <tr><td>KYC document storage</td><td>RWX</td><td><span class="badge bg">Trident NFS</span></td><td>Multiple application pods across nodes need to read the same customer document files.</td></tr>
+      <tr><td>PDF statement generation</td><td>RWX</td><td><span class="badge bg">Trident NFS</span></td><td>Generator pods write; reader pods read — shared access needed.</td></tr>
+      <tr><td>Application logs (Loki)</td><td>RWO or RWX</td><td><span class="badge bg">Trident NFS</span></td><td>Log aggregators often use shared storage for their index.</td></tr>
+      <tr><td>Redis / session cache</td><td>RWO</td><td><span class="badge bb">vSphere CSI</span></td><td>Single-instance in-memory store with persistence. Block is better.</td></tr>
+      <tr><td>CI/CD build workspace</td><td>RWX</td><td><span class="badge bg">Trident NFS</span></td><td>Multiple build pods often share a workspace or artifact cache.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════ 03 — PVC LIFECYCLE ════════════ -->
+<div class="page" id="page-pvc-lifecycle">
+  <div class="page-eyebrow">Guide 4 · Foundation · Section 03</div>
+  <div class="page-title">PVC lifecycle — end to end</div>
+  <div class="page-subtitle">Every state a PVC passes through, what each state means, and what to do if it gets stuck</div>
+
+  <h2>The five PVC states</h2>
+  <div class="layer-stack">
+    <div class="layer" style="border-color:var(--text3);">
+      <div class="layer-num" style="color:var(--text3);">1</div>
+      <div class="layer-title">Pending</div>
+      <div class="layer-desc">PVC has been created but no storage has been provisioned yet. For <code>WaitForFirstConsumer</code> StorageClasses (like thin-csi), this is the normal state until a pod is created that uses the PVC. For <code>Immediate</code> StorageClasses (like Trident NFS), Pending means the CSI driver is actively provisioning — should resolve in seconds.</div>
+      <div class="layer-tag"><span class="badge bgr">Normal or stuck</span></div>
+    </div>
+    <div class="layer" style="border-color:var(--green);">
+      <div class="layer-num" style="color:var(--green);">2</div>
+      <div class="layer-title" style="color:var(--green);">Bound</div>
+      <div class="layer-desc">A PersistentVolume has been created and linked to this PVC. The storage is ready to use. A pod can now mount it. This is the healthy steady state.</div>
+      <div class="layer-tag"><span class="badge bg">Healthy</span></div>
+    </div>
+    <div class="layer" style="border-color:var(--amber);">
+      <div class="layer-num" style="color:var(--amber);">3</div>
+      <div class="layer-title" style="color:var(--amber);">Lost</div>
+      <div class="layer-desc">The PV that was bound to this PVC has been deleted or is unreachable. The data may still exist on the storage array, but the Kubernetes binding is broken. Requires manual intervention to recover.</div>
+      <div class="layer-tag"><span class="badge ba">Needs attention</span></div>
+    </div>
+    <div class="layer" style="border-color:var(--blue);">
+      <div class="layer-num" style="color:var(--blue);">4</div>
+      <div class="layer-title">Released</div>
+      <div class="layer-desc">The PVC has been deleted, but the PV still exists (because reclaim policy is Retain). The volume's data is safe. The PV will not be rebound to a new PVC until an admin manually releases it. Used in data-sensitive banking environments.</div>
+      <div class="layer-tag"><span class="badge bb">Awaiting admin</span></div>
+    </div>
+    <div class="layer" style="border-color:var(--red);">
+      <div class="layer-num" style="color:var(--red);">5</div>
+      <div class="layer-title" style="color:var(--red);">Terminating</div>
+      <div class="layer-desc">The PVC is being deleted. It will stay in this state until all pods that mounted it have stopped. If a pod is stuck or if the CSI driver cannot reach the storage to clean up, the PVC will hang in Terminating. Requires finalizer removal to force-delete.</div>
+      <div class="layer-tag"><span class="badge br">May need help</span></div>
+    </div>
+  </div>
+
+  <h2>Force-delete a stuck Terminating PVC</h2>
+  <div class="callout warn">
+    <div class="callout-label">Only use this when the PVC is genuinely stuck</div>
+    This removes the Kubernetes finalizer, which forces deletion of the PVC object even if the underlying storage cleanup has not completed. Only use this if the PVC has been in Terminating for more than 10 minutes and you are certain no pod is still using it.
+  </div>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — force-delete stuck PVC</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># PVC stuck in Terminating</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc -n banking-app</span>
+<span class="tc-w">NAME          STATUS        VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span>
+<span class="tc-y">kyc-docs-pvc  Terminating   pvc-a3f8b2   50Gi       RWX            nfs-standard   8m</span>  <span class="tc-d">← stuck</span>
+
+<span class="tc-d"># Check if any pod still has it mounted</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n banking-app | grep -v Completed</span>
+<span class="tc-g">No resources found in banking-app namespace.</span>   <span class="tc-d">← no pods using it</span>
+
+<span class="tc-d"># Remove the kubernetes finalizer to force deletion</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc patch pvc kyc-docs-pvc -n banking-app \
+  -p '{"metadata":{"finalizers":[]}}' \
+  --type=merge</span>
+<span class="tc-g">persistentvolumeclaim/kyc-docs-pvc patched</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc -n banking-app</span>
+<span class="tc-g">No resources found in banking-app namespace.</span>   <span class="tc-d">← PVC is gone ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 04 — VSPHERE ARCH ════════════ -->
+<div class="page" id="page-vsphere-arch">
+  <div class="page-eyebrow">Guide 4 · vSphere CSI · Section 04</div>
+  <div class="page-title">vSphere CSI — how it works inside your environment</div>
+  <div class="page-subtitle">What each component does, how a VMDK ends up mounted inside a pod running on RHCOS</div>
+
+  <div class="callout">
+    <div class="callout-label">The vSphere CSI driver — already installed by IPI</div>
+    When you did the IPI install, the installer detected your vSphere platform and automatically deployed the vSphere CSI driver and created the <code>thin-csi</code> StorageClass. This is one of the advantages of IPI over UPI — you did not have to install this manually.
+  </div>
+
+  <h2>Component breakdown</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Where it runs</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>vsphere-csi-controller</code></td>
+        <td>Single pod on any node (control plane)</td>
+        <td>Watches for new PVCs. Calls the vCenter API to create a VMDK on the vSAN datastore. Creates the PV object in Kubernetes. Handles deletion when PVC is removed.</td>
+      </tr>
+      <tr>
+        <td><code>vsphere-csi-node</code></td>
+        <td>DaemonSet — one pod per every node</td>
+        <td>When a pod is scheduled to a node, this component attaches the VMDK to the correct ESXi host and mounts it into the pod's filesystem. Handles unmount and detach on pod termination.</td>
+      </tr>
+      <tr>
+        <td><code>thin-csi</code> StorageClass</td>
+        <td>Kubernetes object (no pod)</td>
+        <td>The template for vSAN volumes. <code>diskformat: thin</code> = thin-provisioned VMDK. <code>WaitForFirstConsumer</code> = don't create the VMDK until a pod is actually scheduled, so it lands on the right ESXi host.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Why WaitForFirstConsumer matters in your environment</h2>
+  <div class="callout">
+    <div class="callout-label">This is the most misunderstood vSphere CSI behaviour</div>
+    Your ESXi hosts are distributed across 3 racks (leaf switches). A VMDK on vSAN has a "home" — it lives primarily on the ESXi hosts it was created on. If OpenShift creates the VMDK before knowing which pod will use it (Immediate binding), the VMDK might end up on ESXi hosts 1–3 while the pod gets scheduled to ESXi hosts 4–5. vSphere CSI would then have to move the VMDK across the vSAN network before mounting — or the mount fails. <code>WaitForFirstConsumer</code> solves this: the VMDK is only created after the pod is placed, and it is created on the ESXi hosts where the pod landed.
+  </div>
+</div>
+
+<!-- ════════════ 05 — VSPHERE VERIFY ════════════ -->
+<div class="page" id="page-vsphere-verify">
+  <div class="page-eyebrow">Guide 4 · vSphere CSI · Section 05</div>
+  <div class="page-title">Verify vSphere CSI is healthy</div>
+  <div class="page-subtitle">Every check — exactly what healthy output looks like</div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — complete vSphere CSI health check</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># ── 1. Check CSI driver pods are all Running ─────────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n openshift-cluster-csi-drivers \
+  -l app=vsphere-csi-controller -o wide</span>
+<span class="tc-w">NAME                                    READY   STATUS    RESTARTS   AGE    NODE</span>
+<span class="tc-g">vsphere-csi-controller-847f9d6c4-x8p2k  6/6     Running   0          3h     master01.ocp.novacrestbank.local</span>
+<span class="tc-d">                                        ↑ 6/6 containers = all sidecars running (attacher, provisioner, resizer, snapshotter, liveness probe, driver)</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n openshift-cluster-csi-drivers \
+  -l app=vsphere-csi-node</span>
+<span class="tc-w">NAME                       READY   STATUS    RESTARTS   AGE</span>
+<span class="tc-g">vsphere-csi-node-bk7m4     3/3     Running   0          3h</span>  <span class="tc-d">← one per node</span>
+<span class="tc-g">vsphere-csi-node-c9n8p     3/3     Running   0          3h</span>
+<span class="tc-g">vsphere-csi-node-d4q2r     3/3     Running   0          3h</span>
+<span class="tc-g">vsphere-csi-node-e7s5t     3/3     Running   0          3h</span>
+<span class="tc-g">vsphere-csi-node-f1w9v     3/3     Running   0          3h</span>
+<span class="tc-g">vsphere-csi-node-g6x3y     3/3     Running   0          3h</span>
+<span class="tc-d">                            ↑ 6 pods = one on each of 3 masters + 3 workers (or infra nodes)</span>
+
+<span class="tc-d"># ── 2. Check the ClusterCSIDriver object ─────────────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get clustercsidriver csi.vsphere.volume \
+  -o jsonpath='{.status.conditions[*].type}: {.status.conditions[*].status}'</span>
+<span class="tc-g">Available: True</span>
+
+<span class="tc-d"># ── 3. Confirm the StorageClass exists and is default ────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get storageclass</span>
+<span class="tc-w">NAME               PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE</span>
+<span class="tc-g">thin-csi (default) csi.vsphere.volume      Delete          WaitForFirstConsumer   true                   3h</span>
+
+<span class="tc-d"># ── 4. Inspect the StorageClass parameters ───────────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc describe storageclass thin-csi</span>
+<span class="tc-w">Name:            thin-csi</span>
+<span class="tc-w">Annotations:     storageclass.kubernetes.io/is-default-class: true</span>
+<span class="tc-w">Provisioner:     csi.vsphere.volume</span>
+<span class="tc-w">Parameters:      datastoreurl=ds:///vmfs/volumes/vsan:52a3f8b2c1d94e7/</span>
+<span class="tc-w">                 storagepolicyname=vSAN Default Storage Policy</span>
+<span class="tc-g">ReclaimPolicy:   Delete</span>
+<span class="tc-w">VolumeBindingMode: WaitForFirstConsumer</span>
+<span class="tc-g">AllowVolumeExpansion: True</span>
+
+<span class="tc-d"># ── 5. Check CSI controller logs for any errors ──────────────────────</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc logs -n openshift-cluster-csi-drivers \
+  -l app=vsphere-csi-controller \
+  -c vsphere-csi-controller \
+  --tail=20 | grep -i "error\|warn\|fail"</span>
+<span class="tc-d">                          ← no output = no errors in recent logs ✓</span></pre>
+
+      <div class="ann ok"><span class="ann-i">✓</span><span>All healthy: controller running (6/6), node DaemonSet on every node (3/3), StorageClass is default with correct provisioner, no errors in logs. vSphere CSI is fully operational.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 06 — VSPHERE STORAGECLASSES ════════════ -->
+<div class="page" id="page-vsphere-sc">
+  <div class="page-eyebrow">Guide 4 · vSphere CSI · Section 06</div>
+  <div class="page-title">StorageClasses for vSAN — creating a tiered catalogue</div>
+  <div class="page-subtitle">Adding a second StorageClass with Retain policy for production databases — so data is never accidentally deleted</div>
+
+  <div class="callout warn">
+    <div class="callout-label">The reclaim policy problem in banking environments</div>
+    The default <code>thin-csi</code> StorageClass uses <code>ReclaimPolicy: Delete</code>. This means if a developer deletes their PVC — by accident, during a cleanup, or when removing a namespace — the underlying VMDK and all its data is permanently deleted immediately. For a test environment that is fine. For Oracle database volumes or anything holding customer data, you want <code>ReclaimPolicy: Retain</code> so data is never automatically deleted.
+  </div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — create tiered vSAN StorageClasses</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># Create a Retain-policy StorageClass for production databases</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: thin-csi-retain               # name is descriptive: tech + policy
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi.vsphere.volume
+parameters:
+  datastoreurl: "ds:///vmfs/volumes/vsan:52a3f8b2c1d94e7/"
+  storagepolicyname: "vSAN Default Storage Policy"
+reclaimPolicy: Retain                 # DATA NEVER AUTO-DELETED
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+EOF</span>
+<span class="tc-g">storageclass.storage.k8s.io/thin-csi-retain created</span>
+
+<span class="tc-d"># Verify both StorageClasses exist</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get storageclass</span>
+<span class="tc-w">NAME                  PROVISIONER          RECLAIMPOLICY   VOLUMEBINDINGMODE    ALLOWVOLUMEEXPANSION   AGE</span>
+<span class="tc-g">thin-csi (default)    csi.vsphere.volume   Delete          WaitForFirstConsumer true                   3h</span>
+<span class="tc-g">thin-csi-retain       csi.vsphere.volume   Retain          WaitForFirstConsumer true                   10s</span>
+<span class="tc-d">                                           ↑ Retain = data safe even if PVC deleted</span></pre>
+
+      <div class="ann info"><span class="ann-i">ℹ</span><span>Tell your developers: use <code>thin-csi</code> for test/dev workloads. Use <code>thin-csi-retain</code> for anything holding production data. When a PVC using Retain is deleted, the PV moves to Released state — an admin must manually delete it after confirming the data has been backed up or migrated.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 07 — VSPHERE DEMO ════════════ -->
+<div class="page" id="page-vsphere-demo">
+  <div class="page-eyebrow">Guide 4 · vSphere CSI · Section 07</div>
+  <div class="page-title">Live demo — developer requests vSAN storage</div>
+  <div class="page-subtitle">Watching a PVC go from request to Bound, a pod mount it, write data, and the data survive a pod restart</div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — full vSAN storage demo</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># Developer creates a namespace for their application</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc new-project banking-backend</span>
+<span class="tc-g">Now using project "banking-backend" on server "https://api.ocp.novacrestbank.local:6443".</span>
+
+<span class="tc-d"># Developer creates a PVC — this is ALL the developer needs to know</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: banking-backend
+spec:
+  accessModes:
+    - ReadWriteOnce          # one pod, exclusive access (correct for a database)
+  storageClassName: thin-csi-retain  # Retain policy — production data
+  resources:
+    requests:
+      storage: 100Gi         # 100 GB for the PostgreSQL data directory
+EOF</span>
+<span class="tc-g">persistentvolumeclaim/postgres-data created</span>
+
+<span class="tc-d"># Check PVC status — Pending is correct (WaitForFirstConsumer)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc postgres-data -n banking-backend</span>
+<span class="tc-w">NAME            STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS      AGE</span>
+<span class="tc-y">postgres-data   Pending                        RWO            thin-csi-retain   5s</span>
+<span class="tc-d">                ↑ Pending = waiting for a pod. No VMDK created yet. Correct.</span>
+
+<span class="tc-d"># Deploy a PostgreSQL pod that uses the PVC</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres-primary
+  namespace: banking-backend
+spec:
+  containers:
+  - name: postgres
+    image: registry.redhat.io/rhel9/postgresql-15:latest
+    env:
+    - name: POSTGRESQL_USER
+      value: bankingapp
+    - name: POSTGRESQL_PASSWORD
+      value: Secure$Pass2026
+    - name: POSTGRESQL_DATABASE
+      value: transactiondb
+    volumeMounts:
+    - mountPath: /var/lib/pgsql/data   # PostgreSQL data directory
+      name: pgdata
+  volumes:
+  - name: pgdata
+    persistentVolumeClaim:
+      claimName: postgres-data         # references the PVC above
+EOF</span>
+<span class="tc-g">pod/postgres-primary created</span>
+
+<span class="tc-d"># Watch the PVC bind — vSphere CSI creates the VMDK now that it knows the pod's node</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n3 'oc get pvc postgres-data -n banking-backend'</span>
+<span class="tc-d">         [0s]  STATUS=Pending   ← waiting for pod scheduling</span>
+<span class="tc-d">         [8s]  STATUS=Pending   ← pod placed on worker02, CSI creating VMDK in vCenter</span>
+<span class="tc-g">         [22s] STATUS=Bound     VOLUME=pvc-b9c3d1e4-f8a2-4b7c-9d6e-2f1a3c5e7b9d   CAPACITY=100Gi</span>
+<span class="tc-d">                                ↑ VMDK created on vSAN, mounted into pod ✓</span>
+
+<span class="tc-d"># Check the pod is running</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pod postgres-primary -n banking-backend</span>
+<span class="tc-w">NAME               READY   STATUS    RESTARTS   AGE</span>
+<span class="tc-g">postgres-primary   1/1     Running   0          45s</span>
+
+<span class="tc-d"># Write some data into PostgreSQL to prove persistence</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc exec -it postgres-primary -n banking-backend -- \
+  psql -U bankingapp transactiondb -c \
+  "CREATE TABLE transactions (id SERIAL, amount NUMERIC, ts TIMESTAMP DEFAULT NOW());
+   INSERT INTO transactions (amount) VALUES (1000.50), (2500.00), (750.25);
+   SELECT * FROM transactions;"</span>
+<span class="tc-w">CREATE TABLE</span>
+<span class="tc-w">INSERT 0 3</span>
+<span class="tc-w"> id | amount  |             ts</span>
+<span class="tc-w">----+---------+------------------------------</span>
+<span class="tc-g">  1 | 1000.50 | 2026-04-13 11:34:22.483621+00</span>
+<span class="tc-g">  2 | 2500.00 | 2026-04-13 11:34:22.483621+00</span>
+<span class="tc-g">  3 |  750.25 | 2026-04-13 11:34:22.483621+00</span>
+
+<span class="tc-d"># Delete the pod (simulating a crash or rolling update)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc delete pod postgres-primary -n banking-backend</span>
+<span class="tc-g">pod "postgres-primary" deleted</span>
+
+<span class="tc-d"># Recreate the pod (simulating restart) — same PVC claim</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc apply -f /tmp/postgres-pod.yaml   # same YAML as before</span>
+<span class="tc-g">pod/postgres-primary created</span>
+
+<span class="tc-d"># Verify the data survived the pod deletion — this proves persistence</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc exec -it postgres-primary -n banking-backend -- \
+  psql -U bankingapp transactiondb -c "SELECT * FROM transactions;"</span>
+<span class="tc-w"> id | amount  |             ts</span>
+<span class="tc-w">----+---------+------------------------------</span>
+<span class="tc-g">  1 | 1000.50 | 2026-04-13 11:34:22.483621+00</span>
+<span class="tc-g">  2 | 2500.00 | 2026-04-13 11:34:22.483621+00</span>
+<span class="tc-g">  3 |  750.25 | 2026-04-13 11:34:22.483621+00</span>
+<span class="tc-d">                ↑ ALL DATA SURVIVED the pod deletion ✓</span>
+<span class="tc-d">                  The VMDK remained on vSAN. The new pod reattached it.</span>
+<span class="tc-d">                  This is persistent storage working exactly as intended.</span></pre>
+
+      <div class="ann ok"><span class="ann-i">✓</span><span>Persistent storage confirmed. The developer created one PVC with 5 lines of YAML. They never touched vCenter, never created a VMDK, never configured a datastore, never knew which ESXi host their pod landed on. The CSI driver did all of that invisibly. This is the power of the abstraction.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 08 — NETAPP ARCH ════════════ -->
+<div class="page" id="page-netapp-arch">
+  <div class="page-eyebrow">Guide 4 · NetApp Trident · Section 08</div>
+  <div class="page-title">NetApp AFF A400 and Trident — the architecture</div>
+  <div class="page-subtitle">How Trident connects OpenShift to your NetApp, what an SVM is, and how NFS volumes are created on demand</div>
+
+  <div class="callout">
+    <div class="callout-label">Your NetApp AFF A400 in the draw.io diagram</div>
+    In your NovaCrestBank environment: NetApp AFF A400 running ONTAP, connected via 25GbE to your Nexus leaf switches on VLAN 30 (<code>10.30.0.0/24</code>), with SnapMirror replication to DR site. It currently serves KYC docs and PDF statements as NFS/SMB shares. We will add OpenShift NFS volumes to this same array on a dedicated SVM (Storage Virtual Machine).
+  </div>
+
+  <h2>Trident component breakdown</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Where it runs</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>trident-controller</code></td>
+        <td>Single pod (on infra node)</td>
+        <td>The brain of Trident. Watches for PVC events. Calls the NetApp ONTAP REST API to create NFS volumes (qtrees or FlexVolumes). Creates the PV object in Kubernetes. Handles deletion and resize.</td>
+      </tr>
+      <tr>
+        <td><code>trident-node</code></td>
+        <td>DaemonSet — one pod per node</td>
+        <td>When a pod is scheduled to a node, this component mounts the NFS volume into the pod's namespace. Handles unmount when the pod stops.</td>
+      </tr>
+      <tr>
+        <td><code>TridentBackendConfig</code></td>
+        <td>Kubernetes CRD (object)</td>
+        <td>Tells Trident: which NetApp ONTAP cluster, which SVM, which credentials, which NFS export policy. This is the connection configuration — one per storage system or SVM.</td>
+      </tr>
+      <tr>
+        <td><code>TridentStoragePool</code></td>
+        <td>Kubernetes CRD (object)</td>
+        <td>Represents a pool of storage capacity on the backend (an aggregate or set of aggregates on the NetApp). Trident provisions volumes from these pools.</td>
+      </tr>
+      <tr>
+        <td>StorageClass</td>
+        <td>Kubernetes object</td>
+        <td>The developer-facing catalogue entry. References Trident as the provisioner and specifies parameters (backend, media type, snapshot policy).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>What is an SVM (Storage Virtual Machine)?</h2>
+  <div class="callout">
+    <div class="callout-label">Key ONTAP concept you must understand</div>
+    An SVM is a logical partition of the NetApp ONTAP system. Think of it like a vCenter resource pool for storage. Your NetApp AFF A400 might have one SVM for existing bank applications and a separate SVM for OpenShift. Each SVM has its own: IP addresses (NFS data LIFs), credentials, NFS export policies, volume namespace, and quota limits. Separating OCP storage into its own SVM gives you isolation, independent administration, and independent SnapMirror replication. You will create <code>svm-ocp</code> specifically for OpenShift.
+  </div>
+</div>
+
+<!-- ════════════ 09 — NETAPP PREP ════════════ -->
+<div class="page" id="page-netapp-prep">
+  <div class="page-eyebrow">Guide 4 · NetApp Trident · Section 09</div>
+  <div class="page-title">NetApp prep — SVM, export policy, and Trident user</div>
+  <div class="page-subtitle">Everything to configure on the NetApp side before Trident can be installed</div>
+
+  <div class="callout">
+    <div class="callout-label">Who does this work?</div>
+    In most enterprises this is done by the storage team, not the OpenShift team. You raise a request to the NetApp storage admin and they create the SVM. You give them this exact specification. Then they give you the SVM management IP and Trident credentials back.
+  </div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">NetApp ONTAP CLI — storage admin workstation (SSH to cluster management)</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># SSH into ONTAP cluster management interface</span>
+<span class="tc-prompt">storage-admin@workstation:~$</span> <span class="tc-cmd">ssh admin@netapp-mgmt.novacrestbank.local</span>
+<span class="tc-g">NetApp Release 9.13.1: Mon Jan 15 12:00:00 UTC 2024</span>
+<span class="tc-w">Copyright (C) 1992-2024 NetApp Inc. All Rights Reserved.</span>
+<span class="tc-g">cluster1::></span>
+
+<span class="tc-d"># Create the dedicated SVM for OpenShift</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">vserver create \
+  -vserver svm-ocp \
+  -rootvolume svm-ocp-root \
+  -rootvolume-security-style unix \
+  -language en_US.UTF-8 \
+  -snapshot-policy default \
+  -comment "OpenShift NovaCrestBank OCP cluster"</span>
+<span class="tc-g">[Job 142] Job succeeded: Vserver Create is complete.</span>
+
+<span class="tc-d"># Add NFS protocol to the SVM</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">nfs create -vserver svm-ocp -access true -v3 enabled -v4.1 enabled</span>
+<span class="tc-g">Warning: NFS access is enabled.</span>
+
+<span class="tc-d"># Create a data LIF (NFS IP that OCP nodes will mount from)</span>
+<span class="tc-d"># This IP must be reachable from VLAN 50 (OCP node network)</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">network interface create \
+  -vserver svm-ocp \
+  -lif nfs-lif-01 \
+  -service-policy default-data-files \
+  -home-node node01 \
+  -home-port e0c \
+  -address 10.30.0.50 \
+  -netmask 255.255.255.0</span>
+<span class="tc-g">  (network interface create)</span>
+
+<span class="tc-d"># Create an aggregate for OCP volumes (or reuse existing SSD aggregate)</span>
+<span class="tc-d"># Assumption: aggr_ssd_01 already exists on node01</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">vserver modify -vserver svm-ocp \
+  -aggr-list aggr_ssd_01,aggr_ssd_02</span>
+
+<span class="tc-d"># Create the NFS export policy that allows OCP nodes to mount</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">vserver export-policy create \
+  -vserver svm-ocp \
+  -policyname ocp-node-access</span>
+
+<span class="tc-d"># Add export rule: allow OCP node subnet (10.50.0.0/24) to mount with root access</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">vserver export-policy rule create \
+  -vserver svm-ocp \
+  -policyname ocp-node-access \
+  -ruleindex 1 \
+  -protocol nfs \
+  -clientmatch 10.50.0.0/24 \
+  -rorule sys \
+  -rwrule sys \
+  -superuser sys \
+  -anon 65534</span>
+
+<span class="tc-d"># Create the Trident service account (vsadmin role — not cluster admin)</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">security login create \
+  -vserver svm-ocp \
+  -user-or-group-name trident-svc \
+  -application http \
+  -authmethod password \
+  -role vsadmin</span>
+<span class="tc-w">Please enter a password for user 'trident-svc':</span>  <span class="tc-d">← enter: Tr1d3nt$Mgmt2026!</span>
+<span class="tc-w">Please enter it again:</span>
+<span class="tc-g">security login create: User 'trident-svc' created and access enabled.</span>
+
+<span class="tc-d"># Get the SVM management LIF IP (this is what Trident will connect to)</span>
+<span class="tc-g">cluster1::></span> <span class="tc-cmd">network interface show -vserver svm-ocp -fields address</span>
+<span class="tc-w">vserver   lif            address</span>
+<span class="tc-g">svm-ocp   nfs-lif-01     10.30.0.50</span>  <span class="tc-d">← NFS mount IP (nodes will use this)</span>
+<span class="tc-g">svm-ocp   svm-ocp_mgmt   10.30.0.51</span>  <span class="tc-d">← SVM management IP (Trident will connect to this)</span></pre>
+
+      <div class="ann info"><span class="ann-i">ℹ</span><span>Hand these back to the OpenShift team: SVM management IP (<code>10.30.0.51</code>), NFS data LIF (<code>10.30.0.50</code>), Trident username (<code>trident-svc</code>), password, SVM name (<code>svm-ocp</code>). This is the handoff between storage admin and OpenShift admin.</span></div>
+    </div>
+  </div>
+
+  <h2>Verify NFS connectivity from OCP nodes before installing Trident</h2>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — test NFS from inside the cluster</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># Run a debug pod on a worker node to test NFS mount</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc debug node/worker01.ocp.novacrestbank.local</span>
+<span class="tc-g">Starting pod/worker01ocpnovacrestbanklocal-debug ...</span>
+<span class="tc-w">To use host binaries, `chroot /host`</span>
+<span class="tc-prompt">sh-4.4#</span> <span class="tc-cmd">chroot /host</span>
+<span class="tc-prompt">sh-4.4#</span>
+
+<span class="tc-d"># Test NFS port reachability to the NetApp data LIF</span>
+<span class="tc-prompt">sh-4.4#</span> <span class="tc-cmd">nc -zv 10.30.0.50 2049</span>
+<span class="tc-g">Ncat: Version 7.80</span>
+<span class="tc-g">Ncat: Connected to 10.30.0.50:2049.</span>   <span class="tc-d">← NFS port 2049 reachable ✓</span>
+<span class="tc-g">Ncat: 0 bytes sent, 0 bytes received in 0.02 seconds.</span>
+
+<span class="tc-d"># Try an actual NFS mount to the SVM root</span>
+<span class="tc-prompt">sh-4.4#</span> <span class="tc-cmd">mkdir -p /tmp/nfs-test
+mount -t nfs -o vers=4.1 10.30.0.50:/ /tmp/nfs-test
+ls /tmp/nfs-test/</span>
+<span class="tc-d">                          ← if the mount succeeds and ls works = NFS is fully functional ✓</span>
+<span class="tc-d">                            if mount fails = check export policy clientmatch and Palo Alto rules</span>
+
+<span class="tc-prompt">sh-4.4#</span> <span class="tc-cmd">umount /tmp/nfs-test
+exit</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc delete pod worker01ocpnovacrestbanklocal-debug</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 10 — TRIDENT INSTALL ════════════ -->
+<div class="page" id="page-trident-install">
+  <div class="page-eyebrow">Guide 4 · NetApp Trident · Section 10</div>
+  <div class="page-title">Install the Trident operator</div>
+  <div class="page-subtitle">Deploying NetApp Trident into OpenShift using the operator — every command, every output</div>
+
+  <div class="callout">
+    <div class="callout-label">Which version of Trident?</div>
+    Always use a Trident version that matches your ONTAP version. ONTAP 9.13.x → Trident 23.10.x or later. Check the NetApp Trident compatibility matrix before downloading. For NovaCrestBank we use Trident 24.02 with ONTAP 9.13.1.
+  </div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — download and install Trident operator</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># Download Trident installer</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cd ~/ocp-kit && \
+  curl -LO https://github.com/NetApp/trident/releases/download/v24.02.0/trident-installer-24.02.0.tar.gz</span>
+<span class="tc-g">  % Total    % Received  xfrs  Average Speed   Time    Time     Time  Current
+100  47.2M  100  47.2M    0     0  8543k      0  0:00:05  0:00:05  --:--:--  9.1M</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">tar xzf trident-installer-24.02.0.tar.gz
+cd trident-installer</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost trident-installer]$</span> <span class="tc-cmd">ls</span>
+<span class="tc-w">deploy/   extras/   helm/   sample-input/   tridentctl</span>
+
+<span class="tc-d"># Install Trident using tridentctl (recommended for OCP)</span>
+<span class="tc-prompt">[svc-ocp@jumphost trident-installer]$</span> <span class="tc-cmd">./tridentctl install \
+  --namespace trident \
+  --use-custom-yaml \
+  -d 2>&1 | tee ~/ocp-kit/logs/trident-install.log</span>
+
+<span class="tc-g">INFO Starting Trident installation.                    namespace=trident</span>
+<span class="tc-g">INFO Created installer service account.                serviceaccount=trident-installer</span>
+<span class="tc-g">INFO Created installer cluster role.                   clusterrole=trident-installer</span>
+<span class="tc-g">INFO Created installer cluster role binding.           clusterrolebinding=trident-installer</span>
+<span class="tc-g">INFO Created installer config map.                     configmap=trident-installer</span>
+<span class="tc-g">INFO Created installer pod.                            pod=trident-installer</span>
+<span class="tc-g">INFO Waiting for Trident installer pod to complete...</span>
+<span class="tc-g">INFO Trident installer pod completed.                  pod=trident-installer</span>
+<span class="tc-g">INFO Installed Trident.                                namespace=trident, version=24.02.0</span>
+
+<span class="tc-d"># Verify Trident pods are running</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n trident</span>
+<span class="tc-w">NAME                                  READY   STATUS    RESTARTS   AGE</span>
+<span class="tc-g">trident-controller-6b8c9d7f4-x2p8k    6/6     Running   0          90s</span>
+<span class="tc-g">trident-node-linux-bk7m4              2/2     Running   0          90s</span>  <span class="tc-d">← one per node</span>
+<span class="tc-g">trident-node-linux-c9n8p              2/2     Running   0          90s</span>
+<span class="tc-g">trident-node-linux-d4q2r              2/2     Running   0          90s</span>
+<span class="tc-g">trident-node-linux-e7s5t              2/2     Running   0          90s</span>
+<span class="tc-g">trident-node-linux-f1w9v              2/2     Running   0          90s</span>
+<span class="tc-g">trident-node-linux-g6x3y              2/2     Running   0          90s</span>
+<span class="tc-g">trident-operator-7d4c8e9b2-m3n7q      1/1     Running   0          90s</span>
+
+<span class="tc-d"># Verify Trident version</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">./tridentctl version -n trident</span>
+<span class="tc-w">+----------------+----------------+</span>
+<span class="tc-w">| SERVER VERSION | CLIENT VERSION |</span>
+<span class="tc-w">+----------------+----------------+</span>
+<span class="tc-g">| 24.02.0        | 24.02.0        |</span>
+<span class="tc-w">+----------------+----------------+</span>
+<span class="tc-d">                   ↑ server and client versions match ✓</span></pre>
+
+      <div class="ann ok"><span class="ann-i">✓</span><span>Trident is installed. The controller (6/6 sidecars) and node DaemonSet (one per node, 2/2 containers) are all running. Next step: configure the backend to connect Trident to your NetApp SVM.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 11 — TRIDENT BACKEND ════════════ -->
+<div class="page" id="page-trident-backend">
+  <div class="page-eyebrow">Guide 4 · NetApp Trident · Section 11</div>
+  <div class="page-title">Configure the Trident backend</div>
+  <div class="page-subtitle">Connecting Trident to svm-ocp on the NetApp AFF A400 — the credentials handshake</div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — create Trident backend configuration</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># Step 1: Create a Kubernetes secret for the NetApp credentials</span>
+<span class="tc-d"># NEVER put credentials directly in the backend config YAML</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create secret generic netapp-svm-ocp-creds \
+  --from-literal=username=trident-svc \
+  --from-literal=password='Tr1d3nt$Mgmt2026!' \
+  -n trident</span>
+<span class="tc-g">secret/netapp-svm-ocp-creds created</span>
+
+<span class="tc-d"># Step 2: Create the TridentBackendConfig</span>
+<span class="tc-d"># This tells Trident which NetApp SVM to use and how to provision volumes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: backend-ontap-nas-svm-ocp
+  namespace: trident
+spec:
+  version: 1
+  storageDriverName: ontap-nas         # NFS driver (not ontap-san which is iSCSI/FC)
+  managementLIF: 10.30.0.51            # SVM management IP
+  dataLIF: 10.30.0.50                  # NFS data LIF — nodes will mount FROM this IP
+  svm: svm-ocp                         # the SVM name you created
+  credentials:
+    name: netapp-svm-ocp-creds         # references the secret above
+    type: secret
+  defaults:
+    spaceReserve: none                 # thin provisioning
+    snapshotPolicy: default            # use ONTAP default snapshot schedule
+    exportPolicy: ocp-node-access      # the export policy you created
+    snapshotDir: "false"               # hide the .snapshot directory from pods
+  limitAggregateUsage: "80%"           # never use more than 80% of aggregate capacity
+  limitVolumeSize: "1Ti"               # maximum single volume size = 1 TB
+  nfsMountOptions: "vers=4.1"          # force NFS v4.1 (better than v3 for OCP)
+EOF</span>
+<span class="tc-g">tridentbackendconfig.trident.netapp.io/backend-ontap-nas-svm-ocp created</span>
+
+<span class="tc-d"># Step 3: Verify the backend is Online</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get tbc -n trident</span>
+<span class="tc-w">NAME                           BACKEND NAME                    BACKEND UUID                           PHASE   STATUS</span>
+<span class="tc-g">backend-ontap-nas-svm-ocp      backend-ontap-nas-svm-ocp      a4b8c2d1-e9f3-4a7b-8c2e-1f3a5d7b9c1e   Bound   Success</span>
+<span class="tc-d">                                                                                                       ↑ Bound + Success = Trident connected to NetApp ✓</span>
+
+<span class="tc-d"># Get detailed backend info</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">./tridentctl get backend -n trident</span>
+<span class="tc-w">+---------------------------+----------------+--------------------------------------+--------+---------+</span>
+<span class="tc-w">|           NAME            | STORAGE DRIVER |                 UUID                 | STATE  | VOLUMES |</span>
+<span class="tc-w">+---------------------------+----------------+--------------------------------------+--------+---------+</span>
+<span class="tc-g">| backend-ontap-nas-svm-ocp | ontap-nas      | a4b8c2d1-e9f3-4a7b-8c2e-1f3a5d7b9c1e | online |       0 |</span>
+<span class="tc-w">+---------------------------+----------------+--------------------------------------+--------+---------+</span>
+<span class="tc-d">                                                                                      ↑ online, 0 volumes (none yet) ✓</span></pre>
+
+      <div class="ann no"><span class="ann-i">✗</span><span>If STATUS shows <code>Failed</code>: check the TridentBackendConfig events with <code>oc describe tbc backend-ontap-nas-svm-ocp -n trident</code>. Common causes: wrong SVM management IP, wrong credentials, management LIF not reachable from OCP nodes (Palo Alto may block TCP 443/80 to <code>10.30.0.51</code>), or certificate validation failure if ONTAP uses an untrusted cert.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 12 — TRIDENT STORAGECLASSES ════════════ -->
+<div class="page" id="page-trident-sc">
+  <div class="page-eyebrow">Guide 4 · NetApp Trident · Section 12</div>
+  <div class="page-title">StorageClasses for NetApp NFS</div>
+  <div class="page-subtitle">Creating two StorageClasses — standard NFS and a Retain-policy variant for sensitive data</div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — create Trident NFS StorageClasses</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># StorageClass 1: standard NFS (Delete reclaim — for shared/temp data)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-standard
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: "ontap-nas"
+  fsType: "nfs"
+  provisioningType: "thin"
+reclaimPolicy: Delete               # volume deleted when PVC deleted
+allowVolumeExpansion: true
+volumeBindingMode: Immediate        # NFS: create volume immediately (no node dependency)
+mountOptions:
+  - vers=4.1
+  - rsize=1048576
+  - wsize=1048576
+  - hard
+  - timeo=600
+EOF</span>
+<span class="tc-g">storageclass.storage.k8s.io/nfs-standard created</span>
+
+<span class="tc-d"># StorageClass 2: NFS with Retain policy (for KYC docs, customer data)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-retain
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: "ontap-nas"
+  fsType: "nfs"
+  provisioningType: "thin"
+  snapshotPolicy: "default"          # enable ONTAP snapshots — automatic recovery points
+reclaimPolicy: Retain               # DATA NEVER AUTO-DELETED
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+mountOptions:
+  - vers=4.1
+  - rsize=1048576
+  - wsize=1048576
+  - hard
+  - timeo=600
+EOF</span>
+<span class="tc-g">storageclass.storage.k8s.io/nfs-retain created</span>
+
+<span class="tc-d"># View the complete StorageClass catalogue</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get storageclass</span>
+<span class="tc-w">NAME                  PROVISIONER              RECLAIMPOLICY  VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION</span>
+<span class="tc-g">thin-csi (default)    csi.vsphere.volume       Delete         WaitForFirstConsumer   true</span>
+<span class="tc-g">thin-csi-retain       csi.vsphere.volume       Retain         WaitForFirstConsumer   true</span>
+<span class="tc-g">nfs-standard          csi.trident.netapp.io    Delete         Immediate              true</span>
+<span class="tc-g">nfs-retain            csi.trident.netapp.io    Retain         Immediate              true</span>
+<span class="tc-d">                                                ↑ Four StorageClasses: 2 vSAN, 2 NFS
+                                                   each pair has a Delete and Retain variant</span></pre>
+
+      <div class="ann info"><span class="ann-i">ℹ</span><span>This is your complete storage catalogue. Four options cover all workloads: vSAN RWO block (fast, exclusive), vSAN RWO block Retain (fast, exclusive, data protected), NFS RWX files (shared, flexible), NFS RWX files Retain (shared, data protected, snapshots enabled). Developers choose by name — they never need to know what's underneath.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 13 — TRIDENT DEMO ════════════ -->
+<div class="page" id="page-trident-demo">
+  <div class="page-eyebrow">Guide 4 · NetApp Trident · Section 13</div>
+  <div class="page-title">Live demo — ReadWriteMany NFS shared volume</div>
+  <div class="page-subtitle">Three pods on three different nodes all writing to the same NFS volume simultaneously — the RWX use case vSAN cannot do</div>
+
+  <div class="callout">
+    <div class="callout-label">The demo scenario — KYC document service</div>
+    NovaCrestBank's KYC (Know Your Customer) document service runs 3 replicas across 3 worker nodes for high availability. All 3 replicas must be able to read and write to the same document storage simultaneously. This is impossible with vSAN (RWO only). This is exactly what NFS RWX was designed for.
+  </div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — RWX NFS demo: 3 pods, 1 shared volume</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc new-project kyc-service</span>
+<span class="tc-g">Now using project "kyc-service" on server "https://api.ocp.novacrestbank.local:6443".</span>
+
+<span class="tc-d"># Create the RWX PVC — ReadWriteMany = multiple pods on multiple nodes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kyc-documents
+  namespace: kyc-service
+spec:
+  accessModes:
+    - ReadWriteMany          # ← this is the key: multiple pods can mount simultaneously
+  storageClassName: nfs-retain    # Retain policy + snapshots for customer documents
+  resources:
+    requests:
+      storage: 500Gi         # 500 GB for KYC document storage
+EOF</span>
+<span class="tc-g">persistentvolumeclaim/kyc-documents created</span>
+
+<span class="tc-d"># NFS Immediate binding — watch it go Pending → Bound in seconds</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n2 'oc get pvc kyc-documents -n kyc-service'</span>
+<span class="tc-y">kyc-documents   Pending                                    nfs-retain        2s</span>
+<span class="tc-d">                ↑ Trident calling NetApp API to create NFS volume...</span>
+<span class="tc-g">kyc-documents   Bound    pvc-f2e4d8c1-a9b3-4c7e-8f1d-3a5b7c9e1f2a  500Gi  RWX  nfs-retain  8s</span>
+<span class="tc-d">                ↑ Bound in 8 seconds — NFS FlexVolume created on NetApp ✓</span>
+
+<span class="tc-d"># Deploy 3 KYC service replicas — all mounting the SAME PVC</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyc-document-service
+  namespace: kyc-service
+spec:
+  replicas: 3                        # 3 pods on potentially 3 different nodes
+  selector:
+    matchLabels:
+      app: kyc-docs
+  template:
+    metadata:
+      labels:
+        app: kyc-docs
+    spec:
+      affinity:
+        podAntiAffinity:             # force pods onto different nodes
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: kyc-docs
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: kyc-service
+        image: registry.access.redhat.com/ubi9/ubi-minimal
+        command: ["/bin/sh", "-c", "while true; do
+          echo \"Pod $HOSTNAME wrote at $(date)\" >> /data/shared-log.txt;
+          sleep 5; done"]
+        volumeMounts:
+        - mountPath: /data           # all 3 pods mount here
+          name: kyc-storage
+      volumes:
+      - name: kyc-storage
+        persistentVolumeClaim:
+          claimName: kyc-documents   # all 3 pods use the SAME PVC
+EOF</span>
+<span class="tc-g">deployment.apps/kyc-document-service created</span>
+
+<span class="tc-d"># Watch pods distribute across nodes</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n kyc-service -o wide</span>
+<span class="tc-w">NAME                                   READY  STATUS   NODE</span>
+<span class="tc-g">kyc-document-service-7d4b8f9c2-a3k8m  1/1    Running  worker01.ocp.novacrestbank.local</span>
+<span class="tc-g">kyc-document-service-7d4b8f9c2-b7n2p  1/1    Running  worker02.ocp.novacrestbank.local</span>
+<span class="tc-g">kyc-document-service-7d4b8f9c2-c1q5r  1/1    Running  worker03.ocp.novacrestbank.local</span>
+<span class="tc-d">                                               ↑ 3 different nodes, all mounting the SAME NFS volume ✓</span>
+
+<span class="tc-d"># Prove all 3 pods are writing to the SAME shared file simultaneously</span>
+<span class="tc-d"># Check from pod 1</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">sleep 15 && \
+  oc exec -n kyc-service kyc-document-service-7d4b8f9c2-a3k8m \
+  -- cat /data/shared-log.txt</span>
+<span class="tc-g">Pod kyc-document-service-7d4b8f9c2-a3k8m wrote at Mon Apr 13 11:45:01 UTC 2026</span>
+<span class="tc-g">Pod kyc-document-service-7d4b8f9c2-b7n2p wrote at Mon Apr 13 11:45:02 UTC 2026</span>
+<span class="tc-g">Pod kyc-document-service-7d4b8f9c2-c1q5r wrote at Mon Apr 13 11:45:03 UTC 2026</span>
+<span class="tc-g">Pod kyc-document-service-7d4b8f9c2-a3k8m wrote at Mon Apr 13 11:45:06 UTC 2026</span>
+<span class="tc-g">Pod kyc-document-service-7d4b8f9c2-b7n2p wrote at Mon Apr 13 11:45:07 UTC 2026</span>
+<span class="tc-g">Pod kyc-document-service-7d4b8f9c2-c1q5r wrote at Mon Apr 13 11:45:08 UTC 2026</span>
+<span class="tc-d">                                          ↑ ALL THREE PODS writing to the SAME file ✓
+                                            Pod a3k8m (worker01), b7n2p (worker02),
+                                            c1q5r (worker03) — all seeing each other's writes
+                                            This is ReadWriteMany NFS working perfectly</span>
+
+<span class="tc-d"># Verify from the NetApp side — confirm volume was created</span>
+<span class="tc-d"># (Run this on the NetApp ONTAP CLI)</span>
+<span class="tc-o">cluster1::></span> <span class="tc-cmd">vol show -vserver svm-ocp</span>
+<span class="tc-w">Vserver   Volume         Aggregate    State      Type       Size  Available  Used%</span>
+<span class="tc-g">svm-ocp   svm-ocp-root   aggr_ssd_01  online     DP         1GB   960MB      5%</span>
+<span class="tc-g">svm-ocp   trident_pvc_f2e4d8c1_a9b3  aggr_ssd_01  online  RW   500GB  499.9GB  0%</span>
+<span class="tc-d">                   ↑ Trident created this NFS volume automatically when PVC was created ✓
+                     Volume name is derived from the PVC UUID for traceability</span></pre>
+
+      <div class="ann ok"><span class="ann-i">✓</span><span>ReadWriteMany NFS storage is working. Three pods on three different nodes are all writing to one shared NFS volume on the NetApp AFF A400. The developer used 3 lines of YAML (accessModes: ReadWriteMany, storageClassName: nfs-retain, storage: 500Gi). Trident, ONTAP, NFS, and the network were completely invisible to them.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 14 — WHICH STORAGE ════════════ -->
+<div class="page" id="page-which-storage">
+  <div class="page-eyebrow">Guide 4 · Decisions · Section 14</div>
+  <div class="page-title">Which storage for which workload — the decision guide</div>
+  <div class="page-subtitle">The mental model a senior engineer uses when a developer asks "what StorageClass should I use?"</div>
+
+  <h2>The decision tree — four questions</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Does this workload need multiple pods on different nodes to access the same data simultaneously?</div>
+        <p style="font-size:13.5px"><strong>Yes →</strong> You must use NFS (RWX). vSAN cannot do this. Use <code>nfs-standard</code> or <code>nfs-retain</code>.<br/><strong>No →</strong> Either storage works. Go to question 2.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Is this a database or anything requiring direct block-level disk access?</div>
+        <p style="font-size:13.5px"><strong>Yes →</strong> Use vSAN (<code>thin-csi</code> or <code>thin-csi-retain</code>). Databases (PostgreSQL, MySQL, MongoDB, Redis) work better on block storage — lower latency, no NFS protocol overhead, no locking issues.<br/><strong>No →</strong> Either works. Go to question 3.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Does this data belong to a customer, or is it required for audit/compliance?</div>
+        <p style="font-size:13.5px"><strong>Yes →</strong> Use the Retain variant (<code>thin-csi-retain</code> or <code>nfs-retain</code>). Data must not be automatically deleted when a PVC is removed. An admin must explicitly approve deletion after confirming backup.<br/><strong>No →</strong> Delete reclaim policy is acceptable. Go to question 4.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Do you need ONTAP snapshots (instant recovery points)?</div>
+        <p style="font-size:13.5px"><strong>Yes →</strong> Use <code>nfs-retain</code> (configured with snapshotPolicy: default). ONTAP snapshots give you point-in-time recovery of the volume without backup tools.<br/><strong>No →</strong> <code>nfs-standard</code> is fine.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>NovaCrestBank workload mapping</h2>
+  <table>
+    <thead><tr><th>NovaCrestBank workload</th><th>Pods</th><th>StorageClass</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>Core banking transaction DB (PostgreSQL)</td><td>1 (primary)</td><td><span class="badge bb">thin-csi-retain</span></td><td>Database + customer data + Retain</td></tr>
+      <tr><td>KYC document store</td><td>3 replicas</td><td><span class="badge bg">nfs-retain</span></td><td>RWX + customer data + snapshots</td></tr>
+      <tr><td>PDF statement generator</td><td>2 replicas</td><td><span class="badge bg">nfs-retain</span></td><td>RWX + customer output data</td></tr>
+      <tr><td>Internal OCP image registry</td><td>1</td><td><span class="badge bg">nfs-standard</span></td><td>RWX (multiple registry pods) + non-customer data</td></tr>
+      <tr><td>Prometheus monitoring data</td><td>2 (HA pair)</td><td><span class="badge bb">thin-csi</span></td><td>Block storage better for time-series writes, RWO only needed</td></tr>
+      <tr><td>Redis session cache</td><td>1</td><td><span class="badge bb">thin-csi</span></td><td>Block, single instance, performance critical</td></tr>
+      <tr><td>CI/CD build workspace</td><td>variable</td><td><span class="badge bg">nfs-standard</span></td><td>RWX, ephemeral, Delete reclaim is fine</td></tr>
+      <tr><td>Elasticsearch/Loki log index</td><td>3 replicas</td><td><span class="badge bb">thin-csi</span></td><td>Each replica has its own shard (RWO per pod)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════ 15 — DEBUG ════════════ -->
+<div class="page" id="page-debug-storage">
+  <div class="page-eyebrow">Guide 4 · Debugging · Section 15</div>
+  <div class="page-title">Debugging stuck PVCs</div>
+  <div class="page-subtitle">When a PVC stays Pending for more than 30 seconds — the exact diagnostic sequence</div>
+
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">jumphost.novacrestbank.local — PVC stuck Pending diagnostic</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># A PVC is stuck Pending for 2 minutes — how to diagnose it</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc problem-pvc -n banking-app</span>
+<span class="tc-y">problem-pvc   Pending                                    nfs-standard   2m</span>  <span class="tc-d">← stuck</span>
+
+<span class="tc-d"># Step 1: Describe the PVC — look at Events section</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc describe pvc problem-pvc -n banking-app | tail -20</span>
+<span class="tc-w">Events:</span>
+<span class="tc-w">  Type     Reason                Age   From                         Message</span>
+<span class="tc-w">  ----     ------                ----  ----                         -------</span>
+<span class="tc-r">  Warning  ProvisioningFailed    90s   csi.trident.netapp.io        Failed to provision volume: error calling Trident: API error 500: error creating volume: 13001 volume size (536870912000) exceeds aggregate free space (214748364800)</span>
+<span class="tc-d">                                                                      ↑ Aggregate is full — NetApp has no more space !</span>
+
+<span class="tc-d"># Solution A: Request more space from storage admin (add capacity to aggregate)</span>
+<span class="tc-d"># Solution B: Use a smaller volume size</span>
+<span class="tc-d"># Solution C: Trident has multiple backends — add a second aggregate backend</span>
+
+<span class="tc-d">───────────────────────────────────────────────────────────────</span>
+
+<span class="tc-d"># Scenario 2: Wrong StorageClass name typo</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc describe pvc typo-pvc -n banking-app | grep -A5 Events</span>
+<span class="tc-r">  Warning  ProvisioningFailed  45s  persistentvolume-controller  storageclass.storage.k8s.io "nfs-standdard" not found</span>
+<span class="tc-d">                                                                   ↑ typo in StorageClass name — double 'd'</span>
+<span class="tc-d"># Fix: oc patch pvc typo-pvc -n banking-app -p '{"spec":{"storageClassName":"nfs-standard"}}'</span>
+
+<span class="tc-d">───────────────────────────────────────────────────────────────</span>
+
+<span class="tc-d"># Scenario 3: vSAN PVC pending too long (WaitForFirstConsumer)</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc describe pvc vsan-pvc -n banking-app | grep -A5 Events</span>
+<span class="tc-y">  Normal  WaitForFirstConsumer  3m  persistentvolume-controller  waiting for first consumer to be created before binding</span>
+<span class="tc-d">                                      ↑ this is NOT an error — it is expected for WaitForFirstConsumer</span>
+<span class="tc-d">                                        the PVC will bind once a pod is created that uses it</span>
+<span class="tc-d"># Check if the pod that should use this PVC is actually running</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n banking-app | grep -v Running</span>
+<span class="tc-r">db-pod   0/1   Pending   0   5m</span>  <span class="tc-d">← the pod itself is pending!</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc describe pod db-pod -n banking-app | grep -A5 Events</span>
+<span class="tc-r">  Warning  FailedScheduling  4m  default-scheduler  0/6 nodes are available: 6 Insufficient memory.</span>
+<span class="tc-d">                                                        ↑ pod can't schedule — not a storage problem at all
+                                                          the pod needs more RAM than any node has available
+                                                          fix: add worker nodes or reduce pod memory request</span>
+
+<span class="tc-d">───────────────────────────────────────────────────────────────</span>
+
+<span class="tc-d"># Scenario 4: Trident backend unreachable</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc describe pvc no-netapp-pvc -n banking-app | grep -A3 Events</span>
+<span class="tc-r">  Warning  ProvisioningFailed  30s  csi.trident.netapp.io  Failed to provision volume: error calling Trident: Post "https://10.30.0.51/api/v1/volume": dial tcp 10.30.0.51:443 connect: connection refused</span>
+<span class="tc-d">                                                                                                         ↑ Trident cannot reach the NetApp management LIF
+                                                                                                           Check: NetApp mgmt LIF is up, Palo Alto allows OCP → NetApp TCP 443</span>
+
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc exec -n trident deploy/trident-controller -- \
+  curl -sk https://10.30.0.51/api/ | python3 -m json.tool | head -5</span>
+<span class="tc-g">{"version": "9.13.1", "vendor": "NetApp"}</span>   <span class="tc-d">← reachable from trident pod ✓</span>
+<span class="tc-d">                                                 if this fails: firewall rule missing</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 16 — DEVELOPER VIEW ════════════ -->
+<div class="page" id="page-developer-view">
+  <div class="page-eyebrow">Guide 4 · Developer experience · Section 16</div>
+  <div class="page-title">The developer's view — zero infrastructure knowledge needed</div>
+  <div class="page-subtitle">This is what a developer sees when they join NovaCrestBank and need storage for their application</div>
+
+  <div class="callout success">
+    <div class="callout-label">The goal of everything in this guide</div>
+    Every configuration in this guide — the Trident install, the backend, the StorageClasses, the export policies — exists so that a developer can get persistent, production-grade storage with 6 lines of YAML. They never need to know the word "Trident," "ONTAP," "SVM," "NFS LIF," or "vSAN." This separation is the entire point of the CSI architecture.
+  </div>
+
+  <h2>What a developer sees — the storage menu</h2>
+  <div class="terminal">
+    <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">A developer's workstation — first day at NovaCrestBank</span>
+    </div>
+    <div class="term-body"><pre><span class="tc-d"># Developer logs in with their AD credentials</span>
+<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+  -u jsmith -p 'MyADPassword!'</span>
+<span class="tc-g">Login successful.</span>
+
+<span class="tc-d"># Developer checks what storage is available — this is all they need to know</span>
+<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">oc get storageclass</span>
+<span class="tc-w">NAME               PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE</span>
+<span class="tc-g">thin-csi (default) csi.vsphere.volume             Delete          WaitForFirstConsumer</span>
+<span class="tc-g">thin-csi-retain    csi.vsphere.volume             Retain          WaitForFirstConsumer</span>
+<span class="tc-g">nfs-standard       csi.trident.netapp.io          Delete          Immediate</span>
+<span class="tc-g">nfs-retain         csi.trident.netapp.io          Retain          Immediate</span>
+
+<span class="tc-d"># Developer reads the NovaCrestBank OCP storage guide (1 page, internal wiki):</span>
+<span class="tc-d"># "thin-csi      — fast block storage, one pod only,    dev/test ok, data deleted on removal"</span>
+<span class="tc-d"># "thin-csi-retain — fast block storage, one pod only,  production, data kept on removal"</span>
+<span class="tc-d"># "nfs-standard  — shared file storage, multiple pods,  dev/test ok, data deleted on removal"</span>
+<span class="tc-d"># "nfs-retain    — shared file storage, multiple pods,  production, data kept on removal"</span>
+
+<span class="tc-d"># Developer needs shared storage for their document service — picks nfs-retain</span>
+<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">cat my-pvc.yaml</span>
+<span class="tc-c">apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-document-store
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-retain
+  resources:
+    requests:
+      storage: 100Gi</span>
+
+<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">oc apply -f my-pvc.yaml</span>
+<span class="tc-g">persistentvolumeclaim/my-document-store created</span>
+
+<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">oc get pvc my-document-store</span>
+<span class="tc-g">NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span>
+<span class="tc-g">my-document-store   Bound    pvc-c8e3f2d1-b4a7-4e8c-9f2b-4a6c8e1d3f5b  100Gi      RWX            nfs-retain     12s</span>
+<span class="tc-d">                    ↑ Bound in 12 seconds. Developer has 100 GB of shared, persistent,
+                      snapshot-enabled, Retain-protected NFS storage from a
+                      NetApp AFF A400 all-NVMe array. They used 6 lines of YAML.</span>
+
+<span class="tc-d"># What the developer does NOT need to know:</span>
+<span class="tc-d"># - Trident version, backend config, or ONTAP API</span>
+<span class="tc-d"># - SVM name (svm-ocp), NFS LIF IP (10.30.0.50)</span>
+<span class="tc-d"># - Which aggregate the volume was created on</span>
+<span class="tc-d"># - NFS mount options (vers=4.1, rsize=1048576...)</span>
+<span class="tc-d"># - Export policy rules or security style</span>
+<span class="tc-d"># - vSAN, vCenter, or ESXi host placement</span>
+<span class="tc-d"># The infrastructure team configured all of that once. Every developer benefits forever.</span></pre>
+
+      <div class="ann ok"><span class="ann-i">✓</span><span>This is the complete picture. Guide 4 is done. From the physical NetApp AFF A400 in your draw.io diagram through ONTAP SVM, NFS LIF, Trident CSI driver, StorageClass, all the way to a developer's 6-line PVC YAML — every layer is configured, documented, and working. The next guide covers Security Hardening: Thales Luna HSM integration and Red Hat ACS for NovaCrestBank's PCI-DSS environment.</span></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  var page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    var dot = event.currentTarget.querySelector('.nav-dot');
+    if (dot) dot.style.background = 'var(--accent)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

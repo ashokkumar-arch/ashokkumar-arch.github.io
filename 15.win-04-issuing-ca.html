@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Win-04 — Issuing CA · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --win-blue:#0078d4;
+    --pki-gold:#8B6914;--pki-gold-bg:#fef9e7;
+    --pki-blue:#1a5c8f;--pki-blue-bg:#eaf2fb;
+    --pki-green:#0e6b45;--pki-green-bg:#eaf7f1;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--pki-blue);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .nav-group{padding:4px 0;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--pki-blue);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--pki-blue);}
+
+  /* ── MAIN ── */
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1040px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--pki-blue);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--pki-blue);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--pki-blue);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--pki-green);}
+  .callout.gold{border-left-color:var(--pki-gold);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--pki-green);}
+  .callout.gold .cl{color:var(--pki-gold);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.gold):not(.why) .cl{color:var(--pki-blue);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  .bpki{background:var(--pki-blue-bg);color:var(--pki-blue);}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEP LIST ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:13px;margin-bottom:22px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+    background:var(--pki-blue);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:3px;font-size:14px;}
+
+  /* ── DECISION BOX ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:220px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--pki-blue);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ── PKI CHAIN COMPACT ── */
+  .pki-chain-compact{background:var(--bg3);border-radius:var(--r);
+    padding:14px 18px;margin:14px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .pki-node{border-radius:6px;padding:8px 14px;font-size:12.5px;font-weight:600;}
+  .pki-node.root{background:var(--pki-gold-bg);border:1.5px solid var(--pki-gold);color:var(--pki-gold);}
+  .pki-node.issuing{background:var(--pki-blue-bg);border:2px solid var(--pki-blue);color:var(--pki-blue);}
+  .pki-node.leaf{background:var(--pki-green-bg);border:1.5px solid var(--pki-green);color:var(--pki-green);}
+  .pki-arrow{color:var(--text3);font-size:16px;font-weight:300;}
+
+  /* ── WINDOWS WIZARD MOCKUP ── */
+  .win-wizard{background:#fff;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #c8c8c8;box-shadow:0 2px 14px rgba(0,0,0,.1);}
+  .ww-header{background:#1a3a5c;padding:12px 20px;display:flex;align-items:center;gap:12px;}
+  .ww-icon{width:28px;height:28px;border-radius:4px;background:#0078d4;
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;}
+  .ww-title{font-size:14px;font-weight:700;color:#fff;}
+  .ww-sub{font-size:11.5px;color:#8ab8d8;margin-top:1px;}
+  .ww-body{display:flex;min-height:280px;}
+  .ww-nav{width:200px;flex-shrink:0;background:#f5f5f5;
+    border-right:1px solid #e0e0e0;padding:10px 0;}
+  .ww-step{padding:8px 16px;font-size:12.5px;color:#5a5a5a;cursor:default;
+    display:flex;align-items:center;gap:8px;}
+  .ww-step.active{background:#e6f0fa;color:#1e6eb5;font-weight:600;
+    border-left:3px solid #0078d4;padding-left:13px;}
+  .ww-step.done{color:#107c10;}
+  .ww-step-num{width:18px;height:18px;border-radius:50%;
+    border:1.5px solid currentColor;display:flex;align-items:center;
+    justify-content:center;font-size:9px;flex-shrink:0;}
+  .ww-step.active .ww-step-num{background:#0078d4;border-color:#0078d4;color:#fff;}
+  .ww-step.done .ww-step-num{background:#107c10;border-color:#107c10;color:#fff;}
+  .ww-content{flex:1;padding:20px 26px;overflow-y:auto;}
+  .ww-section-title{font-size:15px;font-weight:700;color:#1a2a3a;margin-bottom:4px;}
+  .ww-section-sub{font-size:12.5px;color:#5a5a5a;margin-bottom:16px;}
+  .ww-text{font-size:13px;color:#333;margin-bottom:10px;line-height:1.6;}
+  .ww-field{margin-bottom:12px;}
+  .ww-label{font-size:12px;color:#5a5a5a;margin-bottom:4px;}
+  .ww-req{color:#e05252;font-size:10px;}
+  .ww-input{width:100%;border:1px solid #c0c0c0;border-radius:3px;
+    padding:6px 10px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .ww-input.filled{border-color:#107c10;background:#f8fff8;}
+  .ww-select{width:100%;border:1px solid #c0c0c0;border-radius:3px;
+    padding:6px 10px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .ww-select.filled{border-color:#107c10;background:#f8fff8;}
+  .ww-radio-group{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+  .ww-radio{display:flex;align-items:flex-start;gap:9px;font-size:13px;}
+  .ww-radio-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid #aaa;
+    flex-shrink:0;margin-top:2px;background:#fff;}
+  .ww-radio-dot.sel{background:#0078d4;border-color:#0078d4;}
+  .ww-radio-label{font-weight:600;color:#1a1a1a;}
+  .ww-radio-desc{font-size:11.5px;color:#6a6a6a;margin-top:2px;}
+  .ww-info-box{background:#e8f4fe;border:1px solid #90caf9;border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:#0d47a1;line-height:1.6;}
+  .ww-warn-box{background:#fff3e0;border:1px solid #ffb74d;border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:#e65100;line-height:1.6;}
+  .ww-ok-box{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:#1b5e20;line-height:1.6;}
+  .ww-checkbox{display:flex;align-items:flex-start;gap:9px;font-size:13px;margin-bottom:8px;}
+  .ww-cb{width:14px;height:14px;border:1.5px solid #0078d4;border-radius:2px;
+    background:#0078d4;flex-shrink:0;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+  .ww-cb.off{background:#fff;border-color:#aaa;}
+  .ww-footer{background:#f5f5f5;padding:10px 20px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid #e0e0e0;}
+  .ww-footer-btns{display:flex;gap:8px;}
+  .ww-btn{padding:6px 18px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer;}
+  .ww-btn.back{background:#fff;color:#333;border:1px solid #c0c0c0;}
+  .ww-btn.next{background:#0078d4;color:#fff;border:none;}
+  .ww-btn.finish{background:#107c10;color:#fff;border:none;}
+  .ww-btn.configure{background:#107c10;color:#fff;border:none;}
+
+  /* ── CERT TEMPLATE MOCKUP ── */
+  .tmpl-mgr{background:#f8f8f8;border-radius:var(--r);overflow:hidden;
+    margin:18px 0;border:1px solid #c0c0c0;box-shadow:0 1px 8px rgba(0,0,0,.08);}
+  .tmpl-bar{background:#2d2d2d;padding:6px 12px;font-size:12px;color:#c0c0c0;}
+  .tmpl-header{background:#1a3a5c;padding:10px 16px;
+    font-size:13px;font-weight:700;color:#fff;}
+  .tmpl-body{display:flex;min-height:220px;}
+  .tmpl-tree{width:200px;flex-shrink:0;background:#fafafa;
+    border-right:1px solid #e0e0e0;padding:8px 0;font-size:12px;}
+  .tmpl-node{padding:5px 12px;cursor:pointer;color:#333;}
+  .tmpl-node.active{background:#cce8ff;color:#003785;font-weight:600;}
+  .tmpl-main{flex:1;padding:12px 16px;}
+  .tmpl-section{font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.05em;color:#1a3a5c;margin-bottom:8px;
+    padding-bottom:4px;border-bottom:1px solid #0078d4;}
+  .tmpl-row{display:flex;padding:4px 0;border-bottom:0.5px solid #efefef;
+    font-size:12.5px;gap:12px;}
+  .tmpl-row:last-child{border-bottom:none;}
+  .tmpl-label{color:#5a5a5a;min-width:170px;flex-shrink:0;}
+  .tmpl-val{color:#1a1a1a;font-weight:500;}
+  .tmpl-val.ok{color:#107c10;font-weight:700;}
+
+  /* Screen annotation */
+  .screen-ann{display:flex;gap:9px;background:#1a2030;
+    border-left:3px solid #d4a331;padding:7px 13px;margin:0 0 8px;
+    border-radius:0 4px 4px 0;font-size:12px;color:#c8d8e8;line-height:1.5;}
+  .screen-ann.ok{border-left-color:#5ccb6f;}
+  .screen-ann.info{border-left-color:#4da8da;}
+  .screen-ann.danger{border-left-color:#e05252;}
+  .sai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* PowerShell */
+  .psh{background:#012456;border-radius:var(--r);overflow:hidden;
+    margin:16px 0;border:1px solid #013a7a;
+    font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12.5px;line-height:1.65;}
+  .psh-bar{background:#001a3a;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #013a7a;}
+  .psh-dot{width:10px;height:10px;border-radius:50%;}
+  .psh-dot.r{background:#e05252;}.psh-dot.y{background:#d4a331;}.psh-dot.g{background:#5ccb6f;}
+  .psh-label{font-size:11px;color:#4a7ab0;margin-left:6px;}
+  .psh-body{padding:14px 18px;overflow-x:auto;}
+  .psh-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#cccccc;white-space:pre;}
+  .pp{color:#f1c40f;font-weight:700;}.pc{color:#61c5eb;}
+  .pg{color:#4ccd99;}.pw{color:#cca700;}.pd{color:#608b7a;}
+  .ps-txt{color:#eeedf0;}.pv{color:#b5cea8;}
+  .pann{display:flex;gap:9px;background:#001a3a;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#cccccc;line-height:1.5;}
+  .pann.ok{border-left-color:#4ccd99;}
+  .pai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* Cert viewer */
+  .cert-view{background:#f8f8f8;border:1px solid #c0c0c0;
+    border-radius:var(--r);overflow:hidden;margin:16px 0;}
+  .cert-header{background:#1a3a5c;padding:10px 16px;
+    display:flex;align-items:center;gap:10px;}
+  .cert-icon{font-size:20px;}
+  .cert-title{font-size:14px;font-weight:700;color:#fff;}
+  .cert-body{padding:14px 18px;font-size:12.5px;}
+  .cert-row{display:flex;padding:4px 0;border-bottom:0.5px solid #e8e8e8;}
+  .cert-row:last-child{border-bottom:none;}
+  .cert-field{color:#5a5a5a;min-width:200px;flex-shrink:0;}
+  .cert-val{color:#1a1a1a;font-weight:500;}
+  .cert-val.ok{color:#107c10;font-weight:700;}
+  .cert-val.gold{color:var(--pki-gold);font-weight:700;}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · PKI Series</div>
+    <h1>Win-04 — Issuing CA</h1>
+    <p>Enterprise Sub CA · Templates · Auto-enrolment</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Concepts and planning</div>
+    <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — What the Issuing CA does</div>
+    <div class="ni" onclick="show('enterprise-vs-standalone')"><div class="nd"></div>02 — Enterprise CA vs Standalone CA — the key difference</div>
+    <div class="ni" onclick="show('planning')"><div class="nd"></div>03 — Planning — specs, name, paths, IIS</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Build the Issuing CA VM</div>
+    <div class="ni" onclick="show('vm-create')"><div class="nd"></div>04 — Create VM, install Windows, join domain</div>
+    <div class="ni" onclick="show('vm-postinstall')"><div class="nd"></div>05 — Rename, static IP, join novacrestbank.local</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Install AD CS and generate CSR</div>
+    <div class="ni" onclick="show('role-install')"><div class="nd"></div>06 — Install AD CS role — Certification Authority</div>
+    <div class="ni" onclick="show('ca-wizard-type')"><div class="nd"></div>07 — CA wizard — Enterprise Subordinate CA</div>
+    <div class="ni" onclick="show('ca-wizard-crypto')"><div class="nd"></div>08 — Private key and cryptography</div>
+    <div class="ni" onclick="show('ca-wizard-name')"><div class="nd"></div>09 — CA name — NovaCrestBank-Issuing-CA</div>
+    <div class="ni" onclick="show('ca-wizard-csr')"><div class="nd"></div>10 — Save the CSR — the wizard pauses here</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Sign on Root CA and install certificate</div>
+    <div class="ni" onclick="show('rootca-interlude')"><div class="nd"></div>11 — Sign the CSR on the Root CA (Win-03)</div>
+    <div class="ni" onclick="show('install-cert')"><div class="nd"></div>12 — Install the signed certificate on the Issuing CA</div>
+    <div class="ni" onclick="show('install-rootcert')"><div class="nd"></div>13 — Install Root CA cert into the Issuing CA trust store</div>
+    <div class="ni" onclick="show('ca-starts')"><div class="nd"></div>14 — The Issuing CA starts — verify it is running</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Configure CRL and AIA</div>
+    <div class="ni" onclick="show('crl-config')"><div class="nd"></div>15 — Configure CDP and AIA on the Issuing CA</div>
+    <div class="ni" onclick="show('crl-publish')"><div class="nd"></div>16 — Set CRL period and publish initial CRL</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Certificate templates</div>
+    <div class="ni" onclick="show('templates-concept')"><div class="nd"></div>17 — What certificate templates are</div>
+    <div class="ni" onclick="show('template-webserver')"><div class="nd"></div>18 — Web Server template — for vCenter, ESXi, OCP</div>
+    <div class="ni" onclick="show('template-computer')"><div class="nd"></div>19 — Computer template — for domain computers</div>
+    <div class="ni" onclick="show('template-dc')"><div class="nd"></div>20 — Domain Controller template — for LDAPS</div>
+    <div class="ni" onclick="show('templates-enable')"><div class="nd"></div>21 — Enable templates on the Issuing CA</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Auto-enrolment and GPO</div>
+    <div class="ni" onclick="show('autoenrol-concept')"><div class="nd"></div>22 — Auto-enrolment — how it works</div>
+    <div class="ni" onclick="show('autoenrol-gpo')"><div class="nd"></div>23 — Configure GPO for certificate auto-enrolment</div>
+    <div class="ni" onclick="show('autoenrol-rootca-gpo')"><div class="nd"></div>24 — GPO — push Root CA cert to all machines</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Publish Issuing CA to AD</div>
+    <div class="ni" onclick="show('publish-ad')"><div class="nd"></div>25 — Publish Issuing CA certificate to AD</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Verify and test</div>
+    <div class="ni" onclick="show('verify-chain')"><div class="nd"></div>26 — Verify the full trust chain</div>
+    <div class="ni" onclick="show('verify-enrol')"><div class="nd"></div>27 — Request a test certificate — DC gets one automatically</div>
+    <div class="ni" onclick="show('verify-crl')"><div class="nd"></div>28 — Verify CRL publication and validity</div>
+    <div class="ni" onclick="show('final-checklist')"><div class="nd"></div>29 — Final checklist and what comes next</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 OVERVIEW ══════ -->
+<div class="page active" id="page-overview">
+  <div class="ey">Windows Server · Win-04 · Section 01</div>
+  <div class="pt">What the Issuing CA does — the online certificate factory</div>
+  <div class="ps">The Issuing CA is the operational half of NovaCrestBank's PKI — it is always running, always reachable, and it issues every certificate that every system in the infrastructure will ever use</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>Cisco<br/>fabric</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>ESXi<br/>vCenter</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>DC1/DC2<br/>DHCP</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>Root CA</div>
+    <div class="pt-step active"><span class="pt-n">→</span>Issuing CA</div>
+    <div class="pt-step"><span class="pt-n">6</span>vCenter<br/>certs</div>
+    <div class="pt-step"><span class="pt-n">7+</span>OCP<br/>vSAN/HA</div>
+  </div>
+
+  <div class="pki-chain-compact">
+    <div class="pki-node root">🏛 Root CA (offline)</div>
+    <div class="pki-arrow">→ signs →</div>
+    <div class="pki-node issuing">🔐 Issuing CA (this guide — online)</div>
+    <div class="pki-arrow">→ issues →</div>
+    <div class="pki-node leaf">📜 vCenter · ESXi · OCP · DCs · all leaf certs</div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">The Issuing CA is the only CA that domain machines ever interact with directly</div>
+    After this guide is complete, domain-joined machines will automatically request and renew certificates from the Issuing CA via auto-enrolment — no manual administrator intervention needed. The Root CA is offline and invisible to everyday operations. The Issuing CA is the CA that administrators and systems interact with for all certificate operations.
+  </div>
+
+  <h2>What the Issuing CA provides that the Root CA cannot</h2>
+  <table>
+    <thead><tr><th>Capability</th><th>Root CA</th><th>Issuing CA (this guide)</th></tr></thead>
+    <tbody>
+      <tr><td>Issues certificates to servers and workstations</td><td>No — issues only CA certificates</td><td>Yes — issues all leaf certificates</td></tr>
+      <tr><td>Certificate templates</td><td>No — Standalone CA has no template support</td><td>Yes — Enterprise CA has full template support</td></tr>
+      <tr><td>Auto-enrolment via Group Policy</td><td>No</td><td>Yes — domain machines request certs automatically</td></tr>
+      <tr><td>AD integration (LDAP authentication)</td><td>No — not domain-joined</td><td>Yes — domain-joined, uses AD for authorisation</td></tr>
+      <tr><td>Online — always accessible</td><td>No — offline, powered off</td><td>Yes — runs continuously as a Windows service</td></tr>
+      <tr><td>Publishes CRL regularly</td><td>Annually (52-week CRL)</td><td>Weekly (7-day CRL — frequent updates)</td></tr>
+      <tr><td>Web Enrolment interface</td><td>No</td><td>Optional — enabled for non-domain devices (ESXi)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The complete list of certificates the Issuing CA will issue</h2>
+  <table>
+    <thead><tr><th>Certificate</th><th>Subject</th><th>Template</th><th>When issued</th></tr></thead>
+    <tbody>
+      <tr><td>vCenter TLS</td><td>vcenter.novacrestbank.local</td><td>Web Server</td><td>vSphere-03</td></tr>
+      <tr><td>ESXi host TLS (×5)</td><td>esxi01–05.novacrestbank.local</td><td>Web Server</td><td>vSphere-03</td></tr>
+      <tr><td>OCP API cert</td><td>api.ocp.novacrestbank.local</td><td>Web Server</td><td>OCP guide</td></tr>
+      <tr><td>OCP wildcard</td><td>*.apps.ocp.novacrestbank.local</td><td>Web Server</td><td>OCP guide</td></tr>
+      <tr><td>DC01 LDAPS cert</td><td>dc01.novacrestbank.local</td><td>Domain Controller</td><td>Auto-enrolment</td></tr>
+      <tr><td>DC02 LDAPS cert</td><td>dc02.novacrestbank.local</td><td>Domain Controller</td><td>Auto-enrolment</td></tr>
+      <tr><td>Computer certs (all domain VMs)</td><td>machine.novacrestbank.local</td><td>Computer</td><td>Auto-enrolment</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 02 ENTERPRISE VS STANDALONE ══════ -->
+<div class="page" id="page-enterprise-vs-standalone">
+  <div class="ey">Windows Server · Win-04 · Section 02</div>
+  <div class="pt">Enterprise CA vs Standalone CA — the most important distinction in AD CS</div>
+  <div class="ps">Understanding why the Issuing CA must be an Enterprise CA — and what that unlocks</div>
+
+  <div class="decision">
+    <div class="decision-label">Enterprise CA — what it requires and what it enables</div>
+    <div class="decision-q">The Root CA was a Standalone CA. Why must the Issuing CA be an Enterprise CA?</div>
+    <div class="decision-a"><strong>Because Enterprise CA is the only type that supports certificate templates, AD-based authorisation, and auto-enrolment — the three features that make a CA operationally practical.</strong><br/><br/>
+    <strong>Enterprise CA requirements:</strong> The CA server must be domain-joined. The account running the CA installation must be a Domain Admin (or Enterprise Admin for the first CA in a forest). This is why the Issuing CA joins <code>novacrestbank.local</code> before AD CS is installed.<br/><br/>
+    <strong>What Enterprise CA enables:</strong><br/>
+    1. <strong>Certificate templates</strong> — pre-defined certificate profiles stored in Active Directory. A template defines the key usage, subject alternative names, validity period, and EKUs (Enhanced Key Usages) for a class of certificates. Administrators create templates once; all issued certificates for that purpose use the template automatically. Without templates, every certificate request must be manually configured each time.<br/><br/>
+    2. <strong>AD-based authorisation</strong> — the CA checks Active Directory to determine who is allowed to request which types of certificates. A Domain Controller requesting a Domain Controller certificate is verified against AD group membership before the CA issues it. This prevents unauthorised systems from obtaining certificates for sensitive roles.<br/><br/>
+    3. <strong>Auto-enrolment</strong> — domain-joined machines automatically request certificates without administrator involvement. Group Policy tells every machine "you are authorised to request a Computer certificate from the Issuing CA" — the machine's certificate client does it silently in the background. DCs automatically get Domain Controller certificates for LDAPS. This is what enables encrypted LDAP (LDAPS) without manual certificate requests on each DC.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Subordinate CA — why not just create another Root CA</div>
+    <div class="decision-q">Why make the Issuing CA a Subordinate CA signed by the Root CA — why not create it as its own standalone Root CA?</div>
+    <div class="decision-a"><strong>Because a second independent Root CA would require separate trust distribution — every system would need to trust two separate Root CAs. With a subordinate CA, there is only one root of trust to manage.</strong><br/><br/>
+    If the Issuing CA were its own Root CA: administrators would need to push two Root CA certificates to every machine's Trusted Root store. Every certificate viewer would show two separate certificate chains. If one Root CA is compromised, the other is unaffected — but this also means you cannot revoke the compromised CA using the other one (they have no relationship). Managing two independent PKI hierarchies doubles the operational complexity.<br/><br/>
+    With a subordinate CA: one root of trust (NovaCrestBank-Root-CA) signs the Issuing CA. The Issuing CA can be revoked by the Root CA if compromised. Machines only need to trust one Root CA certificate. The entire PKI has a single authoritative point of trust. This is the correct architecture.</div>
+  </div>
+</div>
+
+<!-- ══════ 03 PLANNING ══════ -->
+<div class="page" id="page-planning">
+  <div class="ey">Windows Server · Win-04 · Section 03</div>
+  <div class="pt">Planning — VM specs, CA name, IIS, and paths</div>
+  <div class="ps">All decisions made before the first wizard screen — matching Win-03's CRL publication infrastructure</div>
+
+  <h2>Issuing CA VM specification</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">issuingca.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">ISSUINGCA</span></div>
+    <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.21 / 255.255.255.0</span></div>
+    <div class="spec-row"><span class="spec-label">Default gateway</span><span class="spec-val">10.70.0.1</span></div>
+    <div class="spec-row"><span class="spec-label">DNS servers</span><span class="spec-val">10.70.0.10 (DC01), 10.70.0.11 (DC02)</span></div>
+    <div class="spec-row"><span class="spec-label">vCenter port group</span><span class="spec-val">PG-VLAN70-Windows</span></div>
+    <div class="spec-row"><span class="spec-label">ESXi host</span><span class="spec-val">esxi04 (10.10.0.14)</span></div>
+    <div class="spec-row"><span class="spec-label">vCPUs / RAM / Disk</span><span class="spec-val">2 vCPU · 4 GB · 60 GB thin</span></div>
+    <div class="spec-row"><span class="spec-label">OS Edition</span><span class="spec-val">Windows Server 2022 Standard (Desktop Experience)</span></div>
+    <div class="spec-row"><span class="spec-label">Domain membership</span><span class="spec-val"><strong>Domain-joined to novacrestbank.local</strong> (required for Enterprise CA)</span></div>
+    <div class="spec-row"><span class="spec-label">Local Administrator password</span><span class="spec-val">NovaCrest$DC2026! (same standard as other servers)</span></div>
+  </div>
+
+  <h2>Issuing CA configuration decisions</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">CA type</span><span class="spec-val">Enterprise Subordinate CA</span></div>
+    <div class="spec-row"><span class="spec-label">CA Common Name</span><span class="spec-val">NovaCrestBank-Issuing-CA</span></div>
+    <div class="spec-row"><span class="spec-label">Key length</span><span class="spec-val">4096 bits RSA</span></div>
+    <div class="spec-row"><span class="spec-label">Hash algorithm</span><span class="spec-val">SHA-256</span></div>
+    <div class="spec-row"><span class="spec-label">Certificate validity (issued by Root CA)</span><span class="spec-val">10 years</span></div>
+    <div class="spec-row"><span class="spec-label">Issued certificate default validity</span><span class="spec-val">2 years (set in template)</span></div>
+    <div class="spec-row"><span class="spec-label">CRL publication period</span><span class="spec-val">7 days (Delta CRL: 1 day)</span></div>
+    <div class="spec-row"><span class="spec-label">CDP and AIA URL</span><span class="spec-val">http://pki.novacrestbank.local/pki/ (same IIS server as Root CA CRL)</span></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why 4096-bit key on the Issuing CA — same as Root CA</div>
+    <div class="decision-q">The Root CA uses 4096-bit RSA. Should the Issuing CA also use 4096, or is 2048 sufficient for a CA that only lasts 10 years?</div>
+    <div class="decision-a"><strong>4096-bit on the Issuing CA for consistency and a unified security posture — but 2048-bit would also be cryptographically adequate for a 10-year Issuing CA.</strong><br/><br/>
+    The security argument: a 10-year Issuing CA with a 2048-bit key is secure today. 2048-bit RSA will remain computationally infeasible to break for the foreseeable future within a 10-year window. The choice of 4096 is about consistency: NovaCrestBank's PKI uses 4096 throughout, making the key strength policy simple — "all CAs use 4096-bit RSA." This eliminates decision fatigue on future CA renewals and makes the PKI specification easy to document for auditors.<br/><br/>
+    There is a minor performance consideration: RSA-4096 signing is slower than RSA-2048. For the Issuing CA which may sign thousands of certificates per year, this is measurable but negligible on modern hardware — the difference is milliseconds per signing operation.</div>
+  </div>
+</div>
+
+<!-- ══════ 04 VM CREATE ══════ -->
+<div class="page" id="page-vm-create">
+  <div class="ey">Windows Server · Win-04 · Section 04</div>
+  <div class="pt">Create VM, install Windows, and join the domain</div>
+  <div class="ps">The Issuing CA VM build — same process as Win-01 and Win-03 with Issuing CA-specific values</div>
+
+  <p>Create the VM in vCenter using the New Virtual Machine wizard. The process is identical to Win-01/Win-03 with these values:</p>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>VM name:         <strong style="color:var(--pki-blue);">issuingca.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">ESXi host:       <strong style="color:var(--pki-blue);">esxi04 (10.10.0.14)</strong></div>
+    <div style="margin-top:4px;">Storage:         <strong style="color:var(--pki-blue);">datastore1 on esxi04 · Thin Provision</strong></div>
+    <div style="margin-top:4px;">Guest OS:        <strong style="color:var(--pki-blue);">Windows · Microsoft Windows Server 2022 (64-bit)</strong></div>
+    <div style="margin-top:4px;">Hardware:        <strong style="color:var(--pki-blue);">2 vCPU · 4096 MB · 60 GB · PVSCSI · VMXNET3</strong></div>
+    <div style="margin-top:4px;">Port group:      <strong style="color:var(--pki-blue);">PG-VLAN70-Windows</strong></div>
+    <div style="margin-top:4px;">CD/DVD:          <strong style="color:var(--pki-blue);">Windows Server 2022 ISO (already on datastore)</strong></div>
+  </div>
+
+  <p>Install Windows Server 2022 Standard (Desktop Experience) following the same procedure as Win-01 Sections 08–12. Set the local Administrator password to <code>NovaCrest$DC2026!</code>.</p>
+
+  <div class="callout">
+    <div class="cl">The Issuing CA MUST be domain-joined before installing the AD CS role</div>
+    Unlike the Root CA (which must never join the domain), the Issuing CA must be domain-joined <em>before</em> the AD CS role is installed and configured. The Enterprise CA type is only available on domain-joined servers. If you install AD CS before joining the domain, you will only see "Standalone CA" as an option — requiring a CA rebuild. Join the domain first, always.
+  </div>
+</div>
+
+<!-- ══════ 05 VM POSTINSTALL ══════ -->
+<div class="page" id="page-vm-postinstall">
+  <div class="ey">Windows Server · Win-04 · Section 05</div>
+  <div class="pt">Rename, configure static IP, and join novacrestbank.local</div>
+  <div class="ps">Post-installation configuration — three steps before the AD CS role is touched</div>
+
+  <h2>Step 1 — Rename the server to ISSUINGCA</h2>
+  <p>Server Manager → Local Server → Computer name → Change → type <strong>ISSUINGCA</strong> → OK → Restart Now. After reboot, log back in as Administrator.</p>
+
+  <h2>Step 2 — Configure static IP</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>IP address:           <strong style="color:var(--pki-blue);">10.70.0.21</strong></div>
+    <div style="margin-top:4px;">Subnet mask:          <strong style="color:var(--pki-blue);">255.255.255.0</strong></div>
+    <div style="margin-top:4px;">Default gateway:      <strong style="color:var(--pki-blue);">10.70.0.1</strong></div>
+    <div style="margin-top:4px;">Preferred DNS server: <strong style="color:var(--pki-blue);">10.70.0.10</strong></div>
+    <div style="margin-top:4px;">Alternate DNS server: <strong style="color:var(--pki-blue);">10.70.0.11</strong></div>
+  </div>
+
+  <h2>Step 3 — Join novacrestbank.local</h2>
+  <p>Server Manager → Local Server → Workgroup → Change → select <strong>Domain</strong> → type <strong>novacrestbank.local</strong> → OK → enter <code>NOVACRESTBANK\Administrator</code> credentials → OK → "Welcome to the novacrestbank.local domain" → Restart Now.</p>
+  <p>After reboot, log in as <strong>NOVACRESTBANK\Administrator</strong> with <code>NovaCrest$Domain2026!</code>. The server is now a domain member — visible in Active Directory Users and Computers on DC01 under the Computers container.</p>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>ISSUINGCA is now domain-joined. NOVACRESTBANK\Administrator has local administrator rights on this server (domain admins are automatically local admins on domain members). The Enterprise CA option will be available in the AD CS wizard.</span></div>
+</div>
+
+<!-- ══════ 06 ROLE INSTALL ══════ -->
+<div class="page" id="page-role-install">
+  <div class="ey">Windows Server · Win-04 · Section 06</div>
+  <div class="pt">Install the AD CS role on the Issuing CA</div>
+  <div class="ps">Adding Active Directory Certificate Services — this time with additional role services beyond just the Certification Authority</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Server Manager → Add roles and features → Role-based → ISSUINGCA</div>
+        <p style="font-size:13.5px">In Server Manager, click <strong>Add roles and features</strong>. Click through Before you begin → Installation type (Role-based) → Server selection (ISSUINGCA, 10.70.0.21).</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Server Roles — tick "Active Directory Certificate Services"</div>
+        <p style="font-size:13.5px">Tick <strong>Active Directory Certificate Services</strong>. Click <strong>Add Features</strong> when prompted. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Role Services — tick "Certification Authority" AND "Certification Authority Web Enrollment"</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header">
+            <div class="ww-icon">🏛</div>
+            <div><div class="ww-title">Add Roles — Role Services for AD CS</div><div class="ww-sub">ISSUINGCA — select role services</div></div>
+          </div>
+          <div class="ww-body" style="min-height:230px;">
+            <div class="ww-content">
+              <div class="ww-section-title">Select role services</div>
+              <div style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:4px;overflow:hidden;margin-top:8px;">
+                <div style="padding:7px 12px;font-size:12.5px;background:#e6f0fa;border-bottom:0.5px solid #eee;display:flex;align-items:center;gap:8px;color:#1e6eb5;font-weight:600;">
+                  <div style="width:13px;height:13px;background:#0078d4;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;">✓</div>
+                  Certification Authority ← tick this
+                </div>
+                <div style="padding:7px 12px;font-size:12.5px;background:#e6f0fa;border-bottom:0.5px solid #eee;display:flex;align-items:center;gap:8px;color:#1e6eb5;font-weight:600;">
+                  <div style="width:13px;height:13px;background:#0078d4;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;">✓</div>
+                  Certification Authority Web Enrollment ← tick this
+                </div>
+                <div style="padding:7px 12px;font-size:12.5px;color:#888;border-bottom:0.5px solid #eee;opacity:.55;">□ Online Responder — not needed</div>
+                <div style="padding:7px 12px;font-size:12.5px;color:#888;border-bottom:0.5px solid #eee;opacity:.55;">□ Network Device Enrollment Service — not needed</div>
+                <div style="padding:7px 12px;font-size:12.5px;color:#888;opacity:.55;">□ Certificate Enrollment Policy Web Service — not needed</div>
+              </div>
+              <div class="ww-info-box" style="margin-top:10px;">Certification Authority Web Enrollment adds a simple IIS-based web interface (https://issuingca/certsrv) for requesting certificates manually. Required for non-domain devices like ESXi hosts that cannot use auto-enrolment.</div>
+            </div>
+          </div>
+          <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Tick both <strong>Certification Authority</strong> and <strong>Certification Authority Web Enrollment</strong>. When you tick Web Enrollment, a dialog asks to add required features (IIS). Click <strong>Add Features</strong>. Click <strong>Next</strong> → Confirm → <strong>Install</strong>. Wait for installation (~3 minutes). Click <strong>Close</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="decision">
+    <div class="decision-label">Why Certification Authority Web Enrollment is added on the Issuing CA but not the Root CA</div>
+    <div class="decision-q">Web Enrollment was explicitly excluded from the Root CA. Why enable it on the Issuing CA?</div>
+    <div class="decision-a"><strong>Because the Issuing CA must serve certificate requests from non-domain-joined devices — particularly ESXi hosts and the Thales HSM — that cannot use the automatic enrolment protocol.</strong><br/><br/>
+    Domain-joined Windows machines use the Microsoft Certificate Enrolment Protocol (CEP/CES or the older DCOM-based autoenrolment) to request certificates automatically. This protocol requires domain membership and Kerberos authentication.<br/><br/>
+    Non-domain devices (ESXi hosts, Linux VMs, network appliances) cannot use this protocol. Web Enrollment provides a browser-based fallback at <code>https://issuingca.novacrestbank.local/certsrv</code>. An administrator logs into the web interface with domain credentials, submits a CSR (certificate signing request) file from the non-domain device, and downloads the signed certificate. This is how ESXi host certificates and OCP certificates will be requested during the vSphere-03 guide.<br/><br/>
+    Web Enrollment on an online Issuing CA is safe — the Issuing CA is always running anyway, and Web Enrollment requires authentication before any certificate is issued.</div>
+  </div>
+</div>
+
+<!-- ══════ 07 CA WIZARD TYPE ══════ -->
+<div class="page" id="page-ca-wizard-type">
+  <div class="ey">Windows Server · Win-04 · Section 07</div>
+  <div class="pt">CA configuration wizard — Enterprise Subordinate CA</div>
+  <div class="ps">The AD CS configuration wizard for the Issuing CA — the first two screens are different from the Root CA wizard</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Click the yellow flag → "Configure Active Directory Certificate Services"</div>
+        <p style="font-size:13.5px">Click the yellow flag notification in Server Manager. Click <strong>"Configure Active Directory Certificate Services on the destination server"</strong>. The AD CS Configuration Wizard opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Credentials screen — use NOVACRESTBANK\Administrator</div>
+        <p style="font-size:13.5px">The Credentials screen shows. The current account should already show <strong>NOVACRESTBANK\Administrator</strong> (since you logged in as the domain admin). This account has Enterprise Admin privileges needed for Enterprise CA installation. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Role Services — tick Certification Authority</div>
+        <p style="font-size:13.5px">The Role Services screen shows Certification Authority and Certification Authority Web Enrollment. For the initial CA configuration wizard, only configure <strong>Certification Authority</strong> first. The Web Enrollment role service is configured in a separate pass after the CA is operational. Tick <strong>Certification Authority</strong> only. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Setup Type — Enterprise CA (now available because server is domain-joined)</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header">
+            <div class="ww-icon">🏛</div>
+            <div><div class="ww-title">AD CS Configuration — Setup Type</div><div class="ww-sub">ISSUINGCA · Domain joined</div></div>
+          </div>
+          <div class="ww-body" style="min-height:180px;">
+            <div class="ww-nav">
+              <div class="ww-step done"><div class="ww-step-num">✓</div>Credentials</div>
+              <div class="ww-step done"><div class="ww-step-num">✓</div>Role Services</div>
+              <div class="ww-step active"><div class="ww-step-num">→</div>Setup Type</div>
+              <div class="ww-step"><div class="ww-step-num">4</div>CA Type</div>
+              <div class="ww-step"><div class="ww-step-num">5</div>Private Key</div>
+              <div class="ww-step"><div class="ww-step-num">6</div>Cryptography</div>
+              <div class="ww-step"><div class="ww-step-num">7</div>CA Name</div>
+              <div class="ww-step"><div class="ww-step-num">8</div>Certificate Request</div>
+              <div class="ww-step"><div class="ww-step-num">9</div>Confirmation</div>
+            </div>
+            <div class="ww-content">
+              <div class="ww-section-title">Setup type</div>
+              <div class="ww-radio-group">
+                <div class="ww-radio">
+                  <div class="ww-radio-dot sel"></div>
+                  <div>
+                    <div class="ww-radio-label" style="color:#0078d4;">Enterprise CA ← select this</div>
+                    <div class="ww-radio-desc">Requires AD DS. Supports certificate templates, auto-enrolment, and AD-integrated authorisation. Available because ISSUINGCA is domain-joined.</div>
+                  </div>
+                </div>
+                <div class="ww-radio">
+                  <div class="ww-radio-dot"></div>
+                  <div>
+                    <div class="ww-radio-label">Standalone CA</div>
+                    <div class="ww-radio-desc">No AD integration. No templates. No auto-enrolment. Used for the Root CA. Not appropriate for the Issuing CA.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Select <strong>Enterprise CA</strong>. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">CA Type — Subordinate CA</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header"><div class="ww-icon">🏛</div><div><div class="ww-title">AD CS Configuration — CA Type</div></div></div>
+          <div class="ww-body" style="min-height:160px;">
+            <div class="ww-content">
+              <div class="ww-section-title">CA Type</div>
+              <div class="ww-radio-group">
+                <div class="ww-radio">
+                  <div class="ww-radio-dot"></div>
+                  <div>
+                    <div class="ww-radio-label">Root CA</div>
+                    <div class="ww-radio-desc">The top of the hierarchy. Self-signed. Used for the Root CA (Win-03). Not appropriate here.</div>
+                  </div>
+                </div>
+                <div class="ww-radio">
+                  <div class="ww-radio-dot sel"></div>
+                  <div>
+                    <div class="ww-radio-label" style="color:#0078d4;">Subordinate CA ← select this</div>
+                    <div class="ww-radio-desc">Gets its certificate signed by a parent CA (the Root CA). The correct choice for the Issuing CA — its certificate will be signed by NovaCrestBank-Root-CA.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Select <strong>Subordinate CA</strong>. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 08 CRYPTO ══════ -->
+<div class="page" id="page-ca-wizard-crypto">
+  <div class="ey">Windows Server · Win-04 · Section 08</div>
+  <div class="pt">Private key and cryptography — matching the Root CA standard</div>
+  <div class="ps">The same cryptographic choices as the Root CA — RSA 4096 and SHA-256 — for a consistent PKI standard</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Private Key screen — Create a new private key</div>
+        <p style="font-size:13.5px">Select <strong>Create a new private key</strong>. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Cryptography screen — RSA 4096 SHA-256</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>CSP:            <strong style="color:var(--pki-blue);">RSA#Microsoft Software Key Storage Provider</strong></div>
+          <div style="margin-top:4px;">Key length:     <strong style="color:var(--pki-blue);">4096</strong></div>
+          <div style="margin-top:4px;">Hash algorithm: <strong style="color:var(--pki-blue);">SHA256</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Set all three values. Click <strong>Next</strong>.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 09 CA NAME ══════ -->
+<div class="page" id="page-ca-wizard-name">
+  <div class="ey">Windows Server · Win-04 · Section 09</div>
+  <div class="pt">CA name — NovaCrestBank-Issuing-CA</div>
+  <div class="ps">The name embedded in every certificate this CA issues — this is what the "Issued by" field will show on all leaf certificates</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">🔐</div>
+      <div><div class="ww-title">AD CS Configuration — CA Name</div><div class="ww-sub">ISSUINGCA</div></div>
+    </div>
+    <div class="ww-body" style="min-height:180px;">
+      <div class="ww-content">
+        <div class="ww-section-title">Specify the name of the CA</div>
+        <div class="ww-field">
+          <div class="ww-label">Common name for this CA: <span class="ww-req">*</span></div>
+          <div class="ww-input filled">NovaCrestBank-Issuing-CA</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Distinguished name suffix:</div>
+          <div class="ww-input filled">DC=novacrestbank,DC=local</div>
+          <div style="font-size:11px;color:#5a7090;margin-top:3px;">Auto-populated from AD domain membership</div>
+        </div>
+        <div class="ww-field">
+          <div class="ww-label">Preview of distinguished name:</div>
+          <div style="background:#f5f8fc;border:1px solid #d0dce8;padding:6px 10px;border-radius:3px;font-family:monospace;font-size:12px;color:#1a2a3a;">
+            CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=local
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Common name: <strong style="color:var(--pki-blue);">NovaCrestBank-Issuing-CA</strong></div>
+    <div style="margin-top:8px;color:#8090a0;"># Naming logic:</div>
+    <div style="color:#8090a0;"># NovaCrestBank    = organisation prefix (same as Root CA)</div>
+    <div style="color:#8090a0;"># Issuing-CA       = role in the hierarchy</div>
+    <div style="color:#8090a0;"># Every leaf certificate will show "Issued by: NovaCrestBank-Issuing-CA"</div>
+    <div style="color:#8090a0;"># Paired with "Signed by: NovaCrestBank-Root-CA" in the Issuing CA's own cert</div>
+  </div>
+
+  <p>Type <strong>NovaCrestBank-Issuing-CA</strong> in the Common name field. The Distinguished name suffix auto-populates from AD. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 10 CSR ══════ -->
+<div class="page" id="page-ca-wizard-csr">
+  <div class="ey">Windows Server · Win-04 · Section 10</div>
+  <div class="pt">Save the CSR — the wizard pauses and waits</div>
+  <div class="ps">The most unusual screen in the Issuing CA wizard — the wizard generates a CSR file and then STOPS, waiting for the Root CA to sign it before it can continue</div>
+
+  <div class="win-wizard">
+    <div class="ww-header">
+      <div class="ww-icon">📄</div>
+      <div><div class="ww-title">AD CS Configuration — Certificate Request</div><div class="ww-sub">ISSUINGCA — Subordinate CA certificate request</div></div>
+    </div>
+    <div class="ww-body">
+      <div class="ww-nav">
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Credentials</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Role Services</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Setup Type</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>CA Type</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Private Key</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>Cryptography</div>
+        <div class="ww-step done"><div class="ww-step-num">✓</div>CA Name</div>
+        <div class="ww-step active"><div class="ww-step-num">→</div>Certificate Request</div>
+        <div class="ww-step"><div class="ww-step-num">9</div>Confirmation</div>
+      </div>
+      <div class="ww-content">
+        <div class="ww-section-title">Certificate Request</div>
+        <div class="ww-section-sub">The CA certificate must be signed by a parent CA</div>
+        <div class="ww-radio-group">
+          <div class="ww-radio">
+            <div class="ww-radio-dot sel"></div>
+            <div>
+              <div class="ww-radio-label" style="color:#0078d4;">Save a certificate request to file on the target machine ← select this</div>
+              <div class="ww-radio-desc">Generates a CSR file that you then take to the Root CA for signing. After signing, you return here and install the signed certificate to complete configuration.</div>
+            </div>
+          </div>
+          <div class="ww-radio">
+            <div class="ww-radio-dot"></div>
+            <div>
+              <div class="ww-radio-label">Send a certificate request to an existing enterprise CA</div>
+              <div class="ww-radio-desc">Only works if the parent CA is an Enterprise CA in the same forest. Our parent (Root CA) is a Standalone CA — this option will fail.</div>
+            </div>
+          </div>
+        </div>
+        <div class="ww-field" style="margin-top:14px;">
+          <div class="ww-label">File name for the certificate request:</div>
+          <div class="ww-input filled">C:\IssuingCA.req</div>
+          <div style="font-size:11px;color:#5a7090;margin-top:3px;">The CSR file is saved here. You will take this file to the Root CA for signing.</div>
+        </div>
+        <div class="ww-warn-box">⚠ After clicking Configure, the CSR is generated and saved. The CA service will NOT start until you return with the signed certificate and complete the configuration. The AD CS configuration wizard will close — do not treat this as an error.</div>
+      </div>
+    </div>
+    <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
+  </div>
+
+  <h2>What to do on this screen</h2>
+  <p>Select <strong>"Save a certificate request to file on the target machine"</strong>. The file path shows <code>C:\ISSUINGCA\ISSUINGCA.NOVACRESTBANK.LOCAL_NovaCrestBank-Issuing-CA.req</code> (or a similar long path). Change it to the simpler path:</p>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    C:\IssuingCA.req
+  </div>
+  <p>Click <strong>Next</strong> → Review the confirmation screen → Click <strong>Configure</strong>.</p>
+
+  <div class="callout warn">
+    <div class="cl">After clicking Configure — the wizard closes with a warning, not an error</div>
+    The wizard generates the CSR file and closes. It shows a yellow warning: "CA service is not started. You must install a certificate before the service can be started." This is expected — the CA cannot operate without its own signed certificate. The AD CS service (certsvc) is installed but stopped. Do not attempt to start it yet. Proceed to Section 11 to take the CSR to the Root CA.
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why "Send a certificate request to existing enterprise CA" cannot be used here</div>
+    <div class="decision-q">The wizard offers to send the request automatically to a parent CA. Why use the file-based method instead?</div>
+    <div class="decision-a"><strong>Because the parent CA (NovaCrestBank-Root-CA) is a Standalone CA — not an Enterprise CA — and it is offline.</strong><br/><br/>
+    The automatic send option uses the Microsoft Certificate Enrollment Protocol (MSCEP), which only works with Enterprise CAs in the same Active Directory forest. The Root CA is a Standalone CA specifically because it must not be domain-joined. Additionally, the Root CA is powered off — even if the protocol worked, there is no one to receive the request. The file-based CSR method is the only correct approach for an offline Standalone Root CA.</div>
+  </div>
+</div>
+
+<!-- ══════ 11 ROOTCA INTERLUDE ══════ -->
+<div class="page" id="page-rootca-interlude">
+  <div class="ey">Windows Server · Win-04 · Section 11</div>
+  <div class="pt">Sign the CSR on the Root CA — the interlude</div>
+  <div class="ps">The handoff between Win-04 and Win-03 — bringing the CSR to the Root CA and returning with the signed certificate</div>
+
+  <div class="callout gold">
+    <div class="cl">The Root CA must be powered on for this step</div>
+    The Root CA VM (rootca.novacrestbank.local) is currently powered off. Power it on in vCenter now: right-click the VM → Power → Power On. Wait for Windows to boot (approximately 2 minutes). Log in as ROOTCA\Administrator with <code>NovaCrest$RootCA2026!</code> (retrieved from CyberArk).
+  </div>
+
+  <h2>Step-by-step: sign the Issuing CA CSR on the Root CA</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Copy the CSR file from the Issuing CA to the Root CA</div>
+        <p style="font-size:13.5px">On the Root CA, open File Explorer. In the address bar, type <code>\\issuingca.novacrestbank.local\c$</code> and press Enter. Authenticate with NOVACRESTBANK\Administrator credentials. Copy <code>IssuingCA.req</code> to <code>C:\IssuingCA.req</code> on the Root CA.</p>
+        <div class="callout" style="margin-top:8px;font-size:13px;">
+          <div class="cl">Why the Root CA can access the Issuing CA's C$ share</div>
+          The Root CA is a standalone server (not domain-joined) but it can still connect to the domain network share using explicit domain credentials. When Windows prompts for credentials, enter <code>NOVACRESTBANK\Administrator</code> — the Root CA will authenticate against DC01's NTLM service and gain access to the share.
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Submit the CSR to the Root CA</div>
+        <p style="font-size:13.5px">On the Root CA: Server Manager → Tools → <strong>Certification Authority</strong>. Right-click <strong>NovaCrestBank-Root-CA</strong> → <strong>All Tasks</strong> → <strong>Submit new request</strong>. Browse to <code>C:\IssuingCA.req</code>. Click <strong>Open</strong>. The CSR is submitted and goes to Pending Requests.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Issue the certificate — set validity to 10 years first</div>
+        <p style="font-size:13.5px">Click <strong>Pending Requests</strong> in the left tree. The Issuing CA request appears. Before issuing, set the validity period. By default the Root CA would issue it for 1 year (its default for issued certificates). You must override this to 10 years:</p>
+        <div class="psh" style="margin-top:8px;">
+          <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt — ROOTCA</span></div>
+          <div class="psh-body"><pre><span class="pd"># Override the default CA issued cert validity period to 10 years</span>
+<span class="pd"># This must be done BEFORE issuing the Issuing CA certificate</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\ValidityPeriodUnits 10</span>
+<span class="pg">Old Value: 1  →  New Value: 10</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\ValidityPeriod "Years"</span>
+<span class="pg">Old Value: Years  →  New Value: Years</span>
+<span class="pp">C:\></span> <span class="pc">net stop certsvc && net start certsvc</span>
+<span class="pg">CertSvc stopped. CertSvc started.</span>
+<span class="pd">
+↑ Root CA will now issue the Issuing CA cert for 10 years instead of 1 year</span></pre>
+          </div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Back in the Certification Authority console: right-click the pending request → <strong>All Tasks</strong> → <strong>Issue</strong>. The certificate moves to Issued Certificates.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Export the signed certificate as a .p7b file</div>
+        <p style="font-size:13.5px">Click <strong>Issued Certificates</strong>. Double-click the Issuing CA certificate entry. Click <strong>Details</strong> tab → <strong>Copy to File</strong>. Select <strong>PKCS #7 (.P7B)</strong>. Tick <strong>"Include all certificates in the certification path"</strong>. Save as <code>C:\IssuingCA-signed.p7b</code>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Copy the signed certificate back to the Issuing CA</div>
+        <p style="font-size:13.5px">On the Root CA, open File Explorer → navigate to <code>\\issuingca.novacrestbank.local\c$</code> → copy <code>C:\IssuingCA-signed.p7b</code> to <code>C:\IssuingCA-signed.p7b</code> on the Issuing CA.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Also publish a new CRL (while the Root CA is powered on)</div>
+        <p style="font-size:13.5px">While the Root CA is already powered on, publish an updated CRL: right-click <strong>Revoked Certificates</strong> → <strong>All Tasks</strong> → <strong>Publish</strong> → <strong>New CRL</strong>. This ensures the CRL is fresh and covers the newly-issued Issuing CA certificate's serial number in the "not revoked" state.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <div class="step-title">Shut down the Root CA</div>
+        <p style="font-size:13.5px">Start → Shut down. Wait for Windows to power off. Confirm in vCenter that the VM shows "Powered Off." The Root CA is offline again. Total Root CA uptime: approximately 15–20 minutes.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 12 INSTALL CERT ══════ -->
+<div class="page" id="page-install-cert">
+  <div class="ey">Windows Server · Win-04 · Section 12</div>
+  <div class="pt">Install the signed certificate on the Issuing CA</div>
+  <div class="ps">Completing the Issuing CA configuration — installing the Root CA-signed certificate so the AD CS service can start</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">On ISSUINGCA: open Certification Authority console</div>
+        <p style="font-size:13.5px">Server Manager → Tools → <strong>Certification Authority</strong>. The console opens showing <strong>NovaCrestBank-Issuing-CA</strong> with a red stop icon — the service is not running because no certificate is installed yet.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Right-click NovaCrestBank-Issuing-CA → All Tasks → Install CA Certificate</div>
+        <p style="font-size:13.5px">Right-click <strong>NovaCrestBank-Issuing-CA</strong> in the left panel. Hover over <strong>All Tasks</strong>. Click <strong>Install CA Certificate</strong>. A file browser dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Browse to C:\IssuingCA-signed.p7b and click Open</div>
+        <p style="font-size:13.5px">Navigate to <code>C:\IssuingCA-signed.p7b</code>. Make sure the file type filter shows "PKCS #7" or "All files" — otherwise the .p7b file may not appear. Click <strong>Open</strong>. The certificate is installed.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Start the Certification Authority service</div>
+        <p style="font-size:13.5px">Right-click <strong>NovaCrestBank-Issuing-CA</strong> → <strong>All Tasks</strong> → <strong>Start Service</strong>. The red stop icon changes to a green running icon. The Issuing CA is now operational.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout success">
+    <div class="cl">The Issuing CA is running for the first time</div>
+    NovaCrestBank-Issuing-CA has started. Its certificate is signed by NovaCrestBank-Root-CA. The Certification Authority console shows the CA as running (green icon). The CA service (certsvc) is running in the background. The Issuing CA can now receive certificate requests and issue certificates. However, there are still several configuration steps before it is production-ready: CRL/AIA configuration, certificate templates, and auto-enrolment GPO.
+  </div>
+</div>
+
+<!-- ══════ 13 INSTALL ROOT CERT ══════ -->
+<div class="page" id="page-install-rootcert">
+  <div class="ey">Windows Server · Win-04 · Section 13</div>
+  <div class="pt">Install the Root CA certificate into the Issuing CA trust store</div>
+  <div class="ps">The Issuing CA must trust its own parent — the Root CA certificate must be in the Issuing CA's Trusted Root store so the CA can build complete chains</div>
+
+  <p>The .p7b file installed in Section 12 contains both the Issuing CA certificate AND the Root CA certificate (because "Include all certificates in the certification path" was ticked during export). Windows should have automatically placed the Root CA certificate into the Issuing CA's trust store. Verify this, and if it did not happen automatically, install it manually:</p>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — ISSUINGCA</span></div>
+    <div class="psh-body"><pre><span class="pd"># Verify Root CA cert is in the trusted root store on the Issuing CA</span>
+<span class="pp">PS C:\></span> <span class="pc">Get-ChildItem Cert:\LocalMachine\Root | Where-Object {$_.Subject -like "*NovaCrestBank-Root-CA*"}</span>
+
+<span class="pg">Thumbprint                               Subject
+----------                               -------
+A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1  CN=NovaCrestBank-Root-CA</span>
+<span class="pd">↑ Root CA certificate is trusted on the Issuing CA ✓</span>
+
+<span class="pd"># If NOT found — install it manually</span>
+<span class="pd"># (Download from http://pki.novacrestbank.local/pki/ or copy from DC01)</span>
+<span class="pp">PS C:\></span> <span class="pc">$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2</span>
+<span class="pp">PS C:\></span> <span class="pc">$cert.Import("C:\inetpub\wwwroot\pki\rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt")</span>
+<span class="pp">PS C:\></span> <span class="pc">$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root","LocalMachine")</span>
+<span class="pp">PS C:\></span> <span class="pc">$store.Open("ReadWrite"); $store.Add($cert); $store.Close()</span>
+<span class="pg">Root CA certificate imported to Trusted Root store ✓</span>
+
+<span class="pd"># Also verify the Issuing CA certificate is in the Intermediate CA store</span>
+<span class="pp">PS C:\></span> <span class="pc">Get-ChildItem Cert:\LocalMachine\CA | Where-Object {$_.Subject -like "*NovaCrestBank-Issuing-CA*"}</span>
+<span class="pg">Thumbprint                               Subject
+----------                               -------
+B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2  CN=NovaCrestBank-Issuing-CA</span>
+<span class="pd">↑ Issuing CA certificate in Intermediate CA store ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 14 CA STARTS ══════ -->
+<div class="page" id="page-ca-starts">
+  <div class="ey">Windows Server · Win-04 · Section 14</div>
+  <div class="pt">The Issuing CA is running — quick health check</div>
+  <div class="ps">Verifying the CA service is running correctly and the certificate database is operational before any further configuration</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — ISSUINGCA</span></div>
+    <div class="psh-body"><pre><span class="pd"># Check the CA service status</span>
+<span class="pp">PS C:\></span> <span class="pc">Get-Service -Name certsvc</span>
+<span class="pg">Status   Name               DisplayName
+------   ----               -----------
+Running  certsvc            Active Directory Certificate Services</span>
+<span class="pd">↑ CA service is Running ✓</span>
+
+<span class="pd"># Get Issuing CA details</span>
+<span class="pp">PS C:\></span> <span class="pc">certutil -cainfo</span>
+<span class="pg">CA name:                  NovaCrestBank-Issuing-CA
+CA type:                  Enterprise Subordinate CA (5)
+Parent CA:                NovaCrestBank-Root-CA
+CA certificate:
+  Expires:                13/04/2036
+  Subject: CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=local
+  Issuer: CN=NovaCrestBank-Root-CA
+  Public Key: 4096 bit RSA
+  Signature Algorithm: sha256RSA</span>
+<span class="pg">CertUtil: -cainfo command completed successfully.</span>
+
+<span class="pd"># Confirm the parent is NovaCrestBank-Root-CA ✓</span>
+<span class="pd"># Confirm expires 2036 (10 years from signing) ✓</span>
+<span class="pd"># Confirm 4096-bit RSA SHA-256 ✓</span></pre>
+      <div class="pann ok"><span class="pai">✓</span><span>Issuing CA is running. CA type = Enterprise Subordinate (5). Parent = NovaCrestBank-Root-CA. Certificate valid to 2036 (10 years). 4096-bit RSA, SHA-256.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 15 CRL CONFIG ══════ -->
+<div class="page" id="page-crl-config">
+  <div class="ey">Windows Server · Win-04 · Section 15</div>
+  <div class="pt">Configure CDP and AIA on the Issuing CA</div>
+  <div class="ps">Setting the CRL and AIA URLs that will appear in every leaf certificate issued — pointing to the same pki.novacrestbank.local web server as the Root CA</div>
+
+  <div class="callout">
+    <div class="cl">Same URL base as the Root CA — same IIS server on DC01</div>
+    The Issuing CA's CRL files and its certificate are published to the same http://pki.novacrestbank.local/pki/ location as the Root CA. The files are different (different filenames) but the same IIS virtual directory on DC01 hosts all of them. Clients downloading a certificate chain walk: leaf cert → AIA URL for Issuing CA cert → AIA URL for Root CA cert — all from the same web server.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Certification Authority console → right-click NovaCrestBank-Issuing-CA → Properties → Extensions tab</div>
+        <p style="font-size:13.5px">Same procedure as Win-03 Section 17. Right-click the CA → Properties → Extensions tab.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Configure CDP — add HTTP and UNC locations</div>
+        <p style="font-size:13.5px">Select <strong>CRL Distribution Point (CDP)</strong> in the dropdown. Add the HTTP location:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
+          http://pki.novacrestbank.local/pki/&lt;CaName&gt;&lt;CRLNameSuffix&gt;&lt;DeltaCRLAllowed&gt;.crl
+        </div>
+        <p style="font-size:13.5px;margin-top:6px;">Tick: ✓ Include in CRLs · ✓ Include in CDP extension of issued certificates</p>
+        <p style="font-size:13.5px;">Add the UNC write location:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:4px;">
+          \\dc01\pki\&lt;CaName&gt;&lt;CRLNameSuffix&gt;&lt;DeltaCRLAllowed&gt;.crl
+        </div>
+        <p style="font-size:13.5px;margin-top:6px;">Tick only: ✓ Publish CRLs to this location · ✓ Publish Delta CRLs to this location</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Configure AIA — add HTTP location</div>
+        <p style="font-size:13.5px">Change dropdown to <strong>Authority Information Access (AIA)</strong>. Add:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
+          http://pki.novacrestbank.local/pki/&lt;ServerDNSName&gt;_&lt;CaName&gt;&lt;CertificateName&gt;.crt
+        </div>
+        <p style="font-size:13.5px;margin-top:6px;">Tick: ✓ Include in AIA extension of issued certificates</p>
+        <p style="font-size:13.5px;">Add UNC write location:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:4px;">
+          \\dc01\pki\&lt;ServerDNSName&gt;_&lt;CaName&gt;&lt;CertificateName&gt;.crt
+        </div>
+        <p style="font-size:13.5px;margin-top:6px;">Tick: ✓ Publish to file system</p>
+        <p style="font-size:13.5px;">Click <strong>OK</strong>. Restart AD CS when prompted. Click <strong>Yes</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Grant the Issuing CA write access to the pki share on DC01</h2>
+  <p>The Issuing CA's computer account (ISSUINGCA$) needs write access to <code>\\dc01\pki\</code> so it can publish CRL files. Run this on DC01:</p>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01</span></div>
+    <div class="psh-body"><pre><span class="pd"># Grant the Issuing CA computer account modify access to the pki folder</span>
+<span class="pp">PS C:\></span> <span class="pc">$acl = Get-Acl "C:\inetpub\wwwroot\pki"</span>
+<span class="pp">PS C:\></span> <span class="pc">$rule = New-Object System.Security.AccessControl.FileSystemAccessRule(`
+    "NOVACRESTBANK\ISSUINGCA$","Modify","ContainerInherit,ObjectInherit","None","Allow")</span>
+<span class="pp">PS C:\></span> <span class="pc">$acl.SetAccessRule($rule)</span>
+<span class="pp">PS C:\></span> <span class="pc">Set-Acl "C:\inetpub\wwwroot\pki" $acl</span>
+<span class="pg">Access granted: ISSUINGCA$ has Modify rights on C:\inetpub\wwwroot\pki ✓</span>
+
+<span class="pd"># Also grant on the SMB share level</span>
+<span class="pp">PS C:\></span> <span class="pc">Grant-SmbShareAccess -Name "pki" -AccountName "NOVACRESTBANK\ISSUINGCA$" -AccessRight Full -Force</span>
+<span class="pg">Share access granted ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 16 CRL PUBLISH ══════ -->
+<div class="page" id="page-crl-publish">
+  <div class="ey">Windows Server · Win-04 · Section 16</div>
+  <div class="pt">Set CRL period and publish the initial CRL</div>
+  <div class="ps">The Issuing CA CRL has a much shorter validity period than the Root CA — weekly publication with daily Delta CRLs</div>
+
+  <div class="decision">
+    <div class="decision-label">Why the Issuing CA CRL is published weekly — not annually like the Root CA</div>
+    <div class="decision-q">The Root CA CRL lasts 52 weeks. Why does the Issuing CA CRL last only 7 days?</div>
+    <div class="decision-a"><strong>Because the Issuing CA issues far more certificates than the Root CA, and its revocation list must stay current to be useful.</strong><br/><br/>
+    The Root CA issues maybe two certificates in its entire lifetime (the Issuing CA certificate, and a replacement if needed). Its CRL is a list of "revoked Issuing CA certificates" — almost certainly empty forever. A 52-week CRL is fine because there is almost never anything to put on it, and keeping the Root CA powered on only once a year is a strong security practice.<br/><br/>
+    The Issuing CA issues hundreds of certificates over its lifetime — vCenter, ESXi hosts, OCP certs, DC certs, computer certs for every domain member. If any of these are compromised, they must be revoked immediately and the revocation list updated. A 7-day CRL means: the longest a revoked certificate remains trusted by clients who have cached the previous CRL is 7 days. This is a reasonable tradeoff between freshness and operational overhead.<br/><br/>
+    Delta CRLs (daily) provide an additional mechanism: instead of downloading the full CRL every 7 days, clients download a small "delta CRL" daily that contains only the changes since the last full CRL. This reduces bandwidth and latency for revocation checks.</div>
+  </div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt (Run as Admin) — ISSUINGCA</span></div>
+    <div class="psh-body"><pre><span class="pd"># Set CRL validity to 7 days</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\CRLPeriodUnits 7</span>
+<span class="pg">Old Value: 1 week  →  New Value: 7</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\CRLPeriod "Days"</span>
+<span class="pg">New Value: Days</span>
+
+<span class="pd"># Set CRL overlap period (3 days — so clients aren't caught by clock skew)</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\CRLOverlapPeriodUnits 3</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\CRLOverlapPeriod "Days"</span>
+
+<span class="pd"># Enable and configure Delta CRLs (daily)</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\CRLDeltaPeriodUnits 1</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\CRLDeltaPeriod "Days"</span>
+
+<span class="pd"># Set the validity of issued certificates — 2 years default</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\ValidityPeriodUnits 2</span>
+<span class="pp">C:\></span> <span class="pc">certutil -setreg CA\ValidityPeriod "Years"</span>
+
+<span class="pd"># Restart CA service</span>
+<span class="pp">C:\></span> <span class="pc">net stop certsvc && net start certsvc</span>
+<span class="pg">CertSvc stopped and restarted ✓</span>
+
+<span class="pd"># Publish the initial CRL</span>
+<span class="pp">C:\></span> <span class="pc">certutil -CRL</span>
+<span class="pg">CRL published:
+  NovaCrestBank-Issuing-CA.crl → \\dc01\pki\NovaCrestBank-Issuing-CA.crl</span>
+<span class="pg">  NovaCrestBank-Issuing-CA+.crl → \\dc01\pki\NovaCrestBank-Issuing-CA+.crl (Delta)</span>
+<span class="pg">CertUtil: -CRL command completed successfully.</span>
+
+<span class="pd"># Also publish the Issuing CA certificate to the AIA location</span>
+<span class="pp">C:\></span> <span class="pc">certutil -ca.cert "\\dc01\pki\issuingca.novacrestbank.local_NovaCrestBank-Issuing-CA.crt"</span>
+<span class="pg">CertUtil: command completed successfully.</span>
+
+<span class="pd"># Verify accessibility via HTTP</span>
+<span class="pp">C:\></span> <span class="pc">certutil -verify -urlfetch http://pki.novacrestbank.local/pki/NovaCrestBank-Issuing-CA.crl</span>
+<span class="pg">CRL: NovaCrestBank-Issuing-CA.crl
+  Expires: &lt;7 days from now&gt;
+  Issuer: CN=NovaCrestBank-Issuing-CA
+Verified CertUtil: -verify command completed successfully.</span>
+<span class="pd">↑ CRL accessible and valid ✓</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 17 TEMPLATES CONCEPT ══════ -->
+<div class="page" id="page-templates-concept">
+  <div class="ey">Windows Server · Win-04 · Section 17</div>
+  <div class="pt">Certificate templates — what they are and why they matter</div>
+  <div class="ps">The feature that makes the Enterprise CA operationally practical — pre-defined certificate profiles for each use case</div>
+
+  <div class="decision">
+    <div class="decision-label">What a certificate template is</div>
+    <div class="decision-q">What exactly is a certificate template — and what does it define?</div>
+    <div class="decision-a"><strong>A certificate template is a pre-configured certificate blueprint stored in Active Directory that defines every aspect of how a certificate should be issued for a specific purpose.</strong><br/><br/>
+    A template defines:<br/>
+    <strong>Key Usage</strong> — what the certificate's key can be used for (Digital Signature, Key Encipherment, Certificate Signing, etc.)<br/>
+    <strong>Extended Key Usage (EKU)</strong> — the specific application purpose (Server Authentication, Client Authentication, Code Signing, Email Protection, etc.)<br/>
+    <strong>Subject</strong> — whether the subject is supplied by the requester or built from AD attributes<br/>
+    <strong>Validity period</strong> — how long the issued certificate is valid<br/>
+    <strong>Key length minimum</strong> — the minimum key size the CA will accept for this template<br/>
+    <strong>Enrolment permissions</strong> — which AD groups are allowed to request this type of certificate (e.g., "Domain Controllers" group can request Domain Controller certificates; "Authenticated Users" can request Computer certificates)<br/>
+    <strong>Auto-enrolment</strong> — whether machines auto-request this certificate type via Group Policy<br/><br/>
+    Without templates, every certificate request must specify all these parameters manually. With templates, an administrator creates the template once and all subsequent certificates of that type use those parameters automatically.</div>
+  </div>
+
+  <h2>How templates work in practice — the flow</h2>
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
+    <div style="line-height:2.2;color:var(--text2);">
+      <div>1. Admin creates "Web Server" template in Certificate Templates console</div>
+      <div>2. Admin enables the template on the Issuing CA ("templates to issue" list)</div>
+      <div>3. vCenter admin requests a TLS certificate → selects "Web Server" template</div>
+      <div>4. Issuing CA validates: is the requester in the allowed AD group? → Yes ✓</div>
+      <div>5. Issuing CA issues cert using template parameters (2yr validity, TLS EKU, 2048+ key)</div>
+      <div>6. vCenter installs the cert → browsers trust it via the Root CA chain</div>
+    </div>
+  </div>
+
+  <h2>The templates NovaCrestBank needs</h2>
+  <table>
+    <thead><tr><th>Template name</th><th>Based on</th><th>Purpose</th><th>Who can enrol</th><th>Auto-enrolment</th></tr></thead>
+    <tbody>
+      <tr><td>NovaCrestBank-WebServer</td><td>Web Server (built-in)</td><td>TLS certs for vCenter, ESXi, OCP, IIS</td><td>Authenticated Users</td><td>No — manual request</td></tr>
+      <tr><td>NovaCrestBank-Computer</td><td>Computer (built-in)</td><td>Machine authentication certs for all domain members</td><td>Domain Computers</td><td>Yes — via GPO</td></tr>
+      <tr><td>NovaCrestBank-DomainController</td><td>Domain Controller Authentication (built-in)</td><td>LDAPS and Kerberos certs for DCs</td><td>Domain Controllers</td><td>Yes — via GPO</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 18 TEMPLATE WEBSERVER ══════ -->
+<div class="page" id="page-template-webserver">
+  <div class="ey">Windows Server · Win-04 · Section 18</div>
+  <div class="pt">Create the Web Server template — NovaCrestBank-WebServer</div>
+  <div class="ps">The template used for every TLS certificate in the infrastructure — vCenter, ESXi hosts, OCP endpoints, and any HTTPS service</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open Certificate Templates console</div>
+        <p style="font-size:13.5px">In the Certification Authority console, expand <strong>NovaCrestBank-Issuing-CA</strong>. Right-click <strong>Certificate Templates</strong>. Click <strong>Manage</strong>. The Certificate Templates console opens — a separate window listing all templates stored in Active Directory. You are viewing templates that exist in AD, not yet the ones enabled on this CA.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Find "Web Server" template — right-click → Duplicate Template</div>
+        <p style="font-size:13.5px">Scroll through the list to find <strong>Web Server</strong>. Right-click it. Click <strong>Duplicate Template</strong>. A "Properties of New Template" dialog opens — you are now editing a copy of the built-in Web Server template.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">General tab — rename and set validity</div>
+        <div class="tmpl-mgr" style="margin-top:10px;">
+          <div class="tmpl-bar">Properties of New Template</div>
+          <div class="tmpl-header">General tab</div>
+          <div class="tmpl-body" style="min-height:180px;">
+            <div class="tmpl-main">
+              <div class="tmpl-section">General</div>
+              <div class="tmpl-row"><span class="tmpl-label">Template display name:</span><span class="tmpl-val ok">NovaCrestBank-WebServer</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Template name (short):</span><span class="tmpl-val ok">NovaCrestBankWebServer</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Validity period:</span><span class="tmpl-val ok">2 years</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Renewal period:</span><span class="tmpl-val">6 weeks</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Publish cert in AD:</span><span class="tmpl-val">Unchecked</span></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;"><strong>Template display name:</strong> <code>NovaCrestBank-WebServer</code><br/>
+        <strong>Template name:</strong> auto-fills as <code>NovaCrestBankWebServer</code> (no spaces — Windows removes them)<br/>
+        <strong>Validity period:</strong> change to <code>2 years</code><br/>
+        <strong>Renewal period:</strong> leave as <code>6 weeks</code></p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Request Handling tab — allow private key export</div>
+        <div class="tmpl-mgr" style="margin-top:10px;">
+          <div class="tmpl-bar">Properties of New Template</div>
+          <div class="tmpl-header">Request Handling tab</div>
+          <div class="tmpl-body" style="min-height:150px;">
+            <div class="tmpl-main">
+              <div class="tmpl-section">Request Handling</div>
+              <div class="tmpl-row"><span class="tmpl-label">Purpose:</span><span class="tmpl-val ok">Signature and encryption</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Minimum key size:</span><span class="tmpl-val ok">2048</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Allow private key to be exported:</span><span class="tmpl-val ok">✓ Checked</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="decision" style="margin-top:10px;">
+          <div class="decision-label">Why private key export must be allowed for TLS server certs</div>
+          <div class="decision-q">Allowing private key export is a security concern. Why enable it for web server certificates?</div>
+          <div class="decision-a"><strong>Because vCenter and ESXi require the private key to be exportable in order to replace their TLS certificates with CA-signed ones.</strong><br/><br/>
+          When replacing vCenter's self-signed certificate with a CA-signed one, the process involves: generating a private key and CSR on a workstation, submitting the CSR to the CA, downloading the signed certificate, and importing both the certificate AND private key into vCenter's certificate store. If the private key cannot be exported from the Windows certificate store after it is issued, it cannot be transferred to vCenter's non-Windows certificate infrastructure.<br/><br/>
+          For certificates on Windows servers (where the private key stays in the Windows certificate store), key export is less critical. For certificates that must be deployed to VMware, Linux, or non-Windows systems, exportable private keys are required. The NovaCrestBank-WebServer template serves both use cases — enabling export is the correct setting.</div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Subject Name tab — "Supply in the request"</div>
+        <div class="tmpl-mgr" style="margin-top:10px;">
+          <div class="tmpl-bar">Properties of New Template</div>
+          <div class="tmpl-header">Subject Name tab</div>
+          <div class="tmpl-body" style="min-height:140px;">
+            <div class="tmpl-main">
+              <div class="tmpl-section">Subject Name</div>
+              <div class="tmpl-row"><span class="tmpl-label">Subject name format:</span><span class="tmpl-val ok">● Supply in the request</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Include email in subject name:</span><span class="tmpl-val">Unchecked</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Include DNS name in SAN:</span><span class="tmpl-val">Unchecked (supplied in request)</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="decision" style="margin-top:10px;">
+          <div class="decision-label">Why "Supply in the request" not "Build from Active Directory"</div>
+          <div class="decision-q">AD CS can automatically fill in the subject name from the AD account's attributes. Why require the requester to supply it instead?</div>
+          <div class="decision-a"><strong>Because non-domain systems (ESXi hosts, vCenter appliance, OCP) do not have AD accounts with the correct DNS names in their attributes — and web server certificates need hostnames that may not match AD account names.</strong><br/><br/>
+          "Build from Active Directory" works for Computer and Domain Controller templates — those certificates are for domain-joined machines whose AD account names match the hostnames. For a web server certificate for vcenter.novacrestbank.local, the requester must supply the exact subject name and Subject Alternative Names (SANs) they need — the CA cannot derive this correctly from AD attributes.</div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Security tab — who can enrol</div>
+        <div class="tmpl-mgr" style="margin-top:10px;">
+          <div class="tmpl-bar">Properties of New Template</div>
+          <div class="tmpl-header">Security tab</div>
+          <div class="tmpl-body" style="min-height:150px;">
+            <div class="tmpl-main">
+              <div class="tmpl-section">Security</div>
+              <div class="tmpl-row"><span class="tmpl-label">Authenticated Users</span><span class="tmpl-val ok">Read ✓ · Enroll ✓</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Domain Admins</span><span class="tmpl-val ok">Full Control ✓</span></div>
+              <div class="tmpl-row"><span class="tmpl-label">Enterprise Admins</span><span class="tmpl-val ok">Full Control ✓</span></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Ensure <strong>Authenticated Users</strong> has both <strong>Read</strong> and <strong>Enroll</strong> permissions. This allows any authenticated domain user or computer to request a web server certificate — appropriate because the CA will still validate each request and an administrator controls who can submit CSRs (via Web Enrollment). Click <strong>OK</strong>. The template appears in the Certificate Templates console.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 19 TEMPLATE COMPUTER ══════ -->
+<div class="page" id="page-template-computer">
+  <div class="ey">Windows Server · Win-04 · Section 19</div>
+  <div class="pt">Create the Computer template — NovaCrestBank-Computer</div>
+  <div class="ps">The auto-enrolment template for all domain-joined machines — every server and workstation gets a machine authentication certificate automatically</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In Certificate Templates console — right-click "Computer" → Duplicate Template</div>
+        <p style="font-size:13.5px">Find the <strong>Computer</strong> template. Right-click → <strong>Duplicate Template</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Configure the NovaCrestBank-Computer template</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">General — Display name</span><span class="spec-val">NovaCrestBank-Computer</span></div>
+    <div class="spec-row"><span class="spec-label">General — Validity</span><span class="spec-val">2 years</span></div>
+    <div class="spec-row"><span class="spec-label">General — Renewal period</span><span class="spec-val">6 weeks</span></div>
+    <div class="spec-row"><span class="spec-label">Request Handling — Allow private key export</span><span class="spec-val">Unchecked (machine certs do not need to be exported)</span></div>
+    <div class="spec-row"><span class="spec-label">Subject Name — Build from Active Directory</span><span class="spec-val">DNS name from AD computer account</span></div>
+    <div class="spec-row"><span class="spec-label">Security — Domain Computers — Enroll</span><span class="spec-val">✓ Enroll · ✓ Autoenroll</span></div>
+    <div class="spec-row"><span class="spec-label">Security — Authenticated Users — Read</span><span class="spec-val">✓ Read only (not Enroll — machine enrolment only)</span></div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-label">Why "Build from Active Directory" works for Computer templates — but not Web Server</div>
+    <div class="decision-q">The Web Server template requires "Supply in the request." Why can the Computer template use "Build from Active Directory"?</div>
+    <div class="decision-a"><strong>Because all domain computers have an AD computer account whose SAMAccountName matches the machine's hostname — the CA can derive the correct certificate subject automatically.</strong><br/><br/>
+    When ISSUINGCA's computer account is in AD as <code>ISSUINGCA$</code>, its DNS hostname is <code>issuingca.novacrestbank.local</code>. The CA looks up the computer account in AD, reads its DNS hostname attribute, and uses that as the certificate's Subject and Subject Alternative Name. This works correctly for every domain-joined computer because their DNS names are always registered in AD.<br/><br/>
+    The "Autoenroll" permission is what allows Group Policy to trigger automatic certificate requests — without Autoenroll permission checked, Group Policy can push the certificate settings but machines cannot actually request the certificate.</div>
+  </div>
+
+  <p>Click <strong>OK</strong>. The NovaCrestBank-Computer template is created.</p>
+</div>
+
+<!-- ══════ 20 TEMPLATE DC ══════ -->
+<div class="page" id="page-template-dc">
+  <div class="ey">Windows Server · Win-04 · Section 20</div>
+  <div class="pt">Create the Domain Controller template — NovaCrestBank-DomainController</div>
+  <div class="ps">The template that enables LDAPS (encrypted LDAP on port 636) on DC01 and DC02 — required for vCenter AD integration with secure LDAP</div>
+
+  <div class="decision">
+    <div class="decision-label">Why Domain Controllers need a dedicated certificate template</div>
+    <div class="decision-q">DC01 and DC02 are also "computers." Why do they need a separate Domain Controller template instead of using the Computer template?</div>
+    <div class="decision-a"><strong>Because Domain Controller certificates have additional Enhanced Key Usages (EKUs) that the plain Computer template does not include — specifically the EKUs required for LDAPS and Kerberos KDC authentication.</strong><br/><br/>
+    A plain Computer certificate has EKU: Client Authentication, Server Authentication. A Domain Controller certificate has EKU: Client Authentication, Server Authentication, Smart Card Logon, KDC Authentication. The additional EKUs tell LDAP clients and Kerberos-aware applications that this certificate is specifically for a Domain Controller — not just any server. The LDAPS implementation in Windows Server requires the DC to have a certificate with the KDC Authentication EKU to enable port 636. Without the correct EKU, LDAPS does not activate even if a certificate is installed.</div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In Certificate Templates console — find "Domain Controller Authentication" → Duplicate Template</div>
+        <p style="font-size:13.5px">Find <strong>Domain Controller Authentication</strong> (not the basic "Domain Controller" template — "Domain Controller Authentication" includes the KDC Authentication EKU which is required). Right-click → <strong>Duplicate Template</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">General — Display name</span><span class="spec-val">NovaCrestBank-DomainController</span></div>
+    <div class="spec-row"><span class="spec-label">General — Validity</span><span class="spec-val">2 years</span></div>
+    <div class="spec-row"><span class="spec-label">Request Handling — Allow export</span><span class="spec-val">Unchecked</span></div>
+    <div class="spec-row"><span class="spec-label">Subject Name — Build from AD</span><span class="spec-val">DNS name · Include SAN with DNS from AD</span></div>
+    <div class="spec-row"><span class="spec-label">Security — Domain Controllers — Enroll + Autoenroll</span><span class="spec-val">✓ Enroll · ✓ Autoenroll</span></div>
+    <div class="spec-row"><span class="spec-label">Extensions — Application Policies</span><span class="spec-val">Client Authentication · Server Authentication · Smart Card Logon · KDC Authentication</span></div>
+  </div>
+
+  <p>Click <strong>OK</strong>. The NovaCrestBank-DomainController template is created.</p>
+</div>
+
+<!-- ══════ 21 TEMPLATES ENABLE ══════ -->
+<div class="page" id="page-templates-enable">
+  <div class="ey">Windows Server · Win-04 · Section 21</div>
+  <div class="pt">Enable templates on the Issuing CA</div>
+  <div class="ps">Templates exist in Active Directory but must be explicitly enabled on each CA that will use them — the final step before templates are active</div>
+
+  <div class="decision">
+    <div class="decision-label">Why templates must be explicitly enabled on each CA</div>
+    <div class="decision-q">Templates are stored in Active Directory — every CA in the forest can see them. Why must they also be enabled on the specific CA?</div>
+    <div class="decision-a"><strong>Because a CA may not want to issue all types of certificates — enabling templates is a security control that limits each CA to issuing only the certificate types it is authorised for.</strong><br/><br/>
+    In a multi-CA environment (for example, a CA dedicated only to code signing certificates, and another for machine certificates), enabling only specific templates on each CA ensures each CA has a narrow, well-defined scope. Even in NovaCrestBank's single-CA environment, enabling templates explicitly is the correct practice — it ensures no template issues certificates unless it was deliberately added to the list.</div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In Certification Authority console — right-click "Certificate Templates" → New → Certificate Template to Issue</div>
+        <p style="font-size:13.5px">In the Certification Authority console (not the Certificate Templates console — this is the CA management console), expand <strong>NovaCrestBank-Issuing-CA</strong>. Right-click <strong>Certificate Templates</strong>. Hover over <strong>New</strong>. Click <strong>Certificate Template to Issue</strong>. A list of available templates appears — showing all templates stored in AD.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Select all three NovaCrestBank templates</div>
+        <p style="font-size:13.5px">Hold <strong>Ctrl</strong> and click each of the three templates to select them all at once:</p>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div>✓ <strong>NovaCrestBank-WebServer</strong></div>
+          <div style="margin-top:6px;">✓ <strong>NovaCrestBank-Computer</strong></div>
+          <div style="margin-top:6px;">✓ <strong>NovaCrestBank-DomainController</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>OK</strong>. All three templates appear under Certificate Templates in the CA console. The Issuing CA will now issue certificates for all three template types.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="screen-ann ok"><span class="sai">✓</span><span>Three certificate templates are now enabled on NovaCrestBank-Issuing-CA. The CA can issue Web Server, Computer, and Domain Controller certificates. The next step is configuring Group Policy so domain machines auto-request Computer and Domain Controller certificates.</span></div>
+</div>
+
+<!-- ══════ 22 AUTOENROL CONCEPT ══════ -->
+<div class="page" id="page-autoenrol-concept">
+  <div class="ey">Windows Server · Win-04 · Section 22</div>
+  <div class="pt">Auto-enrolment — how it works end-to-end</div>
+  <div class="ps">The mechanism that makes certificate management invisible — domain machines request and renew certificates automatically without any administrator action</div>
+
+  <div class="decision">
+    <div class="decision-label">The complete auto-enrolment flow — from GPO to certificate in the machine store</div>
+    <div class="decision-q">Auto-enrolment sounds complex. What actually happens step by step when a domain machine gets its certificate automatically?</div>
+    <div class="decision-a">
+      <strong>1. Group Policy defines the certificate enrolment settings.</strong> A GPO linked to the domain sets "Certificate Services Client — Auto-Enrollment Settings" to "Enabled" with options to renew expired certificates and update certificates that use certificate templates. This GPO applies to all computers in the domain.<br/><br/>
+      <strong>2. The machine receives the GPO.</strong> When a domain computer applies Group Policy (at startup, login, or the 90-minute background refresh interval), it receives the auto-enrolment settings.<br/><br/>
+      <strong>3. The machine's certificate client contacts the Issuing CA.</strong> The certificate client (certmgr in the background) queries Active Directory for the list of certificate templates. It finds NovaCrestBank-Computer in the list with Autoenroll permission for Domain Computers. The machine's computer account is in Domain Computers — it is authorised.<br/><br/>
+      <strong>4. The machine generates a private key and CSR.</strong> Locally, without any network communication, the machine generates a new RSA key pair. The public key is packaged into a CSR with the machine's AD DNS name as the subject.<br/><br/>
+      <strong>5. The CSR is submitted to the Issuing CA.</strong> The certificate client sends the CSR to NovaCrestBank-Issuing-CA using the DCOM-based Certificate Enrollment Protocol, authenticated with Kerberos (using the machine's computer account credentials).<br/><br/>
+      <strong>6. The CA validates and issues.</strong> The Issuing CA verifies the machine is in Domain Computers, verifies the template allows Autoenroll for Domain Computers, and issues the certificate using the NovaCrestBank-Computer template settings.<br/><br/>
+      <strong>7. The certificate is installed in the machine store.</strong> The certificate is automatically placed in the Certificates (Local Computer) → Personal store. The machine now has a valid, CA-signed certificate. This entire process happens silently, with no administrator or user involvement.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 23 AUTOENROL GPO ══════ -->
+<div class="page" id="page-autoenrol-gpo">
+  <div class="ey">Windows Server · Win-04 · Section 23</div>
+  <div class="pt">Configure Group Policy for certificate auto-enrolment</div>
+  <div class="ps">Creating the GPO that enables automatic certificate request and renewal on all domain machines</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">On DC01: open Group Policy Management</div>
+        <p style="font-size:13.5px">Server Manager → Tools → <strong>Group Policy Management</strong>. The Group Policy Management console opens. Expand: Forest: novacrestbank.local → Domains → novacrestbank.local.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Create a new GPO — right-click novacrestbank.local → Create a GPO in this domain</div>
+        <p style="font-size:13.5px">Right-click <strong>novacrestbank.local</strong> in the left tree. Click <strong>Create a GPO in this domain, and Link it here</strong>. The New GPO dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Name the GPO and click OK</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          GPO Name: <strong style="color:var(--pki-blue);">NovaCrestBank-PKI-AutoEnrollment</strong>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>OK</strong>. The GPO appears linked to novacrestbank.local.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Right-click the new GPO → Edit</div>
+        <p style="font-size:13.5px">Right-click <strong>NovaCrestBank-PKI-AutoEnrollment</strong>. Click <strong>Edit</strong>. The Group Policy Management Editor opens showing the GPO's settings tree.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Navigate to: Computer Configuration → Policies → Windows Settings → Security Settings → Public Key Policies</div>
+        <p style="font-size:13.5px">In the left tree, expand: <strong>Computer Configuration → Policies → Windows Settings → Security Settings → Public Key Policies</strong>. You see several items under Public Key Policies including "Certificate Services Client — Auto-Enrollment".</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Double-click "Certificate Services Client — Auto-Enrollment"</div>
+        <div class="win-wizard" style="margin-top:10px;">
+          <div class="ww-header">
+            <div class="ww-icon">📜</div>
+            <div><div class="ww-title">Certificate Services Client — Auto-Enrollment Properties</div></div>
+          </div>
+          <div class="ww-body" style="min-height:200px;">
+            <div class="ww-content">
+              <div class="ww-field">
+                <div class="ww-label">Configuration Model:</div>
+                <div class="ww-select filled">Enabled</div>
+              </div>
+              <div class="ww-checkbox">
+                <div class="ww-cb">✓</div>
+                <span>Renew expired certificates, update pending certificates, and remove revoked certificates</span>
+              </div>
+              <div class="ww-checkbox">
+                <div class="ww-cb">✓</div>
+                <span>Update certificates that use certificate templates</span>
+              </div>
+              <div class="ww-checkbox">
+                <div class="ww-cb off"></div>
+                <span>Log expiry events, and expired certificates in the Certificates store</span>
+              </div>
+              <div class="ww-info-box" style="margin-top:10px;">When enabled, machines will automatically enrol for and renew certificates based on template permissions. Domain Computers will receive NovaCrestBank-Computer certificates. Domain Controllers will receive NovaCrestBank-DomainController certificates.</div>
+            </div>
+          </div>
+          <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">Cancel</div><div class="ww-btn next">OK</div></div></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Change Configuration Model to <strong>Enabled</strong>. Tick both checkboxes: <strong>"Renew expired certificates..."</strong> and <strong>"Update certificates that use certificate templates"</strong>. Click <strong>OK</strong>. Close the Group Policy Management Editor.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="decision">
+    <div class="decision-label">Why the GPO is linked at the domain level — not to specific OUs</div>
+    <div class="decision-q">The GPO is linked to novacrestbank.local (the entire domain). Should it be more granular — linked only to specific OUs?</div>
+    <div class="decision-a"><strong>No — auto-enrolment should apply to every computer in the domain, and linking at the domain level ensures no machine is missed.</strong><br/><br/>
+    The GPO enables auto-enrolment for all computers. Whether a specific machine actually receives a certificate depends on the template's Security tab permissions — not the GPO scope. Domain Computers get the Computer certificate (because Domain Computers has Autoenroll on the NovaCrestBank-Computer template). Domain Controllers get the Domain Controller certificate (because Domain Controllers has Autoenroll on the NovaCrestBank-DomainController template). Other machines not in those groups receive the GPO setting but don't enrol because they don't have Autoenroll permission on any template.<br/><br/>
+    The GPO is the "allow machines to auto-enrol" switch. The template permissions are the "which machines get which certificate" control. Keeping both separated is the correct AD CS design.</div>
+  </div>
+</div>
+
+<!-- ══════ 24 ROOTCA GPO ══════ -->
+<div class="page" id="page-autoenrol-rootca-gpo">
+  <div class="ey">Windows Server · Win-04 · Section 24</div>
+  <div class="pt">GPO — distribute Root CA certificate to all domain machines</div>
+  <div class="ps">Pushing the Root CA certificate into every domain machine's Trusted Root store — the step that makes all NovaCrestBank certificates trusted automatically</div>
+
+  <div class="callout">
+    <div class="cl">This GPO setting is what makes every machine trust NovaCrestBank's PKI</div>
+    When a domain machine receives this GPO, it adds the NovaCrestBank-Root-CA certificate to its local Trusted Root Certification Authorities store. From that moment on, any certificate signed by the NovaCrestBank PKI chain (Root CA → Issuing CA → leaf cert) is automatically trusted — no browser warning, no "connection is not private" message, no manual certificate installation. This is the GPO that makes the entire PKI visible to every domain-joined machine simultaneously.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In the same GPO — navigate to: Computer Configuration → Policies → Windows Settings → Security Settings → Public Key Policies → Trusted Root Certification Authorities</div>
+        <p style="font-size:13.5px">Still editing the <strong>NovaCrestBank-PKI-AutoEnrollment</strong> GPO. Navigate to <strong>Computer Configuration → Policies → Windows Settings → Security Settings → Public Key Policies → Trusted Root Certification Authorities</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Right-click → Import → browse to Root CA certificate</div>
+        <p style="font-size:13.5px">Right-click the <strong>Trusted Root Certification Authorities</strong> node. Click <strong>Import</strong>. The Certificate Import Wizard opens. Click <strong>Next</strong>. Browse to the Root CA certificate file. It was placed at <code>C:\inetpub\wwwroot\pki\rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</code> on DC01. Click <strong>Open</strong> → <strong>Next</strong>. The destination store shows "Trusted Root Certification Authorities" — click <strong>Next</strong> → <strong>Finish</strong>. "The import was successful."</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Force GPO update — confirm the certificate propagates</div>
+        <div class="psh" style="margin-top:8px;">
+          <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01</span></div>
+          <div class="psh-body"><pre><span class="pd"># Force immediate GPO update on DC01</span>
+<span class="pp">PS C:\></span> <span class="pc">gpupdate /force</span>
+<span class="pg">Computer Policy update has completed successfully.
+User Policy update has completed successfully.</span>
+
+<span class="pd"># Verify Root CA cert is now in the trusted root store (from GPO)</span>
+<span class="pp">PS C:\></span> <span class="pc">Get-ChildItem Cert:\LocalMachine\Root | Where-Object {$_.Subject -like "*NovaCrestBank-Root*"} | Select Subject,Thumbprint,NotAfter</span>
+<span class="pg">Subject                              Thumbprint                               NotAfter
+-------                              ----------                               --------
+CN=NovaCrestBank-Root-CA             A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0  13/04/2046</span>
+<span class="pd">↑ Root CA trusted by DC01 via GPO ✓
+  Other domain machines receive this at their next GPO refresh (within 90 minutes)</span>
+
+<span class="pd"># Force GPO on other domain members immediately</span>
+<span class="pp">PS C:\></span> <span class="pc">Invoke-Command -ComputerName issuingca,dc02 -ScriptBlock {gpupdate /force}</span>
+<span class="pg">Computer Policy update completed on issuingca ✓
+Computer Policy update completed on dc02 ✓</span></pre>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 25 PUBLISH AD ══════ -->
+<div class="page" id="page-publish-ad">
+  <div class="ey">Windows Server · Win-04 · Section 25</div>
+  <div class="pt">Publish the Issuing CA certificate to Active Directory</div>
+  <div class="ps">Registering the Issuing CA in AD so domain machines can find and trust it — the final configuration step</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt (Run as Admin) — ISSUINGCA or DC01</span></div>
+    <div class="psh-body"><pre><span class="pd"># Publish Issuing CA certificate to AD NTAuthCertificates container</span>
+<span class="pd"># This allows the CA to issue certificates for AD authentication (LDAPS, smart card, etc.)</span>
+<span class="pp">C:\></span> <span class="pc">certutil -dspublish -f "C:\inetpub\wwwroot\pki\issuingca.novacrestbank.local_NovaCrestBank-Issuing-CA.crt" NTAuthCA</span>
+<span class="pg">NTAuthCA "Active Directory" store:
+Certificate added to DS store.
+CertUtil: -dsPublish command completed successfully.</span>
+
+<span class="pd"># Also publish to the SubCA container (Intermediate Certification Authorities)</span>
+<span class="pp">C:\></span> <span class="pc">certutil -dspublish -f "C:\inetpub\wwwroot\pki\issuingca.novacrestbank.local_NovaCrestBank-Issuing-CA.crt" SubCA</span>
+<span class="pg">SubCA "Active Directory" store:
+Certificate added to DS store.
+CertUtil: -dsPublish command completed successfully.</span>
+
+<span class="pd"># Force enterprise store propagation</span>
+<span class="pp">C:\></span> <span class="pc">gpupdate /force</span>
+<span class="pg">Policy update completed successfully ✓</span>
+
+<span class="pd"># Verify the Issuing CA certificate is in the enterprise NTAuth store</span>
+<span class="pp">C:\></span> <span class="pc">certutil -viewstore -enterprise NTAuth</span>
+<span class="pg">================ Certificate 0 ================
+Issuer: CN=NovaCrestBank-Root-CA
+Subject: CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=local
+NotAfter: 13/04/2036
+CertUtil: -viewstore command completed successfully.</span>
+<span class="pd">↑ Issuing CA registered in the enterprise NTAuth store ✓
+  AD authentication using Issuing CA-signed certificates is now supported</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 26 VERIFY CHAIN ══════ -->
+<div class="page" id="page-verify-chain">
+  <div class="ey">Windows Server · Win-04 · Section 26</div>
+  <div class="pt">Verify the full trust chain</div>
+  <div class="ps">Confirming the complete PKI chain from leaf certificate to Root CA is intact and trusted</div>
+
+  <div class="cert-view">
+    <div class="cert-header">
+      <span class="cert-icon">🔐</span>
+      <span class="cert-title">Certificate — NovaCrestBank-Issuing-CA</span>
+    </div>
+    <div class="cert-body">
+      <div class="cert-row">
+        <span class="cert-field">Issued to:</span>
+        <span class="cert-val ok">NovaCrestBank-Issuing-CA</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Issued by:</span>
+        <span class="cert-val gold">NovaCrestBank-Root-CA ← signed by the Root CA ✓</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Valid from:</span>
+        <span class="cert-val">13 April 2026</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Valid to:</span>
+        <span class="cert-val ok">13 April 2036 (10 years)</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Public key:</span>
+        <span class="cert-val">RSA (4096 bits)</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Signature hash:</span>
+        <span class="cert-val">sha256RSA</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Basic Constraints:</span>
+        <span class="cert-val ok">Subject Type=CA, Path Length=0</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Key Usage:</span>
+        <span class="cert-val">Certificate Signing, CRL Signing, Off-line CRL Signing</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">CRL Distribution Points:</span>
+        <span class="cert-val">http://pki.novacrestbank.local/pki/NovaCrestBank-Issuing-CA.crl</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Authority Information Access:</span>
+        <span class="cert-val">http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-field">Certification Path:</span>
+        <span class="cert-val ok">NovaCrestBank-Root-CA → NovaCrestBank-Issuing-CA — chain verified ✓</span>
+      </div>
+    </div>
+  </div>
+
+  <p>To view this certificate: on any domain-joined machine, open a Command Prompt and run <code>certlm.msc</code> (Local Computer certificate manager). Navigate to <strong>Intermediate Certification Authorities → Certificates</strong>. Double-click <strong>NovaCrestBank-Issuing-CA</strong>. Verify all fields above. Click the <strong>Certification Path</strong> tab — it shows the chain: NovaCrestBank-Root-CA at the top (trusted) → NovaCrestBank-Issuing-CA below it (valid). Both should show green ticks.</p>
+</div>
+
+<!-- ══════ 27 VERIFY ENROL ══════ -->
+<div class="page" id="page-verify-enrol">
+  <div class="ey">Windows Server · Win-04 · Section 27</div>
+  <div class="pt">Verify auto-enrolment — DC01 gets its Domain Controller certificate</div>
+  <div class="ps">The most satisfying verification — watching the Domain Controllers automatically receive their LDAPS certificates without any manual intervention</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01</span></div>
+    <div class="psh-body"><pre><span class="pd"># Force certificate auto-enrolment on DC01</span>
+<span class="pd"># (normally happens automatically at next GPO refresh — force it now to verify)</span>
+<span class="pp">PS C:\></span> <span class="pc">certutil -pulse</span>
+<span class="pg">CertUtil: -pulse command completed successfully.</span>
+
+<span class="pd"># Check if DC01 received its Domain Controller certificate</span>
+<span class="pp">PS C:\></span> <span class="pc">Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Issuer -like "*NovaCrestBank-Issuing-CA*"}</span>
+
+<span class="pg">Thumbprint                               Subject
+----------                               -------
+C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2C3  CN=dc01.novacrestbank.local</span>
+
+<span class="pd">↑ DC01 has received its certificate from the Issuing CA ✓
+  Issued by: NovaCrestBank-Issuing-CA ✓
+  Subject: CN=dc01.novacrestbank.local ✓</span>
+
+<span class="pd"># Verify LDAPS is now active (port 636) — should respond after cert is installed</span>
+<span class="pp">PS C:\></span> <span class="pc">Test-NetConnection -ComputerName dc01.novacrestbank.local -Port 636</span>
+<span class="pg">ComputerName     : dc01.novacrestbank.local
+RemoteAddress    : 10.70.0.10
+RemotePort       : 636
+TcpTestSucceeded : True</span>
+
+<span class="pd">↑ LDAPS is active on DC01 ✓
+  Port 636 is open and responding
+  vCenter can now use LDAPS for secure AD integration
+  (LDAPS requires the Domain Controller certificate — which just auto-enrolled)</span>
+
+<span class="pd"># Also verify DC02 auto-enrolled</span>
+<span class="pp">PS C:\></span> <span class="pc">Invoke-Command -ComputerName dc02 -ScriptBlock {certutil -pulse; Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Issuer -like "*Issuing*"}}</span>
+<span class="pg">Subject: CN=dc02.novacrestbank.local — auto-enrolled ✓</span></pre>
+      <div class="pann ok"><span class="pai">✓</span><span>DC01 and DC02 have automatically received Domain Controller certificates from the Issuing CA. LDAPS (port 636) is active on both DCs. vCenter AD integration can now use LDAPS. No administrator action was needed — auto-enrolment worked exactly as designed.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 28 VERIFY CRL ══════ -->
+<div class="page" id="page-verify-crl">
+  <div class="ey">Windows Server · Win-04 · Section 28</div>
+  <div class="pt">Verify CRL publication and validity</div>
+  <div class="ps">Confirming the Issuing CA's CRL is published, accessible, and valid — the operational health check</div>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt — ISSUINGCA or DC01</span></div>
+    <div class="psh-body"><pre><span class="pd"># ── Verify Issuing CA CRL is accessible via HTTP ─────────────────────</span>
+<span class="pp">C:\></span> <span class="pc">certutil -verify -urlfetch http://pki.novacrestbank.local/pki/NovaCrestBank-Issuing-CA.crl</span>
+<span class="pg">Verified Issuing CA CRL
+Expires: &lt;7 days from now&gt;
+Issuer: CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=local
+CertUtil: -verify command completed successfully.</span>
+
+<span class="pd"># ── Verify Delta CRL is also accessible ──────────────────────────────</span>
+<span class="pp">C:\></span> <span class="pc">certutil -verify -urlfetch http://pki.novacrestbank.local/pki/NovaCrestBank-Issuing-CA+.crl</span>
+<span class="pg">Verified Issuing CA Delta CRL
+CertUtil: -verify command completed successfully.</span>
+
+<span class="pd"># ── Full PKI health check — verify the entire chain ──────────────────</span>
+<span class="pp">C:\></span> <span class="pc">certutil -verify -urlfetch "C:\inetpub\wwwroot\pki\issuingca.novacrestbank.local_NovaCrestBank-Issuing-CA.crt"</span>
+<span class="pg">Verified "issuingca.novacrestbank.local_NovaCrestBank-Issuing-CA.crt"
+  Issuer: CN=NovaCrestBank-Root-CA   [trusted via GPO]
+  Subject: CN=NovaCrestBank-Issuing-CA
+  NotAfter: 13/04/2036
+  CRL: NovaCrestBank-Root-CA.crl   [verified, not expired]
+  Leaf certificate revocation check passed.
+CertUtil: -verify command completed successfully.</span>
+<span class="pd">
+↑ Complete chain verified ✓
+  Root CA certificate: trusted (in Trusted Root store via GPO)
+  Root CA CRL: valid (published at http://pki.novacrestbank.local/pki/)
+  Issuing CA certificate: signed by Root CA, not revoked
+  Issuing CA CRL: valid and accessible</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 29 FINAL CHECKLIST ══════ -->
+<div class="page" id="page-final-checklist">
+  <div class="ey">Windows Server · Win-04 · Section 29</div>
+  <div class="pt">Final checklist and what comes next</div>
+  <div class="ps">Every item that must be confirmed before Win-04 is complete — and the immediately unlocked next steps</div>
+
+  <div class="callout success">
+    <div class="cl">Win-04 complete — NovaCrestBank's PKI is fully operational</div>
+    NovaCrestBank-Issuing-CA is running as an Enterprise Subordinate CA on ISSUINGCA (10.70.0.21). Its certificate is signed by NovaCrestBank-Root-CA and is valid until April 2036. Three certificate templates are enabled. Auto-enrolment GPO is active — DC01 and DC02 have automatically received Domain Controller certificates and LDAPS is active on port 636. The Root CA certificate is distributed to all domain machines via Group Policy. CRL and AIA URLs are configured and accessible. The complete PKI chain verifies cleanly.
+  </div>
+
+  <h2>Verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">ISSUINGCA VM: domain-joined to novacrestbank.local</span><span class="spec-val badge bg">✓ NOVACRESTBANK\Administrator logs in</span></div>
+    <div class="spec-row"><span class="spec-label">AD CS role: Enterprise Subordinate CA</span><span class="spec-val badge bg">✓ certutil -cainfo confirms type (5)</span></div>
+    <div class="spec-row"><span class="spec-label">CA name: NovaCrestBank-Issuing-CA</span><span class="spec-val badge bg">✓ Confirmed in certificate Subject</span></div>
+    <div class="spec-row"><span class="spec-label">Signed by: NovaCrestBank-Root-CA</span><span class="spec-val badge bg">✓ Confirmed in certificate Issuer</span></div>
+    <div class="spec-row"><span class="spec-label">Validity: 10 years (expires April 2036)</span><span class="spec-val badge bg">✓ Confirmed in certificate</span></div>
+    <div class="spec-row"><span class="spec-label">Key: RSA 4096 SHA-256</span><span class="spec-val badge bg">✓ Confirmed in certificate Details</span></div>
+    <div class="spec-row"><span class="spec-label">CA service (certsvc): Running</span><span class="spec-val badge bg">✓ Get-Service certsvc: Running</span></div>
+    <div class="spec-row"><span class="spec-label">CDP: http://pki.novacrestbank.local/pki/</span><span class="spec-val badge bg">✓ In certificate extension, HTTP 200</span></div>
+    <div class="spec-row"><span class="spec-label">AIA: http://pki.novacrestbank.local/pki/</span><span class="spec-val badge bg">✓ In certificate extension, HTTP 200</span></div>
+    <div class="spec-row"><span class="spec-label">CRL: 7-day validity, published to DC01 pki share</span><span class="spec-val badge bg">✓ certutil -verify passes</span></div>
+    <div class="spec-row"><span class="spec-label">Delta CRL: 1-day, accessible via HTTP</span><span class="spec-val badge bg">✓ certutil -verify passes</span></div>
+    <div class="spec-row"><span class="spec-label">Template: NovaCrestBank-WebServer enabled</span><span class="spec-val badge bg">✓ In CA Certificate Templates list</span></div>
+    <div class="spec-row"><span class="spec-label">Template: NovaCrestBank-Computer enabled</span><span class="spec-val badge bg">✓ In CA Certificate Templates list</span></div>
+    <div class="spec-row"><span class="spec-label">Template: NovaCrestBank-DomainController enabled</span><span class="spec-val badge bg">✓ In CA Certificate Templates list</span></div>
+    <div class="spec-row"><span class="spec-label">GPO: NovaCrestBank-PKI-AutoEnrollment linked to domain</span><span class="spec-val badge bg">✓ Linked to novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Root CA cert in GPO Trusted Root distribution</span><span class="spec-val badge bg">✓ All domain machines receive it</span></div>
+    <div class="spec-row"><span class="spec-label">DC01 Domain Controller cert: auto-enrolled</span><span class="spec-val badge bg">✓ In Cert:\LocalMachine\My</span></div>
+    <div class="spec-row"><span class="spec-label">DC02 Domain Controller cert: auto-enrolled</span><span class="spec-val badge bg">✓ In Cert:\LocalMachine\My</span></div>
+    <div class="spec-row"><span class="spec-label">LDAPS active on DC01 and DC02 (port 636)</span><span class="spec-val badge bg">✓ Test-NetConnection port 636 succeeds</span></div>
+    <div class="spec-row"><span class="spec-label">Issuing CA registered in AD NTAuth store</span><span class="spec-val badge bg">✓ certutil -viewstore -enterprise NTAuth</span></div>
+    <div class="spec-row"><span class="spec-label">CA Web Enrollment accessible</span><span class="spec-val badge ba">⚠ Configure CA Web Enrollment role service next</span></div>
+  </div>
+
+  <h2>Configure CA Web Enrollment — the deferred step</h2>
+  <p>CA Web Enrollment was installed as a role service but not yet configured through the AD CS Configuration Wizard. Run the wizard again to configure it:</p>
+
+  <div class="psh">
+    <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">The CA Web Enrollment configuration pass</span></div>
+    <div class="psh-body"><pre><span class="pd"># Click the yellow flag notification in Server Manager on ISSUINGCA</span>
+<span class="pd"># Click "Configure Active Directory Certificate Services"</span>
+<span class="pd"># Credentials: NOVACRESTBANK\Administrator</span>
+<span class="pd"># Role Services: tick "Certification Authority Web Enrollment" ONLY</span>
+<span class="pd"># (Leave Certification Authority unticked — already configured)</span>
+<span class="pd"># Click Next → Configure → Close</span>
+<span class="pd">#</span>
+<span class="pd"># After configuration, verify Web Enrollment is accessible:</span>
+<span class="pd"># Open a browser → https://issuingca.novacrestbank.local/certsrv</span>
+<span class="pd"># A certificate warning appears (IIS uses the self-signed cert still)</span>
+<span class="pd"># After accepting, log in with NOVACRESTBANK\Administrator</span>
+<span class="pd"># The page shows: "Microsoft Active Directory Certificate Services — NovaCrestBank-Issuing-CA"</span>
+<span class="pd"># Web Enrollment is operational ✓</span>
+<span class="pd">#</span>
+<span class="pd"># Note: The browser certificate warning on certsrv will be resolved in</span>
+<span class="pd"># vSphere-03 when IIS on ISSUINGCA gets a CA-signed certificate</span></pre>
+    </div>
+  </div>
+
+  <h2>What the completed PKI unlocks — the next guides</h2>
+  <table>
+    <thead><tr><th>Next guide</th><th>What it does with the PKI</th><th>Specific certs needed</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>vSphere-03</strong><br/>vCenter AD integration + cert replacement</td>
+        <td>Replace vCenter's self-signed TLS cert with one from the Issuing CA. Replace ESXi host self-signed certs. Configure vCenter SSO to use AD (LDAPS on port 636 — now active). Map AD groups to vCenter roles.</td>
+        <td>Web Server cert for vcenter.novacrestbank.local. Web Server certs for esxi01–05. The DC LDAPS cert is already in place from auto-enrolment.</td>
+      </tr>
+      <tr>
+        <td><strong>vDS Phase 2</strong><br/>Remaining VMkernel migration</td>
+        <td>Migrate vMotion, vSAN, and NFS VMkernel adapters to the vDS. Remove old standard vSwitches.</td>
+        <td>No new certificates needed — but stable management connectivity (which now has PKI-signed certs) is a prerequisite.</td>
+      </tr>
+      <tr>
+        <td><strong>OpenShift</strong><br/>OCP installation and configuration</td>
+        <td>Install OpenShift Container Platform. Configure the OCP API and Ingress certificates. Configure OCP to authenticate against AD via LDAPS.</td>
+        <td>Web Server cert for api.ocp.novacrestbank.local. Wildcard Web Server cert for *.apps.ocp.novacrestbank.local. LDAPS already active from DC auto-enrolment.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="cl">The PKI series is complete — Win-03 and Win-04 together</div>
+    The two-guide PKI series has built NovaCrestBank's complete internal certificate infrastructure. The Root CA (NovaCrestBank-Root-CA, Win-03) is offline and holds the root of trust for 20 years. The Issuing CA (NovaCrestBank-Issuing-CA, Win-04) is online and ready to issue certificates on demand. Auto-enrolment is active. Domain Controllers have LDAPS certificates. The CRL infrastructure is operational. Every subsequent guide in this series can rely on trusted TLS certificates for every component it configures.
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--pki-blue)';
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

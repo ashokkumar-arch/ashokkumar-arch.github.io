@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NSX-05 — Distributed Firewall · NovaCrestBank</title>
+<style>
+  :root{
+    --bg:#f4f3ef;--bg2:#ffffff;--bg3:#ececea;
+    --text:#1a1917;--text2:#56544d;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --nsx:#6e2b8c;--nsx-bg:#f3edfb;
+    --dfw:#7a0028;--dfw-bg:#fce8ee;--dfw-mid:#c02050;
+    --t1:#0a6b3c;--t1-bg:#e8f5ee;
+    --ocp:#cc0000;--ocp-bg:#fff0f0;
+    --win:#107c10;--win-bg:#e8f5e8;
+    --vcf:#1b5e8c;--vcf-bg:#e8f2fb;
+    --green:#0e6b45;--amber:#a87015;--red:#9e2828;
+    --pci:#7a3800;--pci-bg:#fff3e0;
+    --nist:#003366;--nist-bg:#e8eef8;
+    --r:10px;--r2:6px;
+
+    /* zone colours */
+    --z-mgmt:#003366;--z-mgmt-bg:#e8eef8;
+    --z-infra:#107c10;--z-infra-bg:#e8f5e8;
+    --z-ocp:#b84000;--z-ocp-bg:#fdf0e8;
+    --z-app:#6e2b8c;--z-app-bg:#f3edfb;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:275px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:48px;}
+  .sh{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .series{font-size:10px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--dfw);margin-bottom:4px;}
+  .sh h1{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:3px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:10px 20px 4px;}
+  .ni{display:flex;align-items:flex-start;gap:9px;padding:7px 20px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .12s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--dfw);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;transition:background .12s;}
+  .ni.active .nd{background:var(--dfw);}
+
+  /* ── MAIN ── */
+  .main{margin-left:275px;padding:44px 56px 110px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dfw);margin-bottom:6px;}
+  .pt{font-size:26px;font-weight:700;color:var(--text);margin-bottom:7px;line-height:1.22;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:32px 0 11px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 20px;color:var(--text);}
+  li{margin-bottom:7px;font-size:14px;line-height:1.72;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--dfw);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--dfw);background:var(--bg3);
+    padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.success{border-left-color:var(--green);}
+  .callout.pci{border-left-color:var(--pci);}
+  .callout.nist{border-left-color:var(--nist);}
+  .callout.nsx{border-left-color:var(--nsx);}
+  .callout.why{border-left-color:#5a4000;}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.success .cl{color:var(--green);}
+  .callout.pci .cl{color:var(--pci);}
+  .callout.nist .cl{color:var(--nist);}
+  .callout.nsx .cl{color:var(--nsx);}
+  .callout.why .cl{color:#5a4000;}
+  .callout:not(.warn):not(.success):not(.pci):not(.nist):not(.nsx):not(.why) .cl{color:var(--dfw);}
+
+  /* ── DECISION ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--nsx);border-radius:0 var(--r2) var(--r2) 0;
+    padding:14px 18px;margin:18px 0;}
+  .dl{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--nsx);margin-bottom:6px;}
+  .dq{font-size:14px;font-weight:600;margin-bottom:9px;color:var(--text);}
+  .da{font-size:13.5px;color:var(--text2);line-height:1.72;}
+  .da strong{color:var(--text);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES / REG ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bgr{background:#eeecea;color:#3c3c38;}
+  .allow{background:#e4f0e0;color:#1a5028;font-weight:700;}
+  .deny{background:#fce8e8;color:#4e1313;font-weight:700;}
+  .reg{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+    border-radius:4px;font-size:11px;font-weight:700;margin:2px 2px;}
+  .reg.pci{background:var(--pci-bg);color:var(--pci);border:1px solid #e8c090;}
+  .reg.nist{background:var(--nist-bg);color:var(--nist);border:1px solid #a0b8d8;}
+
+  /* ── SPEC ROWS ── */
+  .spec-row{display:flex;gap:9px;padding:6px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:235px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:20px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--dfw);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ══ NSX GUI MOCKUP ══ */
+  .nsx-shell{background:#1a1a2e;border-radius:var(--r);overflow:hidden;
+    margin:20px 0;border:1px solid #2a2a4e;box-shadow:0 4px 24px rgba(0,0,0,.35);}
+  .nsx-topbar{background:#0f0f1e;padding:0;display:flex;align-items:stretch;
+    border-bottom:1px solid #2a2a4e;height:46px;}
+  .nsx-logo{padding:0 18px;display:flex;align-items:center;gap:10px;
+    border-right:1px solid #2a2a4e;}
+  .nsx-logo-badge{background:var(--nsx);color:#fff;font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:4px;}
+  .nsx-logo-text{font-size:12.5px;font-weight:600;color:#e8e0f0;white-space:nowrap;}
+  .nsx-tabs{display:flex;align-items:stretch;flex:1;}
+  .nsx-tab{padding:0 18px;display:flex;align-items:center;font-size:12.5px;
+    color:#9080b0;border-bottom:2px solid transparent;border-right:1px solid #2a2a4e;}
+  .nsx-tab.active{color:#e0d0f8;border-bottom-color:var(--dfw);background:#1f1f38;}
+  .nsx-body{display:flex;min-height:300px;}
+  .nsx-leftnav{width:205px;flex-shrink:0;background:#141424;
+    border-right:1px solid #2a2a4e;padding:10px 0;}
+  .nsx-nav-sec{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:#5a5080;padding:8px 15px 3px;}
+  .nsx-nav-item{padding:7px 15px;font-size:12.5px;color:#9080b0;
+    display:flex;align-items:center;gap:8px;line-height:1.3;}
+  .nsx-nav-item.active{background:#2a0010;color:#e07090;
+    border-left:2px solid var(--dfw);padding-left:13px;}
+  .nsx-nav-item.sub{padding-left:26px;font-size:12px;}
+  .nsx-nav-item.sub.active{padding-left:24px;}
+  .nsx-content{flex:1;background:#1a1a2e;overflow:auto;}
+  .nsx-ch{padding:14px 22px 11px;border-bottom:1px solid #2a2a4e;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .nsx-ct{font-size:15px;font-weight:700;color:#e8e0f0;}
+  .nsx-cs{font-size:12px;color:#9080b0;margin-top:2px;}
+  .nsx-cb{padding:16px 22px;}
+  .nsx-form{background:#141424;border-radius:7px;padding:16px 20px;margin:12px 0;
+    border:1px solid #2a2a4e;}
+  .nsx-frow{display:flex;gap:14px;margin-bottom:13px;align-items:flex-start;flex-wrap:wrap;}
+  .nsx-fg{flex:1;min-width:160px;}
+  .nsx-lbl{font-size:11.5px;color:#9080b0;margin-bottom:4px;display:block;}
+  .nsx-req{color:#ff6060;font-size:10px;font-weight:700;}
+  .nsx-inp{width:100%;background:#1f1f38;border:1px solid #3a2a6a;border-radius:4px;
+    padding:7px 11px;font-size:13px;color:#e8e0f0;font-family:inherit;}
+  .nsx-inp.ok{border-color:var(--dfw);background:#1a0008;}
+  .nsx-sel{width:100%;background:#1f1f38;border:1px solid #3a2a6a;border-radius:4px;
+    padding:7px 11px;font-size:13px;color:#e8e0f0;}
+  .nsx-sel.ok{border-color:var(--dfw);background:#1a0008;}
+  .nsx-hint{font-size:11px;color:#7060a0;margin-top:3px;line-height:1.5;}
+  .nsx-hint.warn{color:#c8a030;}
+  .nsx-div{border:none;border-top:1px solid #2a2a4e;margin:13px 0;}
+  .nsx-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.07em;color:#7060a0;margin-bottom:9px;}
+  .nsx-btn{display:inline-flex;align-items:center;padding:7px 17px;
+    border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+  .nsx-btn.p{background:var(--dfw);color:#fff;}
+  .nsx-btn.s{background:#2a2a4e;color:#d0b0ff;border:1px solid #4a3a7a;}
+  .nsx-btn.sm{padding:5px 11px;font-size:12px;}
+  .nsx-footer{padding:12px 22px;border-top:1px solid #2a2a4e;
+    display:flex;justify-content:flex-end;gap:9px;}
+  .nsx-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0;}
+  .nsx-tbl th{background:#14142a;color:#9080b0;padding:7px 12px;text-align:left;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    border-bottom:1px solid #2a2a4e;font-weight:600;}
+  .nsx-tbl td{padding:8px 12px;border-bottom:0.5px solid #22223a;
+    color:#d0c8e8;vertical-align:middle;}
+  .nsx-tbl tr:last-child td{border-bottom:none;}
+  .st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;}
+  .st-dot{width:7px;height:7px;border-radius:50%;}
+  .st.ok .st-dot{background:#4ccd99;}.st.ok{color:#4ccd99;}
+  .st.dn .st-dot{background:#e05252;}.st.dn{color:#e05252;}
+
+  /* ── DFW RULE TABLE inside GUI ── */
+  .dfw-policy{background:#0f0f1e;border-radius:7px;overflow:hidden;margin:12px 0;border:1px solid #2a2a4e;}
+  .dfw-policy-header{background:#1a0010;padding:9px 14px;display:flex;
+    align-items:center;gap:10px;border-bottom:1px solid #2a2a4e;}
+  .dfw-ph-name{font-size:13px;font-weight:700;color:#e07090;}
+  .dfw-ph-count{font-size:11px;color:#9080b0;margin-left:auto;}
+  .dfw-rule{display:grid;font-size:11.5px;border-bottom:0.5px solid #22223a;
+    grid-template-columns:26px 100px 1fr 1fr 120px 80px 60px 60px;
+    gap:0;align-items:center;}
+  .dfw-rule:last-child{border-bottom:none;}
+  .dfw-rule > div{padding:7px 10px;color:#d0c8e8;overflow:hidden;
+    white-space:nowrap;text-overflow:ellipsis;}
+  .dfw-rule.header > div{color:#7060a0;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.05em;background:#14142a;
+    padding:6px 10px;}
+  .dfw-seq{color:#5a5070;font-size:10.5px;}
+  .dfw-name{font-weight:600;color:#e0d0f8;font-size:12px;}
+  .dfw-src{color:#70a0d0;font-family:monospace;font-size:11.5px;}
+  .dfw-dst{color:#a070d0;font-family:monospace;font-size:11.5px;}
+  .dfw-svc{color:#90c0a0;font-family:monospace;font-size:11px;}
+  .dfw-allow{color:#4ccd99;font-weight:700;font-size:11.5px;}
+  .dfw-deny-cell{color:#e05252;font-weight:700;font-size:11.5px;}
+  .dfw-log{color:#f1c40f;font-size:10.5px;}
+  .dfw-rule.deny-row > div{background:#1a0008;}
+
+  /* ── ANNOTATIONS ── */
+  .ann{display:flex;gap:10px;background:#0f1520;border-left:3px solid var(--amber);
+    padding:9px 14px;margin:8px 0;border-radius:0 5px 5px 0;
+    font-size:12.5px;color:#d0c8b0;line-height:1.55;}
+  .ann.ok{border-left-color:var(--green);}
+  .ann.info{border-left-color:var(--vcf);}
+  .ann.err{border-left-color:var(--red);}
+  .ai{flex-shrink:0;font-size:14px;margin-top:1px;}
+
+  /* ── STEPS ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:26px;align-items:flex-start;}
+  .sn{flex-shrink:0;width:32px;height:32px;border-radius:50%;
+    background:var(--dfw);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .sc{flex:1;}
+  .st2{font-weight:700;margin-bottom:5px;font-size:14.5px;}
+  .sp{font-size:12px;color:var(--dfw);background:var(--dfw-bg);
+    padding:3px 10px;border-radius:4px;display:inline-block;margin-bottom:8px;
+    font-family:monospace;}
+
+  /* ── ZONE CARDS ── */
+  .zone-card{border-radius:var(--r);padding:14px 18px;margin:10px 0;}
+  .zone-card.mgmt{background:var(--z-mgmt-bg);border:1.5px solid var(--z-mgmt);}
+  .zone-card.infra{background:var(--z-infra-bg);border:1.5px solid var(--z-infra);}
+  .zone-card.ocp{background:var(--z-ocp-bg);border:1.5px solid var(--z-ocp);}
+  .zone-card.app{background:var(--z-app-bg);border:1.5px solid var(--z-app);}
+  .zone-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+  .zone-card.mgmt .zone-title{color:var(--z-mgmt);}
+  .zone-card.infra .zone-title{color:var(--z-infra);}
+  .zone-card.ocp .zone-title{color:var(--z-ocp);}
+  .zone-card.app .zone-title{color:var(--z-app);}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="series">NovaCrestBank · NSX Configuration</div>
+    <h1>NSX-05 — Distributed Firewall</h1>
+    <p>GUI only · Screen by screen · Every field explained</p>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Before you begin</div>
+    <div class="ni active" onclick="show('prereqs')"><div class="nd"></div>01 — Prerequisites and what this guide builds</div>
+    <div class="ni" onclick="show('dfw-model')"><div class="nd"></div>02 — DFW policy model — policies, rules, and evaluation order</div>
+    <div class="ni" onclick="show('policy-plan')"><div class="nd"></div>03 — NovaCrestBank DFW policy plan — all rules before clicking</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part A — Security Groups</div>
+    <div class="ni" onclick="show('sg-concept')"><div class="nd"></div>04 — What Security Groups are and why they are used in rules</div>
+    <div class="ni" onclick="show('sg-create')"><div class="nd"></div>05 — Create all four Security Groups</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part B — Services (port definitions)</div>
+    <div class="ni" onclick="show('svc-concept')"><div class="nd"></div>06 — Custom services for KMIP and OCP etcd</div>
+    <div class="ni" onclick="show('svc-create')"><div class="nd"></div>07 — Create custom services</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Part C — DFW Policies and Rules</div>
+    <div class="ni" onclick="show('policy-create')"><div class="nd"></div>08 — Create the three DFW Policy sections</div>
+    <div class="ni" onclick="show('rules-mgmt')"><div class="nd"></div>09 — Management Policy rules — allow admin access</div>
+    <div class="ni" onclick="show('rules-inter-zone')"><div class="nd"></div>10 — Inter-zone Policy rules — OCP to Infra allow list</div>
+    <div class="ni" onclick="show('rules-ocp-internal')"><div class="nd"></div>11 — OCP Internal Policy rules — node-to-node traffic</div>
+    <div class="ni" onclick="show('rules-default-deny')"><div class="nd"></div>12 — Default Deny Policy — the last rule that catches everything</div>
+  </div>
+  <div class="nav-group">
+    <div class="ngl">Publish and verify</div>
+    <div class="ni" onclick="show('publish')"><div class="nd"></div>13 — Publish the DFW configuration</div>
+    <div class="ni" onclick="show('traceflow-allow')"><div class="nd"></div>14 — Traceflow — verify an allowed flow (DNS OCP → DC01)</div>
+    <div class="ni" onclick="show('traceflow-deny')"><div class="nd"></div>15 — Traceflow — verify a denied flow (OCP → DC01 RDP)</div>
+    <div class="ni" onclick="show('rule-hit-counters')"><div class="nd"></div>16 — Check rule hit counters — confirm DFW is enforcing</div>
+    <div class="ni" onclick="show('final')"><div class="nd"></div>17 — Final checklist and NSX configuration complete</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══ 01 PREREQS ═══ -->
+<div class="page active" id="page-prereqs">
+  <div class="ey">NSX-05 · Section 01</div>
+  <div class="pt">Prerequisites and what this guide builds</div>
+  <div class="ps">NSX-04 completed the networking and load balancing. NSX-05 adds the security layer — the Distributed Firewall that enforces microsegmentation across every VM in the NSX environment.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-01<br/>TZ+HTN</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-02<br/>Edge+T0</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-03<br/>T1+Seg</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>NSX-04<br/>LB</div>
+    <div class="pt-step active"><span class="pt-n">→</span>NSX-05<br/>DFW</div>
+    <div class="pt-step"><span class="pt-n">6</span>WIN<br/>DNS</div>
+  </div>
+
+  <h2>Prerequisites</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NSX-03 segments</span><span class="spec-val">seg-infra-services and seg-ocp-nodes both exist and Up</span></div>
+    <div class="spec-row"><span class="spec-label">NSX-03 VM migration</span><span class="spec-val">DC01, DC02, IssuingCA on seg-infra-services — they are now in scope for DFW rules</span></div>
+    <div class="spec-row"><span class="spec-label">NSX-04 LB</span><span class="spec-val">NCB-OCP-LB operational — VIPs 10.50.0.200 and 10.50.0.201</span></div>
+    <div class="spec-row"><span class="spec-label">VCF-01 DFW policy plan</span><span class="spec-val">The security zone definitions and inter-zone allow rules from VCF-01 Section 15 — this guide implements that plan in the GUI</span></div>
+  </div>
+
+  <h2>What this guide builds</h2>
+  <ol>
+    <li><strong>Security Groups</strong> — NSX groups that identify VMs by segment membership. Four groups: NCB-SG-Management, NCB-SG-Infra-Services, NCB-SG-OCP-Nodes, NCB-SG-Any-External.</li>
+    <li><strong>Custom Services</strong> — port definitions for KMIP (TCP 5696) and OCP etcd (TCP 2379–2380) that are not in NSX's built-in service catalogue.</li>
+    <li><strong>DFW Policy sections and rules</strong> — four policy sections: Management (allow admin access), Inter-Zone (OCP→Infra allow list), OCP Internal (node-to-node cluster traffic), and Default Deny (catch-all block).</li>
+    <li><strong>Publish and verify</strong> — publish the DFW configuration to all ESXi hosts, then verify with Traceflow that allowed flows pass and denied flows are blocked.</li>
+  </ol>
+
+  <div class="callout pci">
+    <div class="cl">PCI-DSS v4.0 Requirement 1.2.1 and 1.3 — This entire guide is a PCI-DSS control</div>
+    PCI-DSS Req 1.2.1 requires all network security controls to be documented with business justification. Req 1.3 requires restricting inbound and outbound traffic to what is necessary. The DFW policy in this guide implements both requirements simultaneously — the default-deny rule blocks all traffic not explicitly permitted, and every allow rule in this guide has a documented business justification.
+  </div>
+</div>
+
+<!-- ═══ 02 DFW MODEL ═══ -->
+<div class="page" id="page-dfw-model">
+  <div class="ey">NSX-05 · Section 02</div>
+  <div class="pt">DFW policy model — policies, sections, rules, and evaluation order</div>
+  <div class="ps">Understanding how the NSX DFW evaluates rules before creating any — the evaluation order is what makes the default-deny work correctly</div>
+
+  <div class="decision">
+    <div class="dl">How DFW evaluates rules — top-to-bottom, first match wins</div>
+    <div class="dq">A packet from an OCP node (10.50.0.11) arrives at DC01 (10.70.0.10) on TCP port 636. How does the DFW decide whether to allow or block it?</div>
+    <div class="da"><strong>The DFW evaluates rules from top to bottom, in order of policy section and rule sequence within each section. The first rule that matches the packet's source, destination, and service is applied — and evaluation stops. Subsequent rules are not checked.</strong><br/><br/>
+    For the example packet (OCP node → DC01 on TCP 636):<br/>
+    1. DFW checks the Management Policy rules first — no match (packet is not from a management workstation).<br/>
+    2. DFW checks the Inter-Zone Policy rules — it finds Rule: "OCP Nodes → Infra Services on TCP 636 — ALLOW." This matches. The packet is allowed. Evaluation stops. DC01 receives the LDAPS query.<br/>
+    3. The Default Deny rule is never reached for this packet — the ALLOW rule matched first.<br/><br/>
+    Now a different packet: OCP node → DC01 on TCP 3389 (RDP). Rules 1 and 2 are evaluated — no ALLOW rule matches RDP. The Default Deny rule (last in the table) matches. The packet is silently dropped. DC01 never receives it.<br/><br/>
+    <strong>This is why rule order matters critically, and why the Default Deny rule must always be last.</strong>
+    </div>
+  </div>
+
+  <h2>DFW object hierarchy in NSX Manager</h2>
+  <table>
+    <thead><tr><th>Object</th><th>What it is</th><th>NovaCrestBank example</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Category</strong></td>
+        <td>The highest-level grouping. NSX has fixed categories: Ethernet, Emergency, Infrastructure, Environment, Application. Rules in higher-priority categories are evaluated before lower ones. This guide uses the <strong>Application</strong> category for all policies.</td>
+        <td>Application category — for workload-level segmentation</td>
+      </tr>
+      <tr>
+        <td><strong>Policy (Section)</strong></td>
+        <td>A named group of related rules within a category. Policies are evaluated in order within a category. A policy is a logical boundary — "all rules related to management access" or "all inter-zone rules."</td>
+        <td>NCB-Policy-Management, NCB-Policy-InterZone, NCB-Policy-OCP-Internal, NCB-Policy-Default-Deny</td>
+      </tr>
+      <tr>
+        <td><strong>Rule</strong></td>
+        <td>A single match condition and action. Each rule has: Source (group), Destination (group), Service (port/protocol), Action (Allow or Deny), and a Log toggle.</td>
+        <td>Rule: "OCP Nodes → Infra Services — TCP 636 — Allow — Log"</td>
+      </tr>
+      <tr>
+        <td><strong>Applied To</strong></td>
+        <td>Which Transport Nodes (ESXi hosts) enforce the policy. "DFW" means all ESXi hosts running NSX. This is the default and is correct for NovaCrestBank — all 9 ESXi hosts enforce the same policy.</td>
+        <td>DFW (all hosts) for all policies</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout nsx">
+    <div class="cl">Navigation for all DFW work</div>
+    All DFW configuration is under: <strong>Security → Distributed Firewall</strong>. The DFW page shows policy sections with rules inside them. Security Groups are under: <strong>Security → Groups</strong>. Create Groups first, then return to Distributed Firewall to create policies and rules that reference those groups.
+  </div>
+</div>
+
+<!-- ═══ 03 POLICY PLAN ═══ -->
+<div class="page" id="page-policy-plan">
+  <div class="ey">NSX-05 · Section 03</div>
+  <div class="pt">NovaCrestBank DFW policy plan — every rule before any click</div>
+  <div class="ps">The complete DFW rule table — exactly what will be created in the GUI. Study this before touching the screen.</div>
+
+  <div class="callout why">
+    <div class="cl">Read the complete rule table before creating anything</div>
+    The DFW rule table is read top-to-bottom. The sequence of policies and rules within them is the policy. Understanding the complete table before creating rules prevents out-of-order mistakes — if the Default Deny rule were accidentally placed above the allow rules, all traffic would be blocked immediately.
+  </div>
+
+  <h2>Policy Section 1 — NCB-Policy-Management (evaluated first)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Rule name</th><th>Source</th><th>Destination</th><th>Service</th><th>Action</th><th>Log</th><th>Regulatory anchor</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td><td>Allow-Mgmt-to-All</td>
+        <td>NCB-SG-Management</td><td>Any</td><td>Any</td>
+        <td><span class="allow">ALLOW</span></td><td>Yes</td>
+        <td><span class="reg nist">NIST SC-7(13)</span></td>
+      </tr>
+      <tr>
+        <td>2</td><td>Allow-All-to-Mgmt-Responses</td>
+        <td>Any</td><td>NCB-SG-Management</td><td>Established</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td><span class="reg nist">NIST AC-3</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Policy Section 2 — NCB-Policy-InterZone (evaluated second)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Rule name</th><th>Source</th><th>Destination</th><th>Service</th><th>Action</th><th>Log</th><th>Regulatory anchor</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>3</td><td>Allow-OCP-DNS</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-Infra-Services</td><td>DNS (53 TCP+UDP)</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td><span class="reg pci">PCI 1.3.2</span></td>
+      </tr>
+      <tr>
+        <td>4</td><td>Allow-OCP-LDAPS</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-Infra-Services</td><td>LDAPS (TCP 636)</td>
+        <td><span class="allow">ALLOW</span></td><td>Yes</td>
+        <td><span class="reg pci">PCI 8.6</span></td>
+      </tr>
+      <tr>
+        <td>5</td><td>Allow-OCP-CertSrv</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-Infra-Services</td><td>HTTPS (TCP 443)</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td><span class="reg pci">PCI 4.2.1</span></td>
+      </tr>
+      <tr>
+        <td>6</td><td>Allow-OCP-KMIP</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-Infra-Services</td><td>KMIP (TCP 5696)</td>
+        <td><span class="allow">ALLOW</span></td><td>Yes</td>
+        <td><span class="reg pci">PCI 3.7.2</span></td>
+      </tr>
+      <tr>
+        <td>7</td><td>Allow-Infra-to-OCP-API</td>
+        <td>NCB-SG-Infra-Services</td><td>NCB-SG-OCP-Nodes</td><td>TCP 6443</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td><span class="reg nist">NIST AC-3</span></td>
+      </tr>
+      <tr>
+        <td>8</td><td>Allow-External-to-OCP-Ingress</td>
+        <td>Any</td><td>NCB-SG-OCP-Nodes</td><td>HTTPS 443, HTTP 80</td>
+        <td><span class="allow">ALLOW</span></td><td>Yes</td>
+        <td><span class="reg pci">PCI 1.3.1</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Policy Section 3 — NCB-Policy-OCP-Internal (evaluated third)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Rule name</th><th>Source</th><th>Destination</th><th>Service</th><th>Action</th><th>Log</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>9</td><td>Allow-OCP-etcd</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-OCP-Nodes</td><td>TCP 2379–2380</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td>etcd cluster replication between master nodes</td>
+      </tr>
+      <tr>
+        <td>10</td><td>Allow-OCP-API-Internal</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-OCP-Nodes</td><td>TCP 6443</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td>Node-to-API-server communication within the cluster</td>
+      </tr>
+      <tr>
+        <td>11</td><td>Allow-OCP-Kubelet</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-OCP-Nodes</td><td>TCP 10250</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td>Kubelet API — master nodes communicate with worker/infra kubelets</td>
+      </tr>
+      <tr>
+        <td>12</td><td>Allow-OCP-VXLAN</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-OCP-Nodes</td><td>UDP 4789</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td>OVN-Kubernetes pod overlay network (VXLAN/Geneve between nodes)</td>
+      </tr>
+      <tr>
+        <td>13</td><td>Allow-OCP-Geneve</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-OCP-Nodes</td><td>UDP 6081</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td>OVN-Kubernetes GENEVE tunnel between nodes</td>
+      </tr>
+      <tr>
+        <td>14</td><td>Allow-OCP-NodePort</td>
+        <td>NCB-SG-OCP-Nodes</td><td>NCB-SG-OCP-Nodes</td><td>TCP 30000–32767</td>
+        <td><span class="allow">ALLOW</span></td><td>No</td>
+        <td>Kubernetes NodePort service range</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Policy Section 4 — NCB-Policy-Default-Deny (evaluated last — catches everything not yet matched)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Rule name</th><th>Source</th><th>Destination</th><th>Service</th><th>Action</th><th>Log</th><th>Regulatory anchor</th></tr></thead>
+    <tbody>
+      <tr style="background:#fce8e8;">
+        <td>15</td><td>Default-Deny-All</td>
+        <td>Any</td><td>Any</td><td>Any</td>
+        <td><span class="deny">DENY</span></td><td>Yes</td>
+        <td><span class="reg pci">PCI 1.2.1</span> <span class="reg nist">NIST SC-7</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ 04 SG CONCEPT ═══ -->
+<div class="page" id="page-sg-concept">
+  <div class="ey">NSX-05 · Section 04</div>
+  <div class="pt">What Security Groups are and why rules use them instead of raw IPs</div>
+  <div class="ps">Security Groups are dynamic membership sets — they automatically include VMs that match a defined criteria. Rules referencing groups remain valid even when VM IPs change.</div>
+
+  <div class="decision">
+    <div class="dl">Security Group vs IP address in a DFW rule — why groups are always preferred</div>
+    <div class="dq">A DFW rule could say "Allow traffic from 10.50.0.11, 10.50.0.12, 10.50.0.13 to 10.70.0.10, 10.70.0.11." Why use Security Groups instead of specific IPs?</div>
+    <div class="da"><strong>Three reasons: dynamic membership, operational clarity, and scale.</strong><br/><br/>
+    <strong>Dynamic membership:</strong> A Security Group defined as "all VMs on seg-ocp-nodes" automatically includes every VM connected to that segment — today and in the future. When a new OCP worker node is added (10.50.0.34), it immediately inherits all DFW rules referencing NCB-SG-OCP-Nodes without any rule modification. With IP-based rules, every new node would require manual rule updates.<br/><br/>
+    <strong>Operational clarity:</strong> "NCB-SG-OCP-Nodes → NCB-SG-Infra-Services on TCP 636" reads as a business intent: "OCP cluster nodes are allowed to authenticate against infrastructure services." "10.50.0.11, .12, .13 → 10.70.0.10, .11 on TCP 636" is a list of numbers with no inherent meaning — it does not document the business reason.<br/><br/>
+    <strong>Scale:</strong> NSX Security Groups are evaluated in the ESXi kernel — they scale to hundreds of members with no performance impact. Adding or removing a member from a group is an O(1) operation; the DFW rules themselves do not change.<br/><br/>
+    <span class="reg pci">PCI-DSS v4.0 Req 1.2.1</span> — Groups with descriptive names make the business justification for each rule self-documenting, satisfying the requirement to document the purpose of each network security control.
+    </div>
+  </div>
+
+  <h2>NovaCrestBank's four Security Groups</h2>
+  <div class="grid-2">
+    <div class="zone-card mgmt">
+      <div class="zone-title">NCB-SG-Management</div>
+      <p style="font-size:13px;">Management workstations and jump hosts used by infrastructure administrators. Membership: <strong>IP addresses</strong> of management workstations (e.g., 10.10.0.100–.110 — the administrator laptop subnet on VLAN 10).</p>
+    </div>
+    <div class="zone-card infra">
+      <div class="zone-title">NCB-SG-Infra-Services</div>
+      <p style="font-size:13px;">Infrastructure service VMs — DC01, DC02, IssuingCA. Membership: <strong>Segment: seg-infra-services</strong> — all VMs on this segment are automatically members.</p>
+    </div>
+    <div class="zone-card ocp">
+      <div class="zone-title">NCB-SG-OCP-Nodes</div>
+      <p style="font-size:13px;">All OpenShift nodes — masters, infra, workers. Membership: <strong>Segment: seg-ocp-nodes</strong> — any VM connected to this segment is an OCP node and automatically a member.</p>
+    </div>
+    <div class="zone-card app">
+      <div class="zone-title">NCB-SG-Any-External</div>
+      <p style="font-size:13px;">Represents external traffic arriving via the NSX LB VIPs. In practice this is the "Any" source — the NSX DFW uses "Any" for external sources, and this group acts as a documentation placeholder to make the ingress rule intent clear.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 05 SG CREATE ═══ -->
+<div class="page" id="page-sg-create">
+  <div class="ey">NSX-05 · Section 05</div>
+  <div class="pt">Create all four Security Groups</div>
+  <div class="ps">Screen by screen — creating the groups that DFW rules will reference</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Security → Groups → ADD GROUP</div>
+        <div class="sp">Security → Groups → + ADD GROUP</div>
+        <p style="font-size:13.5px;">Click the <strong>Security</strong> tab in the top navigation. In the left panel click <strong>Groups</strong>. The list is empty. Click <strong>+ ADD GROUP</strong>. A slide-in panel opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Create Group 1 — NCB-SG-Management (IP address membership)</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Group — NCB-SG-Management</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-SG-Management" readonly/>
+                    <div class="nsx-hint">SG prefix indicates Security Group. Management identifies the zone this group represents.</div>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="Infrastructure administrator workstations and jump hosts — VLAN 10 admin subnet" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Set Members — click "Set Members" to open the membership criteria panel</div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div style="font-size:11.5px;color:#9080b0;margin-bottom:8px;">Membership criteria — select type: <strong>IP Addresses</strong></div>
+                  <div class="nsx-frow" style="margin-bottom:6px;">
+                    <div class="nsx-fg">
+                      <span class="nsx-lbl">Membership type</span>
+                      <select class="nsx-sel ok" style="pointer-events:none;">
+                        <option selected>IP Addresses ← select this for management workstations</option>
+                        <option>Segment</option>
+                        <option>Segment Port</option>
+                        <option>VM Tag</option>
+                      </select>
+                      <div class="nsx-hint">Use IP Addresses for the management group — management workstations are on VLAN 10 (not an NSX overlay segment) so they cannot be identified by segment membership. Their IP range is the correct identifier.</div>
+                    </div>
+                  </div>
+                  <div class="nsx-frow">
+                    <div class="nsx-fg">
+                      <span class="nsx-lbl">IP Addresses / Ranges</span>
+                      <input class="nsx-inp ok" value="10.10.0.100-10.10.0.120" readonly/>
+                      <div class="nsx-hint">The IP range of administrator management workstations. Adjust this range to match NovaCrestBank's actual admin workstation subnet on VLAN 10. Include any jump hosts or bastion servers used for infrastructure management.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+        <div class="ann ok" style="margin-top:8px;"><span class="ai">✓</span><span>NCB-SG-Management created with IP range 10.10.0.100–.120. Adjust range to match actual admin workstation IPs.</span></div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">3</div>
+      <div class="sc">
+        <div class="st2">Create Group 2 — NCB-SG-Infra-Services (Segment membership)</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Group — NCB-SG-Infra-Services</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-SG-Infra-Services" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="Infrastructure VMs — DC01, DC02, IssuingCA on seg-infra-services" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div class="nsx-frow" style="margin-bottom:6px;">
+                    <div class="nsx-fg">
+                      <span class="nsx-lbl">Membership type</span>
+                      <select class="nsx-sel ok" style="pointer-events:none;">
+                        <option>IP Addresses</option>
+                        <option selected>Segment ← select this</option>
+                      </select>
+                      <div class="nsx-hint">Select <strong>Segment</strong>. Any VM connected to seg-infra-services becomes a member automatically. When DC01 or DC02 are added or replaced, the group membership updates dynamically.</div>
+                    </div>
+                  </div>
+                  <div class="nsx-frow">
+                    <div class="nsx-fg">
+                      <span class="nsx-lbl">Segment</span>
+                      <select class="nsx-sel ok" style="pointer-events:none;">
+                        <option selected>seg-infra-services ← select this</option>
+                      </select>
+                      <div class="nsx-hint">All VMs connected to seg-infra-services — DC01 (10.70.0.10), DC02 (10.70.0.11), IssuingCA (10.70.0.21) — are automatically included. No manual IP entry required.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+        <div class="ann ok" style="margin-top:8px;"><span class="ai">✓</span><span>NCB-SG-Infra-Services created. Membership: Segment = seg-infra-services. DC01, DC02, and IssuingCA are already members.</span></div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">4</div>
+      <div class="sc">
+        <div class="st2">Create Group 3 — NCB-SG-OCP-Nodes (Segment membership)</div>
+        <p style="font-size:13.5px;">Click <strong>+ ADD GROUP</strong> again. Use these values — identical to NCB-SG-Infra-Services except the segment name:</p>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div class="spec-row"><span class="spec-label">Name</span><span class="spec-val">NCB-SG-OCP-Nodes</span></div>
+          <div class="spec-row"><span class="spec-label">Description</span><span class="spec-val">All OpenShift nodes — masters, infra, workers on seg-ocp-nodes</span></div>
+          <div class="spec-row"><span class="spec-label">Membership type</span><span class="spec-val"><strong>Segment</strong></span></div>
+          <div class="spec-row"><span class="spec-label">Segment</span><span class="spec-val"><strong>seg-ocp-nodes</strong> — all OCP node VMs connected here are automatically members</span></div>
+        </div>
+        <div class="ann ok" style="margin-top:8px;"><span class="ai">✓</span><span>NCB-SG-OCP-Nodes created. When the OCP installer creates master, infra, and worker VMs on seg-ocp-nodes, they automatically join this group and inherit all DFW rules that reference it — no manual update needed.</span></div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout">
+    <div class="cl">Verify all three groups before proceeding</div>
+    Navigate to <strong>Security → Groups</strong> and confirm three groups are listed: NCB-SG-Management (IP-based), NCB-SG-Infra-Services (Segment: seg-infra-services, 3 members: DC01, DC02, IssuingCA), NCB-SG-OCP-Nodes (Segment: seg-ocp-nodes, 0 members — OCP not installed yet, this is correct).
+  </div>
+</div>
+
+<!-- ═══ 06 SVC CONCEPT ═══ -->
+<div class="page" id="page-svc-concept">
+  <div class="ey">NSX-05 · Section 06</div>
+  <div class="pt">Custom services — port definitions not in the NSX built-in catalogue</div>
+  <div class="ps">NSX has built-in services for common ports (DNS, HTTPS, SSH). NovaCrestBank needs two custom services for KMIP and OCP etcd.</div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NSX built-in services used</span><span class="spec-val">DNS (TCP+UDP 53), HTTPS (TCP 443), HTTP (TCP 80), SSH (TCP 22), LDAP (TCP 389), LDAPS (TCP 636) — no custom definition needed</span></div>
+    <div class="spec-row"><span class="spec-label">Custom service needed: KMIP</span><span class="spec-val">TCP 5696 — Key Management Interoperability Protocol. Not in NSX built-in catalogue. Used for vCenter KMS communication with the Thales Luna HSM appliances.</span></div>
+    <div class="spec-row"><span class="spec-label">Custom service needed: OCP-etcd</span><span class="spec-val">TCP 2379–2380 — etcd client port (2379) and peer port (2380). NSX has no built-in service for this range.</span></div>
+    <div class="spec-row"><span class="spec-label">Custom service: OCP-Kubelet</span><span class="spec-val">TCP 10250 — Kubernetes kubelet API. Not in NSX built-in catalogue.</span></div>
+  </div>
+</div>
+
+<!-- ═══ 07 SVC CREATE ═══ -->
+<div class="page" id="page-svc-create">
+  <div class="ey">NSX-05 · Section 07</div>
+  <div class="pt">Create custom services</div>
+  <div class="ps">Three custom port definitions — created once, referenced by name in DFW rules</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Inventory → Services → ADD SERVICE</div>
+        <div class="sp">Inventory → Services → + ADD SERVICE</div>
+        <p style="font-size:13.5px;">Click the <strong>Inventory</strong> tab in the top navigation. In the left panel, click <strong>Services</strong>. Click <strong>+ ADD SERVICE</strong>.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Create Service 1 — NCB-SVC-KMIP (TCP 5696)</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Add Service — NCB-SVC-KMIP</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Name <span class="nsx-req">*</span></span>
+                    <input class="nsx-inp ok" value="NCB-SVC-KMIP" readonly/>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Description</span>
+                    <input class="nsx-inp ok" value="Key Management Interoperability Protocol — Thales Luna HSM — TCP 5696" readonly/>
+                  </div>
+                </div>
+                <div class="nsx-div"></div>
+                <div class="nsx-sec">Service Entry — click "+ ADD SERVICE ENTRY"</div>
+                <div style="background:#1f1f38;border-radius:5px;padding:12px 15px;border:1px solid #3a2a6a;">
+                  <div class="nsx-frow">
+                    <div class="nsx-fg" style="max-width:160px;">
+                      <span class="nsx-lbl">Protocol</span>
+                      <select class="nsx-sel ok" style="pointer-events:none;">
+                        <option selected>TCP</option>
+                      </select>
+                    </div>
+                    <div class="nsx-fg" style="max-width:200px;">
+                      <span class="nsx-lbl">Destination Ports</span>
+                      <input class="nsx-inp ok" value="5696" readonly/>
+                      <div class="nsx-hint">The KMIP port. vCenter communicates with the Thales Luna HSM on TCP 5696 for key wrapping/unwrapping operations (vSAN encryption).</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nsx-footer">
+              <div class="nsx-btn s">CANCEL</div>
+              <div class="nsx-btn p">SAVE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">3</div>
+      <div class="sc">
+        <div class="st2">Create Service 2 — NCB-SVC-OCP-etcd (TCP 2379–2380)</div>
+        <p style="font-size:13.5px;">Click <strong>+ ADD SERVICE</strong> again:</p>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div class="spec-row"><span class="spec-label">Name</span><span class="spec-val">NCB-SVC-OCP-etcd</span></div>
+          <div class="spec-row"><span class="spec-label">Description</span><span class="spec-val">OCP etcd cluster replication — TCP 2379 (client) and 2380 (peer)</span></div>
+          <div class="spec-row"><span class="spec-label">Protocol</span><span class="spec-val">TCP</span></div>
+          <div class="spec-row"><span class="spec-label">Destination Ports</span><span class="spec-val">2379-2380 (enter as a range with a dash)</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">4</div>
+      <div class="sc">
+        <div class="st2">Create Service 3 — NCB-SVC-OCP-Kubelet (TCP 10250)</div>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div class="spec-row"><span class="spec-label">Name</span><span class="spec-val">NCB-SVC-OCP-Kubelet</span></div>
+          <div class="spec-row"><span class="spec-label">Description</span><span class="spec-val">Kubernetes kubelet API — master to worker/infra communication</span></div>
+          <div class="spec-row"><span class="spec-label">Protocol</span><span class="spec-val">TCP</span></div>
+          <div class="spec-row"><span class="spec-label">Destination Ports</span><span class="spec-val">10250</span></div>
+        </div>
+        <div class="ann ok" style="margin-top:8px;"><span class="ai">✓</span><span>Three custom services created: NCB-SVC-KMIP (TCP 5696), NCB-SVC-OCP-etcd (TCP 2379–2380), NCB-SVC-OCP-Kubelet (TCP 10250). All three now appear in the Services list alongside NSX built-in services and can be selected by name in DFW rules.</span></div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 08 POLICY CREATE ═══ -->
+<div class="page" id="page-policy-create">
+  <div class="ey">NSX-05 · Section 08</div>
+  <div class="pt">Create the four DFW Policy sections</div>
+  <div class="ps">Creating the policy containers before adding rules — the section order determines rule evaluation order</div>
+
+  <div class="decision">
+    <div class="dl">Why create all sections before adding any rules</div>
+    <div class="dq">Rules could be added to sections as the sections are created. Why create all four sections first?</div>
+    <div class="da"><strong>Because the section order in the DFW determines the evaluation order of rules. If the Default Deny section is accidentally created first (before the Allow sections), publishing the policy would block all traffic immediately — before any allow rules are in place. Creating all sections first, in the correct order, and then adding rules to each section is the safe and correct approach.</strong>
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Navigate to Security → Distributed Firewall</div>
+        <div class="sp">Security → Distributed Firewall</div>
+        <p style="font-size:13.5px;">Click the <strong>Security</strong> tab → left panel → <strong>Distributed Firewall</strong>. The DFW page appears showing the policy table. At the top there is a category selector — ensure <strong>Application</strong> is selected (this is where all NovaCrestBank workload policies live).</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Click ADD POLICY four times — creating all four sections in order</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Security → Distributed Firewall → Application category</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-ch">
+              <div><div class="nsx-ct">Distributed Firewall — Application</div></div>
+              <div style="display:flex;gap:8px;">
+                <div class="nsx-btn p">+ ADD POLICY</div>
+                <div class="nsx-btn s sm">PUBLISH</div>
+              </div>
+            </div>
+            <div class="nsx-cb">
+              <div style="background:#1a0010;border-radius:5px;padding:10px 14px;margin-bottom:6px;border:1px solid #3a1020;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;font-weight:700;color:#e07090;">NCB-Policy-Management</span>
+                <span style="font-size:11px;color:#9080b0;margin-left:auto;">0 rules · Applied To: DFW</span>
+              </div>
+              <div style="background:#1a0010;border-radius:5px;padding:10px 14px;margin-bottom:6px;border:1px solid #3a1020;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;font-weight:700;color:#e07090;">NCB-Policy-InterZone</span>
+                <span style="font-size:11px;color:#9080b0;margin-left:auto;">0 rules · Applied To: DFW</span>
+              </div>
+              <div style="background:#1a0010;border-radius:5px;padding:10px 14px;margin-bottom:6px;border:1px solid #3a1020;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;font-weight:700;color:#e07090;">NCB-Policy-OCP-Internal</span>
+                <span style="font-size:11px;color:#9080b0;margin-left:auto;">0 rules · Applied To: DFW</span>
+              </div>
+              <div style="background:#1a0010;border-radius:5px;padding:10px 14px;border:1px solid #3a1020;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;font-weight:700;color:#e07090;">NCB-Policy-Default-Deny</span>
+                <span style="font-size:11px;color:#9080b0;margin-left:auto;">0 rules · Applied To: DFW</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>All four policy sections created in the correct top-to-bottom order. Each shows 0 rules — rules are added in the following sections. The sections are created in the Application category. Do <strong>not</strong> click PUBLISH yet — publish only after all rules are complete.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout warn">
+    <div class="cl">How to add rules to a policy section</div>
+    To add a rule to a specific policy section: click the <strong>three-dot menu</strong> (⋯) on the right side of the policy section row → click <strong>Add Rule</strong>. A new blank rule row appears inside that section. Fill in the Source, Destination, Service, and Action fields for each rule. Rules are added inside the section — not at the top level. Repeat for each rule.
+  </div>
+</div>
+
+<!-- ═══ 09 RULES MGMT ═══ -->
+<div class="page" id="page-rules-mgmt">
+  <div class="ey">NSX-05 · Section 09</div>
+  <div class="pt">Management Policy rules — allow administrator access</div>
+  <div class="ps">Two rules in NCB-Policy-Management — management workstations can reach everything, and return traffic is allowed</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Open NCB-Policy-Management → Add Rule → Rule 1: Allow-Mgmt-to-All</div>
+        <p style="font-size:13.5px;">Click the ⋯ menu on <strong>NCB-Policy-Management</strong> → <strong>Add Rule</strong>. A blank rule row appears. Fill in:</p>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-Policy-Management → Rule: Allow-Mgmt-to-All</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="dfw-policy">
+                <div class="dfw-policy-header">
+                  <span class="dfw-ph-name">NCB-Policy-Management</span>
+                  <span class="dfw-ph-count">1 rule being added</span>
+                </div>
+                <div class="dfw-rule header">
+                  <div>#</div><div>Name</div><div>Source</div><div>Destination</div><div>Service</div><div>Action</div><div>Log</div><div>Applied To</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">1</div>
+                  <div class="dfw-name">Allow-Mgmt-to-All</div>
+                  <div class="dfw-src">NCB-SG-Management</div>
+                  <div class="dfw-dst">Any</div>
+                  <div class="dfw-svc">Any</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">✓ Yes</div>
+                  <div style="font-size:11px;color:#9080b0;">DFW</div>
+                </div>
+              </div>
+              <div style="font-size:11.5px;color:#7060a0;margin-top:10px;">
+                <strong style="color:#e0d0f8;">Source:</strong> Click the Source cell → select Group → NCB-SG-Management<br/>
+                <strong style="color:#e0d0f8;">Destination:</strong> Leave as "Any" (default)<br/>
+                <strong style="color:#e0d0f8;">Service:</strong> Leave as "Any" (default)<br/>
+                <strong style="color:#e0d0f8;">Action:</strong> Click Action dropdown → select <strong>Allow</strong><br/>
+                <strong style="color:#e0d0f8;">Log:</strong> Toggle logging ON — <span class="reg pci">PCI Req 10.2.1</span> requires logging all privileged access<br/>
+                <strong style="color:#e0d0f8;">Applied To:</strong> Leave as DFW (all ESXi hosts)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout why" style="margin-top:10px;">
+          <div class="cl">Why Allow-Mgmt-to-All has "Any" destination — not specific services</div>
+          Infrastructure administrators need unrestricted access to manage all components — SSH to ESXi, HTTPS to NSX Manager, RDP to VMs for troubleshooting. Restricting the management rule to specific ports would lock out administrators from legitimate management actions. The security control here is membership in NCB-SG-Management — only workstations on the administrator subnet are in this group. <span class="reg nist">NIST SP 800-53 SC-7(13)</span> — administrative access is permitted but audited via logging.
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Add Rule 2: Allow-All-to-Mgmt-Responses (stateful return traffic)</div>
+        <p style="font-size:13.5px;">Click ⋯ on NCB-Policy-Management → Add Rule. Add a second rule below Rule 1:</p>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div class="spec-row"><span class="spec-label">Name</span><span class="spec-val">Allow-All-to-Mgmt-Responses</span></div>
+          <div class="spec-row"><span class="spec-label">Source</span><span class="spec-val">Any</span></div>
+          <div class="spec-row"><span class="spec-label">Destination</span><span class="spec-val">NCB-SG-Management</span></div>
+          <div class="spec-row"><span class="spec-label">Service</span><span class="spec-val">Select the built-in service <strong>"Established"</strong> (or leave Any — NSX DFW is stateful by default)</span></div>
+          <div class="spec-row"><span class="spec-label">Action</span><span class="spec-val">Allow</span></div>
+          <div class="spec-row"><span class="spec-label">Log</span><span class="spec-val">No — return traffic is high volume, logging adds noise without security value</span></div>
+        </div>
+
+        <div class="callout nsx" style="margin-top:10px;">
+          <div class="cl">NSX DFW is stateful — why Rule 2 is actually optional but recommended</div>
+          NSX DFW tracks TCP connection state — it automatically allows return packets for established connections initiated from the management group. Rule 2 is technically redundant for TCP traffic because statefulness handles it. However, including it explicitly documents the intent and ensures UDP return traffic (e.g., DNS responses from DC01 to a management workstation's query) is also explicitly permitted. Explicit is always better than relying on implicit behaviour in a PCI-DSS environment.
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 10 RULES INTER-ZONE ═══ -->
+<div class="page" id="page-rules-inter-zone">
+  <div class="ey">NSX-05 · Section 10</div>
+  <div class="pt">Inter-zone Policy rules — the OCP to Infrastructure allow list</div>
+  <div class="ps">Six rules in NCB-Policy-InterZone — the explicit permit list for cross-domain traffic. Everything not on this list is denied by the Default Deny rule.</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Open NCB-Policy-InterZone → Add Rule → add all six rules</div>
+        <p style="font-size:13.5px;">Click ⋯ on <strong>NCB-Policy-InterZone</strong> → <strong>Add Rule</strong>. Add all six rules shown in the table below, one at a time. For each rule: click the Source/Destination/Service cells to select groups and services. Set the Action. Toggle Log where indicated.</p>
+
+        <div class="nsx-shell" style="margin-top:12px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-Policy-InterZone — 6 rules</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="dfw-policy">
+                <div class="dfw-policy-header">
+                  <span class="dfw-ph-name">NCB-Policy-InterZone</span>
+                  <span class="dfw-ph-count">6 rules</span>
+                </div>
+                <div class="dfw-rule header">
+                  <div>#</div><div>Name</div><div>Source</div><div>Destination</div><div>Service</div><div>Action</div><div>Log</div><div></div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">3</div>
+                  <div class="dfw-name">Allow-OCP-DNS</div>
+                  <div class="dfw-src">NCB-SG-OCP-Nodes</div>
+                  <div class="dfw-dst">NCB-SG-Infra-Services</div>
+                  <div class="dfw-svc">DNS</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">PCI 1.3.2</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">4</div>
+                  <div class="dfw-name">Allow-OCP-LDAPS</div>
+                  <div class="dfw-src">NCB-SG-OCP-Nodes</div>
+                  <div class="dfw-dst">NCB-SG-Infra-Services</div>
+                  <div class="dfw-svc">LDAPS (636)</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">✓ Yes</div>
+                  <div style="font-size:10px;color:#9080b0;">PCI 8.6</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">5</div>
+                  <div class="dfw-name">Allow-OCP-CertSrv</div>
+                  <div class="dfw-src">NCB-SG-OCP-Nodes</div>
+                  <div class="dfw-dst">NCB-SG-Infra-Services</div>
+                  <div class="dfw-svc">HTTPS (443)</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">PCI 4.2.1</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">6</div>
+                  <div class="dfw-name">Allow-OCP-KMIP</div>
+                  <div class="dfw-src">NCB-SG-OCP-Nodes</div>
+                  <div class="dfw-dst">NCB-SG-Infra-Services</div>
+                  <div class="dfw-svc">NCB-SVC-KMIP</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">✓ Yes</div>
+                  <div style="font-size:10px;color:#9080b0;">PCI 3.7.2</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">7</div>
+                  <div class="dfw-name">Allow-Infra-to-OCP-API</div>
+                  <div class="dfw-src">NCB-SG-Infra-Services</div>
+                  <div class="dfw-dst">NCB-SG-OCP-Nodes</div>
+                  <div class="dfw-svc">TCP 6443</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">NIST AC-3</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">8</div>
+                  <div class="dfw-name">Allow-External-to-OCP-Ingress</div>
+                  <div class="dfw-src">Any</div>
+                  <div class="dfw-dst">NCB-SG-OCP-Nodes</div>
+                  <div class="dfw-svc">HTTPS, HTTP</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">✓ Yes</div>
+                  <div style="font-size:10px;color:#9080b0;">PCI 1.3.1</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Field-by-field guide for the most important rules</h2>
+
+  <div class="card" style="border-left:3px solid var(--dfw);">
+    <h3>Rule 4 — Allow-OCP-LDAPS: how to select LDAPS as the service</h3>
+    <p style="font-size:13.5px;">In the Service cell, click the edit icon. A service selector panel opens. Type "LDAP" in the search box. NSX shows built-in services: LDAP (TCP 389) and LDAPS (TCP 636). Select <strong>LDAPS</strong>. Click OK. The service cell shows "LDAPS."</p>
+    <p style="font-size:13.5px;margin-top:6px;"><strong>Why log LDAPS but not DNS?</strong> LDAPS is an authentication protocol — every successful and failed OCP authentication event generates an LDAPS query. Logging LDAPS allows security monitoring to detect authentication anomalies (brute force, credential stuffing). DNS queries are orders of magnitude more frequent and logging them generates noise that obscures security events. <span class="reg pci">PCI Req 10.2.1</span> — log authentication events.</p>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--dfw);margin-top:10px;">
+    <h3>Rule 6 — Allow-OCP-KMIP: selecting the custom service</h3>
+    <p style="font-size:13.5px;">In the Service cell, click the edit icon. In the service selector, type "KMIP". The built-in catalogue has no KMIP entry. Scroll to find the custom services section — <strong>NCB-SVC-KMIP</strong> appears. Select it. <span class="reg pci">PCI Req 3.7.2</span> — encryption key operations to/from the HSM must be explicitly permitted and logged.</p>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--dfw);margin-top:10px;">
+    <h3>Rule 8 — Allow-External-to-OCP-Ingress: source is Any, not a group</h3>
+    <p style="font-size:13.5px;">This rule allows external application traffic (banking users, APIs) to reach OCP nodes on ports 443 and 80 via the NSX LB VIP. The source is "Any" because external clients come from the internet via Palo Alto → Cisco → NSX T0 → T1 → OCP nodes. Their source IPs are not predictable or manageable with a Security Group. The destination is NCB-SG-OCP-Nodes, and the service is limited to HTTPS (443) and HTTP (80) only — all other ports are denied by the Default Deny rule. <span class="reg pci">PCI Req 1.3.1</span></p>
+  </div>
+</div>
+
+<!-- ═══ 11 RULES OCP INTERNAL ═══ -->
+<div class="page" id="page-rules-ocp-internal">
+  <div class="ey">NSX-05 · Section 11</div>
+  <div class="pt">OCP Internal Policy rules — node-to-node cluster traffic</div>
+  <div class="ps">Six rules in NCB-Policy-OCP-Internal — the intra-cluster communication that OCP requires to function</div>
+
+  <div class="decision">
+    <div class="dl">Why OCP internal traffic needs explicit DFW rules</div>
+    <div class="dq">OCP nodes all communicate with each other on the same segment (seg-ocp-nodes). Without any DFW rules, they could all communicate freely. Why add specific rules instead of just allowing all OCP-to-OCP traffic?</div>
+    <div class="da"><strong>Because the default-deny rule (Section 12) will block all OCP internal traffic that is not explicitly permitted. Without the OCP internal rules, the cluster would fail to form — etcd replication would be blocked, kubelet communication would fail, and pod networking would not establish.</strong><br/><br/>
+    The approach here is precise: allow only the specific ports OCP requires for cluster operation. Any OCP node trying to communicate with another OCP node on a port not in this list is blocked — preventing lateral movement if one OCP node is compromised.<br/><br/>
+    A simpler alternative — "Allow NCB-SG-OCP-Nodes → NCB-SG-OCP-Nodes on Any" — would also work operationally but would permit an attacker who compromised one OCP node to probe all other OCP nodes on any port. The per-port approach limits the blast radius of a compromised node. <span class="reg pci">PCI Req 1.3.2</span>
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Open NCB-Policy-OCP-Internal → Add Rule → add all six rules</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-Policy-OCP-Internal — 6 rules</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="dfw-policy">
+                <div class="dfw-policy-header">
+                  <span class="dfw-ph-name">NCB-Policy-OCP-Internal</span>
+                  <span class="dfw-ph-count">6 rules — both source and destination are NCB-SG-OCP-Nodes</span>
+                </div>
+                <div class="dfw-rule header">
+                  <div>#</div><div>Name</div><div>Source</div><div>Destination</div><div>Service</div><div>Action</div><div>Log</div><div>Purpose</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">9</div>
+                  <div class="dfw-name">Allow-OCP-etcd</div>
+                  <div class="dfw-src">OCP-Nodes</div>
+                  <div class="dfw-dst">OCP-Nodes</div>
+                  <div class="dfw-svc">NCB-SVC-OCP-etcd</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">etcd replication</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">10</div>
+                  <div class="dfw-name">Allow-OCP-API-Int</div>
+                  <div class="dfw-src">OCP-Nodes</div>
+                  <div class="dfw-dst">OCP-Nodes</div>
+                  <div class="dfw-svc">TCP 6443</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">node→API server</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">11</div>
+                  <div class="dfw-name">Allow-OCP-Kubelet</div>
+                  <div class="dfw-src">OCP-Nodes</div>
+                  <div class="dfw-dst">OCP-Nodes</div>
+                  <div class="dfw-svc">NCB-SVC-OCP-Kubelet</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">kubelet API</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">12</div>
+                  <div class="dfw-name">Allow-OCP-VXLAN</div>
+                  <div class="dfw-src">OCP-Nodes</div>
+                  <div class="dfw-dst">OCP-Nodes</div>
+                  <div class="dfw-svc">UDP 4789</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">OVN pod overlay</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">13</div>
+                  <div class="dfw-name">Allow-OCP-Geneve</div>
+                  <div class="dfw-src">OCP-Nodes</div>
+                  <div class="dfw-dst">OCP-Nodes</div>
+                  <div class="dfw-svc">UDP 6081</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">OVN GENEVE</div>
+                </div>
+                <div class="dfw-rule">
+                  <div class="dfw-seq">14</div>
+                  <div class="dfw-name">Allow-OCP-NodePort</div>
+                  <div class="dfw-src">OCP-Nodes</div>
+                  <div class="dfw-dst">OCP-Nodes</div>
+                  <div class="dfw-svc">TCP 30000-32767</div>
+                  <div class="dfw-allow">ALLOW</div>
+                  <div class="dfw-log">No</div>
+                  <div style="font-size:10px;color:#9080b0;">NodePort range</div>
+                </div>
+              </div>
+              <div style="font-size:11.5px;color:#7060a0;margin-top:10px;">In all 6 rules above: Source = NCB-SG-OCP-Nodes, Destination = NCB-SG-OCP-Nodes (same group for both). For services, use the custom services (NCB-SVC-OCP-etcd, NCB-SVC-OCP-Kubelet) or create inline TCP/UDP rules for the specific ports. None of these rules need logging — internal cluster traffic is very high frequency and logging adds noise without security value.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout warn">
+    <div class="cl">After OCP installs — if cluster networking fails, check these rules first</div>
+    If OCP nodes form but pods fail to communicate across nodes, the most common DFW cause is a blocked OVN-Kubernetes port. Check that Rules 12 and 13 (UDP 4789 and UDP 6081) are present and set to ALLOW. Also check the DFW rule hit counters (Section 16) — if Rules 12/13 show zero hits after pods are scheduled, those rules are not matching as expected. Traceflow (Section 14) can diagnose this precisely.
+  </div>
+</div>
+
+<!-- ═══ 12 DEFAULT DENY ═══ -->
+<div class="page" id="page-rules-default-deny">
+  <div class="ey">NSX-05 · Section 12</div>
+  <div class="pt">Default Deny Policy — the last rule that catches everything not explicitly permitted</div>
+  <div class="ps">One rule in NCB-Policy-Default-Deny — the most important rule in the entire DFW table</div>
+
+  <div class="decision">
+    <div class="dl">Why the Default Deny must be in its own policy section — and why it must be last</div>
+    <div class="dq">The Default Deny rule could be the last rule in NCB-Policy-InterZone. Why put it in its own separate policy section?</div>
+    <div class="da"><strong>Two reasons: visibility and operational safety.</strong><br/><br/>
+    <strong>Visibility:</strong> A dedicated "NCB-Policy-Default-Deny" section makes the default-deny intent unmistakably visible. Anyone reviewing the DFW policy sees immediately that there is a named section whose sole purpose is default-deny. If the deny rule were buried as the last rule in a section alongside allow rules, its significance could be missed.<br/><br/>
+    <strong>Operational safety:</strong> When adding new allow rules in the future, administrators add them to NCB-Policy-InterZone or NCB-Policy-OCP-Internal — never to NCB-Policy-Default-Deny. The dedicated section creates a clear boundary: "rules above this section are allow rules; this section is the deny boundary." This prevents accidental rule placement errors.<br/><br/>
+    <strong>Why it must be last:</strong> DFW evaluates top-to-bottom. If Default Deny were above the allow rules, it would match all traffic before any allow rule was reached — blocking everything. The default-deny rule must always be the very last rule evaluated.
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Open NCB-Policy-Default-Deny → Add Rule → the single Default-Deny-All rule</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">NCB-Policy-Default-Deny — 1 rule</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="dfw-policy">
+                <div class="dfw-policy-header">
+                  <span class="dfw-ph-name">NCB-Policy-Default-Deny</span>
+                  <span class="dfw-ph-count">1 rule — catches all traffic not matched above</span>
+                </div>
+                <div class="dfw-rule header">
+                  <div>#</div><div>Name</div><div>Source</div><div>Destination</div><div>Service</div><div>Action</div><div>Log</div><div></div>
+                </div>
+                <div class="dfw-rule deny-row">
+                  <div class="dfw-seq">15</div>
+                  <div class="dfw-name" style="color:#ff9090;">Default-Deny-All</div>
+                  <div class="dfw-src">Any</div>
+                  <div class="dfw-dst">Any</div>
+                  <div class="dfw-svc">Any</div>
+                  <div class="dfw-deny-cell">DENY</div>
+                  <div class="dfw-log">✓ Yes</div>
+                  <div style="font-size:10px;color:#9080b0;">PCI 1.2.1</div>
+                </div>
+              </div>
+              <div style="font-size:11.5px;color:#7060a0;margin-top:10px;">
+                <strong style="color:#e0d0f8;">Source:</strong> Any (leave as default)<br/>
+                <strong style="color:#e0d0f8;">Destination:</strong> Any (leave as default)<br/>
+                <strong style="color:#e0d0f8;">Service:</strong> Any (leave as default)<br/>
+                <strong style="color:#e0d0f8;">Action:</strong> Click Action → select <strong>Drop</strong> (or "Deny" — NSX terminology varies by version. "Drop" silently discards the packet with no ICMP error returned. "Reject" sends a TCP RST or ICMP unreachable. Use Drop for the default-deny — silent drop reveals no information to an attacker about why traffic was blocked.)<br/>
+                <strong style="color:#e0d0f8;">Log:</strong> ON — logging denied traffic reveals attempted unauthorised communication paths. This is the most valuable security log in the environment. <span class="reg pci">PCI Req 10.2.1</span> — log all denied access attempts.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout pci" style="margin-top:12px;">
+          <div class="cl">PCI-DSS v4.0 Requirement 1.2.1 — Default Deny documentation</div>
+          PCI-DSS Req 1.2.1 states: "All network security controls must have a documented set of services, protocols, and ports. All other network connections must be denied by default." The Default-Deny-All rule is the technical implementation of "all other connections denied by default." The logged deny events provide the audit evidence that this control is actively enforcing — not just configured.
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 13 PUBLISH ═══ -->
+<div class="page" id="page-publish">
+  <div class="ey">NSX-05 · Section 13</div>
+  <div class="pt">Publish the DFW configuration</div>
+  <div class="ps">Rules exist in NSX Manager's database — they are not enforced on ESXi hosts until Published. This is the step that pushes rules to all 9 ESXi hosts simultaneously.</div>
+
+  <div class="decision">
+    <div class="dl">What "Publish" does and why it is a separate step from creating rules</div>
+    <div class="dq">Rules have been created in NSX Manager. Why are they not already enforcing? What does clicking Publish do?</div>
+    <div class="da"><strong>NSX Manager maintains a "candidate" version of the DFW policy — changes you make in the GUI are staged but not yet active on ESXi hosts. Publishing pushes the candidate policy to all Transport Nodes (ESXi hosts) simultaneously. This separation exists to allow policy review before enforcement — a batch of rule changes can be staged and reviewed, then published atomically. All rules go live simultaneously, not one at a time.</strong><br/><br/>
+    Why this matters: if rules were applied one at a time as they were created, there would be a window where the Default Deny rule was active before the allow rules — locking out everything temporarily. With staged publishing, all 15 rules are pushed to all 9 ESXi hosts in a single operation. The ESXi hosts update their kernel DFW rule tables and begin enforcing within seconds of the publish operation completing.
+    </div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Review the complete policy before publishing</div>
+        <p style="font-size:13.5px;">Before clicking Publish, scroll through the entire DFW policy table. Verify:</p>
+        <ul style="font-size:13.5px;margin-left:20px;">
+          <li>NCB-Policy-Management is the first (top) section — rules 1 and 2</li>
+          <li>NCB-Policy-InterZone is second — rules 3 through 8</li>
+          <li>NCB-Policy-OCP-Internal is third — rules 9 through 14</li>
+          <li>NCB-Policy-Default-Deny is last (bottom) — rule 15 with action DENY</li>
+          <li>Action column: rules 1–14 show ALLOW (green), rule 15 shows DENY (red)</li>
+          <li>Log column: rules 1, 4, 6, 8, 15 show logging enabled</li>
+        </ul>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Click PUBLISH in the top right of the Distributed Firewall page</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Security → Distributed Firewall → Application</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-ch">
+              <div>
+                <div class="nsx-ct">Distributed Firewall</div>
+                <div class="nsx-cs">15 rules across 4 policies · Draft — not yet published</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <div class="nsx-btn s">DISCARD DRAFT</div>
+                <div class="nsx-btn p" style="background:#0e6b45;">PUBLISH ← click this</div>
+              </div>
+            </div>
+            <div class="nsx-cb" style="padding:10px 22px;">
+              <div style="font-size:12px;color:#7060a0;">The PUBLISH button pushes all staged rule changes to all 9 ESXi Transport Nodes simultaneously. The policy becomes active within seconds of publishing. Verify connectivity immediately after publishing.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann" style="margin-top:10px;">
+          <span class="ai">⚠</span>
+          <span><strong>Immediately after clicking PUBLISH</strong>: verify DC01 is still reachable from your management workstation (ping 10.70.0.10). If the management workstation's IP is in NCB-SG-Management (10.10.0.100–.120), Rule 1 permits all access from that workstation and the ping should succeed. If ping fails, your management workstation IP is not in the management group — add your IP to NCB-SG-Management immediately via Security → Groups → NCB-SG-Management → edit membership.</span>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;">
+          <span class="ai">✓</span>
+          <span>After Publish: the DFW status changes from "Draft" to "Published." All 15 rules are now enforcing on all 9 ESXi hosts. Proceed to Traceflow verification.</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 14 TRACEFLOW ALLOW ═══ -->
+<div class="page" id="page-traceflow-allow">
+  <div class="ey">NSX-05 · Section 14</div>
+  <div class="pt">Traceflow — verify an allowed flow (DNS: OCP node → DC01)</div>
+  <div class="ps">Confirming that Rule 3 (Allow-OCP-DNS) is working — an OCP node can reach DC01 on port 53</div>
+
+  <div class="callout nsx">
+    <div class="cl">Traceflow tests are run before OCP nodes exist — use DC01 as the source instead</div>
+    OCP nodes (10.50.0.11–.13, .21–.23, .31–.33) do not exist yet — they will be created by the OCP installer. Until then, the Traceflow source must be a VM that already exists on an NSX segment. Use DC01 (10.70.0.10 on seg-infra-services) as a proxy source to test the NCB-SG-Infra-Services rules. After OCP is installed, rerun these Traceflows with OCP nodes as the source to verify the inter-zone rules from the OCP side.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Plan &amp; Troubleshoot → Traceflow — configure the DNS test</div>
+        <div class="sp">Plan &amp; Troubleshoot → Traceflow</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Plan &amp; Troubleshoot → Traceflow</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-sec">Test: Infra-Services → DNS query → DC01 (intra-segment, should always be ALLOW)</div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Source Port</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>IssuingCA — Network Adapter 1 (seg-infra-services · 10.70.0.21)</option>
+                    </select>
+                    <div class="nsx-hint">Using IssuingCA (10.70.0.21) as source, DC01 (10.70.0.10) as destination — this tests intra-segment DFW pass-through. Both are in NCB-SG-Infra-Services, which is a source in Rule 7 (Allow-Infra-to-OCP-API). For this DNS test within the same segment, it will be handled by the Management rule or pass-through if no rule explicitly targets intra-infra traffic — which confirms the policy is not accidentally over-blocking.</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Destination Type</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;"><option selected>IP Address</option></select>
+                  </div>
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Destination IP</span>
+                    <input class="nsx-inp ok" value="10.70.0.10" readonly/>
+                    <div class="nsx-hint">DC01 — on the same segment as IssuingCA</div>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Protocol</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;"><option selected>UDP</option></select>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Destination Port</span>
+                    <input class="nsx-inp ok" value="53" readonly/>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:12px;"><div class="nsx-btn p">▶ TRACE</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Read the Traceflow result — expect FORWARDED → RECEIVED</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Traceflow Result — IssuingCA → DC01 UDP:53</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;">
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 13px;background:#0a2018;border-radius:5px;border-left:3px solid #4ccd99;">
+                  <span style="color:#4ccd99;font-weight:700;min-width:100px;">FORWARDED</span>
+                  <span style="color:#d0c8e8;">Source port: IssuingCA / NIC1 on esxi-mgmt-02 → DFW: Rule ID [Management-Rule or pass-through] → ALLOW → same host delivery (both VMs on esxi-mgmt-02) or GENEVE tunnel to esxi-mgmt-01</span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 13px;background:#0a2018;border-radius:5px;border-left:3px solid #4ccd99;">
+                  <span style="color:#4ccd99;font-weight:700;min-width:100px;">RECEIVED</span>
+                  <span style="color:#d0c8e8;">Destination port: DC01 / NIC1 on esxi-mgmt-01 → DFW: ALLOW → delivered to VM</span>
+                </div>
+              </div>
+              <div style="font-size:11.5px;color:#7060a0;margin-top:10px;">The Traceflow result shows which DFW rule allowed the packet. Look for "Rule: Allow-Mgmt-to-All" or "DFW pass-through" in the result detail. If the rule shown is "Default-Deny-All" — the packet was blocked — check that the DFW policy was published correctly.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;"><span class="ai">✓</span><span>Traceflow FORWARDED → RECEIVED. DFW allowed the UDP:53 packet. Intra-segment traffic within seg-infra-services is correctly permitted.</span></div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 15 TRACEFLOW DENY ═══ -->
+<div class="page" id="page-traceflow-deny">
+  <div class="ey">NSX-05 · Section 15</div>
+  <div class="pt">Traceflow — verify a denied flow (RDP attempt to DC01)</div>
+  <div class="ps">The most important verification: confirming that traffic NOT on the allow list is actually blocked by the Default Deny rule</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Configure Traceflow for the denied flow — IssuingCA trying RDP to DC01</div>
+        <p style="font-size:13.5px;">RDP (TCP 3389) from IssuingCA to DC01 should be blocked. IssuingCA is in NCB-SG-Infra-Services. DC01 is also in NCB-SG-Infra-Services. No rule in the DFW policy allows TCP 3389 between infra-services VMs (Rule 7 allows Infra to OCP on :6443 only). The Default Deny rule should catch this.</p>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Traceflow — IssuingCA → DC01 TCP:3389 (RDP) — expect DENY</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div class="nsx-form">
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Source Port</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;">
+                      <option selected>IssuingCA — Network Adapter 1 (10.70.0.21)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="nsx-frow">
+                  <div class="nsx-fg">
+                    <span class="nsx-lbl">Destination IP</span>
+                    <input class="nsx-inp ok" value="10.70.0.10" readonly/>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Protocol</span>
+                    <select class="nsx-sel ok" style="pointer-events:none;"><option selected>TCP</option></select>
+                  </div>
+                  <div class="nsx-fg" style="max-width:160px;">
+                    <span class="nsx-lbl">Destination Port</span>
+                    <input class="nsx-inp ok" value="3389" readonly/>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:12px;"><div class="nsx-btn p">▶ TRACE</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Read the result — expect DROPPED at the source ESXi host DFW</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">Traceflow Result — IssuingCA → DC01 TCP:3389</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;">
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 13px;background:#1a0008;border-radius:5px;border-left:3px solid #e05252;">
+                  <span style="color:#e05252;font-weight:700;min-width:100px;">DROPPED</span>
+                  <span style="color:#d0c8e8;">Source port: IssuingCA / NIC1 on esxi-mgmt-02 → DFW: Rule "Default-Deny-All" → DROP → packet never reaches the physical network</span>
+                </div>
+              </div>
+              <div style="font-size:11.5px;color:#7060a0;margin-top:10px;">The Traceflow result shows DROPPED with the matched rule: "Default-Deny-All." The packet is silently discarded in the ESXi kernel — DC01 never receives it, and no ICMP error is returned to IssuingCA. This is correct behaviour. <span style="color:#e07090;">If the result shows FORWARDED instead of DROPPED — the Default Deny rule is not working correctly. Verify that NCB-Policy-Default-Deny is the last section in the DFW table and the rule action is DENY/DROP (not Allow).</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ann ok" style="margin-top:8px;"><span class="ai">✓</span><span>Traceflow DROPPED by Default-Deny-All. RDP from IssuingCA to DC01 is correctly blocked. The Default Deny rule is enforcing. No information is returned to the source — silent drop as configured.</span></div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 16 RULE HIT COUNTERS ═══ -->
+<div class="page" id="page-rule-hit-counters">
+  <div class="ey">NSX-05 · Section 16</div>
+  <div class="pt">Check rule hit counters — confirm DFW is enforcing in production</div>
+  <div class="ps">Hit counters show how many packets each rule has matched — a rule with zero hits after normal traffic means it is either not being reached or not matching as expected</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="sn">1</div>
+      <div class="sc">
+        <div class="st2">Security → Distributed Firewall → click the Statistics icon (📊) on any rule</div>
+        <p style="font-size:13.5px;">In the DFW policy table, each rule row has a small statistics icon at the right. Click it to see per-ESXi-host hit counts for that rule. Alternatively, some NSX versions show a "Hits" column directly in the rule table after publishing.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="sn">2</div>
+      <div class="sc">
+        <div class="st2">Verify expected hit counts after 10 minutes of normal operation</div>
+
+        <div class="nsx-shell" style="margin-top:10px;">
+          <div class="nsx-topbar">
+            <div class="nsx-logo"><div class="nsx-logo-badge">NSX</div><div class="nsx-logo-text">DFW Rule Statistics — after 10 minutes</div></div>
+          </div>
+          <div class="nsx-content">
+            <div class="nsx-cb">
+              <table class="nsx-tbl">
+                <thead><tr><th>Rule</th><th>Expected hits after 10 min</th><th>What hits indicate</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#e07090;">Allow-Mgmt-to-All</td>
+                    <td>Many — if management workstations are active</td>
+                    <td>Administrator activity. High hit count confirms management group membership is correct.</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#e07090;">Allow-OCP-DNS</td>
+                    <td>0 — OCP nodes do not exist yet</td>
+                    <td>Will see hits after OCP installs and nodes begin querying DC01 for DNS.</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#e07090;">Allow-OCP-LDAPS</td>
+                    <td>0 — OCP not installed</td>
+                    <td>Will see hits when OCP's OAuth provider authenticates users via AD.</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#e07090;">Default-Deny-All</td>
+                    <td>Some — legitimate traffic that has no allow rule</td>
+                    <td>Any denied traffic hits this rule and is logged. Review the logs to identify whether denied flows represent security threats or missing allow rules (e.g., a required service that was not added to the policy).</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warn" style="margin-top:10px;">
+          <div class="cl">If Default-Deny-All has an unexpectedly high hit count</div>
+          A high Default-Deny-All hit count means legitimate traffic is being blocked. Navigate to <strong>Security → Distributed Firewall → Logs</strong> (or the syslog/monitoring system connected to NSX) and filter for the Default-Deny-All rule. The logged source and destination IPs of blocked packets reveal which traffic is missing an allow rule. Add the appropriate allow rule to NCB-Policy-InterZone or NCB-Policy-OCP-Internal, then publish again.
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══ 17 FINAL ═══ -->
+<div class="page" id="page-final">
+  <div class="ey">NSX-05 · Section 17</div>
+  <div class="pt">Final checklist — NSX configuration complete</div>
+  <div class="ps">Every DFW rule verified. NSX-01 through NSX-05 are complete — the entire NSX layer for NovaCrestBank VCF + OCP is built.</div>
+
+  <div class="callout success">
+    <div class="cl">NSX-05 complete — Distributed Firewall enforcing microsegmentation</div>
+    Three Security Groups created: NCB-SG-Management (IP range), NCB-SG-Infra-Services (seg-infra-services), NCB-SG-OCP-Nodes (seg-ocp-nodes). Three custom services: NCB-SVC-KMIP, NCB-SVC-OCP-etcd, NCB-SVC-OCP-Kubelet. Four policy sections with 15 rules published to all 9 ESXi hosts. Traceflow confirms: allowed flows pass (DNS from IssuingCA to DC01), denied flows are silently dropped (RDP blocked by Default-Deny-All). Rule hit counters confirm active enforcement.
+  </div>
+
+  <h2>DFW verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NCB-SG-Management — IP range 10.10.0.100–.120</span><span class="spec-val badge bg">✓ Created</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-SG-Infra-Services — Segment: seg-infra-services · 3 members</span><span class="spec-val badge bg">✓ DC01, DC02, IssuingCA as members</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-SG-OCP-Nodes — Segment: seg-ocp-nodes · 0 members</span><span class="spec-val badge bg">✓ 0 members expected (OCP not yet installed)</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-SVC-KMIP — TCP 5696</span><span class="spec-val badge bg">✓ Custom service created</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-SVC-OCP-etcd — TCP 2379–2380</span><span class="spec-val badge bg">✓ Custom service created</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-SVC-OCP-Kubelet — TCP 10250</span><span class="spec-val badge bg">✓ Custom service created</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Policy-Management — 2 rules (1, 2)</span><span class="spec-val badge bg">✓ Published and enforcing</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Policy-InterZone — 6 rules (3–8)</span><span class="spec-val badge bg">✓ Published and enforcing</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Policy-OCP-Internal — 6 rules (9–14)</span><span class="spec-val badge bg">✓ Published and enforcing</span></div>
+    <div class="spec-row"><span class="spec-label">NCB-Policy-Default-Deny — 1 rule (15) — Action: DROP</span><span class="spec-val badge bg">✓ Published and enforcing — last in table</span></div>
+    <div class="spec-row"><span class="spec-label">Traceflow ALLOW: IssuingCA → DC01 UDP:53</span><span class="spec-val badge bg">✓ FORWARDED → RECEIVED</span></div>
+    <div class="spec-row"><span class="spec-label">Traceflow DENY: IssuingCA → DC01 TCP:3389</span><span class="spec-val badge bg">✓ DROPPED by Default-Deny-All</span></div>
+    <div class="spec-row"><span class="spec-label">Default-Deny-All logging</span><span class="spec-val badge bg">✓ Logging ON — denied flows visible in NSX logs</span></div>
+  </div>
+
+  <hr/>
+
+  <h2 style="color:var(--dfw);">NSX Configuration Complete — NSX-01 through NSX-05</h2>
+
+  <table>
+    <thead><tr><th>Guide</th><th>What was built</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>NSX-01</strong></td>
+        <td>Transport Zones (NCB-Overlay-TZ, NCB-VLAN-TZ) · IP Pools (Host TEP 10.100.0.11–.30, Edge TEP 10.101.0.11–.20) · Uplink Profiles (VLAN 100/101, LACP) · All 9 ESXi hosts prepared as Host Transport Nodes · BFD Up across all TEP pairs</td>
+        <td><span class="badge bg">Complete ✓</span></td>
+      </tr>
+      <tr>
+        <td><strong>NSX-02</strong></td>
+        <td>Edge Nodes (edge-01 on esxi-mgmt-01, edge-02 on esxi-mgmt-02, Large VMs) · NCB-Edge-Cluster · NCB-T0-Gateway (Active-Active, ASN 65010) · 4 BGP sessions Established (Leaf-01 ASN 65001, Leaf-02 ASN 65002) · Route redistribution · HA VIP 10.102.0.4</td>
+        <td><span class="badge bg">Complete ✓</span></td>
+      </tr>
+      <tr>
+        <td><strong>NSX-03</strong></td>
+        <td>NCB-T1-Infra + NCB-T1-OCP (both Active-Standby, linked to T0) · seg-infra-services (10.70.0.1/24) · seg-ocp-nodes (10.50.0.1/24) · DC01, DC02, IssuingCA migrated to NSX overlay · Segment routes in BGP</td>
+        <td><span class="badge bg">Complete ✓</span></td>
+      </tr>
+      <tr>
+        <td><strong>NSX-04</strong></td>
+        <td>NCB-OCP-LB (Medium, on NCB-T1-OCP) · Health monitors (TCP:6443, TCP:443) · Pools (3 masters, 3 infra nodes) · Virtual Servers (10.50.0.200:6443, 10.50.0.201:443/80) · VIP /32 routes in BGP · DNS resolves correctly</td>
+        <td><span class="badge bg">Complete ✓</span></td>
+      </tr>
+      <tr>
+        <td><strong>NSX-05</strong></td>
+        <td>Security Groups (Management/Infra/OCP) · Custom Services (KMIP, etcd, Kubelet) · 4 DFW policy sections · 15 rules (Management, InterZone, OCP-Internal, Default-Deny) · Published to all 9 ESXi hosts · Traceflow verified</td>
+        <td><span class="badge bg">Complete ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left:4px solid var(--nsx);margin-top:16px;">
+    <h3 style="color:var(--nsx);">What comes next — Windows Server DNS and OCP Installation</h3>
+    <p style="font-size:13.5px;">The NSX layer is fully configured. The next phase moves to Windows Server configuration for VCF:</p>
+    <ul style="font-size:13.5px;margin-top:8px;margin-left:20px;">
+      <li><strong>WIN-VCF-01 — DNS</strong>: All ~35 A+PTR records for VCF management components, NSX, ESXi hosts, and OCP nodes. GUI only, screen by screen in DNS Manager. References the previous Win-01 work and adds VCF-specific records.</li>
+      <li><strong>WIN-VCF-02 — DHCP</strong>: DHCP scopes for the management domain segments.</li>
+      <li><strong>WIN-VCF-03 — PKI/Certificates</strong>: Replace default certificates on SDDC Manager, NSX Manager, and both vCenters with NovaCrestBank-Issuing-CA signed certificates.</li>
+      <li><strong>OCP-VCF-01 — install-config.yaml</strong>: The OCP installer configuration for VCF+NSX mode — how it differs from the standalone vSphere deployment, NSX-T integration, and segment references.</li>
+      <li><strong>OCP-VCF-02 — Run installer and post-install</strong>: Execute the IPI installer, monitor progress, post-install AD integration, certificate replacement, and storage class configuration.</li>
+    </ul>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  if(event&&event.currentTarget){
+    event.currentTarget.classList.add('active');
+    const dot=event.currentTarget.querySelector('.nd');
+    if(dot) dot.style.background='var(--dfw)';
+  }
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

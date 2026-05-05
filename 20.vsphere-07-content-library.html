@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>vSphere-07 — Content Library · NovaCrestBank</title>
+<style>
+  :root{
+    --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edecea;
+    --text:#1b1a17;--text2:#58564f;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+    --teal:#0b6b52;--teal-bg:#e8f5f1;--teal-mid:#0d8060;
+    --amber:#a87015;--red:#9e2828;--purple:#4a3f96;
+    --vm-blue:#1e6eb5;--green:#0e6b45;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;top:0;left:0;width:272px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:48px;}
+  .sh{padding:18px 20px 14px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .badge-series{font-size:10px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--teal);margin-bottom:4px;}
+  .sh h1{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:3px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:10px 20px 4px;}
+  .ni{display:flex;align-items:flex-start;gap:9px;padding:7px 20px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .12s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--teal);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);
+    flex-shrink:0;margin-top:5px;transition:background .12s;}
+  .ni.active .nd{background:var(--teal);}
+
+  /* ── MAIN ── */
+  .main{margin-left:272px;padding:44px 56px 110px;max-width:1020px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--teal);margin-bottom:6px;}
+  .pt{font-size:26px;font-weight:700;color:var(--text);margin-bottom:7px;line-height:1.22;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:28px;padding-bottom:20px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:32px 0 11px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:22px 0 7px;color:var(--text);}
+  p{margin-bottom:12px;color:var(--text);}
+  ul,ol{margin:8px 0 14px 20px;color:var(--text);}
+  li{margin-bottom:6px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--teal);}
+
+  /* ── CALLOUTS ── */
+  .callout{border-left:3px solid var(--teal);background:var(--bg3);
+    padding:13px 17px;border-radius:0 var(--r2) var(--r2) 0;margin:16px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--green);}
+  .callout.why{border-left-color:var(--purple);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--green);}
+  .callout.why .cl{color:var(--purple);}
+  .callout:not(.warn):not(.danger):not(.success):not(.why) .cl{color:var(--teal);}
+
+  /* ── LAYOUT ── */
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:18px 22px;margin:14px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+  th{text-align:left;padding:8px 12px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  /* ── BADGES ── */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  .bteal{background:var(--teal-bg);color:var(--teal);}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+  }
+
+  /* ── STEPS ── */
+  .step-list{list-style:none;padding:0;}
+  .step-item{display:flex;gap:14px;margin-bottom:24px;align-items:flex-start;}
+  .step-num{flex-shrink:0;width:30px;height:30px;border-radius:50%;
+    background:var(--teal);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .step-content{flex:1;}
+  .step-title{font-weight:600;margin-bottom:4px;font-size:14.5px;}
+
+  /* ── DECISION ── */
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:14px 18px;margin:18px 0;}
+  .dl{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .dq{font-size:14px;font-weight:600;margin-bottom:9px;color:var(--text);}
+  .da{font-size:13.5px;color:var(--text2);line-height:1.72;}
+  .da strong{color:var(--text);}
+
+  /* ── SPEC TABLE ── */
+  .spec-row{display:flex;gap:9px;padding:6px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:235px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+
+  /* ── PROGRESS ── */
+  .progress-track{display:flex;gap:0;margin:20px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--teal);color:#fff;}
+  .pt-step .pt-n{font-size:15px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+
+  /* ── WIZARD MOCKUP ── */
+  .wizard{background:#fff;border-radius:var(--r);overflow:hidden;
+    margin:20px 0;border:1px solid #c8d4dc;box-shadow:0 2px 16px rgba(0,0,0,.09);}
+  .wz-head{background:#1a3a54;padding:13px 22px;display:flex;align-items:center;gap:13px;}
+  .wz-icon{width:30px;height:30px;border-radius:5px;background:var(--teal);
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+    color:#fff;flex-shrink:0;}
+  .wz-title{font-size:14.5px;font-weight:700;color:#fff;}
+  .wz-sub{font-size:11.5px;color:#7ab0cc;margin-top:2px;}
+  .wz-body{display:flex;min-height:260px;}
+  .wz-nav{width:200px;flex-shrink:0;background:#f4f6f8;
+    border-right:1px solid #dde4ea;padding:12px 0;}
+  .wz-step{padding:8px 15px;font-size:12.5px;color:#5a6a7a;cursor:default;
+    display:flex;align-items:center;gap:9px;line-height:1.35;}
+  .wz-step.cur{background:var(--teal-bg);color:var(--teal);font-weight:600;
+    border-left:3px solid var(--teal);padding-left:12px;}
+  .wz-step.done{color:#107c10;}
+  .wz-sn{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;
+    display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+  .wz-step.cur .wz-sn{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .wz-step.done .wz-sn{background:#107c10;border-color:#107c10;color:#fff;}
+  .wz-content{flex:1;padding:20px 26px;overflow-y:auto;}
+  .wz-stitle{font-size:14px;font-weight:700;color:#1a2a3a;margin-bottom:5px;}
+  .wz-ssub{font-size:12.5px;color:#5a6a7a;margin-bottom:16px;}
+  .wz-field{margin-bottom:13px;}
+  .wz-lbl{font-size:12px;color:#5a6a7a;margin-bottom:4px;}
+  .wz-inp{width:100%;border:1px solid #b8c4cc;border-radius:3px;
+    padding:7px 11px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .wz-inp.ok{border-color:#107c10;background:#f5fff5;}
+  .wz-sel{width:100%;border:1px solid #b8c4cc;border-radius:3px;
+    padding:7px 11px;font-size:13px;color:#1a1a1a;background:#fff;}
+  .wz-sel.ok{border-color:#107c10;background:#f5fff5;}
+  .wz-chk{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13.5px;}
+  .wz-cb{width:15px;height:15px;border:1.5px solid var(--teal);border-radius:3px;
+    background:var(--teal);flex-shrink:0;margin-top:2px;
+    display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;}
+  .wz-cb.off{background:#fff;border-color:#aaa;}
+  .wz-ok{background:var(--teal-bg);border:1px solid var(--teal);border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:var(--teal);line-height:1.6;}
+  .wz-warn{background:#fff8e8;border:1px solid #f0c040;border-radius:4px;
+    padding:10px 14px;margin:10px 0;font-size:12.5px;color:#6b4c00;line-height:1.6;}
+  .wz-foot{background:#f4f6f8;padding:11px 22px;
+    display:flex;justify-content:flex-end;gap:9px;border-top:1px solid #dde4ea;}
+  .wz-btn{padding:7px 20px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer;}
+  .wz-btn.sec{background:#fff;color:#444;border:1px solid #c0c8d0;}
+  .wz-btn.pri{background:var(--teal);color:#fff;border:none;}
+  .wz-btn.fin{background:#107c10;color:#fff;border:none;}
+
+  /* ── TERMINAL ── */
+  .term{background:#0f1117;border-radius:var(--r);overflow:hidden;margin:18px 0;
+    border:1px solid #252830;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.68;}
+  .term-bar{background:#080a10;padding:9px 15px;display:flex;align-items:center;
+    gap:7px;border-bottom:1px solid #252830;}
+  .tdot{width:10px;height:10px;border-radius:50%;}
+  .tdot.r{background:#ff5f57;}.tdot.y{background:#febc2e;}.tdot.g{background:#28c840;}
+  .term-lbl{font-size:11px;color:#5a6070;margin-left:6px;}
+  .term-body{padding:15px 20px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#c8cdd8;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#5c7a60;}
+  .tann{display:flex;gap:9px;background:#080a10;border-left:3px solid #cca700;
+    padding:8px 14px;margin:5px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#c8cdd8;line-height:1.55;}
+  .tann.ok{border-left-color:#4ccd99;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+
+  /* ── TYPE CARDS ── */
+  .type-card{border-radius:var(--r);padding:16px 20px;border:2px solid var(--border2);}
+  .type-card.local{border-color:var(--teal);}
+  .type-card.subscribed{border-color:var(--vm-blue);}
+  .type-card-title{font-size:13px;font-weight:700;margin-bottom:6px;}
+  .type-card.local .type-card-title{color:var(--teal);}
+  .type-card.subscribed .type-card-title{color:var(--vm-blue);}
+
+  /* ── ITEM GRID ── */
+  .item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:12px;margin:14px 0;}
+  .item-card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:8px;padding:14px 16px;}
+  .item-card-icon{font-size:26px;margin-bottom:8px;}
+  .item-card-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+  .item-card-type{font-size:11px;color:var(--text3);margin-bottom:6px;}
+  .item-card-size{font-size:12px;color:var(--text2);}
+
+  /* ── SERIES COMPLETE TABLE ── */
+  .series-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+  .series-table th{background:var(--teal);color:#fff;padding:9px 13px;
+    font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+    text-align:left;}
+  .series-table td{padding:9px 13px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  .series-table tr:last-child td{border-bottom:none;}
+  .series-table tr:nth-child(even) td{background:var(--bg3);}
+
+  hr{border:none;border-top:0.5px solid var(--border);margin:26px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="badge-series">NovaCrestBank · VMware Series</div>
+    <h1>vSphere-07 — Content Library</h1>
+    <p>ISO images · VM Templates · OVF · Customisation specs</p>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Concepts</div>
+    <div class="ni active" onclick="show('overview')"><div class="nd"></div>01 — What Content Library is and the problem it solves</div>
+    <div class="ni" onclick="show('types')"><div class="nd"></div>02 — Local vs Subscribed libraries</div>
+    <div class="ni" onclick="show('item-types')"><div class="nd"></div>03 — Item types — ISO, OVF, and VM Template</div>
+    <div class="ni" onclick="show('planning')"><div class="nd"></div>04 — Planning — what NovaCrestBank stores</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Create the library</div>
+    <div class="ni" onclick="show('create')"><div class="nd"></div>05 — New Content Library wizard — step by step</div>
+    <div class="ni" onclick="show('storage')"><div class="nd"></div>06 — Select vsanDatastore and enable publishing</div>
+    <div class="ni" onclick="show('subscription-url')"><div class="nd"></div>07 — Save the subscription URL</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">ISO images</div>
+    <div class="ni" onclick="show('iso-concept')"><div class="nd"></div>08 — Why ISOs belong in the library, not on datastores</div>
+    <div class="ni" onclick="show('iso-upload')"><div class="nd"></div>09 — Upload Windows Server 2022 ISO</div>
+    <div class="ni" onclick="show('iso-rhel')"><div class="nd"></div>10 — Upload RHEL 9 ISO</div>
+    <div class="ni" onclick="show('iso-attach')"><div class="nd"></div>11 — Attach a library ISO to a VM</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">VM Templates — golden images</div>
+    <div class="ni" onclick="show('vm-tmpl-concept')"><div class="nd"></div>12 — VM Template vs OVF vs classic template</div>
+    <div class="ni" onclick="show('vm-tmpl-build')"><div class="nd"></div>13 — Build the Windows Server 2022 golden image</div>
+    <div class="ni" onclick="show('vm-tmpl-sysprep')"><div class="nd"></div>14 — Sysprep and convert to Content Library template</div>
+    <div class="ni" onclick="show('vm-tmpl-rhel')"><div class="nd"></div>15 — Build and commit the RHEL 9 golden image</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Deploy from templates</div>
+    <div class="ni" onclick="show('cust-spec')"><div class="nd"></div>16 — Guest OS Customisation Specification</div>
+    <div class="ni" onclick="show('deploy')"><div class="nd"></div>17 — Deploy a new VM from a VM Template</div>
+    <div class="ni" onclick="show('ovf')"><div class="nd"></div>18 — OVF templates — import and deploy vendor appliances</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Operations</div>
+    <div class="ni" onclick="show('update')"><div class="nd"></div>19 — Monthly patch cycle — update a VM Template</div>
+    <div class="ni" onclick="show('rbac')"><div class="nd"></div>20 — Permissions — who publishes, who consumes</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Verify and close</div>
+    <div class="ni" onclick="show('verify')"><div class="nd"></div>21 — Verify the library — inventory and storage check</div>
+    <div class="ni" onclick="show('final')"><div class="nd"></div>22 — Final checklist · Complete series summary</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ══════ 01 ══════ -->
+<div class="page active" id="page-overview">
+  <div class="ey">VMware Series · vSphere-07 · Section 01</div>
+  <div class="pt">What Content Library is — and the problem it solves</div>
+  <div class="ps">The final piece of NovaCrestBank's vSphere infrastructure — a centralised, versioned, access-controlled repository for every image and template the cluster uses</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>ESXi<br/>vCenter</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>vDS<br/>AD / PKI</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>vSAN<br/>HA / DRS</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>Win / OCP<br/>HSM / FC</div>
+    <div class="pt-step active"><span class="pt-n">→</span>Content<br/>Library</div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">The problem without Content Library</div>
+    Without a Content Library, ISOs and templates proliferate across individual datastores. A Windows Server 2022 ISO exists on esxi01's local datastore — uploaded six months ago. A different version exists on esxi03, uploaded last month. Nobody knows which is current. VM templates fare worse: each administrator has built their own on whichever datastore was convenient, each with different patch levels and slightly different configurations. When a new server is deployed, "from the template" means something different depending on who runs the job. Drift is invisible until something breaks.
+  </div>
+
+  <div class="callout success">
+    <div class="cl">After Content Library</div>
+    One canonical ISO per OS version. One approved VM Template per OS. Every VM deployed from the library gets identical binaries, the same patch level, the same VMware Tools version, the same security baseline already applied. When Patch Tuesday arrives, the template is updated once. All future deployments start from the current state — automatically, consistently, with no per-administrator variation.
+  </div>
+
+  <div class="decision">
+    <div class="dl">Why Content Library is guide 07 — not guide 02</div>
+    <div class="dq">Content Library setup takes 30 minutes. Why is it last in the vSphere series?</div>
+    <div class="da"><strong>Because the value of a VM Template is entirely determined by the infrastructure state at the time it was built.</strong><br/><br/>
+    A Windows Server 2022 template built before Active Directory (Win-01) existed would not be domain-joined. Before Win-04 (Issuing CA), it would have no certificate auto-enrolment. Before Win-05 (GPO), it would have no security baseline. A template built after all infrastructure guides is genuinely production-ready — it joins the domain automatically, receives a CA-signed certificate within 90 minutes, and has the security baseline applied at first login. Every clone is indistinguishable from a manually built and configured server, at a fraction of the time. That completeness only exists now.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 02 ══════ -->
+<div class="page" id="page-types">
+  <div class="ey">VMware Series · vSphere-07 · Section 02</div>
+  <div class="pt">Local vs Subscribed libraries</div>
+  <div class="ps">Two library modes — one is the source of truth, the other is a read-only mirror. Understanding which is which before creating anything</div>
+
+  <div class="grid-2">
+    <div class="type-card local">
+      <div class="type-card-title">📚 Local (Published) Library</div>
+      <p style="font-size:13px;margin-bottom:0;">The authoritative source. Stores actual content on a local datastore. All uploads, template creation, and versioning happen here. Can be published — generating a subscription URL that other vCenters use to subscribe. <strong>NovaCrestBank creates one:</strong> NCB-Content-Library on vsanDatastore.</p>
+    </div>
+    <div class="type-card subscribed">
+      <div class="type-card-title">🔗 Subscribed Library</div>
+      <p style="font-size:13px;margin-bottom:0;">A read-only copy that subscribes to a published library. Content synchronises automatically. Cannot be modified — all changes flow from the published source. <strong>NovaCrestBank use case:</strong> a future DR-site vCenter subscribes to NCB-Content-Library to get the same templates without managing them separately.</p>
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="dl">Enable publishing even with only one vCenter today</div>
+    <div class="dq">Should publishing be enabled if there is no second vCenter to subscribe yet?</div>
+    <div class="da"><strong>Yes — enable it during creation. It adds no overhead and no cost, but the subscription URL is generated once and is stable for the lifetime of the library. A library cannot be converted from unpublished to published without recreation.</strong><br/><br/>
+    When NovaCrestBank adds a DR vCenter or a dedicated development vCenter, it subscribes immediately using the URL that already exists. Enabling publishing takes five seconds at creation time and saves rebuilding the library later. Always enable it on production libraries.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 03 ══════ -->
+<div class="page" id="page-item-types">
+  <div class="ey">VMware Series · vSphere-07 · Section 03</div>
+  <div class="pt">Item types — ISO, OVF, and VM Template</div>
+  <div class="ps">Three distinct types of content — each serves a different purpose in the VM lifecycle. Choosing the wrong type causes operational friction.</div>
+
+  <table>
+    <thead><tr><th>Type</th><th>What it is</th><th>Best used for</th><th>Deploy speed</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>ISO Image</strong></td>
+        <td>A CD/DVD disc image file. Uploaded once, attached as a virtual optical drive to any VM in the cluster via Content Library — not copied to the host's local datastore.</td>
+        <td>OS installation media, firmware update ISOs, diagnostic tools, ESXi installer images</td>
+        <td>Instant — it is just a file mount, no copying</td>
+      </tr>
+      <tr>
+        <td><strong>OVF Template</strong></td>
+        <td>Open Virtualisation Format package: an .ovf descriptor (XML hardware spec) plus .vmdk disk image(s). A self-contained, portable VM snapshot. The universal format for vendor appliances.</td>
+        <td>Vendor appliances arriving as OVA files (vRealize, NSX Edge, F5 BIG-IP, monitoring tools). VMs that must be shared with non-vSphere environments. Long-term archival snapshots of specific configurations.</td>
+        <td>Slow — full VMDK copy on every deployment</td>
+      </tr>
+      <tr>
+        <td><strong>VM Template</strong></td>
+        <td>A vSphere-native template stored in the library. Supports Instant Clone (near-instant deployment via copy-on-write), Guest OS Customisation Specifications (Sysprep/cloud-init), and native vCenter versioning.</td>
+        <td><strong>Everything else</strong> — all golden images for Windows Server and RHEL. Any VM deployed repeatedly at scale. The correct format for all internally-managed operating system images.</td>
+        <td>Fast — Instant Clone completes in seconds; full clone in 3–8 minutes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="dl">VM Template vs classic vSphere template — what changed</div>
+    <div class="dq">Before Content Library, the standard approach was a classic vSphere template in the VM inventory. What does a Content Library VM Template add?</div>
+    <div class="da"><strong>Four meaningful improvements: centralised storage (not tied to a specific datastore on a specific host), versioning (multiple versions with rollback), Instant Clone support, and subscription synchronisation to remote vCenters.</strong><br/><br/>
+    Classic vSphere templates are stored on a specific datastore and do not version — the template is replaced each time it is updated. If a bad patch is applied and the template is updated, the previous version is gone. Content Library VM Templates retain previous versions; marking an old version as default immediately rolls back all new deployments to the prior state. For a banking environment where a bad template patch could affect 50 VMs, the rollback capability is operationally significant.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 04 ══════ -->
+<div class="page" id="page-planning">
+  <div class="ey">VMware Series · vSphere-07 · Section 04</div>
+  <div class="pt">Planning — what NovaCrestBank stores in the library</div>
+  <div class="ps">The complete initial inventory before any item is uploaded — names, types, sizes, and purpose for each item</div>
+
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Library name</span><span class="spec-val">NCB-Content-Library</span></div>
+    <div class="spec-row"><span class="spec-label">Type</span><span class="spec-val">Local · Published with password authentication</span></div>
+    <div class="spec-row"><span class="spec-label">Backing datastore</span><span class="spec-val">vsanDatastore (NovaCrestBank-Cluster01)</span></div>
+    <div class="spec-row"><span class="spec-label">Subscription password</span><span class="spec-val">NovaCrest$CLSub2026! (stored in CyberArk)</span></div>
+    <div class="spec-row"><span class="spec-label">Storage policy applied to library content</span><span class="spec-val">NovaCrestBank-Banking-Critical (FTT=2 RAID-1) — inherited from vsanDatastore default</span></div>
+  </div>
+
+  <h2>Initial library contents</h2>
+  <div class="item-grid">
+    <div class="item-card">
+      <div class="item-card-icon">💿</div>
+      <div class="item-card-name">WinServer2022-EN-x64</div>
+      <div class="item-card-type"><span class="badge bb">ISO Image</span></div>
+      <div class="item-card-size">~5.4 GB · Windows Server 2022 installation media</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card-icon">💿</div>
+      <div class="item-card-name">RHEL-9.x-x86_64</div>
+      <div class="item-card-type"><span class="badge bb">ISO Image</span></div>
+      <div class="item-card-size">~8.9 GB · RHEL 9 DVD ISO</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card-icon">🖥</div>
+      <div class="item-card-name">NCB-WinServer2022-Base</div>
+      <div class="item-card-type"><span class="badge bg">VM Template</span></div>
+      <div class="item-card-size">~20 GB · WS2022 Desktop Experience · domain-joined · baseline GPO</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card-icon">🖥</div>
+      <div class="item-card-name">NCB-WinServer2022-Core</div>
+      <div class="item-card-type"><span class="badge bg">VM Template</span></div>
+      <div class="item-card-size">~12 GB · Server Core · no GUI · efficient for headless workloads</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card-icon">🐧</div>
+      <div class="item-card-name">NCB-RHEL9-Base</div>
+      <div class="item-card-type"><span class="badge bg">VM Template</span></div>
+      <div class="item-card-size">~8 GB · RHEL 9 minimal · RH subscription registered · VMware Tools</div>
+    </div>
+  </div>
+
+  <p style="font-size:13px;color:var(--text2);">Total initial library size: approximately 54 GB on vsanDatastore — a small fraction of the 76.8 TB available.</p>
+</div>
+
+<!-- ══════ 05 ══════ -->
+<div class="page" id="page-create">
+  <div class="ey">VMware Series · vSphere-07 · Section 05</div>
+  <div class="pt">New Content Library wizard — step by step</div>
+  <div class="ps">Opening the wizard and completing the first step — name and location</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Menu → Content Libraries → Create</div>
+        <p style="font-size:13.5px;">In the vSphere Client, click the <strong>Menu</strong> icon (the nine-dot grid at the top left). Click <strong>Content Libraries</strong> in the dropdown. The Content Libraries page appears — currently empty. Click the <strong>Create</strong> button in the top right. The New Content Library wizard opens.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="wizard">
+    <div class="wz-head">
+      <div class="wz-icon">📚</div>
+      <div>
+        <div class="wz-title">New Content Library</div>
+        <div class="wz-sub">vcenter.novacrestbank.local</div>
+      </div>
+    </div>
+    <div class="wz-body">
+      <div class="wz-nav">
+        <div class="wz-step cur"><div class="wz-sn">→</div>Name and location</div>
+        <div class="wz-step"><div class="wz-sn">2</div>Configure library</div>
+        <div class="wz-step"><div class="wz-sn">3</div>Add storage</div>
+        <div class="wz-step"><div class="wz-sn">4</div>Ready to complete</div>
+      </div>
+      <div class="wz-content">
+        <div class="wz-stitle">Name and location</div>
+        <div class="wz-ssub">Give this Content Library a name and associate it with a vCenter Server</div>
+        <div class="wz-field">
+          <div class="wz-lbl">Name:</div>
+          <div class="wz-inp ok">NCB-Content-Library</div>
+        </div>
+        <div class="wz-field">
+          <div class="wz-lbl">Notes (optional):</div>
+          <div class="wz-inp ok">Centralised repository: ISOs, VM Templates, and OVF appliances for NovaCrestBank</div>
+        </div>
+        <div class="wz-field">
+          <div class="wz-lbl">vCenter Server:</div>
+          <div class="wz-sel ok">vcenter.novacrestbank.local (current)</div>
+        </div>
+      </div>
+    </div>
+    <div class="wz-foot">
+      <div class="wz-btn sec">Cancel</div>
+      <div class="wz-btn pri">Next →</div>
+    </div>
+  </div>
+
+  <p>Enter name <strong>NCB-Content-Library</strong>. Add the notes text. Leave vCenter as the current instance. Click <strong>Next</strong>.</p>
+</div>
+
+<!-- ══════ 06 ══════ -->
+<div class="page" id="page-storage">
+  <div class="ey">VMware Series · vSphere-07 · Section 06</div>
+  <div class="pt">Configure library type — Local Published — and select vsanDatastore</div>
+  <div class="ps">Steps 2 and 3 of the wizard — the most consequential decisions in library setup</div>
+
+  <div class="wizard">
+    <div class="wz-head">
+      <div class="wz-icon">📚</div>
+      <div><div class="wz-title">New Content Library — Configure library</div></div>
+    </div>
+    <div class="wz-body">
+      <div class="wz-nav">
+        <div class="wz-step done"><div class="wz-sn">✓</div>Name and location</div>
+        <div class="wz-step cur"><div class="wz-sn">→</div>Configure library</div>
+        <div class="wz-step"><div class="wz-sn">3</div>Add storage</div>
+        <div class="wz-step"><div class="wz-sn">4</div>Ready to complete</div>
+      </div>
+      <div class="wz-content">
+        <div class="wz-stitle">Configure content library</div>
+        <div class="wz-ssub">Select library type and publishing options</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+          <div style="display:flex;align-items:flex-start;gap:11px;padding:11px 15px;
+              background:var(--teal-bg);border:2px solid var(--teal);border-radius:5px;">
+            <div style="width:13px;height:13px;border-radius:50%;background:var(--teal);
+                flex-shrink:0;margin-top:3px;"></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--teal);">Local content library ← select this</div>
+              <div style="font-size:12px;color:#4a6a5a;margin-top:2px;">Store and manage content on this vCenter. Enable publishing to allow subscriptions from other vCenters.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:11px;padding:11px 15px;
+              background:var(--bg3);border:1px solid var(--border2);border-radius:5px;opacity:.55;">
+            <div style="width:13px;height:13px;border-radius:50%;border:1.5px solid #aaa;
+                flex-shrink:0;margin-top:3px;"></div>
+            <div style="font-size:13px;color:var(--text3);">Subscribed content library — not chosen here</div>
+          </div>
+        </div>
+        <div class="wz-chk">
+          <div class="wz-cb">✓</div>
+          <div><strong>Enable publishing ← tick this</strong>
+            <div style="font-size:12px;color:#5a6a7a;margin-top:2px;">Generates a subscription URL so other vCenters can subscribe. No overhead — always enable on production libraries.</div>
+          </div>
+        </div>
+        <div class="wz-chk">
+          <div class="wz-cb">✓</div>
+          <div><strong>Enable authentication</strong>
+            <div style="font-size:12px;color:#5a6a7a;margin-top:2px;">Require a password for subscriptions. Prevents unauthorised vCenters from subscribing.</div>
+          </div>
+        </div>
+        <div class="wz-field">
+          <div class="wz-lbl">Subscription password:</div>
+          <div class="wz-inp ok">NovaCrest$CLSub2026!</div>
+        </div>
+      </div>
+    </div>
+    <div class="wz-foot">
+      <div class="wz-btn sec">← Back</div>
+      <div class="wz-btn pri">Next →</div>
+    </div>
+  </div>
+
+  <p>Select <strong>Local content library</strong>. Tick <strong>Enable publishing</strong>. Tick <strong>Enable authentication</strong>. Enter subscription password <code>NovaCrest$CLSub2026!</code>. Click <strong>Next</strong>. On the Add Storage screen:</p>
+
+  <div class="wizard">
+    <div class="wz-head">
+      <div class="wz-icon">📚</div>
+      <div><div class="wz-title">New Content Library — Add storage</div></div>
+    </div>
+    <div class="wz-body" style="min-height:200px;">
+      <div class="wz-nav">
+        <div class="wz-step done"><div class="wz-sn">✓</div>Name and location</div>
+        <div class="wz-step done"><div class="wz-sn">✓</div>Configure library</div>
+        <div class="wz-step cur"><div class="wz-sn">→</div>Add storage</div>
+        <div class="wz-step"><div class="wz-sn">4</div>Ready to complete</div>
+      </div>
+      <div class="wz-content">
+        <div class="wz-stitle">Select a datastore</div>
+        <div style="background:#f4f6f8;border:1px solid #dde4ea;border-radius:4px;overflow:hidden;margin-top:10px;font-size:12.5px;">
+          <div style="background:#1a3a54;padding:6px 14px;display:flex;gap:16px;
+              font-size:10.5px;font-weight:700;color:#7ab0cc;text-transform:uppercase;">
+            <span style="flex:1;">Datastore</span><span style="width:70px;">Free</span><span style="width:70px;">Type</span>
+          </div>
+          <div style="padding:9px 14px;display:flex;gap:16px;background:var(--teal-bg);
+              border-left:3px solid var(--teal);">
+            <span style="flex:1;font-weight:700;color:var(--teal);">vsanDatastore ← select this</span>
+            <span style="width:70px;color:#4a6a5a;">~73 TB</span>
+            <span style="width:70px;color:#4a6a5a;">vSAN</span>
+          </div>
+          <div style="padding:9px 14px;display:flex;gap:16px;opacity:.45;border-top:0.5px solid #dde4ea;">
+            <span style="flex:1;">NCB-FC-VMFS-01</span><span style="width:70px;">4 TB</span><span style="width:70px;">VMFS</span>
+          </div>
+          <div style="padding:9px 14px;display:flex;gap:16px;opacity:.45;border-top:0.5px solid #dde4ea;">
+            <span style="flex:1;">NCB-FC-VMFS-ARCHIVE</span><span style="width:70px;">8 TB</span><span style="width:70px;">VMFS</span>
+          </div>
+        </div>
+        <div class="wz-ok" style="margin-top:10px;">vsanDatastore is correct: accessible to all 5 ESXi hosts simultaneously, protected by NovaCrestBank-Banking-Critical (FTT=2 RAID-1), and carries the most free capacity. Content stored here remains available regardless of which host vCenter runs on after HA failover.</div>
+      </div>
+    </div>
+    <div class="wz-foot">
+      <div class="wz-btn sec">← Back</div>
+      <div class="wz-btn fin">Finish</div>
+    </div>
+  </div>
+
+  <p>Select <strong>vsanDatastore</strong>. Click <strong>Next</strong> → review the summary → click <strong>Finish</strong>. The library is created and appears in the Content Libraries list with 0 items.</p>
+</div>
+
+<!-- ══════ 07 ══════ -->
+<div class="page" id="page-subscription-url">
+  <div class="ey">VMware Series · vSphere-07 · Section 07</div>
+  <div class="pt">Save the subscription URL</div>
+  <div class="ps">The URL generated at library creation — save it to infrastructure documentation now</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Click NCB-Content-Library → Summary tab → copy the Subscription URL</div>
+        <p style="font-size:13.5px;">In the Content Libraries list, click <strong>NCB-Content-Library</strong>. The Summary tab shows the library details. Find the <strong>Subscription URL</strong> field:</p>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
+          https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Copy this URL and store it in the NovaCrestBank infrastructure documentation alongside the subscription password. This URL is stable for the lifetime of the library.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="decision">
+    <div class="dl">Why the subscription URL points to vCenter on port 443</div>
+    <div class="dq">Content Library files are on vsanDatastore. Why does the subscription URL point to vCenter, not to a file share?</div>
+    <div class="da"><strong>vCenter acts as the HTTPS content server for the library. This is deliberate — the subscription URL is authenticated (password required), TLS-encrypted using vCenter's CA-signed certificate, and all access is logged through vCenter's audit trail. Subscribers download content directly from vCenter's Content Library service over HTTPS rather than from a raw datastore share.</strong><br/><br/>
+    This design means: content is served only to vCenters that present the correct subscription password, the TLS connection is validated against the CA-signed certificate so no man-in-the-middle can intercept content, and every subscription sync is logged. A raw NFS or SMB file share would require separate authentication, separate TLS setup, and separate logging — Content Library integrates all three into the existing vCenter security framework.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 08 ══════ -->
+<div class="page" id="page-iso-concept">
+  <div class="ey">VMware Series · vSphere-07 · Section 08</div>
+  <div class="pt">Why ISOs belong in the library — not on individual datastores</div>
+  <div class="ps">The operational and security reasons for centralising ISO management</div>
+
+  <div class="decision">
+    <div class="dl">Content Library ISO vs Datastore ISO — four operational differences</div>
+    <div class="dq">An ISO on vsanDatastore is already accessible to all 5 hosts. What does storing it in the Content Library add?</div>
+    <div class="da"><strong>Four additions: versioning, access control, cataloguing, and subscription synchronisation — none of which a raw datastore ISO provides.</strong><br/><br/>
+    <strong>Versioning:</strong> When Windows Server 2022 receives a new cumulative update and Microsoft releases an updated ISO, the library item is updated. The upload date, version notes, and previous version history are retained. A raw datastore ISO has no such record — there is no way to know when it was uploaded or whether a newer version exists elsewhere.<br/><br/>
+    <strong>Access control:</strong> Content Library permissions are separate from datastore permissions. A junior administrator who needs to attach an ISO to a VM gets Content Library read access — they can use the ISO without getting access to the underlying vsanDatastore files. Minimal privilege, clean separation.<br/><br/>
+    <strong>Cataloguing:</strong> All ISOs appear in a searchable, named catalogue with descriptions and upload dates. Finding the correct ISO is a UI search, not a directory browse through files like <code>SW_DVD9_Win_Server_STD_CORE_2022_64Bit_English_MLF_X22-74290.ISO</code>.<br/><br/>
+    <strong>Subscription sync:</strong> A subscribed vCenter at a DR site automatically receives updated ISOs when the library is updated — no manual file transfer required.
+    </div>
+  </div>
+
+  <div class="decision">
+    <div class="dl">Content Library ISO attachment survives vMotion — datastore ISO does not</div>
+    <div class="dq">A VM has a Datastore ISO attached. What happens during vMotion to another host?</div>
+    <div class="da"><strong>A Datastore ISO attachment breaks during vMotion if the destination host cannot access the exact same datastore path. A Content Library ISO attachment follows the VM to any host because it is served through vCenter's Content Library service, not from a host-local datastore path.</strong><br/><br/>
+    In practice: a VM with a Datastore ISO on vsanDatastore will survive vMotion within the same cluster because vsanDatastore is accessible to all hosts. But if the datastore path changes (e.g., a different datastore name in a DR scenario), the attachment breaks. Content Library ISO attachments never break during vMotion — the library URL is always the same vCenter address regardless of which host runs the VM. For a cluster with HA and DRS enabled (as NovaCrestBank's is), this matters every time a VM migrates.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 09 ══════ -->
+<div class="page" id="page-iso-upload">
+  <div class="ey">VMware Series · vSphere-07 · Section 09</div>
+  <div class="pt">Upload the Windows Server 2022 ISO</div>
+  <div class="ps">Adding the first item to NCB-Content-Library — the installation media for all new Windows Server VM builds</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In NCB-Content-Library → Actions → Import Item</div>
+        <p style="font-size:13.5px;">Click <strong>NCB-Content-Library</strong> in the Content Libraries list. In the library detail view, click <strong>Actions → Import Item</strong> (or the <strong>+</strong> icon in the Items tab). The Import Library Item dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Select "Upload file from local machine" → browse to the Windows Server 2022 ISO</div>
+        <p style="font-size:13.5px;">In the Import dialog, select <strong>Upload file from local machine</strong> (rather than importing from a URL). Click <strong>Browse</strong> and navigate to the Windows Server 2022 ISO on the administrator's workstation or accessible network share. Typical Microsoft filename: <code>SW_DVD9_Win_Server_STD_CORE_2022_64Bit_English_DC_STD_MLF_X22-74290.ISO</code></p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Set the item name, type, and notes → Import</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>Item name: <strong style="color:var(--teal);">WinServer2022-EN-x64</strong></div>
+          <div style="margin-top:4px;">Item type:  <strong style="color:var(--teal);">ISO Image</strong> (auto-detected from .ISO extension)</div>
+          <div style="margin-top:4px;">Notes:      <strong style="color:var(--teal);">Windows Server 2022 Standard/Datacenter EN-US x64 · Uploaded 2026-04-18</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Import</strong>. The upload begins — a progress indicator appears in the library tasks pane. A 5.4 GB ISO typically takes 5–15 minutes depending on workstation and network speed. The item appears in the library list as "WinServer2022-EN-x64" with type ISO Image once complete.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout success">
+    <div class="cl">Upload complete — the ISO is on vsanDatastore under vCenter's Content Library directory</div>
+    The ISO is now stored on vsanDatastore protected by the NovaCrestBank-Banking-Critical policy (FTT=2 RAID-1 — three copies). It is accessible from all 5 ESXi hosts via the Content Library service. When a new server VM needs installation media, this single canonical copy is used — not a file copied to a local datastore.
+  </div>
+</div>
+
+<!-- ══════ 10 ══════ -->
+<div class="page" id="page-iso-rhel">
+  <div class="ey">VMware Series · vSphere-07 · Section 10</div>
+  <div class="pt">Upload the RHEL 9 ISO</div>
+  <div class="ps">Following the identical procedure for the Red Hat Enterprise Linux 9 installation image</div>
+
+  <p>Follow the same procedure as Section 09 with these values:</p>
+
+  <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
+    <div>Source:     <strong style="color:var(--teal);">rhel-9.x-x86_64-dvd.iso</strong></div>
+    <div style="margin-top:4px;color:var(--text2);">(Download from Red Hat Customer Portal — requires active subscription)</div>
+    <div style="margin-top:8px;">Item name:  <strong style="color:var(--teal);">RHEL-9.x-x86_64</strong></div>
+    <div style="margin-top:4px;">Item type:  <strong style="color:var(--teal);">ISO Image</strong></div>
+    <div style="margin-top:4px;">Notes:      <strong style="color:var(--teal);">Red Hat Enterprise Linux 9.x x86_64 DVD ISO · Uploaded 2026-04-18</strong></div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Naming convention for future RHEL point releases</div>
+    RHEL point releases (9.1, 9.2, 9.3) are full installation images — not patches. When a new point release is available, upload it as a new item (<code>RHEL-9.3-x86_64</code>) rather than replacing the existing one. Keep the previous version available until all VMs built from it have been rebased or decommissioned. Delete old ISO versions only when confirmed no longer needed — the storage cost is under 10 GB per version.
+  </div>
+</div>
+
+<!-- ══════ 11 ══════ -->
+<div class="page" id="page-iso-attach">
+  <div class="ey">VMware Series · vSphere-07 · Section 11</div>
+  <div class="pt">Attach a library ISO to a VM — the operational workflow</div>
+  <div class="ps">Using a Content Library ISO as a virtual optical drive — the correct way that survives vMotion</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Right-click the target VM → Edit Settings</div>
+        <p style="font-size:13.5px;">Right-click the VM. Click <strong>Edit Settings</strong>. The VM hardware dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">CD/DVD Drive 1 → change dropdown to "Content Library ISO File"</div>
+        <p style="font-size:13.5px;">Find <strong>CD/DVD Drive 1</strong>. Click its dropdown — it currently shows "Client Device" or "Host Device." Change it to <strong>Content Library ISO File</strong>. A Content Library browser dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Browse to NCB-Content-Library → select the ISO → OK</div>
+        <p style="font-size:13.5px;">In the browser, click <strong>NCB-Content-Library</strong> in the left panel. The ISO items appear. Click <strong>WinServer2022-EN-x64</strong> (or RHEL-9.x-x86_64 as needed). Click <strong>OK</strong>. Tick <strong>"Connect at power on."</strong> Click <strong>Save</strong>.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout">
+    <div class="cl">No file copy occurs — the ISO is mounted directly from the library</div>
+    When a VM boots with a Content Library ISO attached, vCenter serves the ISO content to the ESXi host over the internal network from the Content Library service. The ISO file on vsanDatastore is never copied to the host's local storage — this is why a Content Library ISO attachment works regardless of which host runs the VM after DRS migration or HA failover.
+  </div>
+</div>
+
+<!-- ══════ 12 ══════ -->
+<div class="page" id="page-vm-tmpl-concept">
+  <div class="ey">VMware Series · vSphere-07 · Section 12</div>
+  <div class="pt">VM Template vs OVF vs classic template — which to use and when</div>
+  <div class="ps">Resolving the confusion between three different "template" concepts in vSphere before building any golden image</div>
+
+  <table>
+    <thead><tr><th>Format</th><th>Stored where</th><th>Versioned</th><th>Instant Clone</th><th>Customisation Spec</th><th>NovaCrestBank use</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Classic vSphere Template</strong></td>
+        <td>Specific datastore, in VM inventory</td>
+        <td>No — one version, replaced on update</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>Legacy — superseded by Content Library VM Template</td>
+      </tr>
+      <tr>
+        <td><strong>OVF Template (in library)</strong></td>
+        <td>Content Library</td>
+        <td>Yes</td>
+        <td>No — full disk copy on deploy</td>
+        <td>Limited</td>
+        <td>Vendor appliances only (OVA files from vendors)</td>
+      </tr>
+      <tr>
+        <td><strong>VM Template (in library)</strong></td>
+        <td>Content Library</td>
+        <td>Yes — multiple versions with rollback</td>
+        <td>Yes — near-instant deploy</td>
+        <td>Full Sysprep / cloud-init integration</td>
+        <td><strong>All golden images: WS2022, RHEL 9</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="dl">Instant Clone — how it makes template deployment near-instant</div>
+    <div class="dq">VM Template deployment says "near-instant via Instant Clone." How does this work physically?</div>
+    <div class="da"><strong>Instant Clone uses copy-on-write semantics — the new VM shares the template's disk pages until it writes to them, at which point only the modified pages are copied. This means a 60 GB template can produce a new running VM in seconds rather than the 5–10 minutes it takes to copy 60 GB of VMDK.</strong><br/><br/>
+    Traditional clone: vCenter copies the entire 60 GB VMDK from the template to the new VM's location. Duration proportional to disk size.<br/><br/>
+    Instant Clone: vCenter forks the template's memory state as a copy-on-write snapshot. The new VM starts instantly sharing template pages. As the VM writes new data (OOBE, customisation spec, Windows Update downloads), only those pages are diverged to the new VM's own VMDK. The 60 GB template produces a running VM in under 60 seconds.<br/><br/>
+    For NovaCrestBank deploying 20 VMs for a new application environment: traditional clone = 20 × 8 minutes = ~2.7 hours. Instant Clone = 20 × 60 seconds ≈ 20 minutes. At scale, Instant Clone is transformative.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 13 ══════ -->
+<div class="page" id="page-vm-tmpl-build">
+  <div class="ey">VMware Series · vSphere-07 · Section 13</div>
+  <div class="pt">Build the Windows Server 2022 golden image VM</div>
+  <div class="ps">Constructing the source VM that will become the NCB-WinServer2022-Base template — every step matters because every future clone inherits this state</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Create a new VM — 4 vCPU, 8 GB RAM, 60 GB thin disk, VLAN 70</div>
+        <p style="font-size:13.5px;">In vCenter: New Virtual Machine. Hardware: 4 vCPU, 8 GB memory, 1× 60 GB thin-provisioned VMDK on vsanDatastore with NovaCrestBank-Standard storage policy. Network: PG-VLAN70-Windows. VM name: <code>NCB-WinServer2022-Base-BUILD</code> (the BUILD suffix reminds you this is the source VM, not a deployed instance).</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Attach the Content Library ISO → install Windows Server 2022 Standard Desktop Experience</div>
+        <p style="font-size:13.5px;">Edit Settings → CD/DVD Drive → Content Library ISO File → WinServer2022-EN-x64 → Connect at power on. Power on the VM. The Windows Server 2022 installer loads from the library ISO. Select <strong>Windows Server 2022 Standard (Desktop Experience)</strong>. Complete the installation. Set the initial Administrator password to a temporary value — it will be generalised by Sysprep.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Install VMware Tools</div>
+        <p style="font-size:13.5px;">VM menu → <strong>Guest OS → Install VMware Tools</strong>. Inside the VM, run the VMware Tools installer from the virtual CD drive. Restart when prompted. VMware Tools is required for: Customisation Specification execution, VMDK quiesced snapshots, guest IP reporting to vCenter, and memory balloon driver.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Join the domain → apply Windows Updates → run gpupdate /force</div>
+        <p style="font-size:13.5px;">Join <code>novacrestbank.local</code> (System Properties → Computer Name → Change → Domain). Restart. Log in with a domain admin account. Run <strong>Windows Update</strong> until the VM is fully patched (may require multiple update cycles and restarts). Then run <code>gpupdate /force</code> to ensure the NovaCrestBank-SecurityBaseline GPO is applied. Verify in <code>certlm.msc</code> that the Personal store contains a CA-signed computer certificate from NovaCrestBank-Issuing-CA.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Optional: install any common baseline software</div>
+        <p style="font-size:13.5px;">If there are packages that every server in the environment will receive — a monitoring agent, a certificate management tool, a backup agent — install them now so every template clone inherits them. Confirm with the security team which agents are mandatory for all servers.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Disconnect the CD/DVD drive before Sysprep</div>
+        <p style="font-size:13.5px;">Edit Settings → CD/DVD Drive → set back to "Client Device" (disconnected). Sysprep should run with no virtual media attached to avoid confusion during the first-boot OOBE sequence.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 14 ══════ -->
+<div class="page" id="page-vm-tmpl-sysprep">
+  <div class="ey">VMware Series · vSphere-07 · Section 14</div>
+  <div class="pt">Sysprep — generalise the image — then convert to Content Library template</div>
+  <div class="ps">The two-step process that turns a configured VM into a reusable golden image — and the critical warning about what happens if Sysprep is mishandled</div>
+
+  <div class="callout danger">
+    <div class="cl">Never power on a Sysprep'd VM — convert to template immediately</div>
+    After running <code>sysprep /shutdown</code>, the VM is in a generalised state with no SID and no machine-specific configuration. If it is accidentally powered on, Windows OOBE runs, a new unique SID is generated, and the VM becomes a regular deployed server — it can no longer be used as a template source. Convert it to a Content Library template <strong>before</strong> any other action after the shutdown completes.
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Run Sysprep from an elevated command prompt</div>
+        <div class="term" style="margin-top:8px;">
+          <div class="term-bar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="term-lbl">Administrator: Command Prompt — inside the golden image VM</span></div>
+          <div class="term-body"><pre><span class="td"># Navigate to the Sysprep directory and run generalisation</span>
+<span class="tp">C:\Windows\System32\Sysprep></span> <span class="tc">sysprep.exe /generalize /oobe /shutdown</span>
+
+<span class="td"># /generalize  — remove all machine-specific data: computer SID, hardware IDs,
+#                Windows activation state, event logs, restore points
+# /oobe        — set the first-boot experience to OOBE so vCenter's Customisation
+#                Specification can inject: computer name, domain join, local admin password
+# /shutdown    — power off after completion, do NOT reboot
+#                (a rebooted Sysprep VM starts OOBE immediately and is no longer generalisable)</span>
+
+<span class="tg">Sysprep is working...
+Sysprep Log File path: C:\Windows\System32\Sysprep\Panther\setupact.log
+Sysprep completed.
+Shutting down Windows...</span>
+
+<span class="td">↑ VM powers off automatically. Wait for vCenter to show it as "Powered Off"
+  before proceeding — do not interact with the VM again until it is a library item.</span></pre>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Right-click the powered-off VM → Template → Convert to Template in Content Library</div>
+        <p style="font-size:13.5px;">In vCenter, confirm the VM status is <strong>Powered Off</strong>. Right-click <strong>NCB-WinServer2022-Base-BUILD</strong>. Hover over <strong>Template</strong>. Click <strong>Convert to Template in Content Library</strong>. The conversion dialog opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Select NCB-Content-Library, set the template name and notes → OK</div>
+        <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
+          <div>Target library: <strong style="color:var(--teal);">NCB-Content-Library</strong></div>
+          <div style="margin-top:4px;">Template name:  <strong style="color:var(--teal);">NCB-WinServer2022-Base</strong></div>
+          <div style="margin-top:4px;">Notes:          <strong style="color:var(--teal);">WS2022 Standard Desktop Experience · Domain-joined · Security baseline · VMware Tools 12.x · Patched 2026-04-18</strong></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>OK</strong>. The VM disappears from the Hosts and Clusters inventory — it is now a Content Library item. It appears in NCB-Content-Library as <strong>NCB-WinServer2022-Base</strong> with type VM Template, version 1, with the notes as the version description. Total size ~20 GB on vsanDatastore.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout success">
+    <div class="cl">The NCB-WinServer2022-Base template is now in the library</div>
+    Every clone deployed from this template inherits: Windows Server 2022 fully patched as of the build date, VMware Tools installed, the NovaCrestBank security baseline GPO applied, and a CA-signed computer certificate from NovaCrestBank-Issuing-CA. The Guest OS Customisation Specification (Section 16) will handle domain join, hostname, and password on each new deployment.
+  </div>
+</div>
+
+<!-- ══════ 15 ══════ -->
+<div class="page" id="page-vm-tmpl-rhel">
+  <div class="ey">VMware Series · vSphere-07 · Section 15</div>
+  <div class="pt">Build and commit the RHEL 9 golden image</div>
+  <div class="ps">The same process for the Linux golden image — with cloud-init instead of Sysprep</div>
+
+  <h2>Key differences from the Windows process</h2>
+  <table>
+    <thead><tr><th>Step</th><th>Windows Server 2022</th><th>RHEL 9</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>OS installation</td>
+        <td>GUI installer via WinServer2022-EN-x64 ISO</td>
+        <td>Text/graphical installer via RHEL-9.x-x86_64 ISO. Select "Minimal Install" for the base template — no GUI.</td>
+      </tr>
+      <tr>
+        <td>Registration</td>
+        <td>Domain join</td>
+        <td><code>subscription-manager register --auto-attach</code> with Red Hat credentials to enable yum repos</td>
+      </tr>
+      <tr>
+        <td>Patching</td>
+        <td>Windows Update</td>
+        <td><code>dnf update -y</code> to update all packages</td>
+      </tr>
+      <tr>
+        <td>VMware Tools</td>
+        <td>VMware Tools installer from virtual CD</td>
+        <td><code>dnf install open-vm-tools -y</code> — open-vm-tools from RHEL repos is the correct package for RHEL 9 on vSphere</td>
+      </tr>
+      <tr>
+        <td>Generalisation</td>
+        <td>Sysprep /generalize /oobe /shutdown</td>
+        <td><code>cloud-init clean --logs --seed</code> then power off manually. Cloud-init handles per-VM customisation on first boot (equivalent to Sysprep OOBE).</td>
+      </tr>
+      <tr>
+        <td>Library name</td>
+        <td>NCB-WinServer2022-Base</td>
+        <td><strong>NCB-RHEL9-Base</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="term">
+    <div class="term-bar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="term-lbl">SSH — RHEL 9 golden image VM — final preparation before conversion</span></div>
+    <div class="term-body"><pre><span class="td"># Register with Red Hat and apply all updates</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">subscription-manager register --username=&lt;rh-username&gt; --password=&lt;rh-password&gt; --auto-attach</span>
+<span class="tg">System successfully registered. ✓</span>
+
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">dnf update -y</span>
+<span class="tg">Complete! All packages up to date. ✓</span>
+
+<span class="td"># Install VMware open-vm-tools (not the VMware installer package)</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">dnf install open-vm-tools -y</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">systemctl enable vmtoolsd</span>
+<span class="tg">open-vm-tools installed and enabled ✓</span>
+
+<span class="td"># Clean cloud-init state — this is the RHEL equivalent of Sysprep
+# Removes instance identity so the next boot treats the VM as a fresh instance</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">cloud-init clean --logs --seed</span>
+
+<span class="td"># Remove machine-specific artifacts</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">rm -f /etc/machine-id && touch /etc/machine-id</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">truncate -s 0 /etc/hostname</span>
+
+<span class="td"># Power off — do not reboot</span>
+<span class="tp">root@rhel9-build:~#</span> <span class="tc">poweroff</span>
+<span class="tg">System halted. ✓  (VM shows Powered Off in vCenter)</span>
+
+<span class="td"># Convert to Content Library VM Template (same process as Section 14 Step 2-3)
+# Right-click VM → Template → Convert to Template in Content Library
+# Library: NCB-Content-Library
+# Name:    NCB-RHEL9-Base
+# Notes:   RHEL 9 minimal · RH subscription registered · open-vm-tools · Patched 2026-04-18</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 16 ══════ -->
+<div class="page" id="page-cust-spec">
+  <div class="ey">VMware Series · vSphere-07 · Section 16</div>
+  <div class="pt">Guest OS Customisation Specification — automatic domain join on deployment</div>
+  <div class="ps">The reusable specification that vCenter applies at first boot — making every new Windows VM domain-joined, correctly named, and ready without manual steps</div>
+
+  <div class="decision">
+    <div class="dl">What a Customisation Specification does — why it is essential with Sysprep templates</div>
+    <div class="dq">The template was Sysprep'd so it has no computer name and no SID. How does the new VM get a name and join the domain?</div>
+    <div class="da"><strong>A Guest OS Customisation Specification is a vCenter-managed configuration that is injected into the VM at first boot (during the OOBE phase triggered by Sysprep). It sets: computer name (from the VM name, or a fixed name, or a pattern), domain or workgroup membership, time zone, Administrator password, and network settings. vCenter applies it transparently — the administrator clicks Finish in the deploy wizard and the VM handles the rest.</strong><br/><br/>
+    Without a customisation spec: every VM cloned from the Sysprep'd template boots into OOBE, prompts for a computer name, sets a random SID, and sits at the setup screen waiting for manual input. With a customisation spec: vCenter injects the answers automatically. The VM completes OOBE, renames itself, joins the domain, and reaches the login screen — all without administrator interaction after clicking Finish.
+    </div>
+  </div>
+
+  <h2>Create the NovaCrestBank customisation specification</h2>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Menu → Policies and Profiles → Guest OS Customisation Specs → + New</div>
+        <p style="font-size:13.5px;">In the vSphere Client, click <strong>Menu → Policies and Profiles</strong>. Click <strong>Guest OS Customisation Specs</strong>. Click the <strong>+</strong> icon. The customisation spec wizard opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Fill in all fields</div>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div class="spec-row"><span class="spec-label">Spec name</span><span class="spec-val">NCB-WinServer2022-DomainJoin</span></div>
+          <div class="spec-row"><span class="spec-label">Guest OS type</span><span class="spec-val">Windows</span></div>
+          <div class="spec-row"><span class="spec-label">Generate new security identity (SID)</span><span class="spec-val">✓ Yes — always tick this</span></div>
+          <div class="spec-row"><span class="spec-label">Owner name / organisation</span><span class="spec-val">NovaCrestBank / NovaCrestBank Ltd</span></div>
+          <div class="spec-row"><span class="spec-label">Windows licence</span><span class="spec-val">Volume licence key or KMS — enter according to NovaCrestBank's licence agreement</span></div>
+          <div class="spec-row"><span class="spec-label">Computer name</span><span class="spec-val">Use the virtual machine name (vCenter passes the VM name in at deploy time)</span></div>
+          <div class="spec-row"><span class="spec-label">Administrator password</span><span class="spec-val">NovaCrest$NewVM2026! (temporary — changed by provisioning process post-deploy)</span></div>
+          <div class="spec-row"><span class="spec-label">Time zone</span><span class="spec-val">(GMT+00:00) Dublin, Edinburgh, Lisbon, London</span></div>
+          <div class="spec-row"><span class="spec-label">Network — NIC 1</span><span class="spec-val">Use DHCP — VLAN 70 DHCP scope provides .200–.254 range for new VMs</span></div>
+          <div class="spec-row"><span class="spec-label">DNS servers</span><span class="spec-val">10.70.0.10, 10.70.0.11</span></div>
+          <div class="spec-row"><span class="spec-label">DNS domain</span><span class="spec-val">novacrestbank.local</span></div>
+          <div class="spec-row"><span class="spec-label">Join</span><span class="spec-val">Domain: novacrestbank.local — credentials: NOVACRESTBANK\svc-vcenter-ldap (or Administrator)</span></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Finish</strong>. The customisation spec <strong>NCB-WinServer2022-DomainJoin</strong> appears in the Guest OS Customisation Specs list.</p>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════ 17 ══════ -->
+<div class="page" id="page-deploy">
+  <div class="ey">VMware Series · vSphere-07 · Section 17</div>
+  <div class="pt">Deploy a new VM from a VM Template</div>
+  <div class="ps">The operational workflow — from clicking "New VM from This Template" to a domain-joined, baseline-compliant server</div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">In NCB-Content-Library → right-click NCB-WinServer2022-Base → New VM from This Template</div>
+        <p style="font-size:13.5px;">In Content Libraries, click <strong>NCB-Content-Library</strong>. In the Items tab, right-click <strong>NCB-WinServer2022-Base</strong>. Click <strong>New VM from This Template</strong>. The deployment wizard opens.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Complete the deployment wizard</div>
+        <div class="card" style="font-size:13.5px;margin-top:8px;">
+          <div class="spec-row"><span class="spec-label">VM name</span><span class="spec-val">The new server's intended hostname (e.g., <code>appserver01</code>) — becomes the computer name via the customisation spec</span></div>
+          <div class="spec-row"><span class="spec-label">VM folder</span><span class="spec-val">Appropriate OU folder in vCenter (e.g., Application servers)</span></div>
+          <div class="spec-row"><span class="spec-label">Compute resource</span><span class="spec-val">NovaCrestBank-Cluster01 — DRS selects the host automatically</span></div>
+          <div class="spec-row"><span class="spec-label">Datastore</span><span class="spec-val">vsanDatastore · Storage policy: NovaCrestBank-Standard or Banking-Critical as appropriate</span></div>
+          <div class="spec-row"><span class="spec-label">Network mapping</span><span class="spec-val">Map the template's network to PG-VLAN70-Windows (or target production VLAN)</span></div>
+          <div class="spec-row"><span class="spec-label">Customise the operating system</span><span class="spec-val">✓ Yes → select NCB-WinServer2022-DomainJoin</span></div>
+          <div class="spec-row"><span class="spec-label">Power on after creation</span><span class="spec-val">✓ Yes</span></div>
+        </div>
+        <p style="font-size:13.5px;margin-top:8px;">Click <strong>Finish</strong>. vCenter creates the VM and powers it on.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout success">
+    <div class="cl">What happens automatically after clicking Finish</div>
+    The VM boots into OOBE. vCenter injects the customisation spec. Windows renames itself to <code>appserver01</code>, generates a new unique SID, sets the time zone and locale, joins <code>novacrestbank.local</code> with the specified credentials, and restarts. After restart, the domain-joined server reaches the login screen. Group Policy applies at first login — the security baseline, firewall rules, and audit policy are in place. Certificate auto-enrolment runs within 90 minutes — the computer receives a CA-signed certificate from NovaCrestBank-Issuing-CA. Total elapsed time from clicking Finish to a fully operational, baseline-compliant, domain-joined server: approximately 10–15 minutes, with zero manual steps.
+  </div>
+</div>
+
+<!-- ══════ 18 ══════ -->
+<div class="page" id="page-ovf">
+  <div class="ey">VMware Series · vSphere-07 · Section 18</div>
+  <div class="pt">OVF templates — importing and deploying vendor appliances</div>
+  <div class="ps">OVF/OVA is the universal format for third-party virtual appliances — importing them into the Content Library for managed deployment</div>
+
+  <h2>Import an OVA vendor appliance into the library</h2>
+  <ul class="step-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">NCB-Content-Library → Actions → Import Item → Upload file → select the .ova file</div>
+        <p style="font-size:13.5px;">The process is identical to uploading an ISO. The library detects the .ova extension and stores it as an OVF template item. The item appears in the library with type "OVF Template" and the size of the OVA file.</p>
+      </div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Deploy — right-click the OVF item → New VM from This Template</div>
+        <p style="font-size:13.5px;">Right-click the OVF template item. Click <strong>New VM from This Template</strong>. The Deploy OVF Template wizard opens and reads the .ovf descriptor — it pre-populates hardware configuration (CPU, RAM, disk, network adapters) from the vendor specification. Complete: VM name → location → compute resource → storage → network mapping → Finish. The deployment copies the VMDK from the library to the target datastore.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout">
+    <div class="cl">Vendor-provided OVA properties — the vApp properties dialog</div>
+    Many vendor OVAs include vApp properties — a structured form that appears during OVF deployment where the administrator enters: management IP address, default gateway, DNS server, admin password, and similar appliance-specific settings. These properties are encoded in the .ovf descriptor and injected into the VM at first boot via VMware's OVF environment. This replaces the need to log into the VM's console to configure network settings manually.
+  </div>
+</div>
+
+<!-- ══════ 19 ══════ -->
+<div class="page" id="page-update">
+  <div class="ey">VMware Series · vSphere-07 · Section 19</div>
+  <div class="pt">Monthly patch cycle — updating a VM Template</div>
+  <div class="ps">The recurring operational task — keeping golden images current so all new deployments start from a patched baseline</div>
+
+  <div class="decision">
+    <div class="dl">The monthly template refresh workflow</div>
+    <div class="dq">Monthly Windows updates are released. How does the Content Library template stay current?</div>
+    <div class="da"><strong>Templates are checked out (converted to a regular VM), patched, re-Sysprep'd, and checked back in as a new version. The library retains the previous version for rollback.</strong><br/><br/>
+    The full cycle:<br/>
+    1. Check out: right-click NCB-WinServer2022-Base → Edit → Check Out VM — the template becomes a powered-off regular VM<br/>
+    2. Power on the checked-out VM<br/>
+    3. Apply Windows Updates (dnf update -y for RHEL) until fully patched — restart as required<br/>
+    4. Update VMware Tools if a new version is available<br/>
+    5. Run Sysprep /generalize /oobe /shutdown (cloud-init clean for RHEL)<br/>
+    6. Right-click the powered-off VM → Template → Check In VM to Library<br/>
+    7. Select "Create new version" — add version notes: "Patched April 2026 — KB5055533 and others applied"<br/>
+    8. The library now shows NCB-WinServer2022-Base version 2, with version 1 retained<br/><br/>
+    All new deployments automatically use the latest version. If a bad patch is discovered, right-click version 1 in the library → "Mark as default" — all subsequent deployments use the previous good version instantly.
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="cl">Schedule: Patch Tuesday + 7 days</div>
+    NovaCrestBank's patch cycle: Microsoft releases updates on Patch Tuesday (second Tuesday of each month). Allow 7 days for enterprise testing by the security team. By the third Tuesday, update the Content Library templates with the approved patches. This means all new server deployments are always within 7–14 days of the latest approved patch level — meeting typical banking change management patch SLA requirements.
+  </div>
+</div>
+
+<!-- ══════ 20 ══════ -->
+<div class="page" id="page-rbac">
+  <div class="ey">VMware Series · vSphere-07 · Section 20</div>
+  <div class="pt">Permissions — who publishes and who consumes</div>
+  <div class="ps">Applying least privilege to Content Library access — template management is restricted to infrastructure administrators</div>
+
+  <table>
+    <thead><tr><th>vCenter role</th><th>Content Library permissions included</th><th>NovaCrestBank mapping</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Administrator</strong></td>
+        <td>Full control — create, modify, delete items, manage subscriptions, versions, and library settings</td>
+        <td>NOVACRESTBANK\vCenter-Admins (infrastructure team only)</td>
+      </tr>
+      <tr>
+        <td><strong>Content Library Administrator</strong> (built-in role)</td>
+        <td>Full Content Library management without general vCenter object access</td>
+        <td>Could be assigned to a dedicated "golden image team" if separation of duties is required in future</td>
+      </tr>
+      <tr>
+        <td><strong>Read-Only</strong></td>
+        <td>Browse and view library items. Cannot deploy VMs from templates.</td>
+        <td>NOVACRESTBANK\vCenter-ReadOnly — auditors and monitoring accounts</td>
+      </tr>
+      <tr>
+        <td><strong>Custom "Library Consumer" role</strong></td>
+        <td>Add privileges: ContentLibrary.DownloadSession, ContentLibrary.ReadStorage, VirtualMachine.Provisioning.CloneTemplate, VirtualMachine.Provisioning.Customize. Assigned at folder level — can deploy into their folder only.</td>
+        <td>Application teams who need to deploy VMs for development environments from pre-approved templates, without being able to modify the templates themselves</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════ 21 ══════ -->
+<div class="page" id="page-verify">
+  <div class="ey">VMware Series · vSphere-07 · Section 21</div>
+  <div class="pt">Verify the Content Library — inventory and storage check</div>
+  <div class="ps">Confirming all five library items are present, correctly typed, and stored on vsanDatastore</div>
+
+  <div class="term">
+    <div class="term-bar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="term-lbl">PowerCLI — verify Content Library contents</span></div>
+    <div class="term-body"><pre><span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+
+<span class="td"># Verify the library exists and is published on vsanDatastore</span>
+<span class="tp">PS C:\></span> <span class="tc">Get-ContentLibrary -Name "NCB-Content-Library" |
+    Select-Object Name, Published, @{N="Datastore";E={($_ | Get-Datastore).Name}}</span>
+
+<span class="tg">Name                 Published  Datastore
+----                 ---------  ---------
+NCB-Content-Library  True       vsanDatastore  ✓</span>
+
+<span class="td"># List all library items with type and size</span>
+<span class="tp">PS C:\></span> <span class="tc">$lib = Get-ContentLibrary -Name "NCB-Content-Library"
+Get-ContentLibraryItem -ContentLibrary $lib |
+    Select-Object Name, ItemType,
+        @{N="SizeGB";E={[math]::Round(($_.SizeOnDisk/1GB),2)}},
+        @{N="Version";E={$_.ContentVersion}},
+        LastModified |
+    Sort-Object ItemType, Name | Format-Table -AutoSize</span>
+
+<span class="tg">Name                       ItemType    SizeGB  Version  LastModified
+----                       --------    ------  -------  ------------
+RHEL-9.x-x86_64           Iso          8.91   1        18/04/2026 09:14  ✓
+WinServer2022-EN-x64       Iso          5.38   1        18/04/2026 08:47  ✓
+NCB-RHEL9-Base             VmTemplate   7.63   1        18/04/2026 14:55  ✓
+NCB-WinServer2022-Base     VmTemplate  19.42   1        18/04/2026 13:22  ✓
+NCB-WinServer2022-Core     VmTemplate  11.87   1        18/04/2026 14:01  ✓</span>
+
+<span class="td">↑ 5 items: 2 ISOs + 3 VM Templates ✓  Total: ~53 GB on vsanDatastore ✓</span>
+
+<span class="td"># Verify subscription URL is active</span>
+<span class="tp">PS C:\></span> <span class="tc">(Get-ContentLibrary -Name "NCB-Content-Library").PublicationInfo | Select-Object PublishUrl, Published</span>
+
+<span class="tg">PublishUrl                                                                Published
+----------                                                                ---------
+https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   True  ✓</span></pre>
+      <div class="tann ok"><span class="tai">✓</span><span>NCB-Content-Library verified. 5 items: 2 ISO images and 3 VM Templates. All on vsanDatastore. Published with active subscription URL. Library total ~53 GB.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ 22 FINAL ══════ -->
+<div class="page" id="page-final">
+  <div class="ey">VMware Series · vSphere-07 · Section 22 — Series Complete</div>
+  <div class="pt">Final checklist — and the complete NovaCrestBank build</div>
+  <div class="ps">Every Content Library item confirmed. Every guide in the series complete. The NovaCrestBank data centre is built.</div>
+
+  <div class="callout success">
+    <div class="cl">vSphere-07 complete — Content Library is operational</div>
+    NCB-Content-Library is created on vsanDatastore with publishing enabled. Two ISO images are uploaded (Windows Server 2022 and RHEL 9). Three VM Templates are committed (WS2022 Desktop Experience, WS2022 Core, RHEL 9 minimal). A Guest OS Customisation Specification enables automatic domain join and naming on each deployment. The monthly patch cycle procedure is documented.
+  </div>
+
+  <h2>vSphere-07 verification checklist</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">NCB-Content-Library — Local, Published, authenticated</span><span class="spec-val badge bg">✓ Published = True on vsanDatastore</span></div>
+    <div class="spec-row"><span class="spec-label">Subscription URL — saved to documentation</span><span class="spec-val badge bg">✓ https://vcenter.novacrestbank.local/cls/...</span></div>
+    <div class="spec-row"><span class="spec-label">ISO: WinServer2022-EN-x64 (~5.4 GB)</span><span class="spec-val badge bg">✓ Version 1, type ISO Image</span></div>
+    <div class="spec-row"><span class="spec-label">ISO: RHEL-9.x-x86_64 (~8.9 GB)</span><span class="spec-val badge bg">✓ Version 1, type ISO Image</span></div>
+    <div class="spec-row"><span class="spec-label">VM Template: NCB-WinServer2022-Base (~20 GB)</span><span class="spec-val badge bg">✓ Sysprep'd, domain-capable, baseline applied</span></div>
+    <div class="spec-row"><span class="spec-label">VM Template: NCB-WinServer2022-Core (~12 GB)</span><span class="spec-val badge bg">✓ Server Core variant</span></div>
+    <div class="spec-row"><span class="spec-label">VM Template: NCB-RHEL9-Base (~8 GB)</span><span class="spec-val badge bg">✓ cloud-init cleaned, open-vm-tools installed</span></div>
+    <div class="spec-row"><span class="spec-label">Customisation Spec: NCB-WinServer2022-DomainJoin</span><span class="spec-val badge bg">✓ Auto domain join, VM name as hostname</span></div>
+    <div class="spec-row"><span class="spec-label">Deploy test: VM deployed from template, domain-joined</span><span class="spec-val badge bg">✓ GPO applied, cert enrolled within 90 min</span></div>
+    <div class="spec-row"><span class="spec-label">Monthly patch update cycle</span><span class="spec-val badge ba">⚠ Add to ITSM — Patch Tuesday +7 days, recurring</span></div>
+  </div>
+
+  <hr/>
+
+  <h2 style="color:var(--teal);font-size:20px;margin-top:28px;">🏦 The complete NovaCrestBank data centre build series</h2>
+  <p style="color:var(--text2);">Every guide that was built — from bare metal to a fully operational enterprise banking data centre.</p>
+
+  <table class="series-table">
+    <thead><tr><th style="width:170px;">Guide</th><th>What was built</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Cisco 01–09</strong></td>
+        <td>Complete dual-spine leaf-spine Nexus 9000 fabric. Physical cabling, BGP routing (ASes 65000/65001–65003/65100/65200), VXLAN/EVPN overlay, LACP port channels to ESXi hosts, all VLAN SVIs, OOB management network, Palo Alto and edge router integration. 136 verification tests all PASS. Failover: 1.5 s transition.</td>
+      </tr>
+      <tr>
+        <td><strong>ESXi-01</strong></td>
+        <td>ESXi 8.0.3 on all 5 HP DL380 Gen11 hosts via iLO virtual media (HPE custom ISO). VLAN 10 management, vmnic0 initial uplink, iLO network, host naming.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-01</strong></td>
+        <td>VCSA 8.0.3 deployed (two-stage installer). vCenter at 10.10.0.100. SSO domain vsphere.local. NovaCrestBank-Cluster01 created. All 5 ESXi hosts added.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-02</strong></td>
+        <td>NCB-vDS-01 distributed switch: 6 uplinks, NIOC v3, LACP Enhanced mode, 3 LAGs. 7 port groups (VLAN 10/20/25/30/50/60/70, MTU 9000 on storage VLANs). Phase 1: vmnic0 → Uplink1, vmk0 → PG-VLAN10-Management.</td>
+      </tr>
+      <tr>
+        <td><strong>Win-01</strong></td>
+        <td>DC01 (10.70.0.10, esxi01) and DC02 (10.70.0.11, esxi02). Forest novacrestbank.local, FL Windows Server 2016. All 5 FSMO on DC01. AD-integrated DNS. NTP stratum 2. Sites and Services with all 7 VLANs as subnets. repadmin: 0 failures.</td>
+      </tr>
+      <tr>
+        <td><strong>Win-02</strong></td>
+        <td>DHCP on DC01 authorised in AD. 5 active scopes (VLAN 10/20/50/60/70), exclusions .1–.199, pool .200–.254, 8-day leases. Hot Standby failover DC01↔DC02. VLANs 25/30/40: static only.</td>
+      </tr>
+      <tr>
+        <td><strong>Win-03</strong></td>
+        <td>Root CA: rootca.novacrestbank.local, 10.70.0.20, esxi03. Standalone workgroup. RSA-4096 SHA-256, 20-year validity, 52-week CRL. CDP/AIA: http://pki.novacrestbank.local/pki/. Root cert published to AD. VM permanently powered off after snapshot RootCA-Initial-Clean-State-2026-04-13.</td>
+      </tr>
+      <tr>
+        <td><strong>Win-04</strong></td>
+        <td>Issuing CA: issuingca.novacrestbank.local, 10.70.0.21, esxi04, domain-joined. Enterprise Subordinate CA. 10-year validity. 3 templates (WebServer, Computer, DomainController). Auto-enrolment GPO. LDAPS active on DC01/DC02. CA Web Enrollment at certsrv.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-03</strong></td>
+        <td>AD integration (LDAPS port 636, svc-vcenter-ldap, 4 AD groups mapped to vCenter roles). vCenter Machine SSL replaced via VAMI — green padlock. All 5 ESXi host certs replaced via openssl CSR → certsrv → rui.crt. Lockdown mode: Normal, root in Exception Users list.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-04</strong></td>
+        <td>vDS Phase 2: vmk1 vMotion (VLAN 20), vmk2 vSAN (VLAN 25, MTU 9000), vmk3 NFS (VLAN 30, MTU 9000). All 3 LAGs active (15 LACP port channels showing P). vmkping -d -s 8972 passes all host pairs. vSwitch0 removed. Live vMotion test: vCenter migrated esxi01→esxi02.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-05</strong></td>
+        <td>vSAN enabled on NovaCrestBank-Cluster01. All-Flash. Dedup + compression enabled. 5 disk groups (1× 1.6 TB cache + 4× 3.84 TB capacity per host) = 76.8 TB raw. 3 fault domains (FD-PDU-A, FD-PDU-B, FD-Standalone). Two storage policies: Banking-Critical (FTT=2 RAID-1) and Standard (FTT=1 RAID-5, stripe=4). vCenter, DC01, DC02, IssuingCA migrated to vsanDatastore. Performance Service enabled. Zero resync. Encryption pending KMS.</td>
+      </tr>
+      <tr>
+        <td><strong>Win-05</strong></td>
+        <td>OU structure created. Default Domain Policy: 14-char min password, 90-day expiry, 24-history. FGPP: 32-char non-expiring for NovaCrestBank-ServiceAccounts. Account lockout: 5 attempts / 30 min. NovaCrestBank-SecurityBaseline GPO: User Rights (local account denied network access), Advanced Audit Policy (Logon S+F, Account Mgmt, Policy Change, DS Access), SMB signing required, LmCompatibilityLevel=5 (NTLMv2 only), UAC Admin Approval Mode, screen lock 15 min. Servers-Baseline: Windows Firewall on, RDP/WinRM from management VLAN only, AppLocker Audit mode. OCP service accounts (svc-ocp-ldap, svc-ocp-registry) and groups (OCP-ClusterAdmins, OCP-Developers, OCP-Viewers) created.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-06</strong></td>
+        <td>vSphere HA enabled: Host Failure = Restart VMs, Isolation = Leave Powered On (vSAN heartbeat), VM + Application Monitoring. Admission control 20% CPU+RAM (1-host reservation). Heartbeat datastore: vsanDatastore auto-selected. DRS: Fully Automated, threshold 3, Predictive DRS. Anti-affinity rules: NCB-AntiAffinity-DomainControllers (DC1≠DC2), NCB-AntiAffinity-vCenter-DCs, NCB-AntiAffinity-CA-Infrastructure. VM Overrides: DC01/DC02 High/0s, vCenter High/30s, IssuingCA Medium/120s. HA test: VM restarted in ~95 s. DRS balance test passed.</td>
+      </tr>
+      <tr>
+        <td><strong>OCP</strong></td>
+        <td>OpenShift 4.14.x IPI on vSphere. 9 nodes: 3 masters (10.50.0.11–13), 3 infra (10.50.0.21–23), 3 workers (10.50.0.31–33). API VIP 10.50.0.200, Ingress VIP 10.50.0.201. API and Ingress wildcard certs replaced with NovaCrestBank-Issuing-CA signed certs. LDAP IdP (NovaCrestBank-ActiveDirectory via svc-ocp-ldap LDAPS). AD groups synced to OCP groups (CronJob 30 min). OCP-ClusterAdmins = cluster-admin. kubeadmin deleted. StorageClasses vsan-banking-critical (Retain) and vsan-standard (default, Delete). Image registry on infra nodes with PVC. Monitoring moved to infra nodes.</td>
+      </tr>
+      <tr>
+        <td><strong>HSM / KMS</strong></td>
+        <td>Two Thales Luna Network HSM 7 appliances (10.40.0.61/62). Partition NovaCrestBank-vCenter-KMS on both. HA group NovaCrestBank-HSM-HA. Luna client on VCSA. NTLS mutual cert exchange. vCenter KMS NovaCrestBank-Luna-KMS status Normal. vSAN at-rest encryption enabled (AES-256-XTS). KEK on HSM, DEK on ESXi (wrapped). 247 vSAN objects encrypted. HSM backup to branch office safe. HA failover test: zero disruption. Key rotation: quarterly shallow rekey.</td>
+      </tr>
+      <tr>
+        <td><strong>PowerStore FC SAN</strong></td>
+        <td>Dual-fabric FC: Fabric A (Leaf01 FC ports → SP-A) and Fabric B (Leaf02 FC ports → SP-B). Single-initiator single-target zoning: 10 zones per fabric, 20 total. All 5 ESXi hosts registered (OS type VMware ESXi). 3 volumes: NCB-FC-VMFS-01 (4 TB), NCB-FC-VMFS-02 (4 TB), NCB-FC-VMFS-ARCHIVE (8 TB), all 512e. Host group NCB-ESXi-Cluster. 3 VMFS 6 datastores mounted on 5/5 hosts. Round Robin PSP (Dell EMC ALUA Active-Active). 2 active paths per LUN per host.</td>
+      </tr>
+      <tr>
+        <td><strong>vSphere-07</strong></td>
+        <td>NCB-Content-Library on vsanDatastore. Local Published with authentication (NovaCrest$CLSub2026!). Items: WinServer2022-EN-x64 (ISO 5.4 GB), RHEL-9.x-x86_64 (ISO 8.9 GB), NCB-WinServer2022-Base (VM Template ~20 GB, Sysprep'd domain-joined), NCB-WinServer2022-Core (VM Template ~12 GB), NCB-RHEL9-Base (VM Template ~8 GB). Customisation Spec: NCB-WinServer2022-DomainJoin. Monthly patch cycle documented. 5 items, ~53 GB total.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout success" style="margin-top:24px;">
+    <div class="cl">The NovaCrestBank data centre build series is complete</div>
+    Every layer of the stack is built, integrated, verified, and documented: physical network fabric (Cisco Nexus leaf-spine), compute (VMware vSphere with HA, DRS, and vSAN), identity and PKI (Active Directory, Root CA, Issuing CA, certificate auto-enrolment), security baseline (GPO hardening, HSM-backed encryption), container platform (OpenShift with AD integration and vSAN storage), Fibre Channel SAN (Dell EMC PowerStore with dual-fabric zoning), and content management (Content Library with golden VM Templates). The candidate now has a complete mental model of a production enterprise banking data centre — not from a textbook, but built step by step with every decision explained.
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    const dot = event.currentTarget.querySelector('.nd');
+    if (dot) dot.style.background = 'var(--teal)';
+  }
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

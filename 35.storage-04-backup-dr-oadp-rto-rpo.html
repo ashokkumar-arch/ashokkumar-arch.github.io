@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>STORAGE-04 — Backup &amp; DR · OADP · etcd · RTO/RPO · NovaCrestBank</title>
+<style>
+  :root {
+    --bg:#f6f5f1;--bg2:#ffffff;--bg3:#eeecea;
+    --text:#1b1a17;--text2:#575450;--text3:#8a8880;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+    --accent:#1a5c8f;--accent2:#0e6b45;
+    --amber:#a87015;--red:#9e2828;--purple:#4e45a0;
+    --ocp-red:#cc0000;
+    --oadp:#7b1fa2;--dr:#1565c0;--etcd:#2e7d32;
+    --r:10px;--r2:6px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+    --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.78;}
+  .sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;
+    background:var(--bg2);border-right:0.5px solid var(--border);
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+  .sh{padding:17px 19px 13px;border-bottom:0.5px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:1;}
+  .sh .logo{font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--oadp);margin-bottom:3px;}
+  .sh h1{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .sh p{font-size:11px;color:var(--text3);margin-top:2px;}
+  .ngl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3);padding:8px 18px 3px;}
+  .ni{display:flex;align-items:flex-start;gap:8px;padding:6px 18px;font-size:12.5px;
+    color:var(--text2);border-left:2px solid transparent;cursor:pointer;
+    transition:all .13s;line-height:1.4;}
+  .ni:hover,.ni.active{color:var(--text);background:var(--bg3);border-left-color:var(--oadp);}
+  .nd{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px;}
+  .ni.active .nd{background:var(--oadp);}
+  .pbadge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;}
+  .main{margin-left:270px;padding:40px 52px 100px;max-width:1060px;}
+  .page{display:none;}.page.active{display:block;}
+  .ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--oadp);margin-bottom:5px;}
+  .pt{font-size:25px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25;}
+  .ps{font-size:14px;color:var(--text2);margin-bottom:26px;padding-bottom:18px;
+    border-bottom:0.5px solid var(--border);}
+  h2{font-size:17px;font-weight:700;margin:30px 0 10px;color:var(--text);}
+  h3{font-size:14.5px;font-weight:600;margin:20px 0 6px;color:var(--text);}
+  p{margin-bottom:11px;color:var(--text);}
+  ul,ol{margin:7px 0 13px 20px;color:var(--text);}
+  li{margin-bottom:5px;font-size:14px;line-height:1.7;}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:12px;
+    background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--oadp);}
+  .callout{border-left:3px solid var(--oadp);background:var(--bg3);
+    padding:12px 16px;border-radius:0 var(--r2) var(--r2) 0;margin:15px 0;font-size:13.5px;}
+  .callout.warn{border-left-color:var(--amber);}
+  .callout.danger{border-left-color:var(--red);}
+  .callout.success{border-left-color:var(--accent2);}
+  .callout.blue{border-left-color:var(--accent);}
+  .callout.why{border-left-color:var(--purple);}
+  .callout.etcd{border-left-color:var(--etcd);}
+  .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+  .callout.warn .cl{color:var(--amber);}
+  .callout.danger .cl{color:var(--red);}
+  .callout.success .cl{color:var(--accent2);}
+  .callout.blue .cl{color:var(--accent);}
+  .callout.why .cl{color:var(--purple);}
+  .callout.etcd .cl{color:var(--etcd);}
+  .callout:not(.warn):not(.danger):not(.success):not(.blue):not(.why):not(.etcd) .cl{color:var(--oadp);}
+  .card{background:var(--bg2);border:0.5px solid var(--border);
+    border-radius:var(--r);padding:17px 21px;margin:13px 0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin:13px 0;}
+  @media(max-width:780px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0;}
+  th{text-align:left;padding:7px 11px;background:var(--bg3);
+    border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text2);}
+  td{padding:7px 11px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:4px;letter-spacing:.04em;}
+  .bg{background:#e4f0e0;color:#1a5028;}.ba{background:#faebd8;color:#5c3308;}
+  .br{background:#fce8e8;color:#4e1313;}.bb{background:#deeaf5;color:#0c3a64;}
+  .bp{background:#eceafa;color:#251d5c;}.bgr{background:#eeecea;color:#3c3c38;}
+  .boadp{background:#f3e5f5;color:#4a0072;}.bdr{background:#e3f2fd;color:#0d47a1;}
+  .betcd{background:#e8f5e9;color:#1b5e20;}
+  @media(prefers-color-scheme:dark){
+    .bg{background:#153519;color:#9ddba3;}.ba{background:#3d2206;color:#f5c47a;}
+    .br{background:#3d1111;color:#f5a8a8;}.bb{background:#082642;color:#9ac8f5;}
+    .bp{background:#1e1853;color:#c8c0f5;}.bgr{background:#252420;color:#d5d3cc;}
+    .boadp{background:#2a0040;color:#e1bee7;}.bdr{background:#0d1c2c;color:#90caf9;}
+    .betcd{background:#0d2c18;color:#a5d6a7;}
+  }
+  .decision{background:var(--bg3);border:0.5px solid var(--border2);
+    border-left:4px solid var(--purple);border-radius:0 var(--r2) var(--r2) 0;
+    padding:13px 17px;margin:16px 0;}
+  .decision-label{font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--purple);margin-bottom:6px;}
+  .decision-q{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+  .decision-a{font-size:13.5px;color:var(--text2);line-height:1.7;}
+  .decision-a strong{color:var(--text);}
+  .spec-row{display:flex;gap:8px;padding:5px 0;
+    border-bottom:0.5px solid var(--border);font-size:13.5px;align-items:flex-start;}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{color:var(--text2);min-width:230px;flex-shrink:0;}
+  .spec-val{color:var(--text);font-weight:500;}
+  .progress-track{display:flex;gap:0;margin:18px 0;border-radius:var(--r);
+    overflow:hidden;border:0.5px solid var(--border2);}
+  .pt-step{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;
+    border-right:0.5px solid var(--border2);background:var(--bg2);color:var(--text3);}
+  .pt-step:last-child{border-right:none;}
+  .pt-step.done{background:#e4f0e0;color:#1a5028;}
+  .pt-step.active{background:var(--oadp);color:#fff;}
+  .pt-step .pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px;}
+  @media(prefers-color-scheme:dark){.pt-step.done{background:#153519;color:#9ddba3;}}
+  .yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #30363d;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.7;}
+  .yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #30363d;}
+  .yaml-dot{width:10px;height:10px;border-radius:50%;}
+  .yaml-dot.r{background:#ff5f57;}.yaml-dot.y{background:#febc2e;}.yaml-dot.g{background:#28c840;}
+  .yaml-label{font-size:11px;color:#8b949e;margin-left:6px;}
+  .yaml-body{padding:14px 18px;overflow-x:auto;}
+  .yaml-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;color:#c9d1d9;}
+  .yk{color:#7ee787;}.yv{color:#a5d6ff;}.yn{color:#f8c555;}
+  .yc{color:#8b949e;}.ys{color:#ff7b72;}.yb{color:#d2a8ff;}
+  .term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;
+    border:1px solid #333;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12.5px;line-height:1.65;}
+  .term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;
+    gap:8px;border-bottom:1px solid #333;}
+  .term-label{font-size:11px;color:#666;margin-left:6px;}
+  .term-body{padding:14px 18px;overflow-x:auto;}
+  .term-body pre{background:transparent;border:none;padding:0;margin:0;
+    font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre;}
+  .tp{color:#f1c40f;font-weight:700;}.tc{color:#61c5eb;}
+  .tg{color:#4ccd99;}.td{color:#608b7a;}.tw{color:#cca700;}
+  .tann{display:flex;gap:9px;background:#111;border-left:3px solid #cca700;
+    padding:7px 13px;margin:6px 0;border-radius:0 4px 4px 0;
+    font-size:12px;color:#ccc;line-height:1.5;}
+  .tann.ok{border-left-color:#4ccd99;}.tann.warn{border-left-color:#cca700;}
+  .tann.info{border-left-color:#4da8da;}.tann.danger{border-left-color:#cc4444;}
+  .tai{flex-shrink:0;font-size:13px;margin-top:1px;}
+  .layer-stack{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .layer{display:flex;align-items:flex-start;gap:14px;padding:13px 18px;
+    border-radius:var(--r2);border:0.5px solid var(--border2);}
+  .layer-num{font-size:11px;font-weight:700;color:var(--text3);min-width:22px;padding-top:2px;}
+  .layer-title{font-weight:600;font-size:13.5px;min-width:180px;flex-shrink:0;}
+  .layer-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+  /* tier cards */
+  .tier-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0;}
+  @media(max-width:700px){.tier-grid{grid-template-columns:1fr;}}
+  .tier-card{border-radius:var(--r);padding:13px 15px;border:0.5px solid var(--border2);}
+  .tier-card.c{border-top:4px solid var(--red);}
+  .tier-card.i{border-top:4px solid var(--amber);}
+  .tier-card.s{border-top:4px solid var(--accent);}
+  .tier-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+  .tier-card.c .tier-title{color:var(--red);}
+  .tier-card.i .tier-title{color:var(--amber);}
+  .tier-card.s .tier-title{color:var(--accent);}
+  /* ha/dr/bc comparison */
+  .concept-row{display:flex;gap:0;border:0.5px solid var(--border2);
+    border-radius:var(--r2);overflow:hidden;margin:6px 0;}
+  .cr-label{min-width:130px;flex-shrink:0;padding:10px 13px;background:var(--bg3);
+    font-size:12.5px;font-weight:700;border-right:0.5px solid var(--border2);}
+  .cr-ha{flex:1;padding:10px 13px;background:#fff5f5;font-size:12.5px;
+    border-right:0.5px solid var(--border2);}
+  .cr-dr{flex:1;padding:10px 13px;background:#f0f5ff;font-size:12.5px;
+    border-right:0.5px solid var(--border2);}
+  .cr-bc{flex:1;padding:10px 13px;background:#f0fff5;font-size:12.5px;}
+  @media(prefers-color-scheme:dark){
+    .cr-ha{background:#2c0d0d;}.cr-dr{background:#0d1c2c;}.cr-bc{background:#0d2c18;}
+  }
+  hr{border:none;border-top:0.5px solid var(--border);margin:24px 0;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sh">
+    <div class="logo">NovaCrestBank · Storage Series</div>
+    <h1>STORAGE-04 — Backup &amp; DR</h1>
+    <p>HA · DR · BC · RTO/RPO · OADP · Velero · etcd enterprise backup</p>
+  </div>
+
+  <div class="ngl">Concepts and governance</div>
+  <div class="ni active" onclick="show('ha-dr-bc')"><div class="nd"></div>01 — HA vs DR vs Business Continuity — the three distinct disciplines <span class="pbadge bp">Key</span></div>
+  <div class="ni" onclick="show('rto-rpo')"><div class="nd"></div>02 — RTO and RPO — definition, ownership, and how values are set <span class="pbadge bp">Key</span></div>
+  <div class="ni" onclick="show('ncb-targets')"><div class="nd"></div>03 — NovaCrestBank's RTO/RPO targets — the BIA and APRA CPS 234</div>
+
+  <div class="ngl">etcd backup — enterprise model</div>
+  <div class="ni" onclick="show('etcd-enterprise')"><div class="nd"></div>04 — etcd backup beyond kubectl — the enterprise requirements <span class="pbadge bp">New</span></div>
+  <div class="ni" onclick="show('etcd-cronjob')"><div class="nd"></div>05 — Automated etcd backup CronJob — schedule, store, alert</div>
+  <div class="ni" onclick="show('etcd-restore')"><div class="nd"></div>06 — etcd restore runbook — the complete recovery procedure</div>
+
+  <div class="ngl">OADP installation</div>
+  <div class="ni" onclick="show('oadp-what')"><div class="nd"></div>07 — What OADP is — Velero inside OpenShift</div>
+  <div class="ni" onclick="show('oadp-install')"><div class="nd"></div>08 — Install OADP Operator and configure the backup backend</div>
+  <div class="ni" onclick="show('oadp-dpa')"><div class="nd"></div>09 — DataProtectionApplication CR — every field explained <span class="pbadge bp">Key YAML</span></div>
+
+  <div class="ngl">Backup schedules</div>
+  <div class="ni" onclick="show('backup-schedules')"><div class="nd"></div>10 — Backup schedules — per-tier frequency and retention</div>
+  <div class="ni" onclick="show('backup-gitlab')"><div class="nd"></div>11 — GitLab application backup — Gitaly and PostgreSQL</div>
+  <div class="ni" onclick="show('backup-banking')"><div class="nd"></div>12 — Banking application backup — PostgreSQL and Redis</div>
+
+  <div class="ngl">Restore procedures</div>
+  <div class="ni" onclick="show('restore-concepts')"><div class="nd"></div>13 — Restore concepts — full vs partial vs namespace restore</div>
+  <div class="ni" onclick="show('restore-runbook')"><div class="nd"></div>14 — Application restore runbook — step-by-step for payment-service <span class="pbadge bp">Runbook</span></div>
+
+  <div class="ngl">DR strategy</div>
+  <div class="ni" onclick="show('dr-strategy')"><div class="nd"></div>15 — NovaCrestBank DR strategy — what is covered and what is not</div>
+  <div class="ni" onclick="show('dr-scenarios')"><div class="nd"></div>16 — DR scenarios — node failure, storage failure, cluster failure</div>
+
+  <div class="ngl">Testing and compliance</div>
+  <div class="ni" onclick="show('dr-testing')"><div class="nd"></div>17 — DR testing — annual restore exercise for APRA CPS 234</div>
+  <div class="ni" onclick="show('backup-monitoring')"><div class="nd"></div>18 — Backup monitoring — alerts for missed and failed backups</div>
+
+  <div class="ngl">Operations</div>
+  <div class="ni" onclick="show('checklist')"><div class="nd"></div>19 — Storage series complete — checklist and series summary</div>
+</nav>
+
+<main class="main">
+
+<!-- ══ 01 HA DR BC ══ -->
+<div class="page active" id="page-ha-dr-bc">
+  <div class="ey">STORAGE-04 · Section 01</div>
+  <div class="pt">HA vs DR vs Business Continuity — three distinct disciplines, three different teams</div>
+  <div class="ps">High Availability, Disaster Recovery, and Business Continuity are frequently conflated — even by experienced engineers. They address different failure scenarios, are owned by different teams, operate on different timescales, and require different technical solutions. Conflating them leads to designing systems that excel at one dimension while leaving the organisation exposed on the others.</div>
+
+  <div class="progress-track">
+    <div class="pt-step done"><span class="pt-n">✓</span>STORAGE-01<br/>ODF</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>STORAGE-02<br/>MinIO</div>
+    <div class="pt-step done"><span class="pt-n">✓</span>STORAGE-03<br/>SC Design</div>
+    <div class="pt-step active"><span class="pt-n">→</span>STORAGE-04<br/>Backup/DR</div>
+    <div class="pt-step"><span class="pt-n">5</span>OCP Virt<br/>Next</div>
+  </div>
+
+  <div class="concept-row">
+    <div class="cr-label" style="background:var(--bg3);font-size:11px;color:var(--text3);"></div>
+    <div class="cr-ha" style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.07em;">High Availability (HA)</div>
+    <div class="cr-dr" style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;">Disaster Recovery (DR)</div>
+    <div class="cr-bc" style="font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.07em;">Business Continuity (BC)</div>
+  </div>
+  <div class="concept-row">
+    <div class="cr-label">Question answered</div>
+    <div class="cr-ha">How does the system survive component failures <em>without stopping?</em></div>
+    <div class="cr-dr">How does the system <em>recover</em> after a catastrophic failure?</div>
+    <div class="cr-bc">How does the <em>organisation</em> function when technology fails?</div>
+  </div>
+  <div class="concept-row">
+    <div class="cr-label">Failure scope</div>
+    <div class="cr-ha">Pod crash, node reboot, disk failure, process hang — individual component failures within a running system</div>
+    <div class="cr-dr">Data centre power loss, storage array failure, cluster-wide corruption, ransomware — the entire system is unavailable</div>
+    <div class="cr-bc">Extended outage, pandemic, building inaccessibility, key personnel unavailability — operational continuity beyond technology</div>
+  </div>
+  <div class="concept-row">
+    <div class="cr-label">Downtime during event</div>
+    <div class="cr-ha">Zero or near-zero — HA is about surviving failures <em>while staying online</em></div>
+    <div class="cr-dr">Downtime is expected — the question is how long (RTO). Recovery, not prevention.</div>
+    <div class="cr-bc">Variable — BC addresses which functions continue manually during extended outage</div>
+  </div>
+  <div class="concept-row">
+    <div class="cr-label">Technical mechanism</div>
+    <div class="cr-ha">Replication, ReplicaSets, PodDisruptionBudgets, Ceph 3× replication, etcd quorum, MON quorum</div>
+    <div class="cr-dr">Backups, snapshots, restore procedures, tested runbooks, off-site backup storage</div>
+    <div class="cr-bc">Manual processes, paper-based fallback, staff rosters, communication trees, alternative premises</div>
+  </div>
+  <div class="concept-row">
+    <div class="cr-label">Who owns it</div>
+    <div class="cr-ha">Platform engineering — built into system design</div>
+    <div class="cr-dr">Platform engineering + Risk/Compliance — technical solution + regulatory obligation</div>
+    <div class="cr-bc">Business Continuity Management team — not primarily a technology function</div>
+  </div>
+  <div class="concept-row">
+    <div class="cr-label">NovaCrestBank example</div>
+    <div class="cr-ha">payment-service pod crash → OCP reschedules a new pod in 30 seconds. ODF OSD fails → Ceph rebalances data automatically. No operator involvement, no downtime.</div>
+    <div class="cr-dr">Data centre loses power for 6 hours. OCP cluster is offline. OADP backups are restored to a recovery environment. RTO target: 4 hours for Tier 1 systems.</div>
+    <div class="cr-bc">Payment processing is unavailable for 4 hours. Manual payment authorisation via paper-based fallback process. Customer communications issued. RBA notification if required.</div>
+  </div>
+
+  <div class="callout warn">
+    <div class="cl">The most dangerous confusion — treating HA as a substitute for DR</div>
+    A common executive-level misunderstanding: "We have 3 replicas and Ceph 3× replication, so we don't need DR." HA prevents single-component failures from causing outages. It does not protect against: accidental data deletion (all 3 replicas delete the corrupted data simultaneously), ransomware (all 3 replicas encrypt the data simultaneously), software bugs that corrupt data across all replicas (GitLab misconfiguration that corrupts Gitaly — affects all replicas at once), or physical disasters that destroy all nodes. Backups (OADP) and restore procedures (this guide) are the answer to these scenarios. HA and DR are complementary, not substitutes for each other.
+  </div>
+</div>
+
+<!-- ══ 02 RTO RPO ══ -->
+<div class="page" id="page-rto-rpo">
+  <div class="ey">STORAGE-04 · Section 02</div>
+  <div class="pt">RTO and RPO — definition, ownership, and how values are determined</div>
+  <div class="ps">Recovery Time Objective (RTO) and Recovery Point Objective (RPO) are the two fundamental parameters of any DR strategy. They are not technical parameters — they are business decisions expressed in a form that allows technology teams to design appropriate solutions. Understanding who sets them and why prevents the common failure mode of engineers setting targets based on what is technically convenient rather than what the business requires.</div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:4px solid var(--dr);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dr);margin-bottom:10px;">RTO — Recovery Time Objective</p>
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:8px;"><strong style="color:var(--text);">Definition:</strong> The maximum acceptable duration of service unavailability after a disaster event before the organisation suffers unacceptable harm. Measured in hours or minutes.</p>
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:8px;"><strong style="color:var(--text);">What it governs technically:</strong> The time from "disaster declared" to "system serving production traffic." This drives: backup frequency (more frequent backups enable faster restore from a more recent state), infrastructure pre-provisioning (a recovery environment that must be built from scratch takes longer than one that is pre-provisioned and warm), and runbook quality (a tested, rehearsed restore procedure is faster than one run for the first time).</p>
+      <p style="font-size:13.5px;color:var(--text2);"><strong style="color:var(--text);">Example:</strong> RTO of 4 hours for payment processing means: if a disaster occurs at 09:00, payment processing must be restored and serving transactions by 13:00.</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--oadp);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--oadp);margin-bottom:10px;">RPO — Recovery Point Objective</p>
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:8px;"><strong style="color:var(--text);">Definition:</strong> The maximum acceptable amount of data loss measured in time. The RPO defines how old the most recent recoverable backup can be. An RPO of 1 hour means the organisation accepts losing at most 1 hour of data in a disaster.</p>
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:8px;"><strong style="color:var(--text);">What it governs technically:</strong> Backup frequency — if the RPO is 1 hour, backups must run at least hourly. Storage architecture — if the RPO is 15 minutes, synchronous replication to a secondary site may be required (backup-based recovery cannot achieve sub-15-minute RPO at scale).</p>
+      <p style="font-size:13.5px;color:var(--text2);"><strong style="color:var(--text);">Example:</strong> RPO of 1 hour for payment processing means: if a disaster destroys the payment database at 10:45, the restored database may be missing up to 1 hour of transactions (from the 09:45 backup to 10:45). Those transactions must either be reconstructed from alternative records or accepted as lost.</p>
+    </div>
+  </div>
+
+  <h2>Who sets RTO and RPO — and why engineers do not</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--red);">
+      <div class="layer-num">Step 1</div>
+      <div class="layer-title">Business Impact Analysis (BIA)</div>
+      <div class="layer-desc">The Business Continuity Management team conducts a BIA for every critical system. The BIA asks: what is the financial cost per hour of this system being down? What are the regulatory consequences? What is the reputational impact? What is the minimum set of functions that must continue? For NovaCrestBank's payment processing system: every hour of downtime represents lost transaction revenue, potential RBA notification obligations, potential customer compensation, and reputational risk. The BIA converts these impacts into a criticality tier and a target RTO/RPO.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
+      <div class="layer-num">Step 2</div>
+      <div class="layer-title">Regulatory baseline — APRA CPS 234</div>
+      <div class="layer-desc">APRA (Australian Prudential Regulation Authority) CPS 234 mandates that regulated financial institutions maintain documented recovery objectives for information assets classified as critical or important. APRA does not prescribe specific RTO/RPO values — instead it requires that the bank's targets are commensurate with the criticality of the system and that the bank can demonstrate (through testing) that it can meet those targets. The RBA (Reserve Bank of Australia) separately mandates that systemically important payment providers maintain availability commitments. These regulatory requirements set a floor below which NovaCrestBank cannot set its targets.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
+      <div class="layer-num">Step 3</div>
+      <div class="layer-title">Technical feasibility assessment — technology's input</div>
+      <div class="layer-desc">The platform engineering team receives the business-desired RTO/RPO targets and performs a feasibility assessment: can these targets be met with the current architecture? What would it cost to meet them? An RTO of 15 minutes for the entire banking platform would require a hot standby cluster with synchronous data replication — a significant infrastructure investment. An RTO of 4 hours is achievable with OADP backup-based restore from ODF MCG object storage. The technology team presents options with cost estimates, and the business decides which option to fund. The final targets are a negotiated agreement between business requirements, regulatory obligations, and technical capability.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
+      <div class="layer-num">Step 4</div>
+      <div class="layer-title">Annual testing and attestation</div>
+      <div class="layer-desc">APRA CPS 234 requires that DR plans are tested at least annually. For NovaCrestBank, this means: once per year, the platform engineering team performs a DR exercise — restoring from OADP backup in a test environment and measuring the actual RTO achieved. The result is documented and reported to the Board Risk Committee and to APRA as part of the annual prudential reporting. If the actual RTO exceeds the target, this is a material risk finding that must be remediated. Section 17 of this guide covers the DR exercise procedure.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 03 NCB TARGETS ══ -->
+<div class="page" id="page-ncb-targets">
+  <div class="ey">STORAGE-04 · Section 03</div>
+  <div class="pt">NovaCrestBank's RTO/RPO targets — BIA tiers and APRA obligations</div>
+  <div class="ps">NovaCrestBank classifies its systems into three tiers based on the Business Impact Analysis. Each tier has defined RTO and RPO targets that drive the backup frequency and recovery architecture in this guide.</div>
+
+  <div class="tier-grid">
+    <div class="tier-card c">
+      <div class="tier-title">Tier 1 — Critical</div>
+      <p style="font-size:12.5px;color:var(--text2);">Regulatory obligation to maintain. Outage has immediate financial and regulatory consequence.</p>
+      <p style="font-size:12px;margin-top:8px;"><strong>RTO: 4 hours</strong><br/><strong>RPO: 1 hour</strong></p>
+      <p style="font-size:12px;color:var(--text3);margin-top:6px;">Systems: Payment processing (payment-service + banking PostgreSQL), Core banking database, NPP payment rail integration</p>
+    </div>
+    <div class="tier-card i">
+      <div class="tier-title">Tier 2 — Important</div>
+      <p style="font-size:12.5px;color:var(--text2);">Significant operational impact. Extended outage affects customer service and internal operations.</p>
+      <p style="font-size:12px;margin-top:8px;"><strong>RTO: 24 hours</strong><br/><strong>RPO: 4 hours</strong></p>
+      <p style="font-size:12px;color:var(--text3);margin-top:6px;">Systems: GitLab (source code), OCP platform itself, fraud detection, account management, observability stack</p>
+    </div>
+    <div class="tier-card s">
+      <div class="tier-title">Tier 3 — Standard</div>
+      <p style="font-size:12.5px;color:var(--text2);">Operational impact but not customer-facing or regulatory. Can be rebuilt from source.</p>
+      <p style="font-size:12px;margin-top:8px;"><strong>RTO: 72 hours</strong><br/><strong>RPO: 24 hours</strong></p>
+      <p style="font-size:12px;color:var(--text3);margin-top:6px;">Systems: Jenkins (pipelines), monitoring dashboards, GitLab CI artifacts, developer tooling</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p style="font-size:13.5px;font-weight:600;margin-bottom:10px;">How the tiers drive backup architecture</p>
+    <div class="spec-row"><span class="spec-label">Tier 1 — RPO 1 hour</span><span class="spec-val">Hourly OADP Schedule for banking PostgreSQL PVC snapshots. Etcd backup every 6 hours. Between snapshots, the RPO is managed by PostgreSQL WAL (Write-Ahead Log) archiving to ODF MCG — providing near-continuous recovery point.</span></div>
+    <div class="spec-row"><span class="spec-label">Tier 2 — RPO 4 hours</span><span class="spec-val">6-hourly OADP Schedule for GitLab (Gitaly + PostgreSQL). Etcd backup included in the 6-hourly cycle. The OCP cluster itself is backed up by the etcd snapshot, which allows full cluster state restoration.</span></div>
+    <div class="spec-row"><span class="spec-label">Tier 3 — RPO 24 hours</span><span class="spec-val">Daily OADP Schedule for Jenkins, monitoring, and developer tooling. GitLab CI artifacts are not backed up by OADP — they can be regenerated by re-running pipelines.</span></div>
+    <div class="spec-row"><span class="spec-label">APRA attestation requirement</span><span class="spec-val">Annual DR exercise must demonstrate actual recovery within the declared RTO. Results documented and reported to Board Risk Committee. OADP restore timing is measured and recorded.</span></div>
+  </div>
+</div>
+
+<!-- ══ 04 ETCD ENTERPRISE ══ -->
+<div class="page" id="page-etcd-enterprise">
+  <div class="ey">STORAGE-04 · Section 04</div>
+  <div class="pt">etcd backup — beyond the kubectl command — the enterprise requirements</div>
+  <div class="ps">UPG-01 Section 18 introduced etcd backup as an operational procedure: run <code>cluster-backup.sh</code> on a master node before an upgrade. That is the correct Kubernetes-native approach for pre-upgrade safety. The enterprise DR model requires something fundamentally different: scheduled, automated, monitored, off-node, retention-managed, tested backups that satisfy regulatory obligations and are operational without human initiation.</div>
+
+  <div class="decision">
+    <div class="decision-label">The gap between the UPG-01 etcd backup and the enterprise DR requirement</div>
+    <div class="decision-q">UPG-01 Section 18 showed how to take an etcd snapshot with <code>cluster-backup.sh</code>. That backup is stored in <code>/home/core/assets/backup/</code> on the master node that ran the script. What are the problems with this approach as an enterprise DR solution?</div>
+    <div class="decision-a"><strong>Five specific gaps between the UPG-01 procedure and enterprise DR requirements:</strong><br/><br/>
+    <strong>1. Manual execution.</strong> The UPG-01 backup runs when a platform engineer remembers to run it — typically only before upgrades. An enterprise RPO of 4 hours requires the backup to run automatically every 4 hours (or more frequently), continuously, with no human initiation. A backup that depends on human memory is not a backup — it is a wish.<br/><br/>
+    <strong>2. On-node storage.</strong> The backup snapshot is stored at <code>/home/core/assets/backup/</code> on the master node that ran the script. If that master node is destroyed by the same disaster that takes down the cluster (power failure, fire, ransomware), the backup is destroyed too. A backup stored on the system it protects is not a backup — it is a second copy of the same failure domain. Enterprise DR requires the backup to be stored off-node, in a durable, independent location (ODF MCG object storage in this case).<br/><br/>
+    <strong>3. No monitoring or alerting.</strong> If the backup fails silently, no one knows. An organisation that believes it has hourly etcd backups but whose CronJob has been silently failing for 3 weeks discovers this at the worst possible moment — during a real DR event. Enterprise backup systems are monitored: a missed or failed backup fires an alert that is actioned within a defined SLA.<br/><br/>
+    <strong>4. No retention management.</strong> Without automatic cleanup, old backup files accumulate and eventually fill the storage. Alternatively, if backups are manually deleted, the organisation loses recovery points. Enterprise backup has defined retention: keep the last N backups, or keep backups for M days.<br/><br/>
+    <strong>5. Untested restore procedure.</strong> A backup whose restore procedure has never been executed in a simulated disaster scenario is an unknown. The enterprise requirement is that the restore procedure is documented as a runbook, tested annually in a DR exercise, and updated when the cluster changes. Section 06 provides the complete etcd restore runbook.</div>
+  </div>
+
+  <h2>What the enterprise etcd backup system provides</h2>
+  <div class="card">
+    <div class="spec-row"><span class="spec-label">Backup schedule</span><span class="spec-val">CronJob runs every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC. Satisfies Tier 2 RPO of 4 hours with buffer.</span></div>
+    <div class="spec-row"><span class="spec-label">Backup storage</span><span class="spec-val">ODF MCG ObjectBucketClaim — <code>ncb-etcd-backups</code> bucket. Off-node, Ceph 3× replication, independent of the OCP cluster's worker nodes. The backup survives the failure of all master nodes.</span></div>
+    <div class="spec-row"><span class="spec-label">Backup content</span><span class="spec-val">etcd snapshot file + <code>kubeconfig</code> + <code>static-pod-resources.tar.gz</code> (the complete set produced by <code>cluster-backup.sh</code>). This triple is everything needed to restore the cluster to the snapshot's state.</span></div>
+    <div class="spec-row"><span class="spec-label">Retention policy</span><span class="spec-val">14 days. 4 backups/day × 14 days = 56 backup sets retained. Lifecycle rule on the MCG bucket automatically expires objects after 15 days.</span></div>
+    <div class="spec-row"><span class="spec-label">Backup verification</span><span class="spec-val">After each backup, the CronJob reads back the uploaded object and validates the SHA-256 checksum. A checksum mismatch fires a PrometheusRule alert.</span></div>
+    <div class="spec-row"><span class="spec-label">Monitoring</span><span class="spec-val">Two PrometheusRules: <code>EtcdBackupMissed</code> (fires if no successful backup in 7 hours — exceeding the RPO window) and <code>EtcdBackupFailed</code> (fires immediately on CronJob failure).</span></div>
+    <div class="spec-row"><span class="spec-label">Restore procedure</span><span class="spec-val">Documented runbook (Section 06) tested annually. Estimated restore time: 45–90 minutes for a 3-master cluster.</span></div>
+  </div>
+</div>
+
+<!-- ══ 05 ETCD CRONJOB ══ -->
+<div class="page" id="page-etcd-cronjob">
+  <div class="ey">STORAGE-04 · Section 05</div>
+  <div class="pt">Automated etcd backup CronJob — schedule, upload to ODF MCG, and alert</div>
+  <div class="ps">The etcd backup CronJob runs on master nodes (using a DaemonSet-style privileged pod that can execute on the control plane), runs <code>cluster-backup.sh</code>, uploads the output to ODF MCG, verifies the upload, and reports its result as a Prometheus metric. The entire flow is automated.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">etcd backup CronJob — every 6 hours, uploads to ODF MCG</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">batch/v1</span>
+<span class="yk">kind</span>: <span class="yv">CronJob</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">etcd-backup</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-etcd</span>
+<span class="yk">spec</span>:
+  <span class="yk">schedule</span>: <span class="yv">"0 */6 * * *"</span>
+  <span class="yc">  # Every 6 hours at minute 0: 00:00, 06:00, 12:00, 18:00 UTC
+    # Choose UTC midnight/6/12/18 — predictable, avoids peak banking hours (AEST morning).</span>
+  <span class="yk">concurrencyPolicy</span>: <span class="yv">Forbid</span>
+  <span class="yc">  # Forbid: if the previous backup job is still running when the next one starts,
+    # skip the new one. Prevents overlapping backup jobs from corrupting each other's output.</span>
+  <span class="yk">successfulJobsHistoryLimit</span>: <span class="yn">5</span>
+  <span class="yk">failedJobsHistoryLimit</span>: <span class="yn">3</span>
+  <span class="yk">jobTemplate</span>:
+    <span class="yk">spec</span>:
+      <span class="yk">template</span>:
+        <span class="yk">spec</span>:
+          <span class="yk">serviceAccountName</span>: <span class="yv">etcd-backup</span>
+          <span class="yk">hostNetwork</span>: <span class="yb">true</span>
+          <span class="yk">hostPID</span>: <span class="yb">true</span>
+          <span class="yc">          # hostNetwork and hostPID: required to execute cluster-backup.sh.
+                      # cluster-backup.sh calls etcdctl via the static etcd pod,
+                      # which requires host network and process namespace access.
+                      # This pod runs on a master node only (nodeSelector below).</span>
+          <span class="yk">nodeSelector</span>:
+            <span class="yk">node-role.kubernetes.io/master</span>: <span class="yv">""</span>
+          <span class="yk">tolerations</span>:
+            - <span class="yk">effect</span>: <span class="yv">NoSchedule</span>
+              <span class="yk">key</span>: <span class="yv">node-role.kubernetes.io/master</span>
+          <span class="yk">restartPolicy</span>: <span class="yv">OnFailure</span>
+          <span class="yk">containers</span>:
+            - <span class="yk">name</span>: <span class="yv">etcd-backup</span>
+              <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/ubi9/ubi:latest</span>
+              <span class="yk">securityContext</span>:
+                <span class="yk">privileged</span>: <span class="yb">true</span>
+                <span class="yc">                # privileged: true required to run cluster-backup.sh.
+                                  # This pod runs exclusively on master nodes — the only
+                                  # context where privileged access to etcd is acceptable.
+                                  # ACS policy exception scoped to openshift-etcd namespace
+                                  # on master nodes only.</span>
+              <span class="yk">command</span>: [<span class="yv">/bin/bash</span>, <span class="yv">-ec</span>, <span class="yv">|</span>
+                <span class="yv">  TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)</span>
+                <span class="yv">  BACKUP_DIR="/host/home/core/assets/backup"</span>
+                <span class="yv">  BACKUP_NAME="etcd-backup-${TIMESTAMP}"</span>
+
+                <span class="yv">  # Step 1: run cluster-backup.sh (OCP built-in backup tool)</span>
+                <span class="yv">  chroot /host /usr/local/bin/cluster-backup.sh ${BACKUP_DIR}/${BACKUP_NAME}</span>
+                <span class="yc">  # cluster-backup.sh produces:
+                    #   etcd-snapshot-${TIMESTAMP}.db      — the etcd data snapshot
+                    #   static_kubeconfig                  — cluster kubeconfig for restore
+                    #   static-pod-resources.tar.gz        — OCP static pod manifests</span>
+
+                <span class="yv">  # Step 2: upload all three files to ODF MCG bucket</span>
+                <span class="yv">  for f in "${BACKUP_DIR}/${BACKUP_NAME}/"*; do</span>
+                <span class="yv">    CHECKSUM=$(sha256sum "${f}" | cut -d' ' -f1)</span>
+                <span class="yv">    aws s3 cp "${f}" \</span>
+                <span class="yv">      "s3://${BUCKET_NAME}/${BACKUP_NAME}/$(basename ${f})" \</span>
+                <span class="yv">      --endpoint-url "${BUCKET_ENDPOINT}" \</span>
+                <span class="yv">      --metadata "sha256=${CHECKSUM}"</span>
+                <span class="yv">    echo "Uploaded $(basename ${f}): SHA256=${CHECKSUM}"</span>
+                <span class="yv">  done</span>
+
+                <span class="yv">  # Step 3: verify upload by reading back and comparing checksums</span>
+                <span class="yv">  for f in "${BACKUP_DIR}/${BACKUP_NAME}/"*; do</span>
+                <span class="yv">    LOCAL_SUM=$(sha256sum "${f}" | cut -d' ' -f1)</span>
+                <span class="yv">    REMOTE_META=$(aws s3api head-object \</span>
+                <span class="yv">      --bucket "${BUCKET_NAME}" \</span>
+                <span class="yv">      --key "${BACKUP_NAME}/$(basename ${f})" \</span>
+                <span class="yv">      --endpoint-url "${BUCKET_ENDPOINT}" \</span>
+                <span class="yv">      --query "Metadata.sha256" \</span>
+                <span class="yv">      --output text)</span>
+                <span class="yv">    [ "${LOCAL_SUM}" = "${REMOTE_META}" ] || \</span>
+                <span class="yv">      { echo "CHECKSUM MISMATCH: $(basename ${f})"; exit 1; }</span>
+                <span class="yv">  done</span>
+
+                <span class="yv">  # Step 4: clean up local backup files (off-node copy is now authoritative)</span>
+                <span class="yv">  rm -rf "${BACKUP_DIR}/${BACKUP_NAME}"</span>
+
+                <span class="yv">  echo "etcd backup ${BACKUP_NAME} completed and verified."</span>
+              ]
+              <span class="yk">env</span>:
+                - <span class="yk">name</span>: <span class="yv">BUCKET_NAME</span>
+                  <span class="yk">valueFrom</span>:
+                    <span class="yk">configMapKeyRef</span>:
+                      <span class="yk">name</span>: <span class="yv">ncb-etcd-backups</span>
+                      <span class="yk">key</span>: <span class="yv">BUCKET_NAME</span>
+                - <span class="yk">name</span>: <span class="yv">BUCKET_ENDPOINT</span>
+                  <span class="yk">valueFrom</span>:
+                    <span class="yk">configMapKeyRef</span>:
+                      <span class="yk">name</span>: <span class="yv">ncb-etcd-backups</span>
+                      <span class="yk">key</span>: <span class="yv">BUCKET_HOST</span>
+                - <span class="yk">name</span>: <span class="yv">AWS_ACCESS_KEY_ID</span>
+                  <span class="yk">valueFrom</span>:
+                    <span class="yk">secretKeyRef</span>:
+                      <span class="yk">name</span>: <span class="yv">ncb-etcd-backups</span>
+                      <span class="yk">key</span>: <span class="yv">AWS_ACCESS_KEY_ID</span>
+                - <span class="yk">name</span>: <span class="yv">AWS_SECRET_ACCESS_KEY</span>
+                  <span class="yk">valueFrom</span>:
+                    <span class="yk">secretKeyRef</span>:
+                      <span class="yk">name</span>: <span class="yv">ncb-etcd-backups</span>
+                      <span class="yk">key</span>: <span class="yv">AWS_SECRET_ACCESS_KEY</span>
+              <span class="yk">volumeMounts</span>:
+                - <span class="yk">name</span>: <span class="yv">host-root</span>
+                  <span class="yk">mountPath</span>: <span class="yv">/host</span>
+          <span class="yk">volumes</span>:
+            - <span class="yk">name</span>: <span class="yv">host-root</span>
+              <span class="yk">hostPath</span>:
+                <span class="yk">path</span>: <span class="yv">/</span>
+                <span class="yc">                # Mount host root: cluster-backup.sh must run in the master node's
+                                  # chroot environment to access the etcd static pod socket.</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 ETCD RESTORE ══ -->
+<div class="page" id="page-etcd-restore">
+  <div class="ey">STORAGE-04 · Section 06</div>
+  <div class="pt">etcd restore runbook — the complete enterprise recovery procedure</div>
+  <div class="ps">This is the runbook for restoring the NovaCrestBank OCP cluster from an etcd snapshot. It is written to be executed by a trained operator in a real incident — not just a reference document. Every step includes the expected output and the action if that output is not seen.</div>
+
+  <div class="callout etcd">
+    <div class="cl">When to execute this runbook vs when to use OADP restore</div>
+    etcd restore is for cluster-level catastrophic failures: all three master nodes are lost, etcd data is corrupted cluster-wide, or the cluster cannot start at all (no API server available). It restores the entire OCP cluster to the state of the snapshot — all Namespace objects, all Deployments, all ConfigMaps, all RBAC. Application PVC data is NOT in the etcd snapshot — PVCs are restored separately via OADP (Section 13-14). etcd restore + OADP application restore is the complete cluster recovery procedure. OADP alone (without etcd restore) is for application-level recoveries where the cluster is still running: accidental namespace deletion, database corruption, application misconfiguration.
+  </div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 1</div>
+      <div class="layer-title">Download the backup from ODF MCG</div>
+      <div class="layer-desc">From the jumphost (or any machine with network access to the ODF MCG S3 endpoint), download the most recent backup set. Identify the backup timestamp: <code>aws s3 ls s3://ncb-etcd-backups/ --endpoint-url http://s3.openshift-storage.svc:80 | sort | tail -3</code>. Download all three files for the chosen backup: <code>aws s3 sync s3://ncb-etcd-backups/etcd-backup-{TIMESTAMP}/ /tmp/etcd-restore/ --endpoint-url ...</code>. Verify checksums match the stored metadata. Expected output: three files in /tmp/etcd-restore/: the .db snapshot, static_kubeconfig, and static-pod-resources.tar.gz.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 2</div>
+      <div class="layer-title">Provision replacement master nodes (if needed)</div>
+      <div class="layer-desc">If master nodes were destroyed in the disaster, provision three new master nodes using the same MachineConfig and MachineSet configuration. The nodes must have the same hostnames and IP addresses as the original masters (10.10.0.11, 10.10.0.12, 10.10.0.13) — etcd membership uses these addresses. If IP addresses cannot be reused, additional steps are required to update the etcd peer URLs. Expected: three RHCOS nodes booted and reachable via SSH from the jumphost.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 3</div>
+      <div class="layer-title">Copy backup files to the first master node</div>
+      <div class="layer-desc"><code>scp /tmp/etcd-restore/* core@10.10.0.11:/home/core/assets/backup/restore/</code>. Verify files arrive with correct checksums. This master node will be the first to restore etcd — the other two masters will be recovered from it. Expected: all three files present on master-01 at <code>/home/core/assets/backup/restore/</code>.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 4</div>
+      <div class="layer-title">Run the OCP restore script on the first master</div>
+      <div class="layer-desc">SSH to master-01. Run: <code>sudo /usr/local/bin/cluster-restore.sh /home/core/assets/backup/restore/</code>. This script: stops the static etcd pod, restores the etcd data from the snapshot, reconfigures etcd to run as a single-member cluster (master-01 only), and restarts the static pod. Expected output: <code>Restoring etcd member...</code> then <code>Waiting for etcd to start...etcd member is restored.</code> Time: 5–10 minutes. If this fails, check that all three backup files are present and that the snapshot file is not corrupted (verify SHA256).</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 5</div>
+      <div class="layer-title">Verify API server recovery and cluster state</div>
+      <div class="layer-desc">From master-01: <code>export KUBECONFIG=/etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/localhost.kubeconfig</code>. Then: <code>oc get nodes</code>. Expected: all nodes listed (though some may be NotReady). <code>oc get namespaces | wc -l</code> should return the expected count. The Kubernetes API is serving again. Time from start of Step 4 to API available: 10–20 minutes.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 6</div>
+      <div class="layer-title">Recover the second and third etcd members</div>
+      <div class="layer-desc">Force the remaining master nodes to rejoin the etcd cluster by deleting their existing etcd member pods: <code>oc delete pod -n openshift-etcd etcd-master-02.ocp.corp.novacrestbank.com</code> and <code>etcd-master-03...</code>. The etcd Operator detects the missing members and adds them back as new members, syncing data from master-01's restored state. Monitor: <code>oc get pods -n openshift-etcd -w</code> until all three etcd pods are Running. Expected: 3 etcd members, quorum restored. Time: 15–30 minutes.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
+      <div class="layer-num">Step 7</div>
+      <div class="layer-title">Recover all OCP Operators and then restore application data</div>
+      <div class="layer-desc">After etcd is healthy, OCP operators begin reconciling — they compare the restored etcd state (namespace contents, CRDs, deployments) with the actual cluster state and recreate any missing objects. Wait for all cluster operators to reach Available=True: <code>oc get co | grep -v 'True.*False.*False'</code>. Expected: all operators Available. Time: 20–45 minutes. Then proceed to OADP application restore (Section 13-14) to restore application PVC data. Total estimated recovery time (Steps 1–7 + OADP restore): 2–4 hours for the Tier 2 systems.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 07 OADP WHAT ══ -->
+<div class="page" id="page-oadp-what">
+  <div class="ey">STORAGE-04 · Section 07</div>
+  <div class="pt">What OADP is — Velero inside OpenShift, with Kubernetes-aware backup</div>
+  <div class="ps">OADP (OpenShift API for Data Protection) is Red Hat's supported distribution of Velero — the open-source Kubernetes backup tool — packaged as an OCP Operator with additional OCP-specific features. Where etcd backup captures the cluster state (Kubernetes objects), OADP captures both the cluster state and the application data (PVC contents via VolumeSnapshots) in a single, coordinated backup operation.</div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--oadp);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--oadp);margin-bottom:10px;">What OADP backs up</p>
+      <ul style="font-size:13px;color:var(--text2);">
+        <li>Kubernetes objects: Deployments, StatefulSets, ConfigMaps, Secrets, Services, Ingresses — everything in the selected namespaces</li>
+        <li>PVC contents: via Kubernetes VolumeSnapshots (ODF RBD and CephFS only — not vSAN PVCs)</li>
+        <li>CustomResources: ExternalSecrets, ApplicationSets, Routes, any CRD objects</li>
+        <li>RBAC: ServiceAccounts, Roles, RoleBindings within the namespace</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--amber);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);margin-bottom:10px;">What OADP does NOT back up</p>
+      <ul style="font-size:13px;color:var(--text2);">
+        <li>etcd cluster state — use the etcd CronJob (Section 05)</li>
+        <li>PVCs on vSAN StorageClasses (no VolumeSnapshot support — see STORAGE-03 Section 14)</li>
+        <li>MinIO bucket contents — handled by MinIO's own lifecycle rules and GitLab backup CronJob (GITOPS-00 Section 18)</li>
+        <li>CyberArk Conjur secret values — these are the authoritative source; backups reference paths, not values</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 08 OADP INSTALL ══ -->
+<div class="page" id="page-oadp-install">
+  <div class="ey">STORAGE-04 · Section 08</div>
+  <div class="pt">Install OADP Operator and configure the backup backend</div>
+  <div class="ps">OADP is installed from the Red Hat Operators catalog. Its backup storage backend is the ODF MCG ObjectBucketClaim created in STORAGE-01 Section 16. The BackupStorageLocation configures Velero to write all backup metadata and object manifests to this bucket.</div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — install OADP Operator</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt;'EOF' | oc apply -f -</span>
+<span class="tg">apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-adp
+  labels:
+    openshift.io/cluster-monitoring: "true"
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: redhat-oadp-operator
+  namespace: openshift-adp
+spec:
+  channel: stable-1.3
+  name: redhat-oadp-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual</span>
+<span class="tg">EOF</span>
+<span class="tg">namespace/openshift-adp created
+subscription.operators.coreos.com/redhat-oadp-operator created</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc patch installplan \
+  $(oc get installplan -n openshift-adp -o name | head -1 | cut -d/ -f2) \
+  -n openshift-adp --type merge -p '{"spec":{"approved":true}}'</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get csv -n openshift-adp | grep oadp</span>
+<span class="tg">oadp-operator.v1.3.x   OADP Operator   1.3.x   Succeeded</span>
+
+<span class="td"># Retrieve OBC credentials for the DataProtectionApplication</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">BUCKET_NAME=$(oc get configmap oadp-backup-bucket \
+  -n openshift-adp -o jsonpath='{.data.BUCKET_NAME}')
+BUCKET_HOST=$(oc get configmap oadp-backup-bucket \
+  -n openshift-adp -o jsonpath='{.data.BUCKET_HOST}')
+echo "Bucket: $BUCKET_NAME  Host: $BUCKET_HOST"</span>
+<span class="tg">Bucket: oadp-backup-a1b2c3d4-xxxx  Host: s3.openshift-storage.svc</span>
+    <div class="tann ok"><span class="tai">✓</span><span>OADP Operator installed, CSV Succeeded. OBC bucket name and endpoint retrieved. Ready to create the DataProtectionApplication CR.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 09 OADP DPA ══ -->
+<div class="page" id="page-oadp-dpa">
+  <div class="ey">STORAGE-04 · Section 09</div>
+  <div class="pt">DataProtectionApplication CR — every field explained</div>
+  <div class="ps">The DataProtectionApplication (DPA) is the OADP CR that configures the entire backup infrastructure: the backup storage location (ODF MCG), the volume snapshot provider (Ceph CSI), and the Velero deployment settings. One DPA configures everything OADP needs to operate.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">DataProtectionApplication — NovaCrestBank OADP configuration</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">oadp.openshift.io/v1alpha1</span>
+<span class="yk">kind</span>: <span class="yv">DataProtectionApplication</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-dpa</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-adp</span>
+<span class="yk">spec</span>:
+  <span class="yk">configuration</span>:
+    <span class="yk">velero</span>:
+      <span class="yk">defaultPlugins</span>:
+        - <span class="yv">openshift</span>
+        <span class="yc">        # openshift: required for OCP-specific resources (Routes, BuildConfigs,
+                    # ImageStreams). Also handles SCC (SecurityContextConstraints) backup
+                    # and restore mapping between source and destination.</span>
+        - <span class="yv">aws</span>
+        <span class="yc">        # aws: provides the S3-compatible backup storage plugin.
+                    # Despite the name, it works with any S3-compatible endpoint —
+                    # including ODF MCG's NooBaa S3 gateway.</span>
+        - <span class="yv">csi</span>
+        <span class="yc">        # csi: enables VolumeSnapshot-based PVC backup.
+                    # The CSI plugin coordinates with the ODF Ceph CSI driver to
+                    # take Kubernetes VolumeSnapshots during backup.</span>
+      <span class="yk">resourceTimeout</span>: <span class="yv">10m</span>
+      <span class="yc">      # Maximum time to wait for a resource operation during backup/restore.
+              # Increase this for large PVC VolumeSnapshot operations that take longer.</span>
+    <span class="yk">nodeAgent</span>:
+      <span class="yk">enable</span>: <span class="yb">true</span>
+      <span class="yk">uploaderType</span>: <span class="yv">kopia</span>
+      <span class="yc">      # nodeAgent (formerly restic): enables file-level backup for PVCs that
+              # don't support VolumeSnapshots (vSAN PVCs).
+              # kopia: the preferred uploader — faster and more efficient than restic.
+              # Used as fallback when VolumeSnapshot is not available for a PVC.</span>
+
+  <span class="yk">backupLocations</span>:
+    - <span class="yk">name</span>: <span class="yv">default</span>
+      <span class="yk">velero</span>:
+        <span class="yk">provider</span>: <span class="yv">aws</span>
+        <span class="yk">default</span>: <span class="yb">true</span>
+        <span class="yk">objectStorage</span>:
+          <span class="yk">bucket</span>: <span class="yv">oadp-backup-a1b2c3d4-xxxx</span>
+          <span class="yc">          # The MCG bucket name from the OBC ConfigMap (STORAGE-01 Section 16).
+                      # Substitute the actual generated bucket name here.</span>
+          <span class="yk">prefix</span>: <span class="yv">velero</span>
+          <span class="yc">          # prefix: all OADP backup objects are stored under velero/ in the bucket.
+                      # This leaves room for other uses of the same bucket (e.g., etcd backups
+                      # stored directly without the prefix).</span>
+        <span class="yk">config</span>:
+          <span class="yk">s3Url</span>: <span class="yv">http://s3.openshift-storage.svc:80</span>
+          <span class="yc">          # Internal MCG S3 endpoint — Velero runs inside the cluster.
+                      # Using the internal service URL avoids external network round-trips.</span>
+          <span class="yk">region</span>: <span class="yv">us-east-1</span>
+          <span class="yc">          # MCG accepts any region string — us-east-1 is conventional.</span>
+          <span class="yk">s3ForcePathStyle</span>: <span class="yv">"true"</span>
+          <span class="yc">          # Path style required for MCG: http://endpoint/bucketname/key
+                      # instead of http://bucketname.endpoint/key (virtual hosted style).
+                      # MCG does not support virtual hosted-style S3 addressing.</span>
+          <span class="yk">insecureSkipTLSVerify</span>: <span class="yv">"true"</span>
+          <span class="yc">          # Skip TLS for the internal HTTP endpoint — no TLS on port 80.</span>
+        <span class="yk">credential</span>:
+          <span class="yk">name</span>: <span class="yv">oadp-backup-bucket</span>
+          <span class="yc">          # The Secret created automatically by MCG when the OBC was provisioned.
+                      # Contains AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.</span>
+          <span class="yk">key</span>: <span class="yv">cloud</span>
+
+  <span class="yk">snapshotLocations</span>:
+    - <span class="yk">name</span>: <span class="yv">default</span>
+      <span class="yk">velero</span>:
+        <span class="yk">provider</span>: <span class="yv">csi</span>
+        <span class="yc">        # CSI VolumeSnapshot provider. OADP will use the ODF Ceph CSI driver
+                  # VolumeSnapshotClasses (STORAGE-03 Section 14) to take and restore
+                  # PVC snapshots. No additional configuration needed — ODF registers
+                  # its VolumeSnapshotClasses automatically.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — verify DPA and Velero are healthy</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get dpa ncb-dpa -n openshift-adp \
+  -o jsonpath='{.status.conditions[?(@.type=="Reconciled")].message}'</span>
+<span class="tg">Reconcile complete</span>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get backupstoragelocation -n openshift-adp</span>
+<span class="tg">NAME      PHASE       LAST VALIDATED   AGE
+default   Available   35s              2m</span>
+<span class="td">  ↑ BackupStorageLocation Available ✓ — Velero can connect to ODF MCG bucket</td>
+    <div class="tann ok"><span class="tai">✓</span><span>OADP DataProtectionApplication reconciled. BackupStorageLocation Available — Velero validated connectivity to the ODF MCG bucket. Velero, the node agent, and the restic/kopia daemonset are all running. Ready to create backup Schedules.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 10 BACKUP SCHEDULES ══ -->
+<div class="page" id="page-backup-schedules">
+  <div class="ey">STORAGE-04 · Section 10</div>
+  <div class="pt">Backup schedules — per-tier frequency and retention</div>
+  <div class="ps">OADP Schedules are recurring Backup objects. Each Schedule creates a new Backup on its cron schedule. The TTL (time to live) on each Backup determines how long the backup is retained before OADP automatically deletes it from the MCG bucket.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">OADP Schedule objects — three tiers, three frequencies</span></div>
+    <div class="yaml-body"><pre><span class="yc"># ─── TIER 1: Critical — banking namespaces — every hour ──────────────────────</span>
+<span class="yk">apiVersion</span>: <span class="yv">velero.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">Schedule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-tier1-banking-hourly</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-adp</span>
+<span class="yk">spec</span>:
+  <span class="yk">schedule</span>: <span class="yv">"0 * * * *"</span>
+  <span class="yc">  # Every hour at minute 0. Satisfies Tier 1 RPO of 1 hour.</span>
+  <span class="yk">template</span>:
+    <span class="yk">includedNamespaces</span>:
+      - <span class="yv">banking-production</span>
+    <span class="yk">includedResources</span>:
+      - <span class="yv">"*"</span>
+    <span class="yk">storageLocation</span>: <span class="yv">default</span>
+    <span class="yk">snapshotVolumes</span>: <span class="yb">true</span>
+    <span class="yc">    # snapshotVolumes: true — take VolumeSnapshots of all ODF RBD PVCs in the namespace.
+          # banking-production has: banking-postgres-data (ODF RBD) and banking-redis-data (ODF RBD).
+          # Both will have VolumeSnapshots taken as part of each hourly backup.</span>
+    <span class="yk">ttl</span>: <span class="yv">72h0m0s</span>
+    <span class="yc">    # TTL 72 hours: hourly backups retained for 3 days = 72 recovery points.
+          # Longer retention would consume significant MCG storage for hourly PVC snapshots.</span>
+    <span class="yk">hooks</span>:
+      <span class="yk">resources</span>:
+        - <span class="yk">name</span>: <span class="yv">postgres-backup-hook</span>
+          <span class="yk">includedNamespaces</span>: [<span class="yv">banking-production</span>]
+          <span class="yk">labelSelector</span>:
+            <span class="yk">matchLabels</span>:
+              <span class="yk">app</span>: <span class="yv">banking-postgres</span>
+          <span class="yk">pre</span>:
+            - <span class="yk">exec</span>:
+                <span class="yk">container</span>: <span class="yv">postgres</span>
+                <span class="yk">command</span>:
+                  - <span class="yv">/bin/bash</span>
+                  - <span class="yv">-c</span>
+                  - <span class="yv">psql -U postgres -c "CHECKPOINT;"</span>
+                <span class="yc">                # Pre-backup hook: execute CHECKPOINT before the VolumeSnapshot.
+                                  # PostgreSQL CHECKPOINT flushes all dirty buffers to disk,
+                                  # ensuring the snapshot captures a consistent on-disk state.
+                                  # Without CHECKPOINT: the snapshot may capture a state with
+                                  # dirty buffers in memory but not on disk — recovery requires
+                                  # WAL replay, which is slower and may fail if WAL is truncated.</span>
+<span class="ys">---</span>
+<span class="yc"># ─── TIER 2: Important — platform namespaces — every 6 hours ─────────────────</span>
+<span class="yk">apiVersion</span>: <span class="yv">velero.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">Schedule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-tier2-platform-6hourly</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-adp</span>
+<span class="yk">spec</span>:
+  <span class="yk">schedule</span>: <span class="yv">"0 */6 * * *"</span>
+  <span class="yk">template</span>:
+    <span class="yk">includedNamespaces</span>:
+      - <span class="yv">gitlab</span>
+      - <span class="yv">openshift-logging</span>
+      - <span class="yv">openshift-monitoring</span>
+    <span class="yk">snapshotVolumes</span>: <span class="yb">true</span>
+    <span class="yk">ttl</span>: <span class="yv">336h0m0s</span>
+    <span class="yc">    # TTL 336 hours = 14 days. 4 backups/day × 14 days = 56 recovery points.</span>
+<span class="ys">---</span>
+<span class="yc"># ─── TIER 3: Standard — developer tooling — daily ────────────────────────────</span>
+<span class="yk">apiVersion</span>: <span class="yv">velero.io/v1</span>
+<span class="yk">kind</span>: <span class="yv">Schedule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-tier3-standard-daily</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-adp</span>
+<span class="yk">spec</span>:
+  <span class="yk">schedule</span>: <span class="yv">"0 2 * * *"</span>
+  <span class="yc">  # Daily at 02:00 AEST (16:00 UTC) — off-peak for banking operations.</span>
+  <span class="yk">template</span>:
+    <span class="yk">includedNamespaces</span>:
+      - <span class="yv">jenkins</span>
+    <span class="yk">snapshotVolumes</span>: <span class="yb">false</span>
+    <span class="yc">    # Jenkins home: vsan-standard PVC — no VolumeSnapshot support (STORAGE-03 Section 14).
+          # Fallback: kopia file-level backup via node agent.
+          # Jenkins can be rebuilt from the Jenkinsfiles in GitLab — low RPO acceptable.</span>
+    <span class="yk">ttl</span>: <span class="yv">168h0m0s</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 11 BACKUP GITLAB ══ -->
+<div class="page" id="page-backup-gitlab">
+  <div class="ey">STORAGE-04 · Section 11</div>
+  <div class="pt">GitLab application backup — Gitaly source code and PostgreSQL</div>
+  <div class="ps">GitLab requires special handling: its Gitaly PVC (source code) is on vsan-gold, which does not support Kubernetes VolumeSnapshots. The node agent (kopia) provides file-level backup for the Gitaly PVC. GitLab's PostgreSQL (also vsan-gold) uses a pre-backup hook to create a consistent pg_dump before the kopia backup runs. Once GitLab is migrated to ODF RBD (STORAGE-03 Section 18 migration candidates), this switches to VolumeSnapshot backup automatically.</div>
+
+  <div class="callout warn">
+    <div class="cl">vSAN PVC backup — kopia file-level backup has a slower RTO than VolumeSnapshot</div>
+    Kopia file-level backup copies every file from the Gitaly PVC to the OADP MCG bucket. For a 200 GiB Gitaly PVC, this takes significantly longer than a Ceph VolumeSnapshot (which is near-instantaneous as a copy-on-write snapshot). Restore time is also longer — kopia restores by copying files back, whereas VolumeSnapshot restore creates a new PVC from the snapshot in seconds. This is the practical consequence of GitLab being on vSAN: its backup and restore times are longer. Migrating GitLab Gitaly to <code>ocs-storagecluster-ceph-rbd</code> (STORAGE-03 Section 18) reduces the GitLab OADP backup window from ~2 hours to ~5 minutes and the restore window proportionally.
+  </div>
+</div>
+
+<!-- ══ 12 BACKUP BANKING ══ -->
+<div class="page" id="page-backup-banking">
+  <div class="ey">STORAGE-04 · Section 12</div>
+  <div class="pt">Banking application backup — PostgreSQL and Redis with consistency hooks</div>
+  <div class="ps">The banking PostgreSQL and Redis PVCs are on ODF RBD — they support VolumeSnapshots. The OADP Schedule created in Section 10 includes pre-backup hooks that ensure application-consistent snapshots: PostgreSQL CHECKPOINT before snapshot, Redis BGSAVE before snapshot.</div>
+
+  <div class="term">
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — verify hourly backups are running and healthy</span></div>
+    <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get schedule ncb-tier1-banking-hourly -n openshift-adp \
+  -o jsonpath='{.status.lastBackup}'</span>
+<span class="tg">2026-04-21T12:00:01Z</span>
+<span class="td">  ↑ Last backup ran at 12:00 UTC ✓ (within the last hour)</td>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get backup -n openshift-adp \
+  --sort-by=.metadata.creationTimestamp \
+  -o custom-columns=\
+NAME:.metadata.name,\
+PHASE:.status.phase,\
+STARTED:.status.startTimestamp,\
+COMPLETED:.status.completionTimestamp \
+  | tail -5</span>
+<span class="tg">NAME                              PHASE       STARTED               COMPLETED
+ncb-tier1-banking-hourly-20260421080001  Completed   2026-04-21T08:00:01Z  2026-04-21T08:04:23Z
+ncb-tier1-banking-hourly-20260421090001  Completed   2026-04-21T09:00:01Z  2026-04-21T09:03:58Z
+ncb-tier1-banking-hourly-20260421100001  Completed   2026-04-21T10:00:01Z  2026-04-21T10:04:11Z
+ncb-tier1-banking-hourly-20260421110001  Completed   2026-04-21T11:00:01Z  2026-04-21T11:03:52Z
+ncb-tier1-banking-hourly-20260421120001  Completed   2026-04-21T12:00:01Z  2026-04-21T12:04:05Z</span>
+<span class="td">  ↑ Five consecutive hourly backups — all Completed ✓
+    Duration: 3–4 minutes per backup (VolumeSnapshot is fast)
+    Frequency satisfies Tier 1 RPO of 1 hour.</td>
+
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get volumesnapshot -n banking-production | grep oadp</span>
+<span class="tg">velero-banking-postgres-data-0-xxxx   true   ocs-storagecluster-rbdplugin-snapclass   100Gi   2026-04-21T12:00:45Z
+velero-banking-redis-data-0-xxxx      true   ocs-storagecluster-rbdplugin-snapclass    10Gi   2026-04-21T12:00:47Z</span>
+<span class="td">  ↑ VolumeSnapshots created by OADP for both banking PVCs ✓  readyToUse: true</td>
+    <div class="tann ok"><span class="tai">✓</span><span>Hourly Tier 1 banking backups running consistently. All recent backups Completed. VolumeSnapshots taken for PostgreSQL (100 GiB) and Redis (10 GiB). Pre-backup CHECKPOINT hook executed. Backup duration: 3–4 minutes. RPO is being met.</span></div>
+    </pre></div>
+  </div>
+</div>
+
+<!-- ══ 13 RESTORE CONCEPTS ══ -->
+<div class="page" id="page-restore-concepts">
+  <div class="ey">STORAGE-04 · Section 13</div>
+  <div class="pt">Restore concepts — full namespace vs selective vs cross-namespace</div>
+  <div class="ps">OADP supports three restore patterns, each appropriate for a different failure scenario. Understanding which pattern to use prevents restoring more than necessary (risking overwriting healthy data) or less than necessary (leaving the application in an inconsistent state).</div>
+
+  <table>
+    <thead><tr><th>Restore type</th><th>Scenario</th><th>What is restored</th><th>Risk</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Full namespace restore</strong></td>
+        <td>Entire namespace accidentally deleted, or namespace corrupted. All application objects and PVC data need recovery.</td>
+        <td>All Kubernetes objects from the backup + all PVC data from VolumeSnapshots. The namespace is recreated exactly as it was at backup time.</td>
+        <td>Any changes made after the backup timestamp are lost. If the namespace was partially working, those partial changes are overwritten.</td>
+      </tr>
+      <tr>
+        <td><strong>Selective resource restore</strong></td>
+        <td>A specific Deployment or ConfigMap was accidentally deleted or misconfigured. The PVCs are intact and healthy.</td>
+        <td>Only the specified Kubernetes objects from the backup. PVC data is NOT restored (snapshotVolumes: false in the Restore object) — the running PVCs are left intact.</td>
+        <td>Lower risk than full restore. Targets only the missing or broken objects. PVC data remains current.</td>
+      </tr>
+      <tr>
+        <td><strong>PVC data restore (database recovery)</strong></td>
+        <td>Database PVC is corrupted or has a logical error (bad migration, accidental data deletion). The application itself is running and healthy.</td>
+        <td>Only the specified PVC, restored from a VolumeSnapshot. The application Deployment is scaled to 0, the PVC is restored, then the Deployment is scaled back up.</td>
+        <td>Data between the snapshot time and the restore time is lost. The application experiences downtime during the restore. Test the restore in a non-production namespace first to verify the data is correct.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 14 RESTORE RUNBOOK ══ -->
+<div class="page" id="page-restore-runbook">
+  <div class="ey">STORAGE-04 · Section 14</div>
+  <div class="pt">Application restore runbook — payment-service complete recovery</div>
+  <div class="ps">This runbook documents the complete procedure for restoring the banking-production namespace after a catastrophic failure, using the most recent Tier 1 hourly backup. It is written to be executed during a real incident — every command includes the expected output.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
+      <div class="layer-num">Step 1</div>
+      <div class="layer-title">Identify the most recent good backup</div>
+      <div class="layer-desc">List the available Tier 1 backups and identify the most recent one with Phase=Completed: <code>oc get backup -n openshift-adp -l velero.io/schedule-name=ncb-tier1-banking-hourly --sort-by=.metadata.creationTimestamp | tail -10</code>. Choose the most recent backup before the incident. Note the backup name — e.g., <code>ncb-tier1-banking-hourly-20260421110001</code>. Verify the backup is complete: <code>oc describe backup ncb-tier1-banking-hourly-20260421110001 -n openshift-adp | grep -A5 "Status:"</code>. Expected: Phase=Completed, Warnings=0 (or only known benign warnings).</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
+      <div class="layer-num">Step 2</div>
+      <div class="layer-title">Delete the damaged namespace (if it exists)</div>
+      <div class="layer-desc">If the banking-production namespace exists but is corrupted: <code>oc delete namespace banking-production</code>. Wait for the namespace to be fully terminated: <code>oc get namespace banking-production</code> should return "not found" before proceeding. If the namespace is stuck in Terminating, finalizers may need to be removed — check with <code>oc get namespace banking-production -o jsonpath='{.spec.finalizers}'</code> and remove them if needed.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
+      <div class="layer-num">Step 3</div>
+      <div class="layer-title">Create the Restore object</div>
+      <div class="layer-desc">Apply the Restore CR targeting the chosen backup: <code>oc apply -f restore-banking-production.yaml</code> where the file contains the Restore object with <code>backupName: ncb-tier1-banking-hourly-20260421110001</code>, <code>includedNamespaces: [banking-production]</code>, and <code>restorePVs: true</code>. OADP recreates the namespace, restores all Kubernetes objects, and creates new PVCs from the VolumeSnapshots embedded in the backup. Monitor: <code>oc describe restore restore-banking-production -n openshift-adp</code>.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
+      <div class="layer-num">Step 4</div>
+      <div class="layer-title">Wait for Restore Phase=Completed</div>
+      <div class="layer-desc"><code>oc get restore restore-banking-production -n openshift-adp -w</code>. Expected phases: New → InProgress → Completed. Time: 5–15 minutes for VolumeSnapshot-based restore (fast — new PVC created from snapshot, then data is available immediately via Ceph COW). If Phase=PartiallyFailed: check the warnings/errors — often a single non-critical resource (like an HPA that references a missing metric server) fails without affecting the core application restore.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
+      <div class="layer-num">Step 5</div>
+      <div class="layer-title">Verify application health post-restore</div>
+      <div class="layer-desc">Check all pods are Running: <code>oc get pods -n banking-production</code>. Check ExternalSecrets are synced (they will re-sync from CyberArk after restore): <code>oc get externalsecret -n banking-production</code> — all should show Ready=True within 5 minutes. Check the payment-service responds to health checks: <code>curl -sk https://payment-service-production.apps.ocp.corp.novacrestbank.com/api/v1/payments/health</code>. Expected: <code>{"status":"UP"}</code>. Document the recovery timestamp and the data loss window (time between backup timestamp and incident).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 15 DR STRATEGY ══ -->
+<div class="page" id="page-dr-strategy">
+  <div class="ey">STORAGE-04 · Section 15</div>
+  <div class="pt">NovaCrestBank DR strategy — what the backup architecture covers and what it does not</div>
+  <div class="ps">The OADP + etcd backup architecture described in this guide provides a defined level of DR protection. Being explicit about what is and is not covered prevents false confidence and identifies gaps for future investment.</div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--accent2);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent2);margin-bottom:10px;">What this architecture covers</p>
+      <ul style="font-size:13px;color:var(--text2);">
+        <li><strong>Accidental deletion:</strong> namespace or object accidentally deleted — restore from OADP within 15 minutes</li>
+        <li><strong>Application data corruption:</strong> database corrupted by bad migration — restore PVC from VolumeSnapshot</li>
+        <li><strong>OCP cluster failure:</strong> cluster cannot start — restore from etcd snapshot + OADP application data</li>
+        <li><strong>Single storage node failure:</strong> Ceph 3× replication — no action needed, Ceph self-heals (HA, not DR)</li>
+        <li><strong>Ransomware on application data:</strong> OADP snapshots in MCG bucket (separate access credentials from application) provide clean recovery point</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--red);">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--red);margin-bottom:10px;">What this architecture does NOT cover</p>
+      <ul style="font-size:13px;color:var(--text2);">
+        <li><strong>Complete site loss:</strong> if the entire data centre (including the ODF storage nodes where MCG resides) is destroyed, the backups are also destroyed. A geographically separate backup target (AWS S3, secondary data centre) is required for true site-loss DR — a future ROSA hybrid cloud project.</li>
+        <li><strong>Sub-1-hour RPO for Tier 1:</strong> hourly OADP snapshots achieve ~1-hour RPO. Transactions in the most recent hour may be lost. PostgreSQL WAL archiving to a separate target can reduce this to near-zero.</li>
+        <li><strong>Hot standby (RTO &lt; 15 minutes):</strong> OADP restore takes 5–15 minutes minimum. A hot standby cluster with synchronous replication could achieve sub-minute RTO — not implemented in the current architecture.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 16 DR SCENARIOS ══ -->
+<div class="page" id="page-dr-scenarios">
+  <div class="ey">STORAGE-04 · Section 16</div>
+  <div class="pt">DR scenarios — what to do for each failure type</div>
+  <div class="ps">This section is the operator's quick reference: given a specific failure, which recovery procedure applies and what is the expected recovery time.</div>
+
+  <table>
+    <thead><tr><th>Scenario</th><th>Recovery procedure</th><th>Estimated RTO</th><th>Estimated data loss (RPO)</th></tr></thead>
+    <tbody>
+      <tr><td>Single application pod crashes</td><td>OCP automatic (HA) — no action needed</td><td>30–60 seconds</td><td>Zero (stateless microservice)</td></tr>
+      <tr><td>Single OCP worker node fails</td><td>OCP automatic (HA) — pod reschedule</td><td>2–5 minutes</td><td>Zero (stateless) or minutes (if pod had in-flight writes)</td></tr>
+      <tr><td>Single ODF storage node fails</td><td>Ceph automatic recovery — no action</td><td>Zero (Ceph serves data from other replicas)</td><td>Zero (Ceph 3× replication)</td></tr>
+      <tr><td>Accidental namespace deletion</td><td>OADP Restore (Section 14)</td><td>15–30 minutes</td><td>Up to 1 hour (hourly backup cadence)</td></tr>
+      <tr><td>Database PVC corruption</td><td>OADP PVC restore (Section 13)</td><td>10–20 minutes</td><td>Up to 1 hour</td></tr>
+      <tr><td>OCP cluster cannot start (etcd failure)</td><td>etcd restore runbook (Section 06) then OADP restore</td><td>2–4 hours</td><td>Up to 6 hours (6-hourly etcd backup)</td></tr>
+      <tr><td>All master nodes destroyed</td><td>Provision new masters → etcd restore → OADP restore</td><td>4–8 hours</td><td>Up to 6 hours</td></tr>
+      <tr><td>All ODF storage nodes destroyed</td><td>Rebuild ODF → restore MCG → OADP restore from S3 backup in MCG</td><td>8–12 hours (complex rebuild)</td><td>Up to 1–6 hours depending on tier</td></tr>
+      <tr><td>Complete site loss</td><td>Not covered by current architecture — future ROSA hybrid cloud DR</td><td>Not defined</td><td>Not defined</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 17 DR TESTING ══ -->
+<div class="page" id="page-dr-testing">
+  <div class="ey">STORAGE-04 · Section 17</div>
+  <div class="pt">DR testing — the annual restore exercise for APRA CPS 234 compliance</div>
+  <div class="ps">APRA CPS 234 requires that DR plans are tested annually and results are documented. The DR exercise is not a theoretical walkthrough — it is an actual restore from backup in a controlled test environment, with measured timings and documented outcomes. This section defines the exercise scope, procedure, and success criteria.</div>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--dr);">
+      <div class="layer-num">Scope</div>
+      <div class="layer-title">What the annual exercise covers</div>
+      <div class="layer-desc">The annual exercise must cover: (1) etcd restore — provision a test cluster or use a dedicated test environment, restore from an etcd snapshot, verify the cluster API is available; (2) OADP application restore for banking-production — using a backup that is at least 24 hours old (not the most recent — tests that aged backups are valid), restore the banking-production namespace including PVC data, start the banking applications, verify payment-service health endpoint responds; (3) Timing measurement — record actual RTO from "disaster declared" to "payment-service Healthy." The measured RTO must be within the declared 4-hour target for Tier 1 systems.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--dr);">
+      <div class="layer-num">Evidence</div>
+      <div class="layer-title">Documentation for APRA attestation</div>
+      <div class="layer-desc">The DR exercise produces a test report documenting: date and scope of the exercise, the backup timestamp used (to calculate the RPO demonstrated), the recovery start time and recovery completion time (to calculate the RTO demonstrated), any deviations from the runbook and corrective actions taken, names of personnel involved, and sign-off from the Head of Technology and Chief Risk Officer. This report is retained for the APRA prudential reporting cycle and is available for examination. Material gaps between declared targets and demonstrated actuals must be reported to the Board Risk Committee and remediated within a defined timeframe.</div>
+    </div>
+    <div class="layer" style="background:var(--bg3);border-left:4px solid var(--dr);">
+      <div class="layer-num">Cadence</div>
+      <div class="layer-title">Annual minimum — with scenario rotation</div>
+      <div class="layer-desc">APRA requires annual testing as a minimum. NovaCrestBank's DR program rotates scenarios across years: Year 1 — application-level restore (OADP); Year 2 — cluster-level restore (etcd + OADP); Year 3 — combined scenario (etcd + application + etcd member re-addition). This rotation ensures all components of the DR architecture are tested over a 3-year cycle while meeting the annual testing requirement each year. Partial exercises (spot checks) of specific components can be run more frequently as part of platform maintenance operations.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 18 BACKUP MONITORING ══ -->
+<div class="page" id="page-backup-monitoring">
+  <div class="ey">STORAGE-04 · Section 18</div>
+  <div class="pt">Backup monitoring — alerts for missed and failed backups</div>
+  <div class="ps">A backup system without monitoring is not a backup system — it is a hope. Three PrometheusRules cover the critical backup failure modes: an OADP backup that fails, an OADP backup schedule that stops producing backups, and an etcd backup CronJob that fails or misses its window.</div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
+      <span class="yaml-label">PrometheusRules — backup failure alerting</span></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span>: <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span>:
+  <span class="yk">name</span>: <span class="yv">ncb-backup-alerts</span>
+  <span class="yk">namespace</span>: <span class="yv">openshift-adp</span>
+<span class="yk">spec</span>:
+  <span class="yk">groups</span>:
+    - <span class="yk">name</span>: <span class="yv">ncb-backup</span>
+      <span class="yk">rules</span>:
+
+        - <span class="yk">alert</span>: <span class="yv">OADPBackupFailed</span>
+          <span class="yk">expr</span>: <span class="yv">velero_backup_failure_total > 0</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">An OADP backup has failed — the RPO may be exceeded</span>
+            <span class="yk">runbook</span>: <span class="yv">Check oc describe backup -n openshift-adp for failure reason</span>
+
+        - <span class="yk">alert</span>: <span class="yv">OADPTier1BackupMissed</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    time() - max(velero_backup_last_successful_timestamp{</span>
+            <span class="yv">      schedule="ncb-tier1-banking-hourly"}) > 7200</span>
+          <span class="yk">for</span>: <span class="yv">10m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">"Tier 1 banking backup not completed in 2 hours — RPO at risk"</span>
+            <span class="yc">            # Fires if no successful Tier 1 backup in 2 hours (2× the 1-hour RPO).
+                          # This gives the on-call team time to investigate before the RPO
+                          # is definitively breached.</span>
+
+        - <span class="yk">alert</span>: <span class="yv">EtcdBackupMissed</span>
+          <span class="yk">expr</span>: <span class="yv">|</span>
+            <span class="yv">    time() - max(kube_cronjob_status_last_successful_time{</span>
+            <span class="yv">      cronjob="etcd-backup"}) > 25200</span>
+          <span class="yc">          # 25200 seconds = 7 hours. Fires if etcd backup hasn't run in 7 hours
+                      # (the 6-hour schedule + 1 hour grace period).</span>
+          <span class="yk">for</span>: <span class="yv">15m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">warning</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">"etcd backup CronJob has not run successfully in 7 hours"</span>
+
+        - <span class="yk">alert</span>: <span class="yv">EtcdBackupFailed</span>
+          <span class="yk">expr</span>: <span class="yv">kube_job_failed{job_name=~"etcd-backup-.*"} > 0</span>
+          <span class="yk">for</span>: <span class="yv">5m</span>
+          <span class="yk">labels</span>: {<span class="yk">severity</span>: <span class="yv">critical</span>}
+          <span class="yk">annotations</span>:
+            <span class="yk">summary</span>: <span class="yv">"etcd backup job failed — investigate immediately"</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 19 CHECKLIST ══ -->
+<div class="page" id="page-checklist">
+  <div class="ey">STORAGE-04 · Section 19</div>
+  <div class="pt">Storage series complete — checklist and series summary</div>
+  <div class="ps">STORAGE-04 completes the NovaCrestBank storage series. Four guides have built a complete storage architecture: ODF (block, file, object), MinIO (platform observability S3), StorageClass design (the definitive assignment reference), and OADP backup with enterprise etcd backup, DR strategy, RTO/RPO targets, and APRA compliance. The storage foundation for OpenShift Virtualization is now in place.</div>
+
+  <div class="callout success">
+    <div class="cl">Storage series complete — NovaCrestBank has enterprise-grade data protection</div>
+    The payment-service and banking PostgreSQL database receive hourly application-consistent backups via OADP VolumeSnapshot. The OCP cluster is backed up every 6 hours via an automated etcd CronJob to ODF MCG off-node storage. All backups are monitored with PrometheusRules that alert on missed or failed backups. The restore procedures are documented runbooks tested annually for APRA CPS 234 compliance. RTO of 4 hours for Tier 1 systems and RPO of 1 hour are technically achievable with the implemented architecture.
+  </div>
+
+  <div class="card">
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:14px;">STORAGE-04 checklist</p>
+    <div class="spec-row"><span class="spec-label">etcd backup CronJob — every 6 hours, uploads to ODF MCG</span><span class="spec-val"><span class="badge bg">✓</span> CronJob in openshift-etcd namespace · last run successful · ODF MCG bucket ncb-etcd-backups</span></div>
+    <div class="spec-row"><span class="spec-label">etcd backup verified — checksum match confirmed</span><span class="spec-val"><span class="badge bg">✓</span> SHA-256 of local snapshot matches uploaded object metadata</span></div>
+    <div class="spec-row"><span class="spec-label">OADP Operator installed — CSV Succeeded</span><span class="spec-val"><span class="badge bg">✓</span> oadp-operator.v1.3.x Succeeded · Velero and node agent pods Running</span></div>
+    <div class="spec-row"><span class="spec-label">DataProtectionApplication — BackupStorageLocation Available</span><span class="spec-val"><span class="badge bg">✓</span> ncb-dpa Reconciled · default BSL Available · ODF MCG S3 accessible</span></div>
+    <div class="spec-row"><span class="spec-label">Tier 1 banking hourly Schedule — running and completing</span><span class="spec-val"><span class="badge bg">✓</span> Last 5 backups Completed · duration 3–4 minutes · VolumeSnapshots created</span></div>
+    <div class="spec-row"><span class="spec-label">Tier 2 platform 6-hourly Schedule — running</span><span class="spec-val"><span class="badge bg">✓</span> GitLab, monitoring namespaces backed up every 6 hours</span></div>
+    <div class="spec-row"><span class="spec-label">PostgreSQL pre-backup CHECKPOINT hook — verified</span><span class="spec-val"><span class="badge bg">✓</span> Hook executed before each VolumeSnapshot — consistent backup confirmed</span></div>
+    <div class="spec-row"><span class="spec-label">OADP restore runbook — documented and walkthrough-tested</span><span class="spec-val"><span class="badge ba">Pending</span> Test restore of banking-production to test namespace — schedule DR exercise</span></div>
+    <div class="spec-row"><span class="spec-label">PrometheusRules — 4 backup alert rules active</span><span class="spec-val"><span class="badge bg">✓</span> OADPBackupFailed, OADPTier1BackupMissed, EtcdBackupMissed, EtcdBackupFailed</span></div>
+    <div class="spec-row"><span class="spec-label">Annual DR exercise — scheduled for APRA CPS 234</span><span class="spec-val"><span class="badge ba">Schedule</span> Date, scope, and personnel to be documented with Head of Technology</span></div>
+  </div>
+
+  <h2>The complete NovaCrestBank storage series</h2>
+  <table>
+    <thead><tr><th>Guide</th><th>What it delivers</th></tr></thead>
+    <tbody>
+      <tr><td><strong>STORAGE-01</strong> — ODF Architecture and Installation</td><td>Ceph cluster on 3 dedicated nodes · 6 NVMe OSDs · HEALTH_OK · 5 StorageClasses · RGW + MCG · Prometheus metrics</td></tr>
+      <tr><td><strong>STORAGE-02</strong> — MinIO Installation and Configuration</td><td>Platform observability S3 · 3 buckets (logs, traces, GitLab) · Scoped access keys · Lifecycle rules · Fills OBS-03 gap</td></tr>
+      <tr><td><strong>STORAGE-03</strong> — StorageClass Design</td><td>7-class inventory · Decision framework · Default changed to ODF RBD · VolumeSnapshot test · Image registry on MCG</td></tr>
+      <tr><td><strong>STORAGE-04</strong> — Backup and DR (this guide)</td><td>HA/DR/BC distinction · RTO/RPO governance · Enterprise etcd backup CronJob · OADP Schedules · Restore runbooks · APRA CPS 234 DR testing</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
