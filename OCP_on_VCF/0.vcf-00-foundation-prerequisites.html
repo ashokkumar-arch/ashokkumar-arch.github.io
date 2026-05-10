@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VCF-00 — Foundation & Prerequisites · NovaCrestBank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f3ef;--bg2:#ffffff;--bg3:#ececea;
+  --text:#1a1917;--text2:#56544d;--text3:#8a8880;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --vcf:#1b5e8c;--vcf-bg:#e8f2fb;
+  --nsx:#6e2b8c;--nsx-bg:#f3edfb;
+  --ocp:#cc0000;--ocp-bg:#fff0f0;
+  --win:#107c10;--win-bg:#e8f5e8;
+  --amber:#a87015;--red:#9e2828;--green:#0e6b45;
+  --pci:#7a3800;--pci-bg:#fff3e0;
+  --nist:#003366;--nist-bg:#e8eef8;
+  --cisco:#1d6fa4;--cisco-bg:#e6f2fb;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#111210;--bg2:#1a1916;--bg3:#222119;--text:#e5e3dc;
+  --text2:#a8a69e;--text3:#6a6860;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:260px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border2);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.sb-header{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--vcf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13.5px;color:var(--text);line-height:1.3}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.sb-nav{flex:1;padding:10px 0}
+.sb-group{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;transition:all .12s;line-height:1.4}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--vcf-bg);color:var(--vcf);border-left-color:var(--vcf);font-weight:500}
+.sb-item.foundation{background:rgba(27,94,140,.08);color:var(--vcf);border-left-color:var(--vcf);font-weight:600}
+.sb-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* MAIN */
+.main{flex:1;min-width:0;padding:40px 52px;max-width:860px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--vcf);background:var(--vcf-bg);padding:4px 10px;border-radius:4px;margin-bottom:16px}
+.guide-tag::before{content:'▶';font-size:8px}
+h1{font-family:'DM Serif Display',serif;font-size:28px;line-height:1.15;color:var(--text);margin-bottom:8px;letter-spacing:-.01em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:28px;font-style:italic}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:36px 0 12px;color:var(--text)}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;color:var(--text)}
+p{margin-bottom:12px;color:var(--text2);font-size:14px}
+ul,ol{margin:8px 0 14px 20px;color:var(--text2)}
+li{margin-bottom:6px;font-size:14px;line-height:1.7}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 5px;border-radius:3px;color:var(--text)}
+pre{background:#1a1917;color:#e5e3dc;padding:16px 20px;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.75;overflow-x:auto;margin:12px 0}
+hr{border:none;border-top:.5px solid var(--border);margin:28px 0}
+
+/* CALLOUTS */
+.callout{border-radius:6px;padding:14px 18px;margin:16px 0;font-size:13.5px;line-height:1.65}
+.callout strong{display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.callout-vcf{background:var(--vcf-bg);border-left:3px solid var(--vcf);color:var(--text2)}
+.callout-vcf strong{color:var(--vcf)}
+.callout-nsx{background:var(--nsx-bg);border-left:3px solid var(--nsx);color:var(--text2)}
+.callout-nsx strong{color:var(--nsx)}
+.callout-cisco{background:var(--cisco-bg);border-left:3px solid var(--cisco);color:var(--text2)}
+.callout-cisco strong{color:var(--cisco)}
+.callout-win{background:var(--win-bg);border-left:3px solid var(--win);color:var(--text2)}
+.callout-win strong{color:var(--win)}
+.callout-ocp{background:var(--ocp-bg);border-left:3px solid var(--ocp);color:var(--text2)}
+.callout-ocp strong{color:var(--ocp)}
+.callout-amber{background:#fff8ed;border-left:3px solid var(--amber);color:var(--text2)}
+.callout-amber strong{color:var(--amber)}
+
+/* REGULATORY BADGES */
+.reg{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px;margin:2px}
+.reg-pci{background:var(--pci-bg);color:var(--pci)}
+.reg-nist{background:var(--nist-bg);color:var(--nist)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* VLAN COLOUR BANDS */
+.vlan-mgmt{border-left:3px solid var(--vcf)}
+.vlan-motion{border-left:3px solid #5b8cc8}
+.vlan-vsan{border-left:3px solid var(--green)}
+.vlan-tep{border-left:3px solid var(--nsx)}
+.vlan-edge{border-left:3px solid #9b59b6}
+.vlan-oob{border-left:3px solid var(--amber)}
+
+/* LAYER STACK */
+.layer-stack{display:flex;flex-direction:column;gap:2px;margin:16px 0}
+.layer{padding:12px 16px;border-radius:5px;display:flex;align-items:flex-start;gap:12px}
+.layer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.layer-body h4{font-size:13px;font-weight:600;margin-bottom:3px;color:var(--text)}
+.layer-body p{font-size:12.5px;margin:0;color:var(--text2)}
+.l-ocp{background:var(--ocp-bg)}.l-ocp .layer-dot{background:var(--ocp)}
+.l-nsx{background:var(--nsx-bg)}.l-nsx .layer-dot{background:var(--nsx)}
+.l-vcf{background:var(--vcf-bg)}.l-vcf .layer-dot{background:var(--vcf)}
+.l-cisco{background:var(--cisco-bg)}.l-cisco .layer-dot{background:var(--cisco)}
+
+/* SPEC ROWS */
+.spec-grid{display:grid;grid-template-columns:200px 1fr;gap:0;border:.5px solid var(--border2);border-radius:6px;overflow:hidden;margin:14px 0}
+.spec-row{display:contents}
+.spec-row:hover .spec-k,.spec-row:hover .spec-v{background:var(--bg3)}
+.spec-k{padding:9px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text2);border-bottom:.5px solid var(--border)}
+.spec-v{padding:9px 14px;background:var(--bg2);font-size:13px;color:var(--text);border-bottom:.5px solid var(--border)}
+.spec-row:last-child .spec-k,.spec-row:last-child .spec-v{border-bottom:none}
+
+/* GUIDE SEQUENCE */
+.guide-seq{display:grid;gap:2px;margin:16px 0}
+.gs-item{display:grid;grid-template-columns:40px 140px 1fr;gap:12px;padding:10px 14px;border-radius:5px;align-items:center;background:var(--bg2);border:.5px solid var(--border)}
+.gs-item.current{background:var(--vcf-bg);border-color:var(--vcf)}
+.gs-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);text-align:center}
+.gs-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.gs-desc{font-size:12px;color:var(--text2)}
+.gs-item.current .gs-name{color:var(--vcf)}
+
+@media(max-width:900px){
+  body{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static}
+  .main{padding:24px 20px;max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-series">NovaCrestBank · VCF + NSX + OCP Series</div>
+    <div class="sb-title">VCF-00 — Foundation &amp; Prerequisites</div>
+    <div class="sb-sub">Everything you need before NSX-01</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group">This guide</div>
+    <a class="sb-item foundation active" href="#why-this-guide">00 — Why this guide exists</a>
+    <a class="sb-item" href="#what-vcf-changes">01 — What VCF changes from Classic</a>
+    <a class="sb-item" href="#physical-fabric">02 — Physical fabric — same hardware, new role</a>
+    <a class="sb-item" href="#two-domains">03 — Two workload domains</a>
+    <a class="sb-item" href="#hardware-layout">04 — Hardware layout — 9 servers assigned</a>
+    <a class="sb-item" href="#vlan-plan">05 — Complete VLAN plan</a>
+    <a class="sb-item" href="#ip-plan">06 — IP plan — every address</a>
+    <a class="sb-item" href="#nsx-overlay">07 — NSX overlay — the logical layer</a>
+    <a class="sb-item" href="#dns-plan">08 — DNS record plan</a>
+    <a class="sb-item" href="#pki-plan">09 — PKI and certificate plan</a>
+    <a class="sb-item" href="#regulatory">10 — Regulatory anchors</a>
+    <a class="sb-item" href="#guide-sequence">11 — Guide sequence from here</a>
+    <div class="sb-group">Series continues</div>
+    <a class="sb-item" href="2.vcf-02-nsx-concepts.html">VCF-02 — NSX Concepts</a>
+    <a class="sb-item" href="3.nsx-01-transport-zones-host-transport-nodes.html">NSX-01 — Transport Zones &amp; TNs</a>
+    <a class="sb-item" href="4.nsx-02-edge-t0-gateway.html">NSX-02 — Edge &amp; T0 Gateway</a>
+    <a class="sb-item" href="5.nsx-03-t1-gateways-segments.html">NSX-03 — T1 &amp; Segments</a>
+    <a class="sb-item" href="6.nsx-04-load-balancer.html">NSX-04 — Load Balancer</a>
+    <a class="sb-item" href="7.nsx-05-distributed-firewall.html">NSX-05 — Distributed Firewall</a>
+    <a class="sb-item" href="8.win-vcf-01-dns.html">WIN-VCF-01 — DNS</a>
+    <a class="sb-item" href="9.win-vcf-02-dhcp.html">WIN-VCF-02 — DHCP</a>
+    <a class="sb-item" href="10.win-vcf-03-pki-certs.html">WIN-VCF-03 — PKI / Certs</a>
+    <a class="sb-item" href="11.ocp-vcf-01-install-config-vcf-nsx.html">OCP-VCF-01 — install-config</a>
+    <a class="sb-item" href="12.ocp-vcf-02-run-install-postinstall.html">OCP-VCF-02 — Run &amp; Post-install</a>
+  </div>
+  <div class="sb-footer">VCF Series · NovaCrestBank · ashokkumar-arch.github.io</div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <div class="guide-tag">Foundation Guide · VCF-00</div>
+  <h1>Foundation &amp; Prerequisites</h1>
+  <div class="subtitle">Everything the VCF + NSX + OCP series assumes — made explicit, with the why behind every decision</div>
+
+  <!-- ═══ SECTION 00 ═══ -->
+  <section id="why-this-guide">
+    <h2>00 — Why this guide exists</h2>
+    <p>The NovaCrestBank VCF + NSX + OCP series is a standalone series. You do not need to have read the Classic vSphere series to follow it from start to finish.</p>
+    <p>This guide is the foundation. It establishes every design decision, every IP address, every VLAN, every FQDN, and every certificate plan that all subsequent guides reference. Before any NSX guide begins, this document must be understood. The most common reason NSX configurations fail is that the network planning was not precise — TEP pool overlap, BGP ASN conflict, or missing DNS records. This guide eliminates all of those risks by making the design explicit before any tool is opened.</p>
+    <div class="callout callout-vcf">
+      <strong>How to use this guide</strong>
+      Read it fully before starting NSX-01. Every table in this guide is the authoritative reference for the corresponding configuration guide — the NSX VLAN IDs used in NSX-01 come from the VLAN plan in Section 05. The IP addresses in NSX-02 come from the IP plan in Section 06. The DNS records in WIN-VCF-01 come from Section 08. Nothing in this series is designed from scratch mid-guide — everything is designed here first.
+    </div>
+    <div class="callout callout-amber">
+      <strong>Relationship to the Classic vSphere series</strong>
+      The NovaCrestBank Classic vSphere series covered building this same physical environment from the ground up — Cisco leaf-spine fabric, NX-OS configuration, ESXi installation, vCenter deployment, Windows AD/PKI, and OpenShift on classic vSphere. If you want the deep-dive on any of those foundational layers, the Classic series provides it. This VCF series begins where VCF itself begins: the physical fabric is already built, and now we are deploying VMware Cloud Foundation on top of it.
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 01 ═══ -->
+  <section id="what-vcf-changes">
+    <h2>01 — What VCF changes from classic vSphere — the single most important mental shift</h2>
+    <p>In classic vSphere, networking worked like this: physical VLAN → vDS port group → VM NIC. Every new application network required a VLAN provisioned on the Cisco switches and a port group created on the vDS. The network team and the virtualisation team both had to be involved for every new network segment.</p>
+    <p>In VCF with NSX, the physical network team provisions a small, fixed set of VLANs once during VCF bring-up — and then steps away. Every network segment that OCP, banking applications, or any workload needs is created by the virtualisation/cloud team in the NSX Manager GUI in seconds, with no physical switch changes required.</p>
+
+    <div class="layer-stack">
+      <div class="layer l-ocp">
+        <div class="layer-dot"></div>
+        <div class="layer-body">
+          <h4>🔴 Application Layer — OpenShift</h4>
+          <p>OCP API, Ingress, pod networks, namespaces, banking application workloads. All live as logical constructs managed by NSX and OCP jointly. The OCP installer creates NSX segments automatically during installation when NSX-T integration is configured.</p>
+        </div>
+      </div>
+      <div class="layer l-nsx">
+        <div class="layer-dot"></div>
+        <div class="layer-body">
+          <h4>🟣 NSX Overlay — Software-Defined Network</h4>
+          <p>Tier-0 Gateway (BGP border), Tier-1 Gateways (tenant routing), Segments (logical switches), Load Balancer (API VIP + Ingress VIP), Distributed Firewall (microsegmentation). All created in NSX Manager GUI — zero physical switch changes required after initial VCF bring-up.</p>
+        </div>
+      </div>
+      <div class="layer l-vcf">
+        <div class="layer-dot"></div>
+        <div class="layer-body">
+          <h4>🔵 VCF Underlay — Physical VLANs</h4>
+          <p>A small, fixed set of VLANs on the Cisco fabric: VCF management traffic, NSX TEP tunnel traffic, and Edge uplink traffic. Provisioned once during VCF bring-up and rarely changed afterwards. VLANs 10, 20, 25, 40, 100, 101, 102, 103 — defined in full in Section 05.</p>
+        </div>
+      </div>
+      <div class="layer l-cisco">
+        <div class="layer-dot"></div>
+        <div class="layer-body">
+          <h4>⚫ Physical Fabric — Cisco Nexus Leaf-Spine</h4>
+          <p>Three Cisco Nexus 93180YC-FX leaf switches and two Cisco Nexus 9504 spine switches. Same hardware used in the Classic series. In VCF mode it carries fewer VLANs but at higher bandwidth — all NSX overlay traffic runs as GENEVE-encapsulated UDP on top of the physical links. MTU 9000 end-to-end is required.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-nsx">
+      <strong>The key mental shift — VLANs are for infrastructure, not for applications</strong>
+      In the Classic series, every application had its own VLAN: VLAN 50 for OCP nodes, VLAN 60 for production VMs, VLAN 70 for Windows servers. In VCF + NSX, physical VLANs exist only for infrastructure (VCF management, NSX tunnels, Edge uplinks). All application networks live on NSX logical segments — which look and behave exactly like VLANs to the VMs and pods, but are software-defined and require no physical VLAN provisioning.
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 02 ═══ -->
+  <section id="physical-fabric">
+    <h2>02 — Physical fabric — same hardware, completely different job</h2>
+    <p>NovaCrestBank's physical data centre fabric is a Cisco Nexus leaf-spine architecture:</p>
+    <ul>
+      <li><strong>Spine layer:</strong> 2 × Cisco Nexus 9504 (100 GbE uplinks, pure Layer 3, BGP/ECMP)</li>
+      <li><strong>Leaf layer:</strong> 3 × Cisco Nexus 93180YC-FX (48 × 25 GbE downlinks to servers, 100 GbE uplinks to spines)</li>
+      <li><strong>Edge routing:</strong> 2 × Cisco ASR 1002-X (BGP dual-ISP, upstream to Palo Alto NGFW)</li>
+      <li><strong>OOB management:</strong> Cisco Catalyst 9200 (iLO on all servers, switch management)</li>
+      <li><strong>Server NICs:</strong> HP ProLiant DL380 Gen11 — 6 NICs per host (vmnic0/1: management LACP, vmnic2/3: VM/NSX LACP, vmnic4/5: vSAN LACP)</li>
+    </ul>
+
+    <h3>What the Cisco fabric carries in VCF mode vs Classic mode</h3>
+    <table>
+      <thead><tr><th>Traffic type</th><th>Classic vSphere</th><th>VCF + NSX</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Management</strong></td><td>VLAN 10 — ESXi, vCenter</td><td>VLAN 10 — ESXi, SDDC Manager, vCenter (×2), NSX Manager</td></tr>
+        <tr><td><strong>vMotion</strong></td><td>VLAN 20</td><td>VLAN 20 — unchanged</td></tr>
+        <tr><td><strong>vSAN</strong></td><td>VLAN 25</td><td>VLAN 25 — unchanged, now two separate clusters</td></tr>
+        <tr><td><strong>OCP nodes</strong></td><td>VLAN 50 — physical VLAN on Cisco</td><td>NSX segment <code>seg-ocp-nodes</code> — no physical VLAN</td></tr>
+        <tr><td><strong>Production VMs</strong></td><td>VLAN 60 — physical VLAN on Cisco</td><td>NSX segments — no physical VLANs</td></tr>
+        <tr><td><strong>Windows servers</strong></td><td>VLAN 70 — physical VLAN on Cisco</td><td>NSX segment <code>seg-infra-services</code> — no physical VLAN</td></tr>
+        <tr><td><strong>NSX TEP traffic</strong></td><td>Does not exist</td><td>VLAN 100 (Host TEP), VLAN 101 (Edge TEP) — new in VCF</td></tr>
+        <tr><td><strong>NSX BGP uplink</strong></td><td>Does not exist</td><td>VLAN 102 (Edge Uplink-A), VLAN 103 (Edge Uplink-B) — new</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-cisco">
+      <strong>Critical insight</strong>
+      The Classic series required 8 physical VLANs on the Cisco fabric (10, 20, 25, 30, 40, 50, 60, 70). VCF also requires 8 VLANs — but VLANs 50, 60, and 70 (all application VLANs) are gone. New VLANs 100, 101, 102, 103 appear for NSX. The fabric gets simpler because application complexity moves into software. The NAS VLAN (30) is also not present in the VCF underlay — NetApp NFS access is handled via the NSX overlay in VCF mode.
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 03 ═══ -->
+  <section id="two-domains">
+    <h2>03 — Two workload domains — the VCF topology</h2>
+    <p>VCF organises ESXi hosts into Workload Domains. NovaCrestBank uses two:</p>
+
+    <h3>Management Domain</h3>
+    <p>Created automatically during VCF bring-up. Cannot be deleted. Runs VCF's own management plane. What runs here:</p>
+    <ul>
+      <li>SDDC Manager (<code>sddc-manager.novacrestbank.local</code>) — VCF's orchestrator for the entire VCF stack</li>
+      <li>Management vCenter (<code>vcenter-mgmt.novacrestbank.local</code>) — manages Management Domain ESXi hosts</li>
+      <li>NSX Manager cluster (3 VMs: <code>nsx-mgr-01/02/03</code>) — shared NSX instance for both domains</li>
+      <li>NSX Edge cluster (edge-01, edge-02) — runs T0 gateway and BGP routing</li>
+      <li>DC01 and DC02 — Active Directory domain controllers</li>
+      <li>Root CA and Issuing CA — NovaCrestBank internal PKI</li>
+      <li>Infrastructure service VMs (DHCP, jump host)</li>
+    </ul>
+    <p><strong>ESXi hosts required:</strong> 4 minimum for a VMware production-supported configuration (esxi-mgmt-01 through esxi-mgmt-04).</p>
+
+    <h3>OpenShift VI Workload Domain</h3>
+    <p>Created after the Management Domain is healthy. Has its own vCenter instance. Uses shared NSX from the Management Domain. What runs here:</p>
+    <ul>
+      <li>OCP Workload vCenter (<code>vcenter-ocp.novacrestbank.local</code>)</li>
+      <li>OpenShift master nodes (3), infrastructure nodes (3), worker nodes (3+)</li>
+      <li>Future banking application workloads</li>
+    </ul>
+    <p><strong>ESXi hosts:</strong> 5 (esxi-ocp-01 through esxi-ocp-05).</p>
+
+    <div class="callout callout-vcf">
+      <strong>Why shared NSX — not per-domain NSX</strong>
+      VCF allows each Workload Domain to have its own NSX instance or share the Management Domain's NSX. NovaCrestBank uses shared NSX. Per-domain NSX means two 3-node NSX Manager clusters to maintain, two sets of certificates, two control planes to monitor. At NovaCrestBank's scale (9 ESXi hosts total), one NSX instance is the correct and simpler architecture — one pane of glass for all networking across both domains.
+    </div>
+    <span class="reg reg-pci">PCI-DSS v4.0 Req 1.3.2</span>
+    <p style="font-size:13px;color:var(--text2);margin-top:8px">Having OpenShift as a separate VCF Workload Domain — with its own vCenter and distinct NSX segment namespace — provides the administrative and logical separation between the management plane and the cardholder data environment required by PCI-DSS network segmentation controls.</p>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 04 ═══ -->
+  <section id="hardware-layout">
+    <h2>04 — Hardware layout — 9 servers, 2 domains</h2>
+
+    <table>
+      <thead><tr><th>Server</th><th>Domain</th><th>Role</th><th>Management IP (VLAN 10)</th></tr></thead>
+      <tbody>
+        <tr><td><code>esxi-mgmt-01</code></td><td>Management Domain</td><td>Management cluster host 1 — runs NSX Manager VMs, Edge VMs</td><td>10.10.0.11</td></tr>
+        <tr><td><code>esxi-mgmt-02</code></td><td>Management Domain</td><td>Management cluster host 2 — runs NSX Manager VMs, Edge VMs</td><td>10.10.0.12</td></tr>
+        <tr><td><code>esxi-mgmt-03</code></td><td>Management Domain</td><td>Management cluster host 3 — runs NSX Manager VMs</td><td>10.10.0.13</td></tr>
+        <tr><td><code>esxi-mgmt-04</code></td><td>Management Domain</td><td>Management cluster host 4 — vSAN capacity</td><td>10.10.0.14</td></tr>
+        <tr><td><code>esxi-ocp-01</code></td><td>OCP Workload Domain</td><td>OCP cluster host 1</td><td>10.10.0.21</td></tr>
+        <tr><td><code>esxi-ocp-02</code></td><td>OCP Workload Domain</td><td>OCP cluster host 2</td><td>10.10.0.22</td></tr>
+        <tr><td><code>esxi-ocp-03</code></td><td>OCP Workload Domain</td><td>OCP cluster host 3</td><td>10.10.0.23</td></tr>
+        <tr><td><code>esxi-ocp-04</code></td><td>OCP Workload Domain</td><td>OCP cluster host 4</td><td>10.10.0.24</td></tr>
+        <tr><td><code>esxi-ocp-05</code></td><td>OCP Workload Domain</td><td>OCP cluster host 5</td><td>10.10.0.25</td></tr>
+      </tbody>
+    </table>
+
+    <h3>NSX Edge Nodes — two dedicated VMs in the Management Domain</h3>
+    <table>
+      <thead><tr><th>Edge Node</th><th>FQDN</th><th>IP (VLAN 10)</th><th>Runs on</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr><td><strong>edge-01</strong></td><td><code>edge-01.novacrestbank.local</code></td><td>10.10.0.31</td><td>esxi-mgmt-01</td><td>Large: 8 vCPU, 32 GB RAM</td></tr>
+        <tr><td><strong>edge-02</strong></td><td><code>edge-02.novacrestbank.local</code></td><td>10.10.0.32</td><td>esxi-mgmt-02</td><td>Large: 8 vCPU, 32 GB RAM</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-nsx">
+      <strong>Why two Edge Nodes — not one</strong>
+      An Edge Node runs the Tier-0 Gateway that holds the BGP adjacency to the Cisco fabric. If that BGP adjacency drops, every VM and OCP pod that needs to reach anything outside the NSX overlay loses connectivity. One Edge Node is a single point of failure for all external routing. Two Edge Nodes in Active-Active HA means if edge-01 fails, edge-02 continues forwarding immediately — no manual intervention, no VIP migration delay.
+      <span class="reg reg-nist">NIST SP 800-53 SC-5</span><span class="reg reg-nist">NIST CP-7</span>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 05 ═══ -->
+  <section id="vlan-plan">
+    <h2>05 — Complete VLAN plan — the authoritative reference</h2>
+    <p>These are the only VLANs that exist on the Cisco physical fabric in VCF mode. Everything else is NSX overlay.</p>
+
+    <h3>Underlay VLANs — configured on Cisco Nexus switches</h3>
+    <table>
+      <thead><tr><th>VLAN</th><th>Name</th><th>Subnet</th><th>Gateway</th><th>MTU</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr class="vlan-mgmt"><td><strong>10</strong></td><td>Management</td><td>10.10.0.0/24</td><td>10.10.0.1</td><td>1500</td><td>ESXi vmk0, SDDC Manager, both vCenters, NSX Manager cluster, DC01/DC02, all management VMs</td></tr>
+        <tr class="vlan-motion"><td><strong>20</strong></td><td>vMotion</td><td>10.20.0.0/24</td><td>10.20.0.1</td><td>9000</td><td>ESXi vmk1 (vMotion VMkernel) — all 9 hosts in both domains</td></tr>
+        <tr class="vlan-vsan"><td><strong>25</strong></td><td>vSAN</td><td>10.25.0.0/24</td><td>—</td><td>9000</td><td>ESXi vmk2 (vSAN VMkernel). Mgmt Domain hosts: .11–.14. OCP Domain hosts: .21–.25. Two separate vSAN clusters, one VLAN, different subnets within</td></tr>
+        <tr class="vlan-oob"><td><strong>40</strong></td><td>OOB Management</td><td>10.40.0.0/24</td><td>10.40.0.1</td><td>1500</td><td>iLO/iDRAC on all servers, HSM appliances (Thales Luna HSM 7 HA pair at 10.40.0.61–.62), OOB switch management</td></tr>
+        <tr class="vlan-tep"><td><strong>100</strong></td><td>Host TEP</td><td>10.100.0.0/24</td><td>—</td><td>9000</td><td>NSX Host TEP VMkernel on all 9 ESXi hosts. Mgmt hosts: .11–.14. OCP hosts: .21–.25. No gateway — TEPs communicate host-to-host at Layer 2</td></tr>
+        <tr class="vlan-edge"><td><strong>101</strong></td><td>Edge TEP</td><td>10.101.0.0/24</td><td>—</td><td>9000</td><td>NSX Edge Node TEP interfaces only. edge-01: 10.101.0.11, edge-02: 10.101.0.12. No gateway needed.</td></tr>
+        <tr class="vlan-edge"><td><strong>102</strong></td><td>Edge Uplink-A</td><td>10.102.0.0/29</td><td>10.102.0.1</td><td>9000</td><td>Edge Node → Cisco Leaf-01 BGP peering. edge-01: 10.102.0.2, edge-02: 10.102.0.3, Leaf-01: 10.102.0.1 (ASN 65001)</td></tr>
+        <tr class="vlan-edge"><td><strong>103</strong></td><td>Edge Uplink-B</td><td>10.103.0.0/29</td><td>10.103.0.1</td><td>9000</td><td>Edge Node → Cisco Leaf-02 BGP peering. edge-01: 10.103.0.2, edge-02: 10.103.0.3, Leaf-02: 10.103.0.1 (ASN 65002)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>NSX overlay segments — no physical VLAN required</h3>
+    <p>These networks are created in NSX Manager. No Cisco switch configuration is needed. They are created in the NSX-01 through NSX-05 guides.</p>
+    <table>
+      <thead><tr><th>Segment name</th><th>Subnet</th><th>Gateway (T1)</th><th>Connected to</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>seg-infra-services</code></td><td>10.70.0.0/24</td><td>10.70.0.1</td><td>NCB-T1-Infra</td><td>DC01, DC02, Root CA, Issuing CA, DHCP server — all infrastructure service VMs</td></tr>
+        <tr><td><code>seg-ocp-nodes</code></td><td>10.50.0.0/24</td><td>10.50.0.1</td><td>NCB-T1-OCP</td><td>OpenShift master, infra, and worker node VMs. Static IPs assigned from this range.</td></tr>
+        <tr><td><code>seg-ocp-pods</code></td><td>10.128.0.0/14</td><td>Managed by NSX + OVN</td><td>NCB-T1-OCP</td><td>OCP pod overlay network — managed jointly by NSX and OVN-Kubernetes CNI</td></tr>
+        <tr><td><code>seg-ocp-services</code></td><td>172.30.0.0/16</td><td>Managed by OCP</td><td>NCB-T1-OCP</td><td>Kubernetes Service ClusterIP range — virtual IPs for Services inside OCP</td></tr>
+      </tbody>
+    </table>
+    <span class="reg reg-pci">PCI-DSS v4.0 Req 1.2.1</span>
+    <p style="font-size:13px;color:var(--text2);margin-top:8px">PCI-DSS requires all network security controls to be formally documented with business justification. This VLAN and segment plan is that documentation — every network named, purposed, and separated.</p>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 06 ═══ -->
+  <section id="ip-plan">
+    <h2>06 — IP plan — every address in the environment</h2>
+
+    <h3>VCF Management Plane VMs</h3>
+    <table>
+      <thead><tr><th>Component</th><th>FQDN</th><th>IP (VLAN 10)</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>SDDC Manager</td><td><code>sddc-manager.novacrestbank.local</code></td><td>10.10.0.50</td><td>VCF orchestrator — deployed during VCF bring-up wizard</td></tr>
+        <tr><td>Management vCenter</td><td><code>vcenter-mgmt.novacrestbank.local</code></td><td>10.10.0.51</td><td>Manages Management Domain ESXi hosts</td></tr>
+        <tr><td>OCP Workload vCenter</td><td><code>vcenter-ocp.novacrestbank.local</code></td><td>10.10.0.52</td><td>Manages OCP Domain ESXi hosts</td></tr>
+        <tr><td>NSX Manager node 1</td><td><code>nsx-mgr-01.novacrestbank.local</code></td><td>10.10.0.60</td><td>NSX Manager cluster member</td></tr>
+        <tr><td>NSX Manager node 2</td><td><code>nsx-mgr-02.novacrestbank.local</code></td><td>10.10.0.61</td><td>NSX Manager cluster member</td></tr>
+        <tr><td>NSX Manager node 3</td><td><code>nsx-mgr-03.novacrestbank.local</code></td><td>10.10.0.62</td><td>NSX Manager cluster member</td></tr>
+        <tr><td>NSX Manager VIP</td><td><code>nsx-mgr.novacrestbank.local</code></td><td>10.10.0.63</td><td>Always use this FQDN for NSX Manager GUI/API access</td></tr>
+        <tr><td>Edge Node 1</td><td><code>edge-01.novacrestbank.local</code></td><td>10.10.0.31</td><td>NSX Edge VM — runs Tier-0 Gateway</td></tr>
+        <tr><td>Edge Node 2</td><td><code>edge-02.novacrestbank.local</code></td><td>10.10.0.32</td><td>NSX Edge VM — runs Tier-0 Gateway</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Infrastructure service VMs (on NSX segment seg-infra-services, 10.70.0.0/24)</h3>
+    <table>
+      <thead><tr><th>Component</th><th>FQDN</th><th>IP</th></tr></thead>
+      <tbody>
+        <tr><td>DC01 (Primary DC)</td><td><code>dc01.novacrestbank.local</code></td><td>10.70.0.10</td></tr>
+        <tr><td>DC02 (Secondary DC)</td><td><code>dc02.novacrestbank.local</code></td><td>10.70.0.11</td></tr>
+        <tr><td>Root CA</td><td><code>rootca.novacrestbank.local</code></td><td>10.70.0.20</td></tr>
+        <tr><td>Issuing CA</td><td><code>issuingca.novacrestbank.local</code></td><td>10.70.0.21</td></tr>
+        <tr><td>PKI web (certsrv)</td><td><code>pki.novacrestbank.local</code></td><td>10.70.0.10 (hosted on DC01)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>OpenShift nodes (on NSX segment seg-ocp-nodes, 10.50.0.0/24)</h3>
+    <table>
+      <thead><tr><th>Node</th><th>FQDN</th><th>IP</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>master-0</td><td><code>master-0.ocp.novacrestbank.local</code></td><td>10.50.0.11</td><td>OCP Control Plane</td></tr>
+        <tr><td>master-1</td><td><code>master-1.ocp.novacrestbank.local</code></td><td>10.50.0.12</td><td>OCP Control Plane</td></tr>
+        <tr><td>master-2</td><td><code>master-2.ocp.novacrestbank.local</code></td><td>10.50.0.13</td><td>OCP Control Plane</td></tr>
+        <tr><td>infra-0</td><td><code>infra-0.ocp.novacrestbank.local</code></td><td>10.50.0.21</td><td>OCP Infrastructure</td></tr>
+        <tr><td>infra-1</td><td><code>infra-1.ocp.novacrestbank.local</code></td><td>10.50.0.22</td><td>OCP Infrastructure</td></tr>
+        <tr><td>infra-2</td><td><code>infra-2.ocp.novacrestbank.local</code></td><td>10.50.0.23</td><td>OCP Infrastructure</td></tr>
+        <tr><td>worker-0</td><td><code>worker-0.ocp.novacrestbank.local</code></td><td>10.50.0.31</td><td>OCP Worker</td></tr>
+        <tr><td>worker-1</td><td><code>worker-1.ocp.novacrestbank.local</code></td><td>10.50.0.32</td><td>OCP Worker</td></tr>
+        <tr><td>worker-2</td><td><code>worker-2.ocp.novacrestbank.local</code></td><td>10.50.0.33</td><td>OCP Worker</td></tr>
+      </tbody>
+    </table>
+
+    <h3>NSX Load Balancer VIPs</h3>
+    <table>
+      <thead><tr><th>VIP name</th><th>FQDN</th><th>IP</th><th>Port(s)</th><th>Backend</th></tr></thead>
+      <tbody>
+        <tr><td>NCB-LB-OCP-API</td><td><code>api.ocp.novacrestbank.local</code><br><code>api-int.ocp.novacrestbank.local</code></td><td>10.50.0.200</td><td>6443</td><td>master-0/1/2 on port 6443</td></tr>
+        <tr><td>NCB-LB-OCP-HTTPS</td><td><code>*.apps.ocp.novacrestbank.local</code></td><td>10.50.0.201</td><td>443</td><td>infra-0/1/2 on port 443</td></tr>
+        <tr><td>NCB-LB-OCP-HTTP</td><td><code>*.apps.ocp.novacrestbank.local</code></td><td>10.50.0.201</td><td>80</td><td>infra-0/1/2 on port 80</td></tr>
+      </tbody>
+    </table>
+
+    <h3>NSX TEP IP pools</h3>
+    <table>
+      <thead><tr><th>Pool name</th><th>Subnet</th><th>Range</th><th>Gateway</th><th>Assigned to</th></tr></thead>
+      <tbody>
+        <tr><td><code>NCB-Host-TEP-Pool</code></td><td>10.100.0.0/24</td><td>10.100.0.11 – 10.100.0.30</td><td>None</td><td>All 9 ESXi hosts — assigned automatically by NSX during Transport Node preparation</td></tr>
+        <tr><td><code>NCB-Edge-TEP-Pool</code></td><td>10.101.0.0/24</td><td>10.101.0.11 – 10.101.0.20</td><td>None</td><td>Edge Nodes only — edge-01: 10.101.0.11, edge-02: 10.101.0.12</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 07 ═══ -->
+  <section id="nsx-overlay">
+    <h2>07 — NSX overlay design summary</h2>
+
+    <div class="spec-grid">
+      <div class="spec-row"><div class="spec-k">T0 Gateway name</div><div class="spec-v"><code>NCB-T0-Gateway</code></div></div>
+      <div class="spec-row"><div class="spec-k">T0 HA mode</div><div class="spec-v">Active-Active — both Edge Nodes forward simultaneously via ECMP</div></div>
+      <div class="spec-row"><div class="spec-k">NSX BGP ASN</div><div class="spec-v">65010</div></div>
+      <div class="spec-row"><div class="spec-k">BGP peer 1</div><div class="spec-v">Cisco Leaf-01 at 10.102.0.1 — ASN 65001</div></div>
+      <div class="spec-row"><div class="spec-k">BGP peer 2</div><div class="spec-v">Cisco Leaf-02 at 10.103.0.1 — ASN 65002</div></div>
+      <div class="spec-row"><div class="spec-k">Routes advertised to Cisco</div><div class="spec-v">10.50.0.0/24, 10.70.0.0/24, 10.50.0.200/32, 10.50.0.201/32</div></div>
+      <div class="spec-row"><div class="spec-k">Default route from Cisco</div><div class="spec-v">0.0.0.0/0 from Cisco spines — T0 uses for all northbound traffic</div></div>
+      <div class="spec-row"><div class="spec-k">T1 — infrastructure</div><div class="spec-v"><code>NCB-T1-Infra</code> · Active-Standby · serves seg-infra-services (10.70.0.0/24)</div></div>
+      <div class="spec-row"><div class="spec-k">T1 — OpenShift</div><div class="spec-v"><code>NCB-T1-OCP</code> · Active-Standby · serves seg-ocp-nodes (10.50.0.0/24)</div></div>
+      <div class="spec-row"><div class="spec-k">DFW default policy</div><div class="spec-v">Default-deny — all traffic not explicitly permitted is blocked</div></div>
+    </div>
+
+    <div class="callout callout-nsx">
+      <strong>Why two T1 gateways — not one</strong>
+      The two T1s represent two separate security domains with different trust levels. Traffic between OCP nodes and infrastructure services (e.g., OCP pods querying DC01 for LDAP) must traverse T0 → T1-Infra → seg-infra-services. This inter-T1 path creates a natural policy enforcement point. NSX DFW gateway firewall rules on NCB-T1-OCP explicitly allow only specific OCP→infrastructure traffic (LDAPS port 636, DNS port 53) and deny everything else. With one T1, that boundary disappears.
+      <span class="reg reg-pci">PCI-DSS v4.0 Req 1.3.2</span>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 08 ═══ -->
+  <section id="dns-plan">
+    <h2>08 — DNS record plan — every FQDN the environment needs</h2>
+    <p>DNS is served by DC01 and DC02 as Active Directory-integrated zones for <code>novacrestbank.local</code>. No new zone is needed. All records are A records in the existing forward lookup zone plus PTR records in the reverse zones. The WIN-VCF-01 guide implements every record below, screen by screen in DNS Manager.</p>
+
+    <h3>VCF management plane records (new — not in Classic series)</h3>
+    <table>
+      <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Must exist before</th></tr></thead>
+      <tbody>
+        <tr><td><code>sddc-manager.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.50</td><td>VCF bring-up wizard</td></tr>
+        <tr><td><code>vcenter-mgmt.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.51</td><td>VCF bring-up wizard</td></tr>
+        <tr><td><code>vcenter-ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.52</td><td>OCP Workload Domain creation</td></tr>
+        <tr><td><code>nsx-mgr-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.60</td><td>VCF bring-up wizard</td></tr>
+        <tr><td><code>nsx-mgr-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.61</td><td>VCF bring-up wizard</td></tr>
+        <tr><td><code>nsx-mgr-03.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.62</td><td>VCF bring-up wizard</td></tr>
+        <tr><td><code>nsx-mgr.novacrestbank.local</code></td><td>A</td><td>10.10.0.63</td><td>NSX bring-up (VIP)</td></tr>
+        <tr><td><code>edge-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.31</td><td>NSX Edge deployment (NSX-02)</td></tr>
+        <tr><td><code>edge-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.32</td><td>NSX Edge deployment (NSX-02)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>ESXi hosts — Management Domain</h3>
+    <table>
+      <thead><tr><th>FQDN</th><th>Type</th><th>IP</th></tr></thead>
+      <tbody>
+        <tr><td><code>esxi-mgmt-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.11</td></tr>
+        <tr><td><code>esxi-mgmt-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.12</td></tr>
+        <tr><td><code>esxi-mgmt-03.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.13</td></tr>
+        <tr><td><code>esxi-mgmt-04.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.14</td></tr>
+      </tbody>
+    </table>
+
+    <h3>ESXi hosts — OCP Workload Domain</h3>
+    <table>
+      <thead><tr><th>FQDN</th><th>Type</th><th>IP</th></tr></thead>
+      <tbody>
+        <tr><td><code>esxi-ocp-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.21</td></tr>
+        <tr><td><code>esxi-ocp-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.22</td></tr>
+        <tr><td><code>esxi-ocp-03.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.23</td></tr>
+        <tr><td><code>esxi-ocp-04.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.24</td></tr>
+        <tr><td><code>esxi-ocp-05.novacrestbank.local</code></td><td>A + PTR</td><td>10.10.0.25</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Infrastructure service VMs (same as Classic series — IPs unchanged)</h3>
+    <table>
+      <thead><tr><th>FQDN</th><th>Type</th><th>IP</th></tr></thead>
+      <tbody>
+        <tr><td><code>dc01.novacrestbank.local</code></td><td>A + PTR</td><td>10.70.0.10</td></tr>
+        <tr><td><code>dc02.novacrestbank.local</code></td><td>A + PTR</td><td>10.70.0.11</td></tr>
+        <tr><td><code>rootca.novacrestbank.local</code></td><td>A + PTR</td><td>10.70.0.20</td></tr>
+        <tr><td><code>issuingca.novacrestbank.local</code></td><td>A + PTR</td><td>10.70.0.21</td></tr>
+        <tr><td><code>pki.novacrestbank.local</code></td><td>A</td><td>10.70.0.10</td></tr>
+      </tbody>
+    </table>
+
+    <h3>OpenShift cluster records — critical: must exist before OCP installation begins</h3>
+    <table>
+      <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>api.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.200</td><td>OCP API VIP — NSX LB. Must resolve before installer runs.</td></tr>
+        <tr><td><code>api-int.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.200</td><td>OCP internal API — same VIP</td></tr>
+        <tr><td><code>*.apps.ocp.novacrestbank.local</code></td><td>A (wildcard)</td><td>10.50.0.201</td><td>OCP Ingress — all application routes</td></tr>
+        <tr><td><code>master-0.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.11</td><td rowspan="9">Created before OCP installation</td></tr>
+        <tr><td><code>master-1.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.12</td></tr>
+        <tr><td><code>master-2.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.13</td></tr>
+        <tr><td><code>infra-0.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.21</td></tr>
+        <tr><td><code>infra-1.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.22</td></tr>
+        <tr><td><code>infra-2.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.23</td></tr>
+        <tr><td><code>worker-0.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.31</td></tr>
+        <tr><td><code>worker-1.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.32</td></tr>
+        <tr><td><code>worker-2.ocp.novacrestbank.local</code></td><td>A + PTR</td><td>10.50.0.33</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 09 ═══ -->
+  <section id="pki-plan">
+    <h2>09 — PKI and certificate plan</h2>
+    <p>NovaCrestBank-Root-CA and NovaCrestBank-Issuing-CA are the same two-tier PKI built in the Classic series. The Root CA is offline. The Issuing CA (Enterprise Subordinate CA on Windows Server) issues all certificates. The certificate templates and auto-enrolment GPO are unchanged. What changes is the list of new components in VCF that need certificates.</p>
+
+    <table>
+      <thead><tr><th>Component</th><th>FQDN on certificate</th><th>Type</th><th>Issued by</th><th>Configured in</th></tr></thead>
+      <tbody>
+        <tr><td>SDDC Manager</td><td><code>sddc-manager.novacrestbank.local</code></td><td>Server — single SAN</td><td>NovaCrestBank-Issuing-CA</td><td>SDDC Manager cert replacement UI</td></tr>
+        <tr><td>Management vCenter</td><td><code>vcenter-mgmt.novacrestbank.local</code></td><td>Server — single SAN</td><td>NovaCrestBank-Issuing-CA</td><td>Same process as Classic vSphere-03 guide</td></tr>
+        <tr><td>OCP Workload vCenter</td><td><code>vcenter-ocp.novacrestbank.local</code></td><td>Server — single SAN</td><td>NovaCrestBank-Issuing-CA</td><td>Same process as Classic vSphere-03 guide</td></tr>
+        <tr><td>NSX Manager VIP</td><td><code>nsx-mgr.novacrestbank.local</code> + all 3 node FQDNs as SANs</td><td>Server — multi-SAN</td><td>NovaCrestBank-Issuing-CA</td><td>NSX Manager cert replacement in GUI</td></tr>
+        <tr><td>OCP API endpoint</td><td><code>api.ocp.novacrestbank.local</code></td><td>Server</td><td>NovaCrestBank-Issuing-CA</td><td>OCP post-install cert replacement</td></tr>
+        <tr><td>OCP Ingress wildcard</td><td><code>*.apps.ocp.novacrestbank.local</code></td><td>Wildcard server</td><td>NovaCrestBank-Issuing-CA</td><td>OCP post-install cert replacement</td></tr>
+      </tbody>
+    </table>
+    <span class="reg reg-pci">PCI-DSS v4.0 Req 4.2.1</span>
+    <p style="font-size:13px;color:var(--text2);margin-top:8px">All management and data plane communications must use strong cryptography (TLS 1.2 minimum). Every component above presents a CA-signed certificate from NovaCrestBank's internal PKI — satisfying PCI-DSS Req 4.2.1 for all internal management traffic.</p>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 10 ═══ -->
+  <section id="regulatory">
+    <h2>10 — Regulatory anchors — how this design satisfies PCI-DSS and NIST</h2>
+
+    <h3>PCI-DSS v4.0</h3>
+    <table>
+      <thead><tr><th>Requirement</th><th>Control</th><th>How NovaCrestBank's VCF design satisfies it</th></tr></thead>
+      <tbody>
+        <tr><td><span class="reg reg-pci">Req 1.2.1</span></td><td>Network controls documented</td><td>This VCF-00 document — VLAN plan, segment plan, and DFW policy with explicit business justification for each permitted flow</td></tr>
+        <tr><td><span class="reg reg-pci">Req 1.3.1/1.3.2</span></td><td>Restrict traffic to CDE</td><td>NSX DFW default-deny policy with explicit allow rules. Two T1 gateways enforce domain separation. All inter-zone flows are documented with business justification.</td></tr>
+        <tr><td><span class="reg reg-pci">Req 3.7.2</span></td><td>Key encryption in hardware</td><td>Thales Luna HSM 7 HA pair (FIPS 140-2 Level 3) at 10.40.0.61–.62 on OOB VLAN. vSAN encryption keys protected in HSM hardware.</td></tr>
+        <tr><td><span class="reg reg-pci">Req 4.2.1</span></td><td>Strong cryptography in transit</td><td>All 6 VCF components present CA-signed certificates. NSX GENEVE tunnel traffic encrypted. Internal PKI with 4096-bit RSA root.</td></tr>
+        <tr><td><span class="reg reg-pci">Req 6.4</span></td><td>Load balancer health monitoring</td><td>NSX Load Balancer with 5-second TCP health checks on API and Ingress VIPs. Failed members removed automatically.</td></tr>
+        <tr><td><span class="reg reg-pci">Req 8.6</span></td><td>System account management</td><td>OCP AD integration via LDAPS — all access uses AD credentials subject to password policy. Service accounts in FGPP.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>NIST SP 800-53</h3>
+    <table>
+      <thead><tr><th>Control</th><th>Family</th><th>How satisfied</th></tr></thead>
+      <tbody>
+        <tr><td><span class="reg reg-nist">AC-3</span></td><td>Access Enforcement</td><td>NSX DFW enforces access control at the hypervisor kernel — traffic between zones is controlled regardless of whether a physical firewall is in the path</td></tr>
+        <tr><td><span class="reg reg-nist">SC-5</span></td><td>DoS Protection</td><td>Two Edge Nodes Active-Active HA. NSX LB health checks. Three OCP masters for etcd quorum. vSAN FTT=2 RAID-1.</td></tr>
+        <tr><td><span class="reg reg-nist">SC-7</span></td><td>Boundary Protection</td><td>VCF workload domain separation. NSX T1 separation between management and OCP. DFW default-deny. Palo Alto NGFW at perimeter.</td></tr>
+        <tr><td><span class="reg reg-nist">SC-8</span></td><td>Transmission Confidentiality</td><td>GENEVE tunnels carry all overlay traffic. All management API traffic over TLS 1.2+. vSAN at-rest encryption via HSM KMS.</td></tr>
+        <tr><td><span class="reg reg-nist">CP-7</span></td><td>Alternate Processing</td><td>Dual Edge Nodes, dual vCenter, dual NSX Manager peers, vSAN FTT=2 RAID-1 — multiple redundancy layers within the primary site.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr>
+
+  <!-- ═══ SECTION 11 ═══ -->
+  <section id="guide-sequence">
+    <h2>11 — Guide sequence from here</h2>
+    <p>Every guide that follows references this document. When a guide says "use the Host TEP pool," the pool name and IP range are in Section 06. When it says "create this DNS record first," the record is in Section 08. This is the design document; the guides are the implementation.</p>
+
+    <div class="guide-seq">
+      <div class="gs-item current">
+        <div class="gs-num">✓</div>
+        <div class="gs-name">VCF-00 (this guide)</div>
+        <div class="gs-desc">Architecture and network planning — every decision made. Design document.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">1</div>
+        <div class="gs-name">VCF-02 — NSX Concepts</div>
+        <div class="gs-desc">Deep conceptual foundation before any GUI work — Transport Zones, TEPs, T0/T1, DFW, GENEVE. Read before NSX-01.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">2</div>
+        <div class="gs-name">NSX-01 — Transport Zones &amp; Host TNs</div>
+        <div class="gs-desc">Creating Transport Zones, IP pools (from Section 06), preparing all 9 ESXi hosts as NSX Transport Nodes. NSX Manager GUI.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">3</div>
+        <div class="gs-name">NSX-02 — Edge &amp; T0 Gateway</div>
+        <div class="gs-desc">Deploying Edge VMs, creating Edge Cluster, configuring T0 BGP peering with Cisco Leaf-01 (ASN 65001) and Leaf-02 (ASN 65002). NSX Manager GUI.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">4</div>
+        <div class="gs-name">NSX-03 — T1 Gateways &amp; Segments</div>
+        <div class="gs-desc">Creating NCB-T1-Infra and NCB-T1-OCP, creating seg-infra-services and seg-ocp-nodes. NSX Manager GUI.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">5</div>
+        <div class="gs-name">NSX-04 — NSX Load Balancer</div>
+        <div class="gs-desc">Virtual Servers for API VIP (10.50.0.200:6443) and Ingress VIP (10.50.0.201). Health monitors, server pools. NSX Manager GUI.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">6</div>
+        <div class="gs-name">NSX-05 — Distributed Firewall</div>
+        <div class="gs-desc">Implementing the DFW zone model from Section 07. Groups, policy sections, default-deny rule. NSX Manager GUI.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">7</div>
+        <div class="gs-name">WIN-VCF-01 — DNS</div>
+        <div class="gs-desc">All 35+ DNS records from Section 08, screen by screen in DNS Manager GUI on DC01.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">8</div>
+        <div class="gs-name">WIN-VCF-02 — DHCP</div>
+        <div class="gs-desc">DHCP scopes for Management Domain. DHCP console GUI on DC01.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">9</div>
+        <div class="gs-name">WIN-VCF-03 — PKI / Certificates</div>
+        <div class="gs-desc">Replacing certificates on SDDC Manager, NSX Manager, both vCenters. Certificates from Section 09.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">10</div>
+        <div class="gs-name">OCP-VCF-01 — install-config.yaml</div>
+        <div class="gs-desc">Building the install-config.yaml for VCF + NSX mode — what differs from standalone vSphere, every field explained.</div>
+      </div>
+      <div class="gs-item">
+        <div class="gs-num">11</div>
+        <div class="gs-name">OCP-VCF-02 — Run installer &amp; Post-install</div>
+        <div class="gs-desc">Running the OCP IPI installer, post-install hardening, AD OAuth, cert replacement, StorageClass design, infra nodes.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-vcf">
+      <strong>VCF-00 complete — the design is locked</strong>
+      Every IP address, every VLAN ID, every FQDN, every regulatory control in this guide is the ground truth for the entire VCF + NSX + OCP series. Before any NSX guide begins, verify this document is understood. Open NSX-01 next.
+    </div>
+  </section>
+
+</main>
+
+<script>
+// Sidebar scroll-spy
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const active = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
