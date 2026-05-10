@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCEMS — Infrastructure & CloudFormation | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --aws:#ff9900;--aws-dark:#c47400;--aws-light:#fff8ed;
+  --blue:#1a5c8f;--blue-light:#eaf2fb;
+  --green:#0e6b45;--green-light:#eaf7f1;
+  --red:#c8102e;--amber:#a87015;--amber-light:#fdf6e3;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);text-decoration:none}
+.nav-links{display:flex;gap:1.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.8rem;color:var(--ink2);text-decoration:none;font-family:var(--font-mono);letter-spacing:.04em}
+.nav-links a:hover,.nav-links a.active{color:var(--aws-dark)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.project-badge{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--aws-dark);margin-bottom:1rem;background:var(--aws-light);border:1px solid #f5d08a;padding:.3rem .8rem;border-radius:2px}
+h1{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem;line-height:1.1}
+.page-sub{font-size:.9rem;color:var(--ink2);font-weight:300;max-width:620px;line-height:1.75;margin-bottom:1.5rem}
+.page-nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.page-nav a{font-family:var(--font-mono);font-size:.68rem;padding:.3rem .75rem;border:1px solid var(--border);color:var(--ink2);text-decoration:none;letter-spacing:.04em;transition:all .15s}
+.page-nav a:hover,.page-nav a.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+h2{font-family:var(--font-display);font-size:1.45rem;letter-spacing:-.01em;color:var(--ink);margin-bottom:.75rem}
+h3{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;margin-top:2rem}
+h3:first-child{margin-top:0}
+p{font-size:.9rem;color:var(--ink2);line-height:1.8;margin-bottom:.85rem}
+.callout{padding:1.1rem 1.4rem;border-radius:2px;margin:1.25rem 0;font-size:.875rem;line-height:1.7}
+.callout-aws{background:var(--aws-light);border-left:3px solid var(--aws);color:var(--ink2)}
+.callout-green{background:var(--green-light);border-left:3px solid var(--green);color:var(--ink2)}
+.callout-amber{background:var(--amber-light);border-left:3px solid var(--amber);color:var(--ink2)}
+.callout-blue{background:var(--blue-light);border-left:3px solid var(--blue);color:var(--ink2)}
+.callout strong{color:var(--ink)}
+pre{background:var(--ink);color:#e8e6e0;padding:1.25rem 1.5rem;font-family:var(--font-mono);font-size:.78rem;overflow-x:auto;margin:1rem 0;border-radius:2px;line-height:1.8}
+.yaml-comment{color:#8a8a7a}
+.yaml-key{color:#ff9900}
+.yaml-val{color:#a8d8a8}
+.yaml-str{color:#f0c890}
+code{font-family:var(--font-mono);font-size:.8em;background:var(--paper2);padding:.1em .35em;border:1px solid var(--border);border-radius:2px;color:var(--ink)}
+.resource-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:1.25rem 0}
+.resource-item{background:var(--paper);padding:.75rem 1rem;font-family:var(--font-mono);font-size:.72rem;color:var(--ink2)}
+.resource-item strong{display:block;color:var(--aws-dark);margin-bottom:.2rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+.warn-box{background:#fff8ed;border:1px solid #f5d08a;border-left:3px solid var(--aws);padding:1rem 1.25rem;margin:1.25rem 0;font-size:.875rem;color:var(--ink2);line-height:1.7}
+.warn-box strong{color:var(--aws-dark)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo">Ashok Kumar P.</a>
+    <ul class="nav-links">
+      <li><a href="01-overview-architecture.html">Overview</a></li>
+      <li><a href="02-infrastructure-cloudformation.html" class="active">Infrastructure</a></li>
+      <li><a href="03-iot-data-pipeline.html">IoT Pipeline</a></li>
+      <li><a href="04-application-cicd.html">App & CI/CD</a></li>
+      <li><a href="05-enterprise-extension.html">Enterprise Extension</a></li>
+      <li><a href="../../index.html">← Portfolio</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="project-badge">Guide 02 of 05 · Infrastructure</div>
+  <h1>Infrastructure &amp;<br>CloudFormation</h1>
+  <p class="page-sub">How 35+ AWS resources are defined, ordered, and deployed from a single 1,011-line CloudFormation template — covering VPC networking, the IoT device bootstrap automation, KMS key policy design, and the dependency graph that ensures resources come up in the right order.</p>
+  <div class="page-nav">
+    <a href="01-overview-architecture.html">01 — Overview</a>
+    <a href="02-infrastructure-cloudformation.html" class="active">02 — Infrastructure</a>
+    <a href="03-iot-data-pipeline.html">03 — IoT Pipeline</a>
+    <a href="04-application-cicd.html">04 — App & CI/CD</a>
+    <a href="05-enterprise-extension.html">05 — Enterprise Extension</a>
+  </div>
+</div>
+
+<main>
+
+  <div class="section-label">Why CloudFormation — the IaC decision</div>
+  <h2>Infrastructure as Code from Day One</h2>
+  <p>The decision to put everything in a single CloudFormation template rather than clicking through the console was deliberate. In a production environment, infrastructure that lives only in the console is infrastructure that cannot be version-controlled, peer-reviewed, reproduced, or audited. CloudFormation enforces a discipline: every resource, every configuration, every permission must be explicitly declared.</p>
+  <p>A single template also means the entire environment can be torn down with <code>aws cloudformation delete-stack</code> and rebuilt identically from scratch — which is exactly what was done repeatedly during development as the design evolved. For a sandbox environment that is billed by the hour, this also matters for cost control.</p>
+  <div class="callout callout-aws">
+    <strong>The template is published at:</strong> <code>ashokkumar-arch/scems-capstone/infrastructure/scems-ecs.yaml</code> — every resource described in this guide is visible and inspectable there.
+  </div>
+
+  <div class="section-label">VPC and networking — what was built</div>
+  <h2>VPC Design</h2>
+  <p>The template creates a dedicated VPC for the project rather than using the default VPC. This is the correct baseline even for a capstone — it provides network isolation, explicit CIDR control, and a clean security group boundary.</p>
+
+  <h3>What the template creates</h3>
+  <div class="resource-list">
+    <div class="resource-item"><strong>VPC</strong>10.0.0.0/16 CIDR</div>
+    <div class="resource-item"><strong>Public Subnet A</strong>10.0.1.0/24 · us-east-1a</div>
+    <div class="resource-item"><strong>Public Subnet B</strong>10.0.2.0/24 · us-east-1b</div>
+    <div class="resource-item"><strong>Internet Gateway</strong>Attached to VPC</div>
+    <div class="resource-item"><strong>Route Table</strong>0.0.0.0/0 → IGW</div>
+    <div class="resource-item"><strong>Subnet associations</strong>Both subnets → Route Table</div>
+  </div>
+
+  <div class="warn-box">
+    <strong>Capstone simplification — all resources in public subnets:</strong> All subnets use <code>MapPublicIpOnLaunch: true</code> and there are no private subnets. The EC2 sensor, ECS Fargate tasks, and Lambda all have public IPs or internet exposure. In a production enterprise deployment, only the ALB would sit in public subnets — all compute, Lambda, and the ECS service would be in private subnets with a NAT Gateway for outbound access. See the <a href="05-enterprise-extension.html">Enterprise Extension guide</a> for the production VPC architecture.
+  </div>
+
+  <h3>Security groups</h3>
+  <p>Three security groups are defined — one per tier:</p>
+  <p><strong>ALB Security Group:</strong> Inbound HTTP (port 80) from <code>0.0.0.0/0</code> — the ALB must be reachable from the internet for the dashboard. Outbound all traffic to the VPC.</p>
+  <p><strong>ECS Security Group:</strong> Inbound on port 80 from the ALB security group only — not from the internet directly. The ALB is the only entry point to the ECS tasks. This is the correct pattern even in the capstone.</p>
+  <p><strong>EC2 (IoT Sensor) Security Group:</strong> Inbound SSH (port 22) from <code>0.0.0.0/0</code> for console access during development. Outbound all traffic for IoT Core MQTT over TLS (port 8883). In production, SSH would be replaced by SSM Session Manager and port 22 would be closed entirely — see the Enterprise Extension guide.</p>
+
+  <div class="section-label">EC2 UserData — full automation of IoT device setup</div>
+  <h2>How the IoT Sensor Configures Itself</h2>
+  <p>The most complex part of the CloudFormation template is the EC2 UserData script — a 100+ line shell script that runs automatically when the instance launches and turns a blank Amazon Linux 2 instance into a fully configured, registered, publishing IoT device. Nothing is done manually.</p>
+  <p>The UserData script executes in this sequence:</p>
+
+  <h3>Phase 1 — System preparation</h3>
+  <pre>yum update -y
+yum install -y python3 python3-pip aws-cli jq
+pip3 install AWSIoTPythonSDK boto3</pre>
+  <p>Installs the AWS IoT Python SDK (which handles MQTT, X.509 mutual TLS, and the connection lifecycle) and the AWS Python SDK (boto3) for any AWS API calls the sensor script needs to make.</p>
+
+  <h3>Phase 2 — X.509 certificate creation and IoT registration</h3>
+  <p>This is the critical security step. Rather than using a pre-created certificate, the UserData script creates the X.509 certificate at launch time using the AWS CLI, which calls the IoT Core certificate authority:</p>
+  <pre>aws iot create-keys-and-certificate \
+  --set-as-active \
+  --certificate-pem-outfile /opt/iot/certs/EnvironmentalSensor.pem.crt \
+  --private-key-outfile /opt/iot/certs/EnvironmentalSensor.pem.key \
+  --region us-east-1</pre>
+  <p>The certificate is immediately marked as active and written to the instance's local filesystem. The certificate ID is extracted from the response using <code>jq</code> and stored for the next step.</p>
+
+  <h3>Phase 3 — IoT Thing attachment and policy attachment</h3>
+  <pre>aws iot attach-thing-principal \
+  --thing-name EnvironmentalSensor \
+  --principal $CERT_ARN
+
+aws iot attach-policy \
+  --policy-name EnvironmentalSensorPolicy \
+  --target $CERT_ARN</pre>
+  <p>This associates the freshly created certificate with both the IoT Thing (which was already created by CloudFormation) and the IoT Policy (which defines what the device is allowed to do on IoT Core). Without both attachments, the device cannot authenticate.</p>
+
+  <h3>Phase 4 — IoT endpoint discovery</h3>
+  <pre>IOT_ENDPOINT=$(aws iot describe-endpoint \
+  --endpoint-type iot:Data-ATS \
+  --query 'endpointAddress' \
+  --output text)</pre>
+  <p>Each AWS account has a unique IoT Core data endpoint. The script retrieves it dynamically at runtime rather than hardcoding it — this is the correct approach because IoT endpoints are account-specific and would be wrong if the template were deployed to a different account.</p>
+
+  <h3>Phase 5 — Python sensor script generation</h3>
+  <p>The UserData script writes a complete Python sensor simulator to <code>/opt/iot/sensor.py</code> using a heredoc. The sensor script uses the AWS IoT Python SDK to establish an mTLS connection to IoT Core using the certificate created in Phase 2, then publishes simulated readings every 5 seconds:</p>
+  <pre>payload = json.dumps({
+    "deviceId": "EnvironmentalSensor-001",
+    "temperature": round(random.uniform(15.0, 35.0), 2),
+    "humidity": round(random.uniform(30.0, 80.0), 2),
+    "airQuality": round(random.uniform(0.0, 500.0), 2),
+    "timestamp": int(time.time())
+})</pre>
+  <p>The topic is <code>environmental/sensor</code> — exactly what the IoT Topic Rule listens on.</p>
+
+  <h3>Phase 6 — systemd service installation</h3>
+  <pre>[Unit]
+Description=IoT Environmental Sensor
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/iot/sensor.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</pre>
+  <p>The sensor is registered as a systemd service with <code>Restart=on-failure</code>. If the MQTT connection drops or the script crashes, systemd automatically restarts it after 5 seconds. This makes the sensor self-healing without any manual intervention.</p>
+
+  <div class="section-label">KMS key policy — why it is designed this way</div>
+  <h2>Customer-Managed KMS Key</h2>
+  <p>The Timestream database is encrypted at rest using a customer-managed KMS key rather than AWS-managed encryption. This gives the account owner explicit control over key rotation, usage auditing, and key deletion — which matters for compliance and for the ability to demonstrate that encryption is something you configured, not something that was there by default.</p>
+
+  <h3>The key policy structure</h3>
+  <p>The KMS key policy has two statements. The first grants <code>kms:*</code> to the root account principal — this is the standard bootstrapping pattern that enables IAM policies to delegate specific KMS permissions to IAM roles. Without this statement, no IAM role could use the key regardless of what permissions the role's policy grants.</p>
+  <p>The second aspect of the design is what is absent: there is no <code>kms:*</code> granted to any service role. Lambda gets <code>kms:Decrypt</code> via its execution role policy, scoped to this key's ARN. The ECS task role gets <code>kms:Decrypt</code> scoped to this key's ARN. Neither role can rotate the key, schedule deletion, or grant others access to it.</p>
+
+  <div class="callout callout-green">
+    <strong>Why this matters:</strong> If the Lambda execution role were compromised, the attacker could decrypt data from Timestream but could not rotate or delete the key, could not grant themselves or others access to the key, and could not use the key for any other purpose. The blast radius of a credential compromise is bounded by the scope of the role's permissions.
+  </div>
+
+  <div class="section-label">Resource dependency graph</div>
+  <h2>Deployment Order and DependsOn</h2>
+  <p>CloudFormation resolves dependencies between resources automatically when they reference each other via <code>!Ref</code> or <code>!GetAtt</code>. However, some dependencies are not expressed through references and must be declared explicitly using <code>DependsOn</code>. The template uses this in several places:</p>
+  <p>The IoT Topic Rule depends on the Lambda function being created first, because the rule's action references the Lambda ARN and must grant invoke permission to IoT Core. The ECS Service depends on the ALB Listener being fully created, because ECS needs the listener to exist before it can register targets. The CodePipeline depends on the S3 artifact bucket and both the CodeBuild project and ECS service existing.</p>
+  <p>CloudFormation handles the parallel creation of independent resources automatically — the VPC, KMS key, IAM roles, ECR repository, and IoT Thing are all created in parallel since none depends on the others. Only the resources that genuinely depend on others wait.</p>
+
+  <div class="callout callout-blue">
+    <strong>Next:</strong> <a href="03-iot-data-pipeline.html">Guide 03 — IoT Data Pipeline</a> walks through the complete data path from MQTT publish to Timestream write — the IoT Topic Rule, the Lambda function code, the Timestream multi-measure record format, and how the KMS key protects data at each stage.
+  </div>
+
+</main>
+<footer>Ashok Kumar P. · SCEMS Capstone · AWS IoT · ashokkumar-arch.github.io</footer>
+</body>
+</html>

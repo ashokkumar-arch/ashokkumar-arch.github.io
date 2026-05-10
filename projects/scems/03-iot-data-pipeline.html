@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCEMS — IoT Data Pipeline | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --aws:#ff9900;--aws-dark:#c47400;--aws-light:#fff8ed;
+  --blue:#1a5c8f;--blue-light:#eaf2fb;
+  --green:#0e6b45;--green-light:#eaf7f1;
+  --red:#c8102e;--amber:#a87015;--amber-light:#fdf6e3;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);text-decoration:none}
+.nav-links{display:flex;gap:1.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.8rem;color:var(--ink2);text-decoration:none;font-family:var(--font-mono);letter-spacing:.04em}
+.nav-links a:hover,.nav-links a.active{color:var(--aws-dark)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.project-badge{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--aws-dark);margin-bottom:1rem;background:var(--aws-light);border:1px solid #f5d08a;padding:.3rem .8rem;border-radius:2px}
+h1{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem;line-height:1.1}
+.page-sub{font-size:.9rem;color:var(--ink2);font-weight:300;max-width:620px;line-height:1.75;margin-bottom:1.5rem}
+.page-nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.page-nav a{font-family:var(--font-mono);font-size:.68rem;padding:.3rem .75rem;border:1px solid var(--border);color:var(--ink2);text-decoration:none;letter-spacing:.04em;transition:all .15s}
+.page-nav a:hover,.page-nav a.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+h2{font-family:var(--font-display);font-size:1.45rem;letter-spacing:-.01em;color:var(--ink);margin-bottom:.75rem}
+h3{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;margin-top:2rem}
+h3:first-child{margin-top:0}
+p{font-size:.9rem;color:var(--ink2);line-height:1.8;margin-bottom:.85rem}
+.callout{padding:1.1rem 1.4rem;border-radius:2px;margin:1.25rem 0;font-size:.875rem;line-height:1.7}
+.callout-aws{background:var(--aws-light);border-left:3px solid var(--aws);color:var(--ink2)}
+.callout-green{background:var(--green-light);border-left:3px solid var(--green);color:var(--ink2)}
+.callout-blue{background:var(--blue-light);border-left:3px solid var(--blue);color:var(--ink2)}
+.callout strong{color:var(--ink)}
+pre{background:var(--ink);color:#e8e6e0;padding:1.25rem 1.5rem;font-family:var(--font-mono);font-size:.78rem;overflow-x:auto;margin:1rem 0;border-radius:2px;line-height:1.8}
+code{font-family:var(--font-mono);font-size:.8em;background:var(--paper2);padding:.1em .35em;border:1px solid var(--border);border-radius:2px;color:var(--ink)}
+.pipeline-step{display:flex;gap:1.5rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border)}
+.pipeline-step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{font-family:var(--font-display);font-size:2.5rem;color:var(--paper3);line-height:1;flex-shrink:0;width:60px;text-align:center}
+.step-body h3{margin-top:0}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo">Ashok Kumar P.</a>
+    <ul class="nav-links">
+      <li><a href="01-overview-architecture.html">Overview</a></li>
+      <li><a href="02-infrastructure-cloudformation.html">Infrastructure</a></li>
+      <li><a href="03-iot-data-pipeline.html" class="active">IoT Pipeline</a></li>
+      <li><a href="04-application-cicd.html">App & CI/CD</a></li>
+      <li><a href="05-enterprise-extension.html">Enterprise Extension</a></li>
+      <li><a href="../../index.html">← Portfolio</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="project-badge">Guide 03 of 05 · IoT Data Pipeline</div>
+  <h1>IoT Data Pipeline</h1>
+  <p class="page-sub">The complete data path from a simulated environmental sensor publishing over MQTT, through IoT Core's Topic Rule engine, through Lambda's transformation and write logic, and into Timestream's time-series storage — with KMS encryption at every stage where data is at rest.</p>
+  <div class="page-nav">
+    <a href="01-overview-architecture.html">01 — Overview</a>
+    <a href="02-infrastructure-cloudformation.html">02 — Infrastructure</a>
+    <a href="03-iot-data-pipeline.html" class="active">03 — IoT Pipeline</a>
+    <a href="04-application-cicd.html">04 — App & CI/CD</a>
+    <a href="05-enterprise-extension.html">05 — Enterprise Extension</a>
+  </div>
+</div>
+
+<main>
+
+  <div class="section-label">The pipeline — step by step</div>
+  <h2>From Sensor to Database — Every Step Explained</h2>
+
+  <div class="pipeline-step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Device Authentication — X.509 Mutual TLS</h3>
+      <p>Before the sensor can publish a single message, it must authenticate to IoT Core. This is not a username and password — it is mutual TLS (mTLS) using X.509 certificates. Both sides authenticate each other: the device proves its identity to IoT Core using its client certificate, and IoT Core proves its identity to the device using AWS's root CA certificate.</p>
+      <p>The client certificate was created during the EC2 UserData bootstrap and is stored at <code>/opt/iot/certs/EnvironmentalSensor.pem.crt</code>. The private key is at <code>/opt/iot/certs/EnvironmentalSensor.pem.key</code>. The AWS root CA certificate is downloaded from Amazon's certificate authority at bootstrap time.</p>
+      <p>The AWS IoT Python SDK handles the TLS handshake automatically — you provide the file paths and the endpoint, and the SDK takes care of presenting the certificate, verifying the server's certificate, and establishing the encrypted channel on port 8883.</p>
+      <pre>myAWSIoTMQTTClient = AWSIoTMQTTClient("EnvironmentalSensor-001")
+myAWSIoTMQTTClient.configureEndpoint(IOT_ENDPOINT, 8883)
+myAWSIoTMQTTClient.configureCredentials(
+    ROOT_CA_PATH,
+    PRIVATE_KEY_PATH,
+    CERTIFICATE_PATH
+)</pre>
+      <div class="callout callout-green">
+        <strong>Why mTLS and not API keys?</strong> API keys are strings — they can be copied, shared, or leaked in logs. An X.509 private key is a cryptographic asset that never leaves the device. Even if someone reads the key file off the EC2 instance, they cannot use it to authenticate from another device without also having access to the registered certificate's identity in IoT Core. For IoT devices at scale, certificate-based authentication is the industry standard.
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>IoT Policy — What the Device Is Allowed to Do</h3>
+      <p>Having a valid certificate is not enough — the certificate must also be attached to an IoT Policy that defines what the device is permitted to do. The policy attached to the EnvironmentalSensor certificate grants four actions:</p>
+      <pre>{
+  "Effect": "Allow",
+  "Action": [
+    "iot:Connect",
+    "iot:Publish",
+    "iot:Subscribe",
+    "iot:Receive"
+  ],
+  "Resource": "*"
+}</pre>
+      <p><code>iot:Connect</code> allows the device to establish a connection to IoT Core. <code>iot:Publish</code> allows it to send messages to topics. <code>iot:Subscribe</code> and <code>iot:Receive</code> allow it to receive messages — useful for command-and-control scenarios where the cloud sends instructions back to the device.</p>
+      <div class="callout callout-aws">
+        <strong>Capstone simplification — wildcard Resource:</strong> The Resource is set to <code>*</code>, meaning the device could theoretically publish to any topic. In a production deployment with many devices, each device's policy would scope the Resource to its own client ID and specific topic: <code>arn:aws:iot:region:account:topic/environmental/sensor/${iot:ClientId}</code>. This prevents one compromised device from publishing to another device's topic.
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>MQTT Publish — the Sensor Message</h3>
+      <p>Once authenticated and connected, the sensor publishes a JSON payload to the <code>environmental/sensor</code> topic every 5 seconds. MQTT is a lightweight publish-subscribe protocol designed for IoT — it runs over TCP, uses a broker (IoT Core plays the role of the broker), and is far more efficient than HTTP for high-frequency sensor data.</p>
+      <pre>payload = json.dumps({
+    "deviceId": "EnvironmentalSensor-001",
+    "temperature": round(random.uniform(15.0, 35.0), 2),
+    "humidity": round(random.uniform(30.0, 80.0), 2),
+    "airQuality": round(random.uniform(0.0, 500.0), 2),
+    "timestamp": int(time.time())
+})
+myAWSIoTMQTTClient.publish("environmental/sensor", payload, 1)</pre>
+      <p>The QoS (Quality of Service) level is 1, which means "at least once delivery" — IoT Core will confirm receipt of the message and retry if the confirmation is not received. QoS 0 is fire-and-forget; QoS 1 guarantees the message is delivered but may result in duplicates if the network is unreliable. For sensor data where losing a reading is acceptable but sending the same reading twice is harmless, QoS 1 is the right choice.</p>
+    </div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>IoT Topic Rule — Routing Messages to Lambda</h3>
+      <p>The IoT Topic Rule is the routing engine inside IoT Core. It listens on the <code>environmental/sensor</code> topic and triggers an action whenever a message arrives. The rule uses SQL to filter messages:</p>
+      <pre>SELECT * FROM 'environmental/sensor'</pre>
+      <p><code>SELECT *</code> passes the entire message payload through to the action. A production rule might filter on specific conditions — for example, <code>SELECT * FROM 'environmental/sensor' WHERE temperature > 30</code> to trigger an alarm only when temperature exceeds a threshold — but for this project, all readings are forwarded.</p>
+      <p>The action is a Lambda invocation. The rule holds a <code>LambdaAction</code> that references the Lambda function ARN. A separate <code>AWS::Lambda::Permission</code> resource grants <code>lambda:InvokeFunction</code> to <code>iot.amazonaws.com</code> scoped to this specific rule ARN — without this permission, IoT Core cannot invoke the function even though the rule tells it to.</p>
+      <div class="callout callout-green">
+        <strong>Why this permission model matters:</strong> The Lambda permission resource is what separates IoT Core's ability to invoke this function from anyone else's. Even if an attacker could craft a message that looked like it came from IoT Core, they could not invoke the Lambda directly — only IoT Core's service principal acting on behalf of this specific rule can invoke it.
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h3>Lambda — Transform and Write to Timestream</h3>
+      <p>The Lambda function receives the IoT message payload as its event, transforms it into Timestream's required multi-measure record format, and writes it to the database. The function is defined inline in CloudFormation (Python 3.9 runtime).</p>
+      <p>First, it discovers the Timestream write endpoint. Timestream uses a cell-based architecture with regional endpoint discovery — rather than hardcoding an endpoint, the correct approach is to call <code>describe_endpoints()</code> first:</p>
+      <pre>write_client = boto3.client('timestream-write')
+endpoint = write_client.describe_endpoints()['Endpoints'][0]['Address']
+ts_write = boto3.client(
+    'timestream-write',
+    endpoint_url=f'https://{endpoint}'
+)</pre>
+      <p>Then it constructs the multi-measure record. Timestream's multi-measure format allows multiple metrics to be stored in a single row — more efficient than the alternative single-measure format which would create one row per metric:</p>
+      <pre>record = {
+    'Dimensions': [
+        {'Name': 'DeviceId', 'Value': payload.get('deviceId', 'unknown')}
+    ],
+    'MeasureName': 'EnvironmentalReading',
+    'MeasureValueType': 'MULTI',
+    'MeasureValues': [
+        {'Name': 'temperature', 'Value': str(payload['temperature']),
+         'Type': 'DOUBLE'},
+        {'Name': 'humidity', 'Value': str(payload['humidity']),
+         'Type': 'DOUBLE'},
+        {'Name': 'airQuality', 'Value': str(payload['airQuality']),
+         'Type': 'DOUBLE'}
+    ],
+    'Time': str(int(time.time() * 1000)),
+    'TimeUnit': 'MILLISECONDS'
+}</pre>
+      <p>The record is then written using <code>write_records()</code> with the database name and table name. If the write fails, Lambda logs the error to CloudWatch Logs — the execution role has the necessary CloudWatch Logs permissions.</p>
+    </div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h3>Timestream — Time-Series Storage with KMS Encryption</h3>
+      <p>Amazon Timestream is purpose-built for time-series data. Unlike a relational database, Timestream automatically manages data tiering — recent data stays in the memory store (fast, expensive), and older data is automatically moved to the magnetic store (slower, cheap). For environmental monitoring data, the access pattern is almost always "show me the last N readings" rather than deep historical queries, which makes Timestream's tiering model ideal.</p>
+      <p>The database is defined in CloudFormation with a customer-managed KMS key:</p>
+      <pre>EnvironmentalMonitoringDB:
+  Type: AWS::Timestream::Database
+  Properties:
+    DatabaseName: EnvironmentalMonitoring
+    KmsKeyId: !GetAtt KMSKey.Arn</pre>
+      <p>The table defines the retention periods — how long data stays in the memory store before being moved to the magnetic store, and how long it stays in the magnetic store before being deleted:</p>
+      <pre>SensorDataTable:
+  Type: AWS::Timestream::Table
+  Properties:
+    DatabaseName: !Ref EnvironmentalMonitoringDB
+    TableName: SensorData
+    RetentionProperties:
+      MemoryStoreRetentionPeriodInHours: "24"
+      MagneticStoreRetentionPeriodInDays: "365"</pre>
+      <p>24 hours in memory store means the dashboard (which queries the last 10 readings) always hits hot storage with sub-millisecond latency. Data older than 24 hours moves to magnetic store where it is available for longer-term analysis at lower cost.</p>
+      <div class="callout callout-green">
+        <strong>KMS encryption in context:</strong> Every record written by Lambda is encrypted using the customer-managed KMS key before being stored. When the ECS Fargate task queries Timestream for the dashboard, Timestream decrypts the data transparently — but only because the ECS task role has <code>kms:Decrypt</code> on that specific key ARN. If a different service tried to query the same Timestream table without the right KMS permission, the query would fail even if that service had <code>timestream:Query</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>Next:</strong> <a href="04-application-cicd.html">Guide 04 — Application & CI/CD</a> covers the Flask dashboard that reads from Timestream, the three iterations of the Docker image that were built and tested locally, and the complete CI/CD pipeline that automatically deploys new versions to ECS Fargate on every commit.
+  </div>
+
+</main>
+<footer>Ashok Kumar P. · SCEMS Capstone · AWS IoT · ashokkumar-arch.github.io</footer>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCEMS — Application & CI/CD | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --aws:#ff9900;--aws-dark:#c47400;--aws-light:#fff8ed;
+  --blue:#1a5c8f;--blue-light:#eaf2fb;
+  --green:#0e6b45;--green-light:#eaf7f1;
+  --red:#c8102e;--amber:#a87015;--amber-light:#fdf6e3;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);text-decoration:none}
+.nav-links{display:flex;gap:1.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.8rem;color:var(--ink2);text-decoration:none;font-family:var(--font-mono);letter-spacing:.04em}
+.nav-links a:hover,.nav-links a.active{color:var(--aws-dark)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.project-badge{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--aws-dark);margin-bottom:1rem;background:var(--aws-light);border:1px solid #f5d08a;padding:.3rem .8rem;border-radius:2px}
+h1{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem;line-height:1.1}
+.page-sub{font-size:.9rem;color:var(--ink2);font-weight:300;max-width:620px;line-height:1.75;margin-bottom:1.5rem}
+.page-nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.page-nav a{font-family:var(--font-mono);font-size:.68rem;padding:.3rem .75rem;border:1px solid var(--border);color:var(--ink2);text-decoration:none;letter-spacing:.04em;transition:all .15s}
+.page-nav a:hover,.page-nav a.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+h2{font-family:var(--font-display);font-size:1.45rem;letter-spacing:-.01em;color:var(--ink);margin-bottom:.75rem}
+h3{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;margin-top:2rem}
+h3:first-child{margin-top:0}
+p{font-size:.9rem;color:var(--ink2);line-height:1.8;margin-bottom:.85rem}
+.callout{padding:1.1rem 1.4rem;border-radius:2px;margin:1.25rem 0;font-size:.875rem;line-height:1.7}
+.callout-aws{background:var(--aws-light);border-left:3px solid var(--aws);color:var(--ink2)}
+.callout-green{background:var(--green-light);border-left:3px solid var(--green);color:var(--ink2)}
+.callout-blue{background:var(--blue-light);border-left:3px solid var(--blue);color:var(--ink2)}
+.callout-amber{background:var(--amber-light);border-left:3px solid var(--amber);color:var(--ink2)}
+.callout strong{color:var(--ink)}
+pre{background:var(--ink);color:#e8e6e0;padding:1.25rem 1.5rem;font-family:var(--font-mono);font-size:.78rem;overflow-x:auto;margin:1rem 0;border-radius:2px;line-height:1.8}
+code{font-family:var(--font-mono);font-size:.8em;background:var(--paper2);padding:.1em .35em;border:1px solid var(--border);border-radius:2px;color:var(--ink)}
+.version-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin:1.25rem 0}
+.version-card{background:var(--paper);padding:1.25rem}
+.version-num{font-family:var(--font-mono);font-size:.68rem;color:var(--aws-dark);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}
+.version-title{font-size:.9rem;font-weight:500;color:var(--ink);margin-bottom:.4rem}
+.version-desc{font-size:.8rem;color:var(--ink2);line-height:1.6}
+.pipeline-stage{border:1px solid var(--border);margin-bottom:1px}
+.stage-header{background:var(--paper2);padding:.75rem 1.25rem;display:flex;align-items:center;gap:1rem;cursor:pointer}
+.stage-num{font-family:var(--font-display);font-size:1.2rem;color:var(--paper3);width:32px;text-align:center}
+.stage-name{font-size:.9rem;font-weight:500;color:var(--ink)}
+.stage-type{font-family:var(--font-mono);font-size:.65rem;color:var(--ink3);letter-spacing:.06em;margin-left:auto}
+.stage-body{padding:1.25rem 1.5rem;border-top:1px solid var(--border);font-size:.875rem;color:var(--ink2);line-height:1.7}
+.warn-box{background:#fff8ed;border:1px solid #f5d08a;border-left:3px solid var(--aws);padding:1rem 1.25rem;margin:1.25rem 0;font-size:.875rem;color:var(--ink2);line-height:1.7}
+.warn-box strong{color:var(--aws-dark)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo">Ashok Kumar P.</a>
+    <ul class="nav-links">
+      <li><a href="01-overview-architecture.html">Overview</a></li>
+      <li><a href="02-infrastructure-cloudformation.html">Infrastructure</a></li>
+      <li><a href="03-iot-data-pipeline.html">IoT Pipeline</a></li>
+      <li><a href="04-application-cicd.html" class="active">App & CI/CD</a></li>
+      <li><a href="05-enterprise-extension.html">Enterprise Extension</a></li>
+      <li><a href="../../index.html">← Portfolio</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="project-badge">Guide 04 of 05 · Application & CI/CD</div>
+  <h1>Application &amp; CI/CD Pipeline</h1>
+  <p class="page-sub">How the Flask dashboard was built across three development iterations, containerised with Docker, tested locally against live Timestream data, and then deployed automatically to ECS Fargate through a fully automated CodePipeline on every code commit.</p>
+  <div class="page-nav">
+    <a href="01-overview-architecture.html">01 — Overview</a>
+    <a href="02-infrastructure-cloudformation.html">02 — Infrastructure</a>
+    <a href="03-iot-data-pipeline.html">03 — IoT Pipeline</a>
+    <a href="04-application-cicd.html" class="active">04 — App & CI/CD</a>
+    <a href="05-enterprise-extension.html">05 — Enterprise Extension</a>
+  </div>
+</div>
+
+<main>
+
+  <div class="section-label">The Flask dashboard — what it does</div>
+  <h2>The Dashboard Application</h2>
+  <p>The dashboard is a Python Flask web application. Its job is simple: on every HTTP request to <code>/</code>, query Timestream for the last 10 sensor readings, format them as a readable table, and render an HTML page. Flask is a lightweight Python web framework — it handles the HTTP server, routing, and templating, so the application code focuses entirely on the Timestream query and data presentation.</p>
+  <p>The application uses boto3 (the AWS Python SDK) to connect to Timestream. Inside ECS Fargate, boto3 uses the ECS task IAM role for authentication — it does not need credentials passed in as environment variables. The task role has <code>timestream:Query</code> and <code>timestream:Select</code> scoped to the specific database and table ARNs, so the application can only read from that one table — nothing else.</p>
+
+  <div class="section-label">Three development iterations — why they happened</div>
+  <h2>Version History</h2>
+  <p>The dashboard went through three distinct iterations during development, each solving a specific problem discovered during testing. This is normal software development — building, testing against real data, identifying issues, and iterating. The three versions were built and tested locally in Docker before any was pushed to CodeCommit for pipeline deployment.</p>
+
+  <div class="version-grid">
+    <div class="version-card">
+      <div class="version-num">Version 1</div>
+      <div class="version-title">Initial working version</div>
+      <div class="version-desc">First working Flask app that connected to Timestream and returned sensor data. Confirmed the query worked and the application could authenticate using the ECS task role. Data displayed but with formatting issues.</div>
+    </div>
+    <div class="version-card">
+      <div class="version-num">Version 2</div>
+      <div class="version-title">Human-readable metrics</div>
+      <div class="version-desc">Addressed the raw float display issue — temperature, humidity, and air quality values were rounded to 2 decimal places using <code>round(float(col['ScalarValue']), 2)</code>. The timestamp was still displaying in raw Timestream format.</div>
+    </div>
+    <div class="version-card">
+      <div class="version-num">Version 3 (final)</div>
+      <div class="version-title">Human-readable timestamp</div>
+      <div class="version-desc">Fixed the timestamp format. Timestream returns timestamps with nanosecond precision (<code>2024-01-15 10:30:45.000000000000</code>). Version 3 parses and reformats using Python's <code>datetime.strptime</code> to display as <code>2024-01-15 10:30:45</code>.</div>
+    </div>
+  </div>
+
+  <h3>The final app.py — key sections explained</h3>
+  <p>The Timestream query:</p>
+  <pre>query_string = """
+SELECT * FROM "EnvironmentalMonitoring"."SensorData"
+ORDER BY time DESC LIMIT 10
+"""</pre>
+  <p><code>ORDER BY time DESC LIMIT 10</code> retrieves the 10 most recent readings. This always hits the memory store (since data less than 24 hours old lives there) — sub-millisecond latency for the dashboard load.</p>
+
+  <p>The timestamp parsing that fixed the v2 display issue:</p>
+  <pre>elif column_names[i] == 'Time':
+    data[column_names[i]] = datetime.strptime(
+        col['ScalarValue'],
+        '%Y-%m-%d %H:%M:%S.%f000000'
+    ).strftime('%Y-%m-%d %H:%M:%S')</pre>
+  <p>Timestream returns timestamps as strings with microsecond precision followed by six zeros (representing nanoseconds that are always zero). The <code>strptime</code> format string accounts for this by matching <code>%f</code> (microseconds) followed by the literal string <code>000000</code>, then reformatting to the clean <code>%Y-%m-%d %H:%M:%S</code> output.</p>
+
+  <div class="section-label">Docker — local testing before pipeline deployment</div>
+  <h2>Containerisation and Local Testing</h2>
+  <p>Each version of the Flask app was containerised and tested locally before being committed to CodeCommit. This validates that the container works correctly in isolation before the CI/CD pipeline is involved. The Dockerfile is straightforward:</p>
+  <pre>FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 80
+CMD ["python", "app.py"]</pre>
+  <p>Python 3.9-slim is used rather than the full Python image — it produces a significantly smaller image (removes development tools, documentation, and unused libraries), which means faster ECR pulls and smaller attack surface.</p>
+
+  <h3>Local testing with AWS credentials</h3>
+  <p>Testing locally required passing AWS credentials to the container so boto3 could authenticate to Timestream:</p>
+  <pre>docker run \
+  -e AWS_ACCESS_KEY_ID=&lt;ACCESS_KEY&gt; \
+  -e AWS_SECRET_ACCESS_KEY=&lt;SECRET_KEY&gt; \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  -p 80:80 scems-dashboard-v3</pre>
+
+  <div class="warn-box">
+    <strong>This is a local development pattern only — not used in production:</strong> Passing IAM credentials as environment variables to a container is acceptable for local testing on a developer's machine. It is never done in production because the credentials are visible in the container's environment and can be extracted. In ECS Fargate, boto3 automatically uses the ECS task IAM role — no credentials are ever passed in. The <code>docker run</code> command above was only used for local iteration before the pipeline was wired up.
+  </div>
+
+  <div class="section-label">The CI/CD pipeline — all four stages</div>
+  <h2>CodePipeline — From Commit to Deployed Container</h2>
+  <p>Once version 3 was working correctly in local Docker testing, it was pushed to the CodeCommit repository. CodePipeline detected the commit and automatically ran the four-stage pipeline to build and deploy it to ECS Fargate without any manual intervention.</p>
+
+  <div class="pipeline-stage">
+    <div class="stage-header">
+      <div class="stage-num">1</div>
+      <div class="stage-name">Source — CodeCommit</div>
+      <div class="stage-type">Trigger: Git push to main</div>
+    </div>
+    <div class="stage-body">
+      CodePipeline polls the CodeCommit repository for changes to the main branch. When a commit is detected, it downloads the source code into the pipeline's S3 artifact bucket and passes it to the Build stage. The S3 artifact bucket is created by the CloudFormation template with versioning enabled — every pipeline execution's source snapshot is retained.
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <div class="stage-header">
+      <div class="stage-num">2</div>
+      <div class="stage-name">Build — CodeBuild</div>
+      <div class="stage-type">buildspec.yml</div>
+    </div>
+    <div class="stage-body">
+      CodeBuild executes the <code>buildspec.yml</code> from the repository root. The build specification has three phases. Pre-build: authenticate to ECR using the AWS CLI's <code>get-login-password</code> command piped to <code>docker login</code>. Build: run <code>docker build</code> to build the image and tag it with both the CodeBuild build ID (for traceability) and <code>latest</code>. Post-build: push both tags to ECR and write <code>imagedefinitions.json</code>.
+
+      <pre style="margin-top:1rem">phases:
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION |
+          docker login --username AWS --password-stdin $ECR_REPO_URI
+  build:
+    commands:
+      - docker build -t $ECR_REPO_URI:$CODEBUILD_BUILD_ID .
+      - docker tag $ECR_REPO_URI:$CODEBUILD_BUILD_ID $ECR_REPO_URI:latest
+  post_build:
+    commands:
+      - docker push $ECR_REPO_URI:$CODEBUILD_BUILD_ID
+      - docker push $ECR_REPO_URI:latest
+      - printf '[{"name":"scems-dashboard","imageUri":"%s"}]'
+          $ECR_REPO_URI:$CODEBUILD_BUILD_ID > imagedefinitions.json</pre>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <div class="stage-header">
+      <div class="stage-num">3</div>
+      <div class="stage-name">Deploy — ECS Fargate</div>
+      <div class="stage-type">imagedefinitions.json</div>
+    </div>
+    <div class="stage-body">
+      The Deploy stage reads <code>imagedefinitions.json</code> from the CodeBuild output artifact. This file maps the container name (<code>scems-dashboard</code>) to the new ECR image URI including the build-specific tag. CodePipeline passes this to ECS, which registers a new task definition revision pointing to the new image and performs a rolling deployment — launching new tasks with the new image before draining the old ones. Zero-downtime deployment.
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <div class="stage-header">
+      <div class="stage-num">4</div>
+      <div class="stage-name">Verification</div>
+      <div class="stage-type">ALB health check</div>
+    </div>
+    <div class="stage-body">
+      After ECS launches the new tasks, the ALB target group health check (<code>GET /</code> returning HTTP 200) determines when the new tasks are healthy. Only healthy tasks receive traffic. The old tasks are drained and terminated after the new ones pass health checks. The ALB DNS name continues serving requests throughout the entire deployment.
+    </div>
+  </div>
+
+  <div class="callout callout-green">
+    <strong>Why the build ID tag matters:</strong> Tagging every image with both <code>latest</code> and the CodeBuild build ID means you always know which pipeline run produced which image. If the new version causes issues, you can roll back to the previous task definition revision (which still references the previous build ID tag) without rebuilding. <code>latest</code> alone provides no traceability.
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>Final guide:</strong> <a href="05-enterprise-extension.html">Guide 05 — Enterprise Extension</a> covers how a production enterprise deployment would harden this architecture — private subnets, SSM Session Manager, Route 53, ACM TLS, WAF, GuardDuty, CloudTrail, structured observability, and a full Cloud FinOps cost optimisation strategy.
+  </div>
+
+</main>
+<footer>Ashok Kumar P. · SCEMS Capstone · AWS IoT · ashokkumar-arch.github.io</footer>
+</body>
+</html>

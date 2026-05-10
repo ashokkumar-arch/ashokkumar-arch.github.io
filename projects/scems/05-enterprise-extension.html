@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCEMS — Enterprise Extension | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --aws:#ff9900;--aws-dark:#c47400;--aws-light:#fff8ed;
+  --blue:#1a5c8f;--blue-light:#eaf2fb;
+  --green:#0e6b45;--green-light:#eaf7f1;
+  --red:#c8102e;--red-light:#fff0f3;
+  --amber:#a87015;--amber-light:#fdf6e3;
+  --purple:#534ab7;--purple-light:#eeedfe;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);text-decoration:none}
+.nav-links{display:flex;gap:1.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.8rem;color:var(--ink2);text-decoration:none;font-family:var(--font-mono);letter-spacing:.04em}
+.nav-links a:hover,.nav-links a.active{color:var(--aws-dark)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.project-badge{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--aws-dark);margin-bottom:1rem;background:var(--aws-light);border:1px solid #f5d08a;padding:.3rem .8rem;border-radius:2px}
+h1{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem;line-height:1.1}
+.page-sub{font-size:.9rem;color:var(--ink2);font-weight:300;max-width:660px;line-height:1.75;margin-bottom:1.5rem}
+.page-nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.page-nav a{font-family:var(--font-mono);font-size:.68rem;padding:.3rem .75rem;border:1px solid var(--border);color:var(--ink2);text-decoration:none;letter-spacing:.04em;transition:all .15s}
+.page-nav a:hover,.page-nav a.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.domain-header{margin-top:3.5rem;margin-bottom:1.5rem;padding:1.25rem 1.5rem;border-left:4px solid;display:flex;align-items:baseline;gap:1rem}
+.domain-header h2{font-family:var(--font-display);font-size:1.5rem;letter-spacing:-.01em;color:var(--ink);margin:0}
+.domain-header .domain-tag{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
+.domain-security{background:#fff5f5;border-color:var(--red)}
+.domain-security .domain-tag{color:var(--red)}
+.domain-resilience{background:var(--blue-light);border-color:var(--blue)}
+.domain-resilience .domain-tag{color:var(--blue)}
+.domain-observability{background:var(--purple-light);border-color:var(--purple)}
+.domain-observability .domain-tag{color:var(--purple)}
+.domain-finops{background:var(--green-light);border-color:var(--green)}
+.domain-finops .domain-tag{color:var(--green)}
+.domain-cicd{background:var(--amber-light);border-color:var(--amber)}
+.domain-cicd .domain-tag{color:var(--amber)}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem;margin-top:2rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+h3{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);margin-bottom:.4rem;margin-top:1.5rem}
+h3:first-child{margin-top:0}
+p{font-size:.9rem;color:var(--ink2);line-height:1.8;margin-bottom:.85rem}
+.callout{padding:1.1rem 1.4rem;border-radius:2px;margin:1.25rem 0;font-size:.875rem;line-height:1.7}
+.callout-aws{background:var(--aws-light);border-left:3px solid var(--aws);color:var(--ink2)}
+.callout-green{background:var(--green-light);border-left:3px solid var(--green);color:var(--ink2)}
+.callout-blue{background:var(--blue-light);border-left:3px solid var(--blue);color:var(--ink2)}
+.callout strong{color:var(--ink)}
+.enhancement-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:1.25rem 0}
+.enhancement-card{background:var(--paper);padding:1.1rem 1.25rem}
+.enhancement-title{font-size:.875rem;font-weight:500;color:var(--ink);margin-bottom:.35rem}
+.enhancement-desc{font-size:.8rem;color:var(--ink2);line-height:1.6}
+.enhancement-gap{font-family:var(--font-mono);font-size:.65rem;color:var(--red);letter-spacing:.04em;margin-bottom:.3rem}
+.finops-table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-size:.82rem}
+.finops-table th{background:var(--green);color:#fff;padding:.6rem 1rem;text-align:left;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;font-weight:500}
+.finops-table td{padding:.65rem 1rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink2);line-height:1.5}
+.finops-table tr:last-child td{border-bottom:none}
+.finops-table tr:hover td{background:var(--green-light)}
+.savings-badge{display:inline-block;background:var(--green-light);color:var(--green);border:1px solid #a0d8b8;font-family:var(--font-mono);font-size:.68rem;padding:.15rem .5rem;border-radius:2px;white-space:nowrap}
+code{font-family:var(--font-mono);font-size:.8em;background:var(--paper2);padding:.1em .35em;border:1px solid var(--border);border-radius:2px;color:var(--ink)}
+.vpc-diagram{background:var(--paper2);border:1px solid var(--border);padding:1.5rem;margin:1.25rem 0}
+.vpc-row{display:flex;gap:1rem;margin-bottom:.75rem;align-items:stretch}
+.vpc-label{font-family:var(--font-mono);font-size:.65rem;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;width:120px;flex-shrink:0;padding-top:.4rem}
+.vpc-boxes{display:flex;gap:.5rem;flex:1;flex-wrap:wrap}
+.vpc-box{border:1px solid;border-radius:3px;padding:.4rem .75rem;font-size:.75rem;font-family:var(--font-mono);flex:1;text-align:center;min-width:100px}
+.vpc-public{background:var(--blue-light);border-color:#b0cde8;color:var(--blue)}
+.vpc-private{background:var(--green-light);border-color:#a0d8c0;color:var(--green)}
+.vpc-internet{background:var(--aws-light);border-color:#f5d08a;color:var(--aws-dark)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo">Ashok Kumar P.</a>
+    <ul class="nav-links">
+      <li><a href="01-overview-architecture.html">Overview</a></li>
+      <li><a href="02-infrastructure-cloudformation.html">Infrastructure</a></li>
+      <li><a href="03-iot-data-pipeline.html">IoT Pipeline</a></li>
+      <li><a href="04-application-cicd.html">App & CI/CD</a></li>
+      <li><a href="05-enterprise-extension.html" class="active">Enterprise Extension</a></li>
+      <li><a href="../../index.html">← Portfolio</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="project-badge">Guide 05 of 05 · Enterprise Extension</div>
+  <h1>Enterprise Extension —<br>Production Hardening &amp; FinOps</h1>
+  <p class="page-sub">How a production enterprise deployment of SCEMS would differ from the capstone. Every simplification made in the sandbox is named, explained, and closed — covering network architecture, security hardening, resilience, observability, CI/CD maturity, and a structured Cloud FinOps cost optimisation model.</p>
+  <div class="page-nav">
+    <a href="01-overview-architecture.html">01 — Overview</a>
+    <a href="02-infrastructure-cloudformation.html">02 — Infrastructure</a>
+    <a href="03-iot-data-pipeline.html">03 — IoT Pipeline</a>
+    <a href="04-application-cicd.html">04 — App & CI/CD</a>
+    <a href="05-enterprise-extension.html" class="active">05 — Enterprise Extension</a>
+  </div>
+</div>
+
+<main>
+
+  <div class="callout callout-aws">
+    <strong>Why this guide exists:</strong> A Consulting Architect is not judged on whether their lab matches production perfectly — they are judged on whether they understand the gap and can close it. This guide names every simplification made in the capstone, explains why it is a simplification, and documents the production-correct approach. This is how consulting architects think when reviewing a client's existing deployment.
+  </div>
+
+  <!-- SECURITY -->
+  <div class="domain-header domain-security">
+    <span class="domain-tag">01 · Security Hardening</span>
+    <h2>Network &amp; Access Security</h2>
+  </div>
+
+  <h3>VPC Architecture — Public vs Private Subnet Separation</h3>
+  <p>The capstone places all resources in public subnets with <code>MapPublicIpOnLaunch: true</code>. This means every EC2 instance, ECS Fargate task, and Lambda function has a public IP address reachable from the internet. In a production enterprise deployment, this is never the case for compute resources.</p>
+
+  <p>The correct architecture separates resources by their need for internet exposure:</p>
+
+  <div class="vpc-diagram">
+    <div class="vpc-row">
+      <div class="vpc-label">Internet</div>
+      <div class="vpc-boxes"><div class="vpc-box vpc-internet">Users / IoT Devices / Admin</div></div>
+    </div>
+    <div class="vpc-row">
+      <div class="vpc-label">Public subnets</div>
+      <div class="vpc-boxes">
+        <div class="vpc-box vpc-public">ALB (HTTPS only)</div>
+        <div class="vpc-box vpc-public">NAT Gateway</div>
+      </div>
+    </div>
+    <div class="vpc-row">
+      <div class="vpc-label">Private subnets</div>
+      <div class="vpc-boxes">
+        <div class="vpc-box vpc-private">ECS Fargate tasks</div>
+        <div class="vpc-box vpc-private">Lambda</div>
+        <div class="vpc-box vpc-private">EC2 (IoT sensor)</div>
+        <div class="vpc-box vpc-private">CodeBuild</div>
+      </div>
+    </div>
+  </div>
+
+  <p>The ALB is the only resource with a public IP. All compute resources sit in private subnets with no public IPs. Outbound internet access for private resources (for IoT Core MQTT, ECR pulls, Timestream API calls) goes through the NAT Gateway in the public subnet. VPC Endpoints for IoT Core, Timestream, ECR, and SSM eliminate the need for even NAT Gateway traffic for those services — keeping API traffic within the AWS backbone entirely.</p>
+
+  <div class="enhancement-grid">
+    <div class="enhancement-card">
+      <div class="enhancement-gap">Capstone gap</div>
+      <div class="enhancement-title">SSH port 22 open to 0.0.0.0/0</div>
+      <div class="enhancement-desc">Replace with AWS SSM Session Manager. No open inbound ports on EC2. Session access is controlled by IAM policy, logged to CloudTrail and S3, and works without a bastion host or VPN.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-gap">Capstone gap</div>
+      <div class="enhancement-title">IoT policy Resource: "*"</div>
+      <div class="enhancement-desc">Scope to specific topic ARNs per device: <code>arn:aws:iot:region:account:topic/environmental/${iot:ClientId}</code>. Prevents a compromised device certificate from publishing to other devices' topics.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-gap">Capstone gap</div>
+      <div class="enhancement-title">ALB serving plain HTTP</div>
+      <div class="enhancement-desc">Add ACM-issued TLS certificate to the ALB listener (HTTPS on port 443). Add HTTP→HTTPS redirect listener on port 80. Add Route 53 CNAME or alias record pointing to the ALB DNS name.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-gap">Capstone gap</div>
+      <div class="enhancement-title">CodePipeline role uses wildcard policy</div>
+      <div class="enhancement-desc">Replace the AWS managed CodePipeline boilerplate policy with a custom policy scoped to the specific pipeline's CodeCommit repo, CodeBuild project, ECS service, and S3 artifact bucket ARNs.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-gap">Capstone gap</div>
+      <div class="enhancement-title">No WAF on ALB</div>
+      <div class="enhancement-desc">Associate an AWS WAF WebACL with the ALB. Enable OWASP Top 10 managed rule group, rate-based rule limiting requests per IP (prevents scraping), and geo-restriction if the dashboard serves a defined region only.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-gap">Capstone gap</div>
+      <div class="enhancement-title">No account-level threat detection</div>
+      <div class="enhancement-desc">Enable GuardDuty for ML-based threat detection (unusual API calls, cryptocurrency mining, data exfiltration patterns) and CloudTrail for complete API audit logging to S3 with Object Lock for tamper-proof retention.</div>
+    </div>
+  </div>
+
+  <!-- RESILIENCE -->
+  <div class="domain-header domain-resilience">
+    <span class="domain-tag">02 · Resilience</span>
+    <h2>High Availability &amp; Disaster Recovery</h2>
+  </div>
+
+  <h3>ECS Fargate — Multi-AZ with Auto Scaling</h3>
+  <p>The capstone deploys a single ECS task. In production, the ECS service would be configured with a minimum of 2 desired tasks spread across multiple Availability Zones. Application Auto Scaling would be configured to scale based on ALB request count or ECS service CPU utilisation — adding tasks during load spikes and removing them during quiet periods.</p>
+  <p>Timestream itself is inherently multi-AZ — data is replicated across multiple AZs within the region. This does not require any configuration; it is built into the service. Documenting this explicitly matters for client conversations about availability — it is a strength of the managed service choice.</p>
+
+  <h3>Lambda Dead-Letter Queue</h3>
+  <p>If the Lambda function fails to write to Timestream (network error, permissions issue, Timestream throttle), the IoT Topic Rule retries the invocation. If all retries fail, the message is lost unless a Dead-Letter Queue (DLQ) is configured. In production, an SQS queue is configured as the Lambda DLQ — failed invocations land in the queue for manual inspection and reprocessing, rather than being silently dropped.</p>
+
+  <h3>AWS Backup — Extended to Cross-Region</h3>
+  <p>The capstone configures AWS Backup with a 30-day retention policy. In production for a smart city government client, the backup plan would include a cross-region backup copy rule — replicating backups to a secondary region for geographic disaster recovery. The Recovery Time Objective (RTO) and Recovery Point Objective (RPO) for the system would be documented in a Business Impact Assessment and the backup retention period set accordingly.</p>
+
+  <!-- OBSERVABILITY -->
+  <div class="domain-header domain-observability">
+    <span class="domain-tag">03 · Observability</span>
+    <h2>Monitoring, Alerting &amp; Tracing</h2>
+  </div>
+
+  <h3>CloudWatch — What to Monitor</h3>
+  <p>The capstone notes CloudWatch as optional and does not implement it. In production, the following metrics and alarms would be configured as a baseline:</p>
+
+  <div class="enhancement-grid">
+    <div class="enhancement-card">
+      <div class="enhancement-title">Lambda error rate alarm</div>
+      <div class="enhancement-desc">Alarm when <code>Errors / Invocations > 5%</code> over a 5-minute window. SNS notification to the operations team. This detects Timestream write failures before they cause a visible data gap in the dashboard.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-title">ECS task restart alarm</div>
+      <div class="enhancement-desc">CloudWatch Container Insights tracks ECS task restart counts. Alarm when a task restarts more than twice in 10 minutes — indicates a recurring application crash that needs investigation.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-title">ALB 5xx rate alarm</div>
+      <div class="enhancement-desc">Alarm when <code>HTTPCode_Target_5XX_Count > 10</code> in 5 minutes. 5xx errors from ECS tasks indicate application failures, not client errors — they require operator attention.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-title">IoT message delivery alarm</div>
+      <div class="enhancement-desc">IoT Core publishes <code>RuleMessageThrottled</code> and <code>TopicMatch</code> metrics to CloudWatch. Alarm when <code>RuleMessageThrottled > 0</code> — indicates the IoT Topic Rule is being throttled and sensor data is being lost.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-title">Timestream write latency</div>
+      <div class="enhancement-desc">Monitor <code>WriteRecords.SuccessfulRequestLatency</code>. Unexpectedly high write latency from Lambda indicates a Timestream performance issue that will eventually manifest as Lambda timeouts.</div>
+    </div>
+    <div class="enhancement-card">
+      <div class="enhancement-title">Security Hub findings alarm</div>
+      <div class="enhancement-desc">EventBridge rule triggering SNS when Security Hub generates a HIGH or CRITICAL severity finding. Security issues surface to the operator within minutes of detection rather than waiting for a periodic dashboard review.</div>
+    </div>
+  </div>
+
+  <h3>X-Ray Distributed Tracing</h3>
+  <p>With X-Ray enabled on Lambda, every invocation generates a trace showing the complete execution timeline — time spent on the Timestream <code>describe_endpoints()</code> call, time on the <code>write_records()</code> call, and any errors at each step. For a system where Lambda is the bridge between IoT Core and Timestream, this makes it possible to distinguish "Timestream is slow" from "Lambda code has an inefficiency" without adding any logging code to the function.</p>
+
+  <!-- CICD -->
+  <div class="domain-header domain-cicd">
+    <span class="domain-tag">04 · CI/CD Maturity</span>
+    <h2>Pipeline Hardening</h2>
+  </div>
+
+  <h3>Image Security Scanning in CodeBuild</h3>
+  <p>The capstone's <code>buildspec.yml</code> builds and pushes the Docker image with no security scanning. In production, the build phase would include a container image vulnerability scan using ECR's built-in scanning (powered by Clair) or an explicit Trivy scan step. The pipeline would fail if HIGH or CRITICAL vulnerabilities are found in the base image or installed packages — preventing known-vulnerable images from reaching production.</p>
+
+  <h3>Manual Approval Before Production</h3>
+  <p>The capstone pipeline deploys automatically from CodeCommit commit to ECS Fargate with no human review. For a government smart city system, an additional pipeline stage would be added between Build and Deploy: a Manual Approval action requiring a named approver to review the build output and confirm deployment. This creates a formal change control gate — auditable, traceable, and reversible.</p>
+
+  <h3>ECR Lifecycle Policy</h3>
+  <p>Without an ECR lifecycle policy, every image pushed by CodeBuild accumulates in the repository indefinitely. At daily deployments, this is 365 image versions per year. An ECR lifecycle policy retaining only the last 10 tagged images eliminates this cost entirely:</p>
+  <pre style="background:var(--ink);color:#e8e6e0;padding:1.1rem 1.4rem;font-family:var(--font-mono);font-size:.76rem;overflow-x:auto;margin:.75rem 0;border-radius:2px;line-height:1.8">{
+  "rules": [{
+    "rulePriority": 1,
+    "description": "Retain last 10 tagged images",
+    "selection": {
+      "tagStatus": "tagged",
+      "tagPrefixList": ["build-"],
+      "countType": "imageCountMoreThan",
+      "countNumber": 10
+    },
+    "action": { "type": "expire" }
+  }]
+}</pre>
+
+  <!-- FINOPS -->
+  <div class="domain-header domain-finops">
+    <span class="domain-tag">05 · Cloud FinOps</span>
+    <h2>Cost Optimisation — How Enterprises Save Money</h2>
+  </div>
+
+  <p>Cloud FinOps is the discipline of bringing financial accountability to cloud spending — making cost visible, allocating it correctly, and optimising it without sacrificing reliability. The capstone estimates $70/month for the sandbox. The table below shows how a production enterprise deployment of SCEMS would apply FinOps principles to reduce the ongoing operational cost.</p>
+
+  <table class="finops-table">
+    <thead>
+      <tr><th>Service / Area</th><th>FinOps Optimisation</th><th>Mechanism</th><th>Savings</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ECS Fargate</strong></td>
+        <td>Compute Savings Plans</td>
+        <td>Commit to a baseline amount of Fargate compute (vCPU-hours and GB-hours) for 1 or 3 years. Savings Plans apply automatically to any Fargate usage up to the committed amount. No instance type lock-in — unlike Reserved Instances.</td>
+        <td><span class="savings-badge">Up to 52%</span></td>
+      </tr>
+      <tr>
+        <td><strong>Timestream</strong></td>
+        <td>Memory store retention tuning</td>
+        <td>Memory store is priced at ~$0.036/GB-hour. Magnetic store is ~$0.03/GB-month — roughly 25× cheaper per GB stored. Setting memory store retention to 1 hour (sufficient for a dashboard showing last 10 readings) and magnetic store to 365 days means only 1 hour of data lives in the expensive tier at any time.</td>
+        <td><span class="savings-badge">Significant</span></td>
+      </tr>
+      <tr>
+        <td><strong>S3 (logs, artifacts, backups)</strong></td>
+        <td>S3 Intelligent-Tiering</td>
+        <td>Enable S3 Intelligent-Tiering on the artifact bucket, ALB access log bucket, CloudTrail bucket, and AWS Backup output bucket. Objects not accessed for 30 days automatically move to the Infrequent Access tier (40% lower storage cost) with no retrieval penalty for compliance-driven access.</td>
+        <td><span class="savings-badge">40% on cold data</span></td>
+      </tr>
+      <tr>
+        <td><strong>Lambda</strong></td>
+        <td>Memory optimisation via Lambda Power Tuning</td>
+        <td>Lambda pricing = duration × memory. The default 128MB may not be optimal. Lambda Power Tuning (an open-source AWS Step Functions state machine) runs the function at multiple memory configurations and reports cost vs duration. For Timestream write functions, 256MB often delivers the same or better duration at lower cost than 512MB.</td>
+        <td><span class="savings-badge">10–30% on Lambda cost</span></td>
+      </tr>
+      <tr>
+        <td><strong>ECR</strong></td>
+        <td>Lifecycle policy</td>
+        <td>As described in the CI/CD section — retaining only the last 10 tagged images via lifecycle policy eliminates the cost of accumulated build artifacts. ECR storage is $0.10/GB-month; 365 images at ~150MB each = ~5.5GB = $0.55/month that grows indefinitely without a lifecycle policy.</td>
+        <td><span class="savings-badge">Eliminates waste</span></td>
+      </tr>
+      <tr>
+        <td><strong>IoT Core</strong></td>
+        <td>Message batching at the device</td>
+        <td>IoT Core pricing is per message. At 1 message/5 seconds, the sensor publishes 17,280 messages/day. If the use case permits, batching 5 readings per message (publish every 25 seconds) reduces messages by 80% at the cost of a 25-second data freshness lag — acceptable for environmental monitoring, significant for billing.</td>
+        <td><span class="savings-badge">80% on IoT messages</span></td>
+      </tr>
+      <tr>
+        <td><strong>All services</strong></td>
+        <td>Resource tagging strategy</td>
+        <td>Apply <code>Project: SCEMS</code>, <code>Environment: prod</code>, <code>CostCenter: SmartCity-IT</code> tags to every resource. AWS Cost Explorer groups costs by tag — enabling showback (visibility) and chargeback (allocation) to specific city departments. AWS Config rule <code>required-tags</code> enforces tagging compliance and flags untagged resources automatically.</td>
+        <td><span class="savings-badge">Visibility &amp; governance</span></td>
+      </tr>
+      <tr>
+        <td><strong>All services</strong></td>
+        <td>Cost Anomaly Detection</td>
+        <td>AWS Cost Anomaly Detection uses ML to identify unexpected spending spikes — for example, if a bug causes Lambda to invoke 10,000 times per minute instead of once per 5 seconds. Anomaly alerts via SNS catch runaway costs before they accumulate. This is the safety net beneath AWS Budgets alerts.</td>
+        <td><span class="savings-badge">Risk mitigation</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>The FinOps Operating Model</h3>
+  <p>Cost optimisation is not a one-time activity — it is an operating discipline. For a production smart city deployment, the FinOps operating model would include a weekly Cost Explorer review by the infrastructure team (10 minutes, checking for anomalies and unexpected service growth), a monthly right-sizing review using AWS Compute Optimizer recommendations for any EC2 instances, a quarterly Savings Plans review to evaluate commitment levels against actual usage, and an annual architecture review to evaluate whether newer services (Graviton-based Fargate, Timestream Influx DB compatibility mode) offer cost improvements.</p>
+
+  <div class="callout callout-green">
+    <strong>FinOps principle:</strong> The goal is not the lowest possible cost — it is the best value at acceptable reliability. Cutting the memory store retention to 1 minute saves money but means the dashboard query hits magnetic store latency on every page load. The right answer balances cost against the user experience the application is supposed to deliver. That trade-off is a business decision, not a technical one — and surfacing it clearly to stakeholders is the consulting architect's job.
+  </div>
+
+  <div class="callout callout-blue" style="margin-top:2.5rem">
+    <strong>Series complete.</strong> Return to the <a href="01-overview-architecture.html">overview</a> or explore the other series in the <a href="../../index.html">portfolio</a>.
+  </div>
+
+</main>
+<footer>Ashok Kumar P. · SCEMS Capstone · AWS IoT · ashokkumar-arch.github.io</footer>
+</body>
+</html>

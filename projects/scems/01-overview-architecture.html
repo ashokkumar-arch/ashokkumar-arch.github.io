@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCEMS — Overview & Architecture | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --aws:#ff9900;--aws-dark:#c47400;--aws-light:#fff8ed;
+  --blue:#1a5c8f;--blue-light:#eaf2fb;
+  --green:#0e6b45;--green-light:#eaf7f1;
+  --red:#c8102e;--red-light:#fff0f3;
+  --amber:#a87015;--amber-light:#fdf6e3;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.05rem;color:var(--ink);text-decoration:none}
+.nav-links{display:flex;gap:1.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.8rem;color:var(--ink2);text-decoration:none;font-family:var(--font-mono);letter-spacing:.04em}
+.nav-links a:hover{color:var(--aws-dark)}
+.nav-back{font-size:.8rem;color:var(--ink2);text-decoration:none;font-family:var(--font-mono)}
+.nav-back:hover{color:var(--aws-dark)}
+
+/* PAGE HEADER */
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.project-badge{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--aws-dark);margin-bottom:1rem;background:var(--aws-light);border:1px solid #f5d08a;padding:.3rem .8rem;border-radius:2px}
+.series-crumb{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.08em;margin-bottom:.75rem}
+h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem;line-height:1.1}
+.page-sub{font-size:.95rem;color:var(--ink2);font-weight:300;max-width:620px;line-height:1.75;margin-bottom:1.75rem}
+.meta-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.meta-item{font-family:var(--font-mono);font-size:.72rem;color:var(--ink3)}
+.meta-item strong{color:var(--ink);font-weight:500}
+.page-nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.page-nav a{font-family:var(--font-mono);font-size:.68rem;padding:.3rem .75rem;border:1px solid var(--border);color:var(--ink2);text-decoration:none;letter-spacing:.04em;transition:all .15s}
+.page-nav a:hover,.page-nav a.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* MAIN */
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+h2{font-family:var(--font-display);font-size:1.5rem;letter-spacing:-.01em;color:var(--ink);margin-bottom:.75rem}
+h3{font-family:var(--font-display);font-size:1.15rem;color:var(--ink);margin-bottom:.5rem;margin-top:1.5rem}
+p{font-size:.9rem;color:var(--ink2);line-height:1.8;margin-bottom:.85rem}
+p:last-child{margin-bottom:0}
+
+/* CALLOUTS */
+.callout{padding:1.1rem 1.4rem;border-radius:2px;margin:1.25rem 0;font-size:.875rem;line-height:1.7}
+.callout-aws{background:var(--aws-light);border-left:3px solid var(--aws);color:var(--ink2)}
+.callout-green{background:var(--green-light);border-left:3px solid var(--green);color:var(--ink2)}
+.callout-blue{background:var(--blue-light);border-left:3px solid var(--blue);color:var(--ink2)}
+.callout-amber{background:var(--amber-light);border-left:3px solid var(--amber);color:var(--ink2)}
+.callout strong{color:var(--ink)}
+
+/* SERVICE GRID */
+.service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+.service-card{background:var(--paper);padding:1.25rem 1.5rem}
+.service-layer{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+.layer-iot{color:#9c4b00}
+.layer-compute{color:var(--blue)}
+.layer-storage{color:var(--green)}
+.layer-app{color:#6e2b8c}
+.layer-cicd{color:var(--aws-dark)}
+.layer-security{color:var(--red)}
+.layer-finops{color:var(--amber)}
+.service-name{font-size:.9rem;font-weight:500;color:var(--ink);margin-bottom:.25rem}
+.service-role{font-size:.8rem;color:var(--ink2);line-height:1.6}
+
+/* FLOW DIAGRAM */
+.flow{margin:2rem 0;padding:1.5rem;background:var(--paper2);border:1px solid var(--border);overflow-x:auto}
+.flow-title{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem}
+.flow-steps{display:flex;align-items:center;gap:0;flex-wrap:nowrap;min-width:max-content}
+.flow-step{background:var(--paper);border:1px solid var(--border);padding:.6rem 1rem;font-size:.78rem;font-family:var(--font-mono);color:var(--ink2);white-space:nowrap}
+.flow-step.highlight{background:var(--aws-light);border-color:#f5d08a;color:var(--aws-dark);font-weight:500}
+.flow-arrow{font-size:.8rem;color:var(--ink3);padding:0 .4rem;flex-shrink:0}
+
+/* IAM TABLE */
+.iam-table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-size:.82rem}
+.iam-table th{background:var(--ink);color:var(--paper);padding:.6rem 1rem;text-align:left;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;font-weight:500}
+.iam-table td{padding:.65rem 1rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink2);line-height:1.5}
+.iam-table tr:last-child td{border-bottom:none}
+.iam-table tr:hover td{background:var(--paper2)}
+code{font-family:var(--font-mono);font-size:.8em;background:var(--paper2);padding:.1em .35em;border:1px solid var(--border);border-radius:2px;color:var(--ink)}
+
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo">Ashok Kumar P.</a>
+    <ul class="nav-links">
+      <li><a href="01-overview-architecture.html" class="active">Overview</a></li>
+      <li><a href="02-infrastructure-cloudformation.html">Infrastructure</a></li>
+      <li><a href="03-iot-data-pipeline.html">IoT Pipeline</a></li>
+      <li><a href="04-application-cicd.html">App & CI/CD</a></li>
+      <li><a href="05-enterprise-extension.html">Enterprise Extension</a></li>
+      <li><a href="../../index.html" class="nav-back">← Portfolio</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="project-badge">AWS IoT Capstone · Cloud-Native</div>
+  <div class="series-crumb">Standalone Project — Cloud-Native Engineering</div>
+  <h1>SCEMS — Smart City<br>Environmental Monitoring System</h1>
+  <p class="page-sub">A cloud-native IoT monitoring system deployed end-to-end on AWS using a single CloudFormation template. Simulated environmental sensors publish telemetry over MQTT, a serverless pipeline ingests and stores the data, and a containerised dashboard serves it over the web — with full CI/CD automation from code commit to production.</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>Context:</strong> Graduate capstone project — Purdue University Global</div>
+    <div class="meta-item"><strong>Delivery:</strong> Single CloudFormation stack (~1,011 lines)</div>
+    <div class="meta-item"><strong>IAM roles:</strong> 6 least-privilege roles across all service boundaries</div>
+    <div class="meta-item"><strong>GitHub:</strong> ashokkumar-arch/scems-capstone</div>
+  </div>
+  <div class="page-nav">
+    <a href="01-overview-architecture.html" class="active">01 — Overview & Architecture</a>
+    <a href="02-infrastructure-cloudformation.html">02 — Infrastructure & CloudFormation</a>
+    <a href="03-iot-data-pipeline.html">03 — IoT Data Pipeline</a>
+    <a href="04-application-cicd.html">04 — Application & CI/CD</a>
+    <a href="05-enterprise-extension.html">05 — Enterprise Extension</a>
+  </div>
+</div>
+
+<main>
+
+  <div class="section-label">Project context</div>
+  <h2>What This Project Is — and What It Deliberately Is Not</h2>
+  <p>This project was built as an academic capstone in a sandbox AWS environment, which means some production constraints were intentionally simplified — the ALB public IP is accessed directly in the browser rather than through Route 53 and ACM-issued TLS, SSH is open to the internet rather than replaced by SSM Session Manager, and all resources sit in public subnets rather than a VPC with public/private subnet separation.</p>
+  <p>Every one of those simplifications is deliberate and acknowledged. The purpose of this series is twofold: first, to document exactly what was built and how it works; and second, in the final guide (<a href="05-enterprise-extension.html">Enterprise Extension</a>), to show precisely how a production enterprise deployment would close each of those gaps — including security hardening, resilience, observability, and Cloud FinOps cost optimisation.</p>
+  <div class="callout callout-aws">
+    <strong>Why this framing matters:</strong> A Consulting Architect is not expected to have built every system to production grade in a personal lab. What they are expected to demonstrate is that they understand the delta between a proof-of-concept and a production deployment — and can articulate exactly what it takes to close it. That is what the Enterprise Extension guide is for.
+  </div>
+
+  <div class="section-label">Problem statement</div>
+  <h2>The Problem Being Solved</h2>
+  <p>A municipal government responsible for smart city initiatives needs real-time monitoring of environmental parameters — temperature, humidity, and air quality — across multiple sensor sites. Their existing infrastructure is on-premises, limited by high maintenance costs, no real-time processing capability, no automated backup, and no integrated security monitoring.</p>
+  <p>The objective: design and deploy a scalable, secure, and cost-effective cloud system that ingests sensor data in real time, stores it as time-series data, surfaces it through a web dashboard, and automates the entire application delivery pipeline — with security and cost monitoring built in from the start.</p>
+
+  <div class="section-label">Architecture — end to end</div>
+  <h2>System Architecture</h2>
+  <p>The system is organised into four functional layers, all deployed from a single CloudFormation stack and all inter-connected without manual wiring.</p>
+
+  <div class="flow">
+    <div class="flow-title">Data flow — sensor to dashboard</div>
+    <div class="flow-steps">
+      <div class="flow-step highlight">EC2 (IoT Sensor)<br>MQTT publish</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">AWS IoT Core<br>Topic Rule</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">Lambda<br>Data processor</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">Timestream<br>KMS-encrypted</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">ECS Fargate<br>Flask dashboard</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">ALB<br>HTTP endpoint</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Browser</div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-title">CI/CD flow — code commit to running container</div>
+    <div class="flow-steps">
+      <div class="flow-step highlight">CodeCommit<br>Source repo</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">CodePipeline<br>Orchestrator</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">CodeBuild<br>Docker build</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">ECR<br>Image registry</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">ECS Fargate<br>Deploy new task</div>
+    </div>
+  </div>
+
+  <div class="section-label">AWS services — what each one does</div>
+  <h2>Service Map</h2>
+
+  <div class="service-grid">
+    <div class="service-card">
+      <div class="service-layer layer-iot">IoT Layer</div>
+      <div class="service-name">AWS IoT Core</div>
+      <div class="service-role">Manages device connectivity and message routing. The EC2 sensor connects using X.509 certificate mutual TLS (mTLS) authentication. Messages published to the <code>environmental/sensor</code> MQTT topic are routed by a Topic Rule to the Lambda processor.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-compute">Compute — Sensor</div>
+      <div class="service-name">Amazon EC2 (t2.micro)</div>
+      <div class="service-role">Simulates the physical IoT sensor device. The EC2 UserData script automatically installs AWS IoT SDK, creates X.509 certificates, attaches the IoT policy and Thing, and starts a systemd service that publishes temperature, humidity, and air quality readings every 5 seconds.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-compute">Compute — Processing</div>
+      <div class="service-name">AWS Lambda</div>
+      <div class="service-role">Serverless function triggered by the IoT Topic Rule. Receives the sensor payload, transforms it into Timestream's multi-measure record format, and writes it to the time-series database. Runs only when data arrives — zero idle cost.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-storage">Storage</div>
+      <div class="service-name">Amazon Timestream</div>
+      <div class="service-role">Fully managed time-series database. Receives sensor records from Lambda. KMS-encrypted at rest using a customer-managed key. Queried by the Flask dashboard using SQL. The <code>EnvironmentalMonitoring</code> database contains the <code>SensorData</code> table.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-storage">Encryption</div>
+      <div class="service-name">AWS KMS</div>
+      <div class="service-role">Customer-managed KMS key encrypts the Timestream database at rest. Both Lambda and the ECS task role have <code>kms:Decrypt</code> scoped explicitly to this key ARN — not to <code>*</code>.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-app">Application</div>
+      <div class="service-name">Amazon ECS Fargate</div>
+      <div class="service-role">Runs the Flask web dashboard as a Docker container without managing servers. Task definition specifies 0.25 vCPU and 0.5 GB memory. The ECS task role grants <code>timestream:Query</code> and <code>timestream:Select</code> scoped to the specific database and table ARNs.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-app">Networking</div>
+      <div class="service-name">Application Load Balancer</div>
+      <div class="service-role">Distributes incoming HTTP traffic to the ECS Fargate tasks. Health check on <code>/</code> path. The ALB DNS name is the public endpoint for the dashboard in this capstone. In production, this would sit behind Route 53 and ACM TLS — see the Enterprise Extension guide.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-app">Image Registry</div>
+      <div class="service-name">Amazon ECR</div>
+      <div class="service-role">Private container registry storing the Flask dashboard Docker image. CodeBuild pushes new image versions here after each build. ECS pulls the image from ECR when launching new tasks.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-cicd">CI/CD</div>
+      <div class="service-name">AWS CodePipeline</div>
+      <div class="service-role">Orchestrates the three-stage pipeline: Source (CodeCommit) → Build (CodeBuild) → Deploy (ECS). Automatically triggered on every commit to the CodeCommit repository.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-cicd">CI/CD</div>
+      <div class="service-name">AWS CodeBuild</div>
+      <div class="service-role">Executes the <code>buildspec.yml</code> — authenticates to ECR, builds the Docker image, tags it with the CodeBuild build ID, pushes to ECR, and writes <code>imagedefinitions.json</code> for the ECS deploy stage.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-cicd">Source Control</div>
+      <div class="service-name">AWS CodeCommit</div>
+      <div class="service-role">Git repository hosting the Flask application source. The pipeline watches the main branch for commits. HTTPS Git credentials used for authentication.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-security">Security Monitoring</div>
+      <div class="service-name">AWS Security Hub</div>
+      <div class="service-role">Enabled with AWS Foundational Security Best Practices standard. Continuously evaluates resource configurations against security controls and surfaces findings in a centralised dashboard.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-security">Data Protection</div>
+      <div class="service-name">AWS Backup</div>
+      <div class="service-role">Automated backup plan covering EC2 instances and EBS volumes. Daily backups with 30-day retention. Backup vault with vault lock enabled for tamper-proof backup storage.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-layer layer-finops">Cost Management</div>
+      <div class="service-name">AWS Budgets</div>
+      <div class="service-role">Monthly cost budget with alert at 80% threshold. Notification sent to the project administrator email. Estimated total monthly cost for all services: $70. See the Enterprise Extension guide for Cloud FinOps optimisation strategies.</div>
+    </div>
+  </div>
+
+  <div class="section-label">IAM role design</div>
+  <h2>Least-Privilege IAM Architecture</h2>
+  <p>Six distinct IAM roles are designed — one per service boundary. Each role grants only the permissions that specific service needs to perform its function, scoped to specific resource ARNs where possible rather than wildcards.</p>
+
+  <table class="iam-table">
+    <thead>
+      <tr><th>Role</th><th>Principal</th><th>Key Permissions</th><th>Scope</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Lambda Execution Role</strong></td>
+        <td><code>lambda.amazonaws.com</code></td>
+        <td><code>timestream:WriteRecords</code>, <code>timestream:DescribeEndpoints</code>, <code>kms:Decrypt</code>, CloudWatch Logs</td>
+        <td>Scoped to the specific Timestream table ARN and KMS key ARN — not <code>*</code></td>
+      </tr>
+      <tr>
+        <td><strong>ECS Task Execution Role</strong></td>
+        <td><code>ecs-tasks.amazonaws.com</code></td>
+        <td>ECR pull permissions, CloudWatch Logs create/write</td>
+        <td>Allows ECS to pull the container image from ECR and write task logs</td>
+      </tr>
+      <tr>
+        <td><strong>ECS Task Role</strong></td>
+        <td><code>ecs-tasks.amazonaws.com</code></td>
+        <td><code>timestream:Query</code>, <code>timestream:Select</code>, <code>kms:Decrypt</code>, <code>timestream:DescribeEndpoints</code></td>
+        <td>Scoped to specific Timestream database and table ARNs and the KMS key ARN</td>
+      </tr>
+      <tr>
+        <td><strong>CodeBuild Service Role</strong></td>
+        <td><code>codebuild.amazonaws.com</code></td>
+        <td>ECR authentication and push, CloudWatch Logs scoped to the specific log group prefix, S3 for artifacts</td>
+        <td>CloudWatch Logs scoped to build-specific log group — not account-wide</td>
+      </tr>
+      <tr>
+        <td><strong>CodePipeline Service Role</strong></td>
+        <td><code>codepipeline.amazonaws.com</code></td>
+        <td>CodeCommit read, CodeBuild start, ECS register task + update service, S3 artifacts, ECR describe</td>
+        <td>Uses AWS managed CodePipeline policy pattern — production would scope to specific pipeline resources</td>
+      </tr>
+      <tr>
+        <td><strong>EC2 Instance Profile</strong></td>
+        <td><code>ec2.amazonaws.com</code></td>
+        <td>IoT credential provider (to exchange EC2 identity for IoT credentials), CloudWatch Logs for sensor logs</td>
+        <td>No direct Timestream or Lambda access — sensor communicates only through IoT Core</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-green">
+    <strong>Design principle:</strong> The Lambda role gets <code>timestream:WriteRecords</code> only on the specific table ARN — not <code>timestream:*</code> on <code>*</code>. The ECS task role gets <code>timestream:Query</code> and <code>timestream:Select</code> only on the specific database and table ARNs. The KMS <code>kms:Decrypt</code> on both roles is scoped to the specific key ARN. This is least-privilege applied correctly, not just claimed.
+  </div>
+
+  <div class="section-label">Implementation environment</div>
+  <h2>How the Project Was Built</h2>
+  <p>The implementation was developed and tested on a CentOS 9 Stream virtual machine running on VMware Workstation Pro (free for personal use). AWS CLI was configured with IAM user access keys for the sandbox account. The Flask dashboard application went through three development iterations locally (building and testing Docker images versions 1, 2, and 3) before the final version was pushed to CodeCommit and deployed automatically to ECS Fargate through the CI/CD pipeline.</p>
+  <p>The entire AWS infrastructure — 35+ resources — was deployed with a single command:</p>
+  <pre style="background:var(--ink);color:#e8e6e0;padding:1.25rem 1.5rem;font-family:var(--font-mono);font-size:.8rem;overflow-x:auto;margin:1rem 0;border-radius:2px;line-height:1.7">aws cloudformation create-stack \
+  --stack-name scems \
+  --template-body file://scems-ecs.yaml \
+  --parameters ParameterKey=KeyName,ParameterValue=IoT_Device_VM \
+  --capabilities CAPABILITY_NAMED_IAM</pre>
+
+  <div class="callout callout-blue">
+    <strong>Next:</strong> <a href="02-infrastructure-cloudformation.html">Guide 02 — Infrastructure & CloudFormation</a> walks through the CloudFormation template section by section — the VPC and networking design, the IoT Thing and certificate automation in EC2 UserData, the KMS key policy, and every resource dependency chain.
+  </div>
+
+</main>
+<footer>Ashok Kumar P. · SCEMS Capstone · AWS IoT · ashokkumar-arch.github.io</footer>
+</body>
+</html>
