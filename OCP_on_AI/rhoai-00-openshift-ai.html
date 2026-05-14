@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenShift AI — Architecture &amp; Implementation Reference · NovaCrestBank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --ai:#076678;--ai-bg:#e8f4f8;
+  --nvidia:#76b900;--nvidia-bg:#f0f9e8;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ai);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--ai-bg);color:var(--ai);border-left-color:var(--ai);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ai);background:var(--ai-bg);border:1px solid #80c0d0;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--ai);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.ai{border-left-color:var(--ai)}
+.callout.nvidia{border-left-color:var(--nvidia)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.ai .cl{color:var(--ai)}
+.callout.nvidia .cl{color:var(--nvidia)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}.tc{color:#61c5eb}.tg{color:#4ccd99}.td{color:#608b7a}
+.tw{color:#cca700}.te{color:#f85149}.tok{color:#3fb950;font-weight:600}
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+/* Component cards */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.comp-card{background:var(--bg2);padding:16px 18px}
+.comp-tag{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px}
+.ct-kserve{color:var(--ai)}
+.ct-odh{color:var(--purple)}
+.ct-pipe{color:#b05000}
+.ct-gpu{color:var(--nvidia)}
+.ct-trust{color:var(--green)}
+.ct-reg{color:var(--blue)}
+.comp-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.comp-desc{font-size:13px;color:var(--text2);line-height:1.65}
+.comp-when{font-size:12px;color:var(--text3);margin-top:8px;font-style:italic;border-top:.5px solid var(--border);padding-top:6px}
+/* Stack diagram */
+.stack{margin:16px 0;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.stack-row{display:grid;grid-template-columns:140px 1fr;border-bottom:.5px solid var(--border)}
+.stack-row:last-child{border-bottom:none}
+.stack-label{padding:10px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);display:flex;align-items:center;font-weight:600;border-right:.5px solid var(--border2)}
+.stack-content{padding:10px 14px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stack-chip{font-family:'DM Mono',monospace;font-size:11px;padding:2px 8px;border-radius:3px;background:var(--bg3);border:.5px solid var(--border2);color:var(--text2)}
+.sc-red{background:#fff0f0;border-color:#f0b0b0;color:#8a0000}
+.sc-blue{background:#eaf2fb;border-color:#b0cde8;color:#0d3a5c}
+.sc-purple{background:#f3f0ff;border-color:#c0b0e8;color:#2d1a6a}
+.sc-green{background:#ecfdf5;border-color:#a7f3d0;color:#074a2e}
+.sc-amber{background:#fffbeb;border-color:#e0c070;color:#6a4400}
+.sc-teal{background:#e8f4f8;border-color:#80c0d0;color:#076678}
+.sc-nvidia{background:#f0f9e8;border-color:#a8d870;color:#3a5a00}
+/* Decision box */
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Consulting question  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+/* Readiness checklist */
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift AI · Architecture Reference</div>
+    <div class="sb-title">OpenShift AI — Architecture &amp; Implementation Reference</div>
+    <div class="sb-sub">Foundation · Components · GPU · Use cases · Integration · Consulting</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Foundation</div>
+    <a class="sb-item active" href="#what-is-ai">01 — What AI actually is — before any product</a>
+    <a class="sb-item" href="#what-is-ml">02 — Machine learning — the core idea in plain terms</a>
+    <a class="sb-item" href="#mlops">03 — MLOps — why models need their own platform</a>
+    <div class="sb-sec">The product stack</div>
+    <a class="sb-item" href="#odh-rhoai">04 — ODH and RHOAI — upstream, downstream, and why it matters</a>
+    <a class="sb-item" href="#components">05 — Every RHOAI component — what it does and when you need it</a>
+    <a class="sb-item" href="#kserve-deep">06 — KServe — the model serving engine in depth</a>
+    <a class="sb-item" href="#pipelines-deep">07 — Data Science Pipelines — the automation engine in depth</a>
+    <div class="sb-sec">GPU infrastructure</div>
+    <a class="sb-item" href="#why-gpu">08 — Why AI needs a GPU — explained from physics up</a>
+    <a class="sb-item" href="#gpu-operator">09 — NVIDIA GPU Operator — every component explained</a>
+    <div class="sb-sec">NovaCrestBank use cases</div>
+    <a class="sb-item" href="#use-case-fds">10 — Fraud Detection System — architecture decisions</a>
+    <a class="sb-item" href="#use-case-kdis">11 — Document Intelligence System — architecture decisions</a>
+    <div class="sb-sec">Platform integration</div>
+    <a class="sb-item" href="#integration">12 — Integration with the existing NovaCrestBank platform</a>
+    <div class="sb-sec">Consulting practice</div>
+    <a class="sb-item" href="#prereqs">13 — Infrastructure prerequisites before an engagement</a>
+    <a class="sb-item" href="#questions">14 — Questions to ask before committing to an implementation</a>
+    <a class="sb-item" href="#mapping">15 — Mapping RHOAI capabilities to customer problems</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="series-3-virt.html">← VIRT Series — OCP Virtualization</a>
+  </div>
+  <div class="sb-foot">OpenShift AI · Architecture Reference · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">OpenShift AI · Architecture &amp; Implementation Reference</div>
+  <div class="prereq-bar">Context: VIRT-11 complete — bare-metal OCP cluster running, NSX decommissioned, DL385 Gen11 nodes with PCIe 5.0 GPU slots available</div>
+  <h1>OpenShift AI</h1>
+  <div class="subtitle">A complete architectural reference — from what artificial intelligence actually is, through the RHOAI component stack, GPU infrastructure, NovaCrestBank use cases, and the consulting questions that determine whether an AI platform engagement will succeed or fail</div>
+
+  <div class="callout ai">
+    <span class="cl">How to read this guide</span>
+    <p>This guide is written for the reader who is technically strong on OpenShift, Kubernetes, and enterprise infrastructure — but has not yet worked with AI/ML platforms. It starts from the very beginning: what artificial intelligence actually is, why it needs its own infrastructure, and what problem OpenShift AI solves. By the end, you should be able to explain the RHOAI component architecture to a customer who has never heard of it, identify the right RHOAI capability for a given customer problem, assess infrastructure readiness before an engagement begins, and know which questions to ask before any implementation work starts. Every concept is explained as if the reader is encountering it for the first time — because that is the correct way to build lasting clarity.</p>
+  </div>
+
+  <hr>
+
+  <!-- ══ 01 WHAT IS AI ══ -->
+  <section id="what-is-ai">
+  <h2>01 — What AI actually is — before any product</h2>
+  <p>Before understanding OpenShift AI, you need a clear mental model of what artificial intelligence is — not the marketing definition, but the working definition that tells you what software is and is not "AI" in a technical context.</p>
+
+  <h3>The traditional programming model</h3>
+  <p>In traditional software, a human programmer writes rules. The programmer looks at a problem, understands the logic, and encodes that logic into instructions the computer follows. If you want software that detects fraudulent bank transactions, you would write rules: "if the transaction amount is greater than $10,000 AND the account is less than 30 days old AND the destination country has never received a transfer from this account, flag it as suspicious." The computer executes those rules exactly. It does what you told it to do — nothing more, nothing less.</p>
+  <p>This works well when the rules are knowable. Tax calculation, invoice processing, order routing — the logic is explicit and a human can write it down completely. But some problems have rules that are either too numerous to write, or not fully understood, or both. How do you write a rule for "is this transaction fraudulent"? A fraudster can always adapt to known rules. And the definition of fraud evolves continuously. The rule-based approach hits a wall.</p>
+
+  <h3>The machine learning alternative</h3>
+  <p>Machine learning inverts the programming model. Instead of a human writing rules for the computer to follow, the computer <em>derives</em> rules from examples. You show the system thousands of past transactions — labelled as either "legitimate" or "fraudulent" by human analysts — and the system finds the patterns in the data that distinguish one from the other. Those patterns become the "rules," expressed not as human-readable if-statements but as mathematical weights inside a model.</p>
+  <p>The key insight: the patterns the model discovers may be ones that no human analyst would ever articulate. The model might learn that a combination of 47 subtle signals — none individually suspicious — together strongly predict fraud. A human writing rules could not capture that. The model can.</p>
+
+  <div class="callout ai">
+    <span class="cl">The one-sentence definition that holds up under scrutiny</span>
+    <p>Artificial intelligence, in the practical software engineering sense, is the use of statistical patterns derived from data to make predictions or decisions — rather than using explicitly programmed rules. Everything else — neural networks, large language models, computer vision, fraud detection — is a specific technique for doing this particular thing at different scales and with different types of data.</p>
+  </div>
+
+  <h3>The vocabulary that matters</h3>
+  <table>
+    <thead><tr><th>Term</th><th>Plain meaning</th><th>Analogy</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Model</strong></td><td>A file containing the mathematical weights the system learned from data. It takes an input and produces an output (a prediction, a classification, a score).</td><td>A compiled executable — the result of a build process, not the source code itself.</td></tr>
+      <tr><td><strong>Training</strong></td><td>The process of showing a model large quantities of labelled data so it can learn the patterns. Computationally expensive. Happens infrequently.</td><td>Writing and compiling the code — happens in development, not in production.</td></tr>
+      <tr><td><strong>Inference</strong></td><td>Using a trained model to make a prediction on new, unseen data. A transaction arrives — the model scores it in milliseconds. This is the production use case.</td><td>Running the compiled executable in production.</td></tr>
+      <tr><td><strong>Dataset</strong></td><td>The labelled examples used to train the model. Quality and volume of the dataset directly determines model quality.</td><td>The source code. Better inputs produce better outputs.</td></tr>
+      <tr><td><strong>Feature</strong></td><td>An individual measurable property of the data. For a transaction: amount, time of day, merchant category, account age. The model learns which features matter and how.</td><td>A variable in the source code.</td></tr>
+      <tr><td><strong>Epoch</strong></td><td>One complete pass through the entire training dataset. Training typically runs for many epochs until the model converges to stable weights.</td><td>One full compilation pass.</td></tr>
+      <tr><td><strong>Serving</strong></td><td>Hosting a trained model as a network service so applications can call it via REST or gRPC. The production deployment of the model.</td><td>Deploying the compiled application as a microservice.</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 WHAT IS ML ══ -->
+  <section id="what-is-ml">
+  <h2>02 — Machine learning — the core idea in plain terms</h2>
+  <p>Machine learning is the subfield of AI that focuses on deriving patterns from data automatically. It is not magic. It is applied mathematics — specifically, optimisation. Understanding the basic mechanism removes the mystique and makes you a better advisor to customers who are evaluating AI platforms.</p>
+
+  <h3>How a model actually learns — the two-minute version</h3>
+  <p>A model starts with random weights — numbers initialised to arbitrary values. You feed it a training example: a transaction that is known to be fraudulent. The model makes a prediction — initially random, because the weights are random. The prediction is almost certainly wrong. The system then calculates how wrong it was (the "loss") and adjusts all the weights slightly in the direction that would have made the prediction less wrong. This adjustment is called a "gradient step." Repeat this millions of times across millions of examples, and the weights converge to values that make consistently accurate predictions on data the model has never seen before.</p>
+  <p>This process — called gradient descent — is the core of almost all modern machine learning. The mathematical details vary enormously between model types, but the fundamental loop is always: predict, measure error, adjust weights, repeat.</p>
+
+  <h3>Model types a consulting architect encounters</h3>
+  <table>
+    <thead><tr><th>Type</th><th>What it does</th><th>Banking use case</th><th>Typical format</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Classification</strong></td><td>Assigns an input to one of a fixed set of categories. "Is this transaction fraudulent or legitimate?"</td><td>Fraud detection, credit risk scoring, document type classification</td><td>ONNX, TorchScript, TensorFlow SavedModel</td></tr>
+      <tr><td><strong>Regression</strong></td><td>Predicts a continuous numerical value. "What interest rate should this customer receive?"</td><td>Credit limit recommendation, expected default rate</td><td>ONNX, Scikit-learn pickle</td></tr>
+      <tr><td><strong>Computer Vision</strong></td><td>Extracts information from images or documents. "What text and data appear in this passport?"</td><td>KYC document processing, cheque digitisation, ID verification</td><td>ONNX, TorchScript</td></tr>
+      <tr><td><strong>NLP / LLM</strong></td><td>Understands and generates text. "Summarise this loan application" or "What does this clause mean?"</td><td>Customer service automation, contract analysis, regulatory document Q&amp;A</td><td>HuggingFace Transformers (PyTorch), GGUF (quantised LLMs)</td></tr>
+      <tr><td><strong>Anomaly Detection</strong></td><td>Identifies data points that deviate significantly from established patterns without prior labelling.</td><td>Network intrusion detection, unusual trading activity, payment system anomalies</td><td>ONNX, custom PyTorch/TF</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout why">
+    <span class="cl">Why model format matters for platform decisions</span>
+    <p>The format a model is exported in determines which serving runtime can host it. ONNX (Open Neural Network Exchange) is the most portable format — a model trained in PyTorch, TensorFlow, or Scikit-learn can all be exported to ONNX and served by NVIDIA Triton, the default serving runtime in RHOAI. A model exported only as a TensorFlow SavedModel requires TensorFlow Serving. A model in GGUF format (quantised LLM) requires a different runtime (llama.cpp-based). Before any RHOAI engagement, the first question is always: what format is the model in? This single answer determines 30% of the architecture decisions that follow.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 MLOPS ══ -->
+  <section id="mlops">
+  <h2>03 — MLOps — why models need their own platform</h2>
+  <p>If a model is just a file, and inference is just an API call, why does it need an entire platform? Why can't a data scientist train a model on their laptop, export it, and deploy it as a container the same way any other microservice is deployed? The answer is that models have a lifecycle that is fundamentally different from application code — and that difference creates operational problems that standard DevOps tooling cannot solve.</p>
+
+  <h3>The four ways models are different from application code</h3>
+  <p><strong>1. Models degrade over time without code changes.</strong> An application written correctly continues to work correctly unless someone changes the code or the environment. A model can degrade — silently, with no errors — simply because the world changed. A fraud detection model trained on 2022 transaction data may perform poorly in 2025 because fraud patterns evolved. The model file has not changed. The code that serves it has not changed. But the model is producing worse predictions. This is called "model drift" and it has no equivalent in traditional software. It requires continuous monitoring and periodic retraining — automated processes that standard CI/CD pipelines have no concept of.</p>
+  <p><strong>2. Training requires different compute than inference.</strong> Training a model requires large amounts of GPU memory for long periods — minutes to days for large models. Inference requires low latency — milliseconds per prediction, potentially thousands of times per second. These are opposite compute profiles. A GPU node provisioned for training (large memory, tolerant of batch latency) is different from a GPU node provisioned for inference (fast, real-time, potentially multiple concurrent requests). The platform needs to manage both profiles.</p>
+  <p><strong>3. Models have data dependencies, not just code dependencies.</strong> A model's behaviour is determined by the data it was trained on, not just its architecture. Two model files with identical architecture but trained on different datasets will behave completely differently. Versioning a model requires versioning the training data, the preprocessing steps, the hyperparameters, and the evaluation results — none of which are captured by a standard Git repository or container registry.</p>
+  <p><strong>4. Reproducing a model requires reproducing a pipeline, not a build.</strong> If a security vulnerability is found in an application, the fix is: patch the code, build a new container, deploy. If a model is found to be biased or inaccurate, the fix is: collect better data, retrain with corrected preprocessing, evaluate on held-out data, validate fairness metrics, promote through staging, deploy. This is a pipeline, not a build step. It must be automated, auditable, and repeatable.</p>
+
+  <div class="callout ai">
+    <span class="cl">MLOps in one sentence</span>
+    <p>MLOps is the set of practices and tooling that applies DevOps principles — automation, reproducibility, versioning, monitoring — to the machine learning model lifecycle, accounting for the ways that lifecycle differs fundamentally from application software development. OpenShift AI is Red Hat's enterprise MLOps platform built on Kubernetes.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 ODH RHOAI ══ -->
+  <section id="odh-rhoai">
+  <h2>04 — ODH and RHOAI — upstream, downstream, and why it matters</h2>
+  <p>Red Hat OpenShift AI (RHOAI) is built on Open Data Hub (ODH). Understanding the relationship between them prevents confusion about what you are installing, where features come from, and why the release cadence differs between the two.</p>
+
+  <h3>Open Data Hub — the upstream community project</h3>
+  <p>Open Data Hub is an open-source, community-driven AI/ML platform that runs on Kubernetes. It is the upstream project — the place where new features are developed, experimented with, and proven before being productised. ODH is roughly analogous to CentOS Stream (the upstream for RHEL) — it is where the work happens, it is usable, but it carries no enterprise support SLA, no guaranteed upgrade path, and no commitment to production stability.</p>
+  <p>ODH assembles existing open-source AI/ML tools into a cohesive platform: JupyterHub for notebooks, KServe for model serving, Kubeflow Pipelines for pipeline orchestration, MLflow for experiment tracking. ODH's contribution is the integration layer — making these independent projects work together on Kubernetes, with a unified UI (the ODH Dashboard) and a unified operator.</p>
+
+  <h3>Red Hat OpenShift AI — the downstream supported product</h3>
+  <p>RHOAI takes a curated, tested, and supported subset of ODH and packages it as a Red Hat product. The key differences from ODH:</p>
+
+  <div class="stack">
+    <div class="stack-row">
+      <div class="stack-label">Support</div>
+      <div class="stack-content">
+        <span class="stack-chip sc-red">RHOAI: Red Hat enterprise support SLA</span>
+        <span class="stack-chip">ODH: Community only — file a GitHub issue</span>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">Release cadence</div>
+      <div class="stack-content">
+        <span class="stack-chip sc-red">RHOAI: Versioned releases, tested against specific OCP versions</span>
+        <span class="stack-chip">ODH: More frequent, less predictable</span>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">Certification</div>
+      <div class="stack-content">
+        <span class="stack-chip sc-red">RHOAI: Images from registry.redhat.io — CVE scanned, FIPS eligible</span>
+        <span class="stack-chip">ODH: Upstream container images — no CVE SLA</span>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">Feature set</div>
+      <div class="stack-content">
+        <span class="stack-chip sc-red">RHOAI: Curated — only components that passed Red Hat QE</span>
+        <span class="stack-chip">ODH: All upstream components, including experimental</span>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">Installation</div>
+      <div class="stack-content">
+        <span class="stack-chip sc-red">RHOAI operator from Red Hat OLM catalog</span>
+        <span class="stack-chip">ODH operator from OperatorHub community catalog</span>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-label">Licensing</div>
+      <div class="stack-content">
+        <span class="stack-chip sc-red">RHOAI: Requires Red Hat OpenShift AI subscription</span>
+        <span class="stack-chip">ODH: Free — Apache 2.0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout why">
+    <span class="cl">Why this matters in a consulting engagement</span>
+    <p>When a customer asks "can we use the free version instead of buying RHOAI?", the answer requires nuance. ODH is viable for a team of data scientists running experiments in a dev environment. It is not viable for a regulated banking institution running production fraud detection models — because the CVE responsibility, the upgrade path, and the support SLA all fall on the customer's internal team. For NovaCrestBank, the choice is RHOAI: the bank operates under APRA CPS 234 and PCI-DSS requirements that mandate enterprise support for components in production systems. A community-only supported AI platform would not pass a regulatory audit.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 COMPONENTS ══ -->
+  <section id="components">
+  <h2>05 — Every RHOAI component — what it does and when you need it</h2>
+  <p>RHOAI is not a single application. It is a set of components that can be individually enabled or disabled in the DataScienceCluster CR. Understanding each component independently — what problem it solves, what it does not do, and when a customer genuinely needs it — is essential for scoping an engagement correctly. Installing every component for every customer wastes resources and creates complexity without value.</p>
+
+  <div class="comp-grid">
+    <div class="comp-card">
+      <div class="comp-tag ct-odh">Dashboard</div>
+      <div class="comp-name">RHOAI Dashboard</div>
+      <div class="comp-desc">The web UI for RHOAI. Data scientists use it to create DataScienceProjects, launch Workbenches (Jupyter notebooks), deploy models, view pipeline runs, and access the model registry. Administrators use it to manage user permissions per project. Built as an OCP Route — accessible from any browser.</div>
+      <div class="comp-when">When to enable: Always. It is the primary interface for all users and administrators. There is no scenario where you install RHOAI without the Dashboard.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-odh">Workbenches</div>
+      <div class="comp-name">Workbenches (Jupyter)</div>
+      <div class="comp-desc">A Workbench is a Jupyter notebook server running as a pod on OCP, with a persistent PVC for notebook storage. Data scientists write, run, and iterate on ML code inside Workbenches. RHOAI provides pre-built Workbench images (Standard Data Science, PyTorch, TensorFlow, CUDA-enabled variants for GPU-attached Workbenches). Each Workbench is scoped to a DataScienceProject.</div>
+      <div class="comp-when">When to enable: When the customer has data scientists who will write model code on the platform. If the customer's data scientists use external tools (SageMaker Studio, Databricks) and only deploy finished models to RHOAI, Workbenches may not be needed.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-kserve">Model Serving</div>
+      <div class="comp-name">KServe (Single-Model Serving)</div>
+      <div class="comp-desc">KServe hosts one model per InferenceService pod. Provides a dedicated REST and gRPC endpoint per model with full GPU resource allocation per model. Supports autoscaling including scale-to-zero (the model pod can stop when idle and restart on demand — important for cost control). Used when a model requires exclusive GPU access, consistent low latency, or when each model's endpoint needs to be independently scalable.</div>
+      <div class="comp-when">When to enable: When the customer has latency-sensitive inference requirements (sub-100ms) or when models require exclusive GPU allocation. NovaCrestBank's Fraud Detection System uses KServe for exactly this reason.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-kserve">Model Serving</div>
+      <div class="comp-name">ModelMesh (Multi-Model Serving)</div>
+      <div class="comp-desc">ModelMesh hosts many models inside a shared pool of serving pods. Models are loaded and evicted from GPU/CPU memory dynamically based on demand. Efficient when you have many models but not all are called frequently. One ModelMesh deployment can serve dozens of models using far fewer GPU resources than one KServe deployment per model. Latency is higher than KServe because models may need to be loaded on first request.</div>
+      <div class="comp-when">When to enable: When the customer has many models with infrequent or unpredictable traffic patterns, or when GPU resources are constrained and must be shared across models. NovaCrestBank's Document Intelligence System uses ModelMesh for its NLP extraction models.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-pipe">Pipelines</div>
+      <div class="comp-name">Data Science Pipelines (DSP)</div>
+      <div class="comp-desc">An OCP-native wrapper around Kubeflow Pipelines v2. A pipeline is a directed acyclic graph (DAG) of steps: ingest data, preprocess, train, evaluate, register model, deploy. Each step runs as a separate pod with its own container image, resources, and S3 artifact storage. Pipelines can be triggered manually, on a schedule, or by external events (Alertmanager webhook, S3 event). Pipeline run history is stored and browsable in the RHOAI Dashboard.</div>
+      <div class="comp-when">When to enable: When the customer needs to automate the model training and deployment process. Essential for production ML platforms where models are retrained periodically. Not needed if the customer only deploys pre-trained models from external sources.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-reg">Registry</div>
+      <div class="comp-name">Model Registry</div>
+      <div class="comp-desc">A versioned catalogue of trained models with metadata: training dataset reference, hyperparameters, evaluation metrics, deployment history, and approval status. Data scientists register models here after successful training. MLOps engineers promote models from "Candidate" to "Production" through the registry. Provides the audit trail that regulated industries require — every model deployed to production has a traceable lineage back to its training run and dataset.</div>
+      <div class="comp-when">When to enable: When the customer operates in a regulated industry (banking, healthcare, insurance) or when multiple data scientists are producing models and governance of which model version is in production is required. Essential for NovaCrestBank — APRA CPS 230 model risk governance requires traceable model lineage.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-trust">TrustyAI</div>
+      <div class="comp-name">TrustyAI (Explainability &amp; Fairness)</div>
+      <div class="comp-desc">TrustyAI monitors deployed models for two properties: explainability (why did the model produce this prediction?) and fairness (does the model treat different demographic groups differently?). For explainability, it uses SHAP (SHapley Additive exPlanations) to produce per-prediction explanations: "this transaction was flagged because the merchant category had weight 0.42, the time of day had weight 0.31, and the deviation from usual spend pattern had weight 0.27." For fairness, it computes statistical parity metrics across protected attributes (age, gender, ethnicity).</div>
+      <div class="comp-when">When to enable: In regulated industries where model decisions affect individuals and regulators may require explanation of automated decisions. Also when the organisation has a model risk governance function. For NovaCrestBank — credit scoring and fraud flagging decisions can legally require explanation. Enable for any model whose decisions affect customers directly.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag ct-pipe">Distributed</div>
+      <div class="comp-name">Ray / CodeFlare</div>
+      <div class="comp-desc">Ray is a distributed computing framework for Python workloads. In RHOAI, it enables distributed model training across multiple GPU nodes — training a single large model whose parameters do not fit in one GPU's memory by splitting the work across multiple GPUs across multiple nodes. CodeFlare is the Kubernetes operator that manages Ray clusters on OCP. Not needed for inference. Needed only for training very large models.</div>
+      <div class="comp-when">When to enable: When the customer needs to train large models (LLMs, large vision transformers) that require multi-GPU distributed training. Not needed for inference or for training smaller models that fit on a single GPU. NovaCrestBank's Phase 1 use cases (FDS, KDIS) use pre-trained or smaller models — Ray is not required.</div>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 KSERVE DEEP ══ -->
+  <section id="kserve-deep">
+  <h2>06 — KServe — the model serving engine in depth</h2>
+  <p>KServe is the most important component to understand deeply, because it is where the model meets production traffic. Every inference request that a banking application sends to a model goes through KServe. Getting the KServe configuration right determines whether the AI platform delivers the latency, availability, and scalability the business requires.</p>
+
+  <h3>How KServe works — the architecture</h3>
+  <p>When you create an InferenceService object in Kubernetes (the KServe CR), KServe does four things automatically. First, it downloads the model from wherever it is stored — an S3-compatible object store (ODF MCG, AWS S3, MinIO), an OCI registry (Harbor), or a PVC. Second, it starts a serving runtime container — a process that loads the model into memory and exposes a REST and gRPC API that accepts inference requests. Third, it creates a Kubernetes Service and an OCP Route that expose the inference endpoint to callers. Fourth, it configures a Horizontal Pod Autoscaler (HPA) that scales the number of serving runtime pods up or down based on request rate — including all the way down to zero when no requests arrive.</p>
+
+  <h3>The three parts of an InferenceService</h3>
+  <p>An InferenceService has three optional components. Only the predictor is mandatory.</p>
+  <p><strong>Predictor</strong> — the component that actually loads the model and serves predictions. You specify the model format (ONNX, TensorFlow, TorchScript, HuggingFace) and the serving runtime to use. KServe routes inference requests to the predictor. This is the minimum viable InferenceService.</p>
+  <p><strong>Transformer</strong> — an optional pre- and post-processing layer that runs before the predictor receives the request and after it returns the response. Use it when the raw model input/output format differs from what the calling application sends/expects. For example: a banking application sends a JSON payload with a transaction object. The predictor expects a numerical feature vector. The transformer converts between the two. This keeps preprocessing logic out of the calling application and inside the AI platform boundary.</p>
+  <p><strong>Explainer</strong> — an optional component that, when called, returns an explanation of why the predictor produced its output for a specific input. Powered by TrustyAI. Used by the NovaCrestBank model risk team when they need to audit a specific fraud flagging decision.</p>
+
+  <h3>Serving runtimes — what they are and which to choose</h3>
+  <p>A ServingRuntime is a container that knows how to load a specific model format and serve it via a standardised API. RHOAI ships with pre-configured ClusterServingRuntimes. The choice of runtime is determined by the model format.</p>
+  <table>
+    <thead><tr><th>ServingRuntime</th><th>Model formats supported</th><th>When to use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>NVIDIA Triton</strong></td><td>ONNX, TensorFlow, TorchScript, Python (custom), FIL (XGBoost/LightGBM)</td><td>The default choice for GPU-accelerated inference. Triton is highly optimised for NVIDIA GPUs — it uses CUDA directly, supports concurrent model execution on a single GPU, and provides dynamic batching (accumulates multiple requests into a single batch for GPU efficiency). For NovaCrestBank FDS: ONNX model + Triton on A100 GPU.</td></tr>
+      <tr><td><strong>OpenVINO</strong></td><td>ONNX, TensorFlow, PaddlePaddle, MXNet</td><td>CPU-optimised inference. Intel-developed runtime that uses hardware-specific instruction sets (AVX-512, AMX) for fast CPU inference. Use when GPU is not available or when latency is tolerable on CPU. Lower cost than GPU inference for moderate request rates.</td></tr>
+      <tr><td><strong>TorchServe</strong></td><td>PyTorch (TorchScript, Eager mode)</td><td>When the model is a PyTorch model that has not been exported to ONNX. Useful for models that rely on PyTorch-specific features that ONNX does not capture.</td></tr>
+      <tr><td><strong>HuggingFace TGI</strong></td><td>HuggingFace Transformer models (BERT, GPT, T5, Mistral, Llama)</td><td>For large language models and transformer-based NLP models. Text Generation Inference (TGI) is optimised specifically for autoregressive text generation — it uses PagedAttention for efficient GPU memory management. For KDIS NLP extraction models.</td></tr>
+      <tr><td><strong>Custom (gRPC/REST)</strong></td><td>Any model with a custom container</td><td>When none of the above runtimes supports the model. Customer provides their own container image that implements the KServe v2 inference protocol.</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 PIPELINES DEEP ══ -->
+  <section id="pipelines-deep">
+  <h2>07 — Data Science Pipelines — the automation engine in depth</h2>
+  <p>Data Science Pipelines (DSP) is how the model training, evaluation, and deployment process is automated. Without pipelines, a data scientist trains a model manually in a Workbench, manually evaluates it, manually registers it, and manually deploys it. This is viable for a team of two in a proof-of-concept. It is not viable for a production banking platform where models must be retrained when drift is detected, where every training run must be auditable, and where a bad model must be automatically rejected before it reaches production.</p>
+
+  <h3>What a pipeline looks like — conceptually</h3>
+  <p>A pipeline is a Python function decorated with KFP (Kubeflow Pipelines) SDK annotations. The annotations tell the pipeline engine: this function is a pipeline step, it takes these inputs, it produces these outputs, it should run in this container image, and it should request these compute resources. The pipeline engine translates the decorated Python into a pipeline definition (YAML) that describes the DAG — which steps depend on which other steps, what data flows between them, and what to do when a step fails.</p>
+  <p>When a pipeline is compiled and uploaded to RHOAI, it appears in the Dashboard. A PipelineRun is an execution of a pipeline — like a CI/CD job run. The RHOAI Dashboard shows all PipelineRuns, their status per step, their logs, and their output artifacts. Every PipelineRun is stored with its inputs, outputs, and the model registry entry it produced — creating a complete audit trail from trigger to deployed model.</p>
+
+  <h3>Pipeline artifact storage — why ODF MCG is the right choice</h3>
+  <p>Each pipeline step produces artifacts — intermediate datasets, preprocessed feature files, trained model files, evaluation reports. These artifacts are stored in an S3-compatible object store between steps. RHOAI's DSP operator creates an ObjectBucketClaim in ODF MCG automatically when a DataSciencePipelines component is enabled. This is the correct integration for NovaCrestBank: the pipeline artifact store is on the same OCP cluster as the pipeline workloads, under the same ODF storage that backs VM disks and snapshots. No external S3 dependency, no data leaving the cluster boundary — which satisfies APRA CPS 234 data sovereignty requirements for model training data.</p>
+
+  <div class="callout ai">
+    <span class="cl">Pipelines vs CI/CD — the relationship a platform engineer needs to understand</span>
+    <p>Data Science Pipelines are not a replacement for Argo CD or Tekton. They solve a different problem. Argo CD manages the deployment of Kubernetes manifests — including InferenceService CRs. DSP manages the process of producing the model that an InferenceService will serve. The two tools work in sequence: DSP trains and registers the model → the Model Registry is updated → Argo CD detects the new model version in the InferenceService CR → Argo CD deploys the updated InferenceService. Neither tool duplicates the other's function.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 WHY GPU ══ -->
+  <section id="why-gpu">
+  <h2>08 — Why AI needs a GPU — explained from physics up</h2>
+  <p>This is the question that platform engineers ask most often: why can't we run the AI workloads on the same CPUs that run everything else? The answer is not "because GPUs are faster." The answer is more specific — and understanding it correctly prevents expensive mistakes in infrastructure planning.</p>
+
+  <h3>What a CPU is optimised for</h3>
+  <p>A CPU is designed to execute instructions as quickly as possible, one after another, with low latency. A modern server CPU has between 16 and 128 cores. Each core is a highly complex execution unit with deep out-of-order execution pipelines, large caches, and sophisticated branch prediction — all designed to minimise the time between when an instruction is issued and when its result is available. CPUs excel at tasks where instructions depend heavily on each other (the result of step 3 is needed to compute step 4) and where the sequence of operations branches unpredictably (if/else logic, function calls, event-driven code). This describes most application software — web servers, database engines, operating system kernels.</p>
+
+  <h3>What a GPU is optimised for</h3>
+  <p>A GPU is designed to execute the same operation on thousands of data points simultaneously — not sequentially. A modern data centre GPU (NVIDIA A100) has 6,912 CUDA cores. Each core is far simpler than a CPU core — it cannot do complex branching, it has minimal cache, and its per-core performance on sequential tasks is much lower than a CPU core. But 6,912 cores all operating in parallel on the same mathematical operation can process data at a throughput that no CPU array can match.</p>
+  <p>This matters for machine learning because the fundamental operation in both training and inference is matrix multiplication. When a model processes an input, it multiplies the input vector by a large matrix of weights — potentially millions or billions of multiplications that are all independent of each other. Every multiplication can happen simultaneously. A CPU performs these multiplications sequentially across its 64–128 cores. A GPU performs them all at once across its 6,912 cores. For a matrix operation with 1 million multiplications, the GPU is not "faster" — it is operating on a different axis entirely.</p>
+
+  <div class="callout nvidia">
+    <span class="cl">The concrete numbers that make the case to a customer</span>
+    <p>NVIDIA A100 80GB: 312 TFLOPS (Tensor Float 32) for AI workloads. A high-end Intel Xeon Scalable CPU: ~3–5 TFLOPS. For inference throughput on a transformer-based NLP model (BERT-large): a single A100 can process approximately 3,000–5,000 inference requests per second. The same workload on CPU: approximately 50–150 requests per second. The GPU is not "60× faster" — it operates at a completely different scale. For NovaCrestBank's FDS fraud scoring, which must return a risk score within the payment authorisation timeout (typically 300ms round-trip including network), GPU inference makes the latency budget achievable at production transaction volumes. CPU inference does not.</p>
+  </div>
+
+  <h3>Training vs inference — different GPU requirements</h3>
+  <p>Training requires maximum GPU memory and compute — the model weights, the gradients, and the optimizer state all live in GPU memory simultaneously. An NVIDIA A100 80GB can train a model with up to approximately 10 billion parameters in 16-bit precision. Training runs for hours to days. During training, the GPU is fully utilised continuously.</p>
+  <p>Inference requires low latency and potentially high throughput — the model weights live in GPU memory, and inference requests are processed as they arrive. An A100 80GB serving a fraud detection model (typically 100M–500M parameters) will have substantial free GPU memory — which is why multiple models can share a GPU in ModelMesh mode, or why a single GPU node can serve multiple concurrent InferenceService deployments if they are small models.</p>
+
+  <h3>Why the DL385 Gen11 was chosen for this — reference to VIRT-00</h3>
+  <p>This decision was made deliberately in VIRT-00 Section 04 — before OpenShift AI was built. The DL385 Gen11 nodes provide 6 × PCIe 5.0 ×16 slots per node, reserved explicitly for future GPU expansion. The rationale at the time: NVIDIA and AMD data centre GPUs use 16 PCIe 5.0 lanes per card. Nodes with fewer PCIe lanes cannot host multiple GPUs without contention. By choosing DL385 Gen11 for OpenShift Virtualization, NovaCrestBank preserved the option to add GPU cards to existing servers for OpenShift AI — without a hardware refresh. The two nodes selected for GPU expansion in Series VI (bm-virt-04 and bm-virt-05) receive one NVIDIA A100 80GB PCIe card each, using one of their six available PCIe 5.0 ×16 slots. The remaining five PCIe slots on each node remain available for additional GPUs as the AI workload grows.</p>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 GPU OPERATOR ══ -->
+  <section id="gpu-operator">
+  <h2>09 — NVIDIA GPU Operator — every component explained</h2>
+  <p>Installing a GPU card in a server and plugging it into an OCP cluster does not make the GPU usable by Kubernetes pods. Kubernetes has no native awareness of GPU hardware. Making a GPU schedulable as a Kubernetes resource requires software components that span the host OS, the container runtime, and the Kubernetes scheduler. The NVIDIA GPU Operator installs and manages all of these components automatically.</p>
+
+  <div class="callout warn">
+    <span class="cl">Why you cannot just install the NVIDIA driver the normal way on RHCOS</span>
+    <p>On a standard RHEL server, you install the NVIDIA driver with <code>dnf install nvidia-driver</code>, reboot, and the GPU is available. On RHCOS (Red Hat CoreOS) — the OS that runs on all OCP nodes — this approach does not work. RHCOS is an immutable operating system. Its root filesystem is read-only and managed by the Machine Config Operator. You cannot install packages with dnf. You cannot modify kernel modules directly. The OS image is baked and updated atomically. The NVIDIA GPU Operator solves this by running the NVIDIA driver inside a privileged container on the node — a "driver container" that mounts the host filesystem and loads the kernel module without permanently modifying the host OS. When the GPU Operator is updated, the driver container is updated, and the new driver is loaded without touching the RHCOS image itself. This is the only supported approach for GPU drivers on RHCOS.</p>
+  </div>
+
+  <h3>The four components the GPU Operator installs and manages</h3>
+
+  <p><strong>1. Node Feature Discovery (NFD)</strong></p>
+  <p>NFD is a Kubernetes operator that scans every node's hardware and labels the node with what it finds. When bm-virt-04 has an NVIDIA A100 PCIe card installed, NFD automatically adds labels including <code>nvidia.com/gpu.present=true</code>, <code>nvidia.com/gpu.product=A100-PCIE-80GB</code>, and <code>nvidia.com/gpu.count=1</code>. These labels are how the GPU Operator knows which nodes need GPU driver software, and how KServe InferenceService pods know which nodes to schedule on. NFD must be installed and healthy before the GPU Operator can do anything useful.</p>
+
+  <p><strong>2. GPU Driver Container</strong></p>
+  <p>The GPU Operator deploys a DaemonSet pod on every node labelled <code>nvidia.com/gpu.present=true</code>. This pod runs the NVIDIA driver installation process: it mounts the host's <code>/run/nvidia</code> directory, compiles and loads the NVIDIA kernel module (<code>nvidia.ko</code>), and makes the GPU device files (<code>/dev/nvidia0</code>, <code>/dev/nvidiactl</code>, <code>/dev/nvidia-uvm</code>) available on the host. After this pod completes successfully, the node can access the GPU at the hardware level. The driver version is set in the ClusterPolicy CR and the GPU Operator manages upgrades — updating the driver container image updates the GPU driver across all GPU nodes without requiring node reboots in most cases.</p>
+
+  <p><strong>3. NVIDIA Device Plugin</strong></p>
+  <p>The Device Plugin is a Kubernetes DaemonSet that registers the GPU as a schedulable resource with the kubelet on each GPU node. After the Device Plugin runs, the node's capacity includes <code>nvidia.com/gpu: 1</code>. This is how Kubernetes knows the node has a GPU and how pods can request GPU resources. A pod that declares <code>resources.requests: nvidia.com/gpu: 1</code> will only be scheduled on a node where the Device Plugin has registered a GPU. Without the Device Plugin, Kubernetes cannot schedule GPU workloads — it has no awareness that the GPU exists even if the driver is installed.</p>
+
+  <p><strong>4. DCGM Exporter (Data Centre GPU Manager)</strong></p>
+  <p>DCGM is NVIDIA's library for monitoring and managing GPUs at the datacenter level. The DCGM Exporter runs as a DaemonSet on GPU nodes and exposes GPU metrics in Prometheus format on port 9400. The metrics it exports include: GPU utilisation (% of GPU compute cycles being used), GPU memory used/total, GPU temperature, GPU power draw, GPU clock speed, and PCIe bandwidth. These metrics are scraped by the cluster Prometheus and can be displayed in Grafana dashboards or used in PrometheusRules (e.g., alert when GPU temperature exceeds 85°C for more than 2 minutes). For NovaCrestBank: DCGM metrics allow the platform team to know whether the FDS inference workload is GPU-bound, whether the GPU is running hot under sustained load, and whether the A100 cards are being utilised or sitting idle.</p>
+
+  <h3>The ClusterPolicy CR — the single control point</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">ClusterPolicy — the GPU Operator control plane — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">nvidia.com/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">ClusterPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">gpu-cluster-policy</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">driver</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # true: deploy the NVIDIA driver container on all GPU nodes.
+    # This is the component that loads the kernel module on RHCOS.
+    # Set false only if you have a pre-installed driver on non-RHCOS nodes
+    # (never the case on OCP).</span>
+    <span class="yk">version</span><span class="yc">:</span> <span class="yv">"550.54.15"</span>
+    <span class="yc">    # The NVIDIA driver version to install. Must be compatible with:
+    # 1. The RHCOS kernel version on your nodes
+    # 2. The CUDA version your model serving runtimes expect
+    # 3. The NVIDIA A100 firmware version
+    # Check the GPU Operator compatibility matrix before selecting a version.
+    # Upgrading this version triggers a rolling restart of the driver DaemonSet.</span>
+    <span class="yk">repoConfig</span><span class="yc">:</span>
+      <span class="yk">configMapName</span><span class="yc">:</span> <span class="yv">repo-config</span>
+      <span class="yc">      # NovaCrestBank runs in a partially air-gapped environment.
+      # Driver packages are mirrored to the internal Nexus repository.
+      # This ConfigMap points the driver container to the internal mirror
+      # instead of attempting to reach developer.download.nvidia.com.</span>
+
+  <span class="yk">toolkit</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # The NVIDIA Container Toolkit configures the container runtime (CRI-O on OCP)
+    # to expose GPU devices to containers that request them.
+    # Without the toolkit, even with the driver and device plugin installed,
+    # containers cannot access /dev/nvidia* — they can request the GPU resource
+    # but cannot actually use the GPU hardware.
+    # Think of it as the bridge between Kubernetes resource allocation
+    # and the actual hardware device file.</span>
+
+  <span class="yk">devicePlugin</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # Registers nvidia.com/gpu as a schedulable Kubernetes resource.
+    # Required. Without this, Kubernetes cannot schedule GPU workloads.</span>
+    <span class="yk">config</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">device-plugin-config</span>
+      <span class="yc">      # ConfigMap that controls time-slicing — splitting one physical GPU
+      # into multiple logical GPU resources for shared access.
+      # NovaCrestBank does not use time-slicing: each InferenceService
+      # gets an exclusive GPU. Time-slicing is appropriate for dev/test
+      # environments where multiple small workloads share one GPU.</span>
+
+  <span class="yk">dcgmExporter</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # DCGM metrics exposed on port 9400 for Prometheus scraping.
+    # The existing cluster Prometheus (from the OCP monitoring stack)
+    # will scrape these metrics automatically if a ServiceMonitor is created.</span>
+    <span class="yk">config</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">dcgm-metrics-config</span>
+      <span class="yc">      # Selects which DCGM metrics to export. The default set includes
+      # the most useful operational metrics. Extended metrics (NVLink bandwidth,
+      # multi-instance GPU utilisation) can be added via this ConfigMap.</span>
+
+  <span class="yk">nodeStatusExporter</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # Exports GPU Operator component health as Kubernetes conditions on each node.
+    # Allows the platform team to check GPU readiness:
+    #   oc get node bm-virt-04 -o jsonpath='{.status.conditions}' | jq '.[] | select(.type | contains("nvidia"))'
+    # Each component (driver, toolkit, device plugin) appears as a node condition.</span>
+
+  <span class="yk">mig</span><span class="yc">:</span>
+    <span class="yk">strategy</span><span class="yc">:</span> <span class="yv">none</span>
+    <span class="yc">    # MIG (Multi-Instance GPU): NVIDIA A100 and H100 can be partitioned into
+    # multiple isolated GPU instances — for example, 7 × 10GB slices from one 80GB A100.
+    # Each slice appears as an independent GPU to the OS and Kubernetes.
+    # strategy: none — do not partition. Each A100 is used as one whole GPU.
+    # strategy: single — all A100s use the same MIG profile (e.g., all 7×1g.10gb)
+    # strategy: mixed — different A100s can use different MIG profiles
+    #
+    # NovaCrestBank Phase 1 uses strategy: none — the FDS model gets an entire A100.
+    # As the model portfolio grows, MIG partitioning allows the same GPU to serve
+    # multiple smaller models simultaneously without ModelMesh overhead.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify GPU Operator is fully operational after installation</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: Node Feature Discovery has labelled the GPU nodes ══════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -l nvidia.com/gpu.present=true \
+  -o custom-columns="NODE:.metadata.name,GPU:.metadata.labels['nvidia\.com/gpu\.product']"</span>
+<span class="tg">NODE          GPU
+bm-virt-04    A100-PCIE-80GB
+bm-virt-05    A100-PCIE-80GB</span>
+<span class="tok">✓ NFD has detected and labelled both A100 GPUs. Two nodes have GPUs.</span>
+
+<span class="section">! ══ CHECK 2: All GPU Operator pods are Running ══════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n nvidia-gpu-operator \
+  --no-headers | grep -v Running</span>
+<span class="tg">(no output)</span>
+<span class="tok">✓ All GPU Operator pods Running. No pods in error state.</span>
+
+<span class="section">! ══ CHECK 3: GPU resource is registered with Kubernetes ══════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get node bm-virt-04 \
+  -o jsonpath='{.status.capacity}' | python3 -c \
+  "import json,sys; c=json.load(sys.stdin); print(f'GPUs: {c.get(\"nvidia.com/gpu\",\"0\")}')"</span>
+<span class="tg">GPUs: 1</span>
+<span class="tok">✓ nvidia.com/gpu: 1 in node capacity. The GPU is schedulable by Kubernetes.
+  A pod declaring resources.requests.nvidia.com/gpu: 1 will schedule on this node.</span>
+
+<span class="section">! ══ CHECK 4: DCGM metrics are being exported ═════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n nvidia-gpu-operator \
+  $(oc get pods -n nvidia-gpu-operator -l app=nvidia-dcgm-exporter \
+    -o jsonpath='{.items[0].metadata.name}') -- \
+  curl -s localhost:9400/metrics | grep "DCGM_FI_DEV_GPU_UTIL" | head -3</span>
+<span class="tg">DCGM_FI_DEV_GPU_UTIL{gpu="0",UUID="GPU-abc123"} 0
+DCGM_FI_DEV_GPU_UTIL{gpu="0",UUID="GPU-abc123"} 0</span>
+<span class="tok">✓ DCGM metrics flowing. GPU utilisation currently 0% (no inference workload running yet).
+  Prometheus will scrape these metrics via the ServiceMonitor created by the GPU Operator.</span>
+
+<span class="section">! ══ CHECK 5: Confirm GPU is usable by a test pod ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc run gpu-test --image=nvidia/cuda:12.3.0-base-ubi9 \
+  --restart=Never --rm -it \
+  --overrides='{"spec":{"containers":[{"name":"gpu-test",
+    "image":"nvidia/cuda:12.3.0-base-ubi9",
+    "command":["nvidia-smi"],
+    "resources":{"limits":{"nvidia.com/gpu":"1"}}}],
+    "tolerations":[{"key":"nvidia.com/gpu","effect":"NoSchedule","operator":"Exists"}]}}'</span>
+<span class="tg">+-----------------------------------------------------------------------------+
+| NVIDIA-SMI 550.54.15   Driver Version: 550.54.15   CUDA Version: 12.4     |
++-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  A100-PCIE-80GB      Off  | 00000000:65:00.0 Off |                    0 |
+| N/A   32C    P0    37W / 250W |      0MiB / 81920MiB |      0%      Default |
++-----------------------------------------------------------------------------+</span>
+<span class="tok">✓ nvidia-smi running inside a container and seeing the A100 GPU.
+  Driver 550.54.15, CUDA 12.4, 80GB memory available, 32°C, 37W idle power draw.
+  GPU Operator is fully operational. RHOAI can now use this GPU for inference.</span></pre>
+    </div>
+  </div>
+  </section>
+
+
+  <!-- ══ 10 USE CASE FDS ══ -->
+  <section id="use-case-fds">
+  <h2>10 — Fraud Detection System — architecture decisions</h2>
+  <p>NovaCrestBank's Fraud Detection System (FDS) scores every payment transaction in real time and returns a risk score before the payment is authorised. The banking application vm-banking-app-01 — which runs inside an OCP Virt KubeVirt VM — makes an API call to the FDS model endpoint for every transaction. The FDS must return a score within the payment authorisation timeout. This is a latency-critical, high-throughput inference problem. Every architecture decision below follows from those two constraints.</p>
+
+  <h3>The business requirement — stated precisely</h3>
+  <table>
+    <thead><tr><th>Requirement</th><th>Value</th><th>Why it matters architecturally</th></tr></thead>
+    <tbody>
+      <tr><td>Inference latency (p99)</td><td>&lt; 80ms</td><td>The payment authorisation round-trip must complete within 300ms. Network adds ~20ms. Application processing adds ~50ms. The model must score in &lt;80ms at the 99th percentile — not on average. A fast average with a slow tail kills the user experience.</td></tr>
+      <tr><td>Throughput</td><td>500 transactions/second peak</td><td>NovaCrestBank's peak payment volume occurs Friday afternoon. At 500 TPS, the inference endpoint must handle 500 concurrent (or batched) requests per second without degradation.</td></tr>
+      <tr><td>Availability</td><td>99.99% (4 nines)</td><td>Fraud detection is on the critical path of every payment. If the FDS endpoint is down, payments cannot be processed. This is not a best-effort service.</td></tr>
+      <tr><td>Model format</td><td>ONNX</td><td>The data science team exports models to ONNX from their PyTorch training pipeline. ONNX is the portability choice — it allows the serving runtime to be changed without retraining.</td></tr>
+      <tr><td>Audit trail</td><td>Every decision explainable</td><td>APRA CPS 230 and AUSTRAC AML obligations require that automated fraud decisions be explainable to regulators on request. TrustyAI must be enabled for FDS.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Architecture decision 1: KServe single-model serving, not ModelMesh</h3>
+  <p>ModelMesh is more GPU-efficient — it shares GPU resources across models. But ModelMesh has higher latency because models may be evicted from GPU memory when idle and must be reloaded on the next request. The FDS model is called at high frequency continuously during banking hours. It will never be evicted. ModelMesh's efficiency advantage does not apply. KServe single-model serving is the correct choice because it gives the FDS model a dedicated GPU allocation, a dedicated serving runtime, and a dedicated endpoint — with no competing workloads on the same inference pod.</p>
+
+  <h3>Architecture decision 2: NVIDIA Triton as the ServingRuntime</h3>
+  <p>Triton is chosen over OpenVINO (CPU) and TorchServe because: the model is ONNX format (Triton supports ONNX natively), a GPU is available (Triton uses CUDA directly for maximum GPU utilisation), and Triton provides dynamic batching. Dynamic batching is critical at 500 TPS: instead of processing each of 500 transactions per second individually, Triton accumulates requests arriving within a 2ms window and processes them as a single GPU batch. This reduces the number of GPU kernel launches from 500/second to approximately 50/second, dramatically improving throughput and GPU utilisation.</p>
+
+  <h3>Architecture decision 3: the Transformer component for preprocessing</h3>
+  <p>The raw transaction payload from vm-banking-app-01 is a JSON object with 30+ fields — merchant name, amount, account ID, timestamp, geolocation, device fingerprint, and so on. The ONNX model expects a fixed-length numerical feature vector of 128 dimensions. The conversion — feature engineering, encoding categorical variables, normalising numerical fields — must happen somewhere. The options are: in the calling application (vm-banking-app-01), or in the KServe Transformer component. The correct answer is the Transformer. Putting feature engineering in the calling application creates a coupling: every time the model's feature set changes, the banking application must be updated. The Transformer keeps this logic in the AI platform boundary — the banking application always sends the same transaction JSON, and the Transformer handles conversion to whatever the model expects.</p>
+
+  <h3>Architecture decision 4: two replicas minimum, autoscaling to eight</h3>
+  <p>A single InferenceService pod has a single GPU allocation. At 500 TPS with dynamic batching, one A100 is sufficient for the compute load. But availability requires at least two replicas — if one pod is evicted, the other continues serving. At the maximum autoscaling target of eight replicas, the FDS can handle sudden traffic spikes (fraud events often coincide with unusual transaction volumes) by distributing across both GPU nodes (bm-virt-04 and bm-virt-05), with pod anti-affinity ensuring replicas spread across nodes.</p>
+
+  <h3>The FDS InferenceService — annotated</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">fds-inferenceservice.yaml — NovaCrestBank Fraud Detection System model deployment</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">serving.kserve.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">InferenceService</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">fds-v2-onnx</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">fraud-detection</span>
+  <span class="yc">  # DataScienceProject namespace — scoped to the FDS team.
+  # Developers in the fraud-detection namespace have access to this InferenceService.
+  # vm-banking-app-01 is in virt-workloads namespace — cross-namespace NetworkPolicy
+  # permits the banking VM to reach this endpoint (see Section 12).</span>
+  <span class="yk">annotations</span><span class="yc">:</span>
+    <span class="yk">serving.kserve.io/deploymentMode</span><span class="yc">:</span> <span class="yv">RawDeployment</span>
+    <span class="yc">    # RawDeployment: KServe deploys a standard Kubernetes Deployment, Service,
+    # and HPA — not Knative Serving. RawDeployment is required when:
+    # 1. Knative is not installed on the cluster (NovaCrestBank does not use Knative)
+    # 2. Scale-to-zero is not desired (FDS must always have at least 2 replicas)
+    # Serverless mode uses Knative and enables scale-to-zero — appropriate for
+    # low-frequency models, not for FDS which is on the payment critical path.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">predictor</span><span class="yc">:</span>
+    <span class="yk">minReplicas</span><span class="yc">:</span> <span class="yv">2</span>
+    <span class="yc">    # minReplicas: 2 — always maintain 2 serving pods.
+    # Even at zero traffic, 2 pods are running so the endpoint is always available.
+    # Anti-affinity (below) ensures they are on different nodes.</span>
+    <span class="yk">maxReplicas</span><span class="yc">:</span> <span class="yv">4</span>
+    <span class="yc">    # maxReplicas: 4 — maximum 4 pods during traffic spikes.
+    # Limited to 4 because NovaCrestBank has 2 GPU nodes × 1 GPU each = 2 physical GPUs.
+    # Using MIG (not configured here) would allow more replicas per GPU.
+    # Each replica requests nvidia.com/gpu: 1 — 4 replicas would exceed GPU capacity.
+    # In practice: 2 replicas during normal hours, 4 only during extreme spikes
+    # where MIG partitioning would be needed. Set conservatively for Phase 1.</span>
+    <span class="yk">scaleTarget</span><span class="yc">:</span> <span class="yv">80</span>
+    <span class="yc">    # scaleTarget: target GPU utilisation (%) for HPA scaling decisions.
+    # When average GPU utilisation across pods exceeds 80%, add a replica.
+    # Below 40%, remove a replica (down to minReplicas).</span>
+    <span class="yk">model</span><span class="yc">:</span>
+      <span class="yk">modelFormat</span><span class="yc">:</span>
+        <span class="yk">name</span><span class="yc">:</span> <span class="yv">onnx</span>
+      <span class="yc">      # modelFormat: tells KServe what format the model file is in.
+      # KServe uses this to select a compatible ServingRuntime automatically
+      # (unless runtime is specified explicitly, as it is below).</span>
+      <span class="yk">runtime</span><span class="yc">:</span> <span class="yv">triton-23-10</span>
+      <span class="yc">      # runtime: explicitly specifying NVIDIA Triton as the ServingRuntime.
+      # triton-23-10 is the ClusterServingRuntime name pre-configured by RHOAI.
+      # RHOAI ships several pre-built ClusterServingRuntimes — you can also
+      # create custom ServingRuntime CRs for runtimes RHOAI does not include.</span>
+      <span class="yk">storageUri</span><span class="yc">:</span> <span class="yv">s3://rhoai-models/fds/v2.3/model.onnx</span>
+      <span class="yc">      # storageUri: where to download the model file from.
+      # s3://rhoai-models: the ODF MCG bucket configured in the RHOAI DataScienceCluster.
+      # fds/v2.3/model.onnx: the specific model version path in the bucket.
+      # KServe's storage initialiser container downloads this file at pod startup.
+      # To deploy a new model version: update this path and apply.
+      # The Argo CD GitOps workflow manages this — a model version bump is a Git commit.</span>
+      <span class="yk">resources</span><span class="yc">:</span>
+        <span class="yk">limits</span><span class="yc">:</span>
+          <span class="yk">nvidia.com/gpu</span><span class="yc">:</span> <span class="yv">"1"</span>
+          <span class="yc">          # Request 1 full A100 GPU per replica.
+          # The GPU Operator device plugin enforces this — the pod will not
+          # schedule unless a node has 1 free nvidia.com/gpu resource.
+          # Without this limit: the pod schedules on a CPU node and
+          # Triton falls back to CPU inference — 50× slower, latency SLA missed.</span>
+          <span class="yk">cpu</span><span class="yc">:</span> <span class="yv">"4"</span>
+          <span class="yk">memory</span><span class="yc">:</span> <span class="yv">16Gi</span>
+          <span class="yc">          # CPU and memory for the Triton process itself (not the GPU).
+          # Triton uses CPU for request routing, batching logic, and
+          # pre/post-processing outside the GPU kernel. 4 CPU cores and 16Gi
+          # is appropriate for 500 TPS with dynamic batching.</span>
+      <span class="yk">affinity</span><span class="yc">:</span>
+        <span class="yk">nodeAffinity</span><span class="yc">:</span>
+          <span class="yk">requiredDuringSchedulingIgnoredDuringExecution</span><span class="yc">:</span>
+            <span class="yk">nodeSelectorTerms</span><span class="yc">:</span>
+              <span class="yc">- matchExpressions:</span>
+                <span class="yc">  - key: nvidia.com/gpu.present</span>
+                    <span class="yk">operator</span><span class="yc">:</span> <span class="yv">In</span>
+                    <span class="yk">values</span><span class="yc">:</span>
+                      <span class="yc">- "true"</span>
+                      <span class="yc">              # Required nodeAffinity: only schedule on GPU nodes.
+                      # Without this: Kubernetes might schedule on a non-GPU node
+                      # because the GPU request is already satisfied by the limit.
+                      # This is belt-and-suspenders with the nvidia.com/gpu limit.</span>
+        <span class="yk">podAntiAffinity</span><span class="yc">:</span>
+          <span class="yk">requiredDuringSchedulingIgnoredDuringExecution</span><span class="yc">:</span>
+            <span class="yc">- labelSelector:</span>
+                <span class="yk">matchLabels</span><span class="yc">:</span>
+                  <span class="yk">serving.kserve.io/inferenceservice</span><span class="yc">:</span> <span class="yv">fds-v2-onnx</span>
+              <span class="yk">topologyKey</span><span class="yc">:</span> <span class="yv">kubernetes.io/hostname</span>
+              <span class="yc">              # Hard anti-affinity: no two FDS pods on the same node.
+              # With minReplicas: 2, this ensures the two pods are always on
+              # bm-virt-04 AND bm-virt-05 — never both on the same node.
+              # If bm-virt-04 fails, bm-virt-05's pod continues serving.
+              # This is how the 99.99% availability requirement is met.</span>
+  <span class="yk">transformer</span><span class="yc">:</span>
+    <span class="yc">    # The preprocessing component — converts raw transaction JSON
+    # to the 128-dimension numerical feature vector the ONNX model expects.</span>
+    <span class="yk">containers</span><span class="yc">:</span>
+      <span class="yc">- image</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.local/ai/fds-transformer:v2.3</span>
+        <span class="yc">        # Custom transformer image built from the FDS team's Python code.
+        # Stored in the internal Harbor registry — not pulled from the internet.
+        # The transformer implements the KServe v2 inference protocol:
+        # it receives the JSON request, preprocesses it to a feature vector,
+        # forwards to the predictor, receives the score, and returns it.</span>
+        <span class="yk">name</span><span class="yc">:</span> <span class="yv">fds-transformer</span>
+        <span class="yk">resources</span><span class="yc">:</span>
+          <span class="yk">limits</span><span class="yc">:</span>
+            <span class="yk">cpu</span><span class="yc">:</span> <span class="yv">"2"</span>
+            <span class="yk">memory</span><span class="yc">:</span> <span class="yv">4Gi</span>
+            <span class="yc">            # Transformer runs on CPU — feature engineering is CPU work.
+            # No GPU requested for the transformer component.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 USE CASE KDIS ══ -->
+  <section id="use-case-kdis">
+  <h2>11 — Document Intelligence System — architecture decisions</h2>
+  <p>NovaCrestBank's KYC Document Intelligence System (KDIS) processes identity documents and loan application forms submitted by customers — passports, driver's licences, bank statements, payslips. The system extracts structured data (name, date of birth, address, account numbers, income figures) from scanned images and handwritten or printed text, and writes the extracted fields into the loan origination system. Unlike FDS, KDIS is not on a real-time critical path — documents are submitted and results are expected within minutes, not milliseconds. This changes every architecture decision.</p>
+
+  <h3>Why KDIS is an async pipeline, not a synchronous endpoint</h3>
+  <p>A customer submitting a loan application uploads several documents — passport, bank statements (12 months), payslips (3 months). Processing all of them sequentially in a synchronous API call would hold an HTTP connection open for 30–120 seconds. This is poor user experience and violates typical gateway timeouts. The correct architecture is: customer submits documents → documents are stored in S3 (ODF MCG) → a pipeline is triggered → pipeline steps process each document type in parallel → extracted data is written to the database → customer sees a "processing complete" status update in the banking portal. The pipeline is the unit of work, not the API call.</p>
+
+  <h3>Why ModelMesh over KServe for KDIS</h3>
+  <p>KDIS uses three different models in sequence: an OCR model (extracts text from images), a document classification model (identifies what type of document was submitted — passport vs bank statement), and an NLP extraction model (parses the extracted text into structured fields). These three models are called as pipeline steps — not in real time per user request. The frequency of each model call is determined by document submission volume, not transaction rate. ModelMesh is the correct choice because: (1) the three models can share GPU resources rather than each requiring a dedicated GPU; (2) when no documents are being processed, the models can be evicted from GPU memory and GPU resources freed for FDS; (3) the latency tolerance of the pipeline (minutes, not milliseconds) makes ModelMesh's eviction latency (seconds to reload a model) irrelevant.</p>
+
+  <h3>The KDIS pipeline — step by step</h3>
+  <table>
+    <thead><tr><th>Step</th><th>Operation</th><th>Model / Tool</th><th>Output stored in</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Document ingestion — download from customer upload S3 prefix, validate format (PDF/JPEG/PNG), split multi-page PDFs into individual page images</td><td>No model — Python preprocessing</td><td>ODF MCG: <code>kdis-pipeline/runs/{run-id}/pages/</code></td></tr>
+      <tr><td>2</td><td>Document classification — determine what type of document each page is (passport photo page, passport data page, bank statement, payslip)</td><td>ResNet-50 classification model (ONNX) via ModelMesh</td><td>ODF MCG: <code>kdis-pipeline/runs/{run-id}/classification.json</code></td></tr>
+      <tr><td>3</td><td>OCR — extract raw text from each page image</td><td>PaddleOCR (ONNX) via ModelMesh — GPU-accelerated OCR</td><td>ODF MCG: <code>kdis-pipeline/runs/{run-id}/ocr/</code></td></tr>
+      <tr><td>4</td><td>NLP field extraction — parse OCR output into structured fields (name, DOB, address, amounts, dates) using document-type-specific extraction logic</td><td>LayoutLM (HuggingFace TGI) via ModelMesh</td><td>ODF MCG: <code>kdis-pipeline/runs/{run-id}/extracted.json</code></td></tr>
+      <tr><td>5</td><td>Validation and confidence scoring — check extracted fields against known patterns (passport MRZ checksum, ABN/ACN format, date ranges), flag low-confidence fields for human review</td><td>Rules-based Python + confidence scores from step 4</td><td>ODF MCG: <code>kdis-pipeline/runs/{run-id}/validated.json</code></td></tr>
+      <tr><td>6</td><td>Database write — insert validated fields into the loan origination PostgreSQL database, update application status, trigger notification to the banking portal</td><td>Python + psycopg2</td><td>PostgreSQL (on VLAN 130) + application status API</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 INTEGRATION ══ -->
+  <section id="integration">
+  <h2>12 — Integration with the existing NovaCrestBank platform</h2>
+  <p>This is the section that distinguishes an architectural reference from a product tutorial. RHOAI does not exist in isolation — it integrates with every platform component built in Series I, II, and III. Understanding these integration points is what a consulting architect brings to an engagement that a data scientist or an RHOAI product specialist cannot.</p>
+
+  <h3>Harbor — model images and transformer containers</h3>
+  <p>Harbor is already running at <code>harbor.apps.ocp.novacrestbank.local</code> from the Series II platform. For RHOAI, Harbor serves two purposes. First, all custom container images (the FDS Transformer, the KDIS pipeline step containers) are built by the CI/CD pipeline and pushed to Harbor before being referenced in InferenceService and pipeline specs. This keeps all container images in the air-gapped internal registry — no images are pulled from the internet during serving. Second, model files can be stored as OCI artifacts in Harbor (the OCI artifact format allows arbitrary blobs to be stored in a container registry). This means a model version and its transformer container image can be versioned and stored together in Harbor under the same tag, providing a single source of truth for a complete model deployment unit.</p>
+
+  <h3>Argo CD — GitOps for model deployment</h3>
+  <p>InferenceService CRs are Kubernetes objects. Like all Kubernetes objects in NovaCrestBank's environment, they are managed by Argo CD. The two-repository pattern from VIRT-07 extends to RHOAI: the <code>banking-config</code> Git repository contains the InferenceService YAML for FDS and KDIS. When the data science team promotes a new model version — updating the <code>storageUri</code> in the InferenceService YAML via a Git commit and pull request — Argo CD detects the change and applies the updated InferenceService to the cluster. KServe then downloads the new model version and performs a rolling update of the serving pods with zero downtime. The model deployment is auditable (every version is a Git commit), reviewable (pull requests require approval), and rollback is a Git revert.</p>
+
+  <h3>ACM — governance policies for the AI platform</h3>
+  <p>ACM Governance policies (from VIRT-09) extend to RHOAI. Two policies are relevant. The first enforces GPU resource quotas per DataScienceProject — preventing a data scientist from accidentally requesting all available GPU resources for a Workbench experiment, starving the FDS production serving pods. The second enforces that TrustyAI is enabled in every DataScienceProject that contains a production InferenceService — ensuring explainability monitoring is never absent from a production model deployment. If a data scientist creates a production InferenceService without TrustyAI, ACM detects the non-compliant state and alerts the platform team.</p>
+
+  <h3>ACS — model container image scanning</h3>
+  <p>ACS (from VIRT-08) scans all container images in Harbor for CVEs. This includes the RHOAI component images (from registry.redhat.io, scanned on pull), the ServingRuntime images (Triton, TGI), and the custom transformer images. ACS's admission controller can be configured to block deployment of an InferenceService if its transformer container image has unpatched critical CVEs — the same admission control that prevents vulnerable application containers from reaching production prevents vulnerable model transformer containers from reaching production.</p>
+
+  <h3>AAP — pipeline triggers from Alertmanager</h3>
+  <p>The alert-driven automation pipeline from VIRT-10 extends to model retraining. When Prometheus detects that the FDS model's prediction accuracy has dropped below a threshold (a custom PrometheusRule monitoring a DCGM/TrustyAI metric exported to the cluster Prometheus), Alertmanager fires a webhook to EDA. EDA's Rulebook matches on <code>alertname == "FDSModelDriftDetected"</code> and triggers an AAP Job Template that submits a new KDIS/FDS training PipelineRun via the RHOAI API. The pipeline runs, trains a new model version, evaluates it, registers it in the Model Registry, and if it passes evaluation thresholds, creates a pull request in the <code>banking-config</code> Git repository that updates the InferenceService <code>storageUri</code>. A human approves the pull request, Argo CD applies it, and the new model is in production — with a complete audit trail from the drift alert through the PR to the deployment.</p>
+
+  <h3>ODF — model artifact storage and pipeline state</h3>
+  <p>ODF's MCG (NooBaa object gateway) provides the S3-compatible object store that backs both the Model Registry artifact storage and the Data Science Pipelines artifact store. NovaCrestBank benefits from using ODF for this rather than AWS S3 or external MinIO: model weights never leave the OCP cluster boundary (data sovereignty for APRA CPS 234 purposes), the same storage platform that backs VM disks and OADP backups backs model artifacts (single operational surface), and ODF's erasure coding and replication provide the same durability guarantees for model artifacts as for application data.</p>
+
+  <h3>NetworkPolicy — isolating inference traffic</h3>
+  <p>RHOAI InferenceService pods run in DataScienceProject namespaces (<code>fraud-detection</code>, <code>document-intelligence</code>). The banking application VM runs in <code>virt-workloads</code>. Without a NetworkPolicy, cross-namespace traffic is unrestricted on the OVN overlay — any pod in any namespace can reach any other pod. The correct configuration adds one NetworkPolicy in the <code>fraud-detection</code> namespace that permits ingress on port 8080 (REST) and 8081 (gRPC) only from pods in the <code>virt-workloads</code> namespace. This ensures the FDS endpoint is reachable from the banking VM but not from any other namespace — including a compromised Workbench pod in the same DataScienceProject.</p>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 PREREQS ══ -->
+  <section id="prereqs">
+  <h2>13 — Infrastructure prerequisites before an engagement</h2>
+  <p>This is the checklist a consulting architect runs through before any RHOAI work begins at a customer site. Many RHOAI engagements fail not because of RHOAI configuration errors but because the underlying infrastructure was not ready before the AI platform was installed. Every item below corresponds to a real failure mode observed in production deployments.</p>
+
+  <div class="gate">
+    <div class="gate-title">OCP cluster prerequisites</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>OCP version compatibility:</strong> RHOAI 2.x requires OCP 4.12 or later. Verify the exact compatibility matrix for the RHOAI version being installed — some RHOAI minor versions require specific OCP minor versions. Run <code>oc get clusterversion</code> and cross-check against the RHOAI release notes before installing the operator.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>All cluster operators healthy:</strong> RHOAI operator installation will appear to succeed even if underlying cluster operators are degraded — but RHOAI components will fail to become ready. Run <code>oc get clusteroperators | grep -v "True.*False.*False"</code> and resolve any degraded operators before proceeding.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>Sufficient cluster resource headroom:</strong> RHOAI control plane components (the operator, the Dashboard, the DSP controller, the Model Registry) consume approximately 8 CPU cores and 16 GiB of memory across their pods. Verify this headroom exists on non-GPU worker nodes before installation. Installing RHOAI on a cluster at 90% CPU utilisation will cause Pending pods and mysterious failures.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>Default storage class:</strong> RHOAI's DSP operator creates PVCs automatically. The cluster must have a default StorageClass. Verify: <code>oc get storageclass | grep default</code>. In NovaCrestBank: <code>ocs-storagecluster-ceph-rbd</code> is the default.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>S3-compatible object store accessible from OCP:</strong> RHOAI requires an S3 bucket for the Model Registry and for DSP pipeline artifact storage. In NovaCrestBank: ODF MCG (NooBaa) is configured and an ObjectBucketClaim is created in the RHOAI namespace. In a customer environment without ODF: an external S3 endpoint (AWS S3, MinIO, Ceph RGW) must be reachable from the OCP cluster network before RHOAI installation.</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">GPU infrastructure prerequisites</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>GPU cards physically installed and powered:</strong> Confirm via iLO/BMC that the GPU cards are physically seated, PCIe x16 negotiated, and the server firmware can see them. In NovaCrestBank: iLO 6 on bm-virt-04 and bm-virt-05 shows the A100 in the PCIe device inventory.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>Node Feature Discovery installed before GPU Operator:</strong> NFD must label nodes with GPU hardware before the GPU Operator can target those nodes for driver installation. The order matters. Installing the GPU Operator before NFD results in no DaemonSet pods scheduling on GPU nodes — the operator sees no GPU-labelled nodes.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>Kernel version compatible with the GPU driver version:</strong> NVIDIA publishes a compatibility matrix of driver version to kernel version. The RHCOS kernel version on OCP nodes is not chosen by the customer — it is set by OCP. Check the kernel version of your OCP nodes (<code>oc debug node/bm-virt-04 -- chroot /host uname -r</code>) and the NVIDIA GPU Operator release notes to confirm the driver version in ClusterPolicy is compatible with that kernel.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>GPU node firmware up to date:</strong> NVIDIA A100 PCIe cards have firmware that must be compatible with the driver version. Outdated GPU firmware can cause ECC memory errors, driver load failures, or silent compute errors. Verify firmware version via iLO or <code>nvidia-smi -q | grep Firmware</code> after driver installation.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>Power budget confirmed:</strong> An NVIDIA A100 PCIe 80GB card draws up to 250W under load. Two cards in bm-virt-04 and bm-virt-05 add up to 500W per node at peak, on top of the existing CPU (280W TDP for dual EPYC 9354P) and NVMe (25W × 4). Confirm the node's power supply capacity (the DL385 Gen11 ships with 2 × 1000W or 2 × 1600W PSUs — verify which configuration is installed) and the data centre PDU circuit capacity.</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Network and registry prerequisites</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>Internal container registry reachable from all nodes:</strong> RHOAI serving runtime images (Triton, TGI) are large — 10–20 GB each. In an air-gapped environment, these must be mirrored to Harbor before installation. Verify Harbor is reachable from GPU nodes and that the pull-through cache is populated with the required images. A failed image pull on a GPU node during serving deployment is difficult to diagnose if the registry prerequisite was not checked.</div>
+    <div class="gate-item"><div class="gate-box"></div><strong>DNS resolution for model storage endpoint:</strong> The KServe storage initialiser downloads models from the <code>storageUri</code> at pod startup. If DNS resolution for the S3 endpoint (ODF MCG route, or external S3 hostname) fails from the GPU node network, the pod fails to start with an unhelpful "model download failed" error. Verify DNS resolution: <code>oc debug node/bm-virt-04 -- chroot /host nslookup rhoai-models.apps.ocp.novacrestbank.local</code>.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 QUESTIONS ══ -->
+  <section id="questions">
+  <h2>14 — Questions to ask before committing to an implementation approach</h2>
+  <p>These are the questions that determine the architecture before any YAML is written. A consulting architect who asks these questions in the first engagement conversation avoids discovering late-stage blockers during implementation. Each question is paired with the architectural decision it determines.</p>
+
+  <div class="decision">
+    <div class="dq">Q1 — Model format</div>
+    <div class="db"><strong>"What format are your models exported in — ONNX, TensorFlow SavedModel, TorchScript, HuggingFace, or something else?"</strong><br><br>This determines the ServingRuntime. ONNX → Triton or OpenVINO. TensorFlow → TF Serving or Triton. HuggingFace Transformers → TGI. Custom/proprietary → custom ServingRuntime required (longer implementation, custom image build). If the customer says "we don't know yet — our data scientists are still deciding" — the architecture cannot be finalised. Do not commit to a serving runtime choice until the model format is confirmed.</div>
+  </div>
+
+  <div class="decision">
+    <div class="dq">Q2 — Latency requirement</div>
+    <div class="db"><strong>"What is the maximum acceptable inference latency at the 99th percentile, and where is that measured — at the model endpoint, or end-to-end from the calling application?"</strong><br><br>This determines KServe vs ModelMesh, GPU vs CPU inference, and whether dynamic batching can be used. If the answer is "we're not sure, real-time I suppose" — probe further: "Is the model on the critical path of a user-facing transaction, or is it used for background processing?" Critical path → KServe, GPU, tight latency budget. Background → ModelMesh, CPU may suffice, batch processing acceptable.</div>
+  </div>
+
+  <div class="decision">
+    <div class="dq">Q3 — Throughput requirement</div>
+    <div class="db"><strong>"How many inference requests per second do you need to handle at peak? And what is the peak-to-average ratio?"</strong><br><br>This determines replica count, HPA configuration, and whether a single GPU is sufficient. A customer who says "500 requests per second" but whose peak is a 10-second burst once a day needs a different configuration than one whose peak is sustained for 4 hours. Scale-to-zero (Knative Serverless mode) is appropriate for bursty, low-average-throughput workloads. Dedicated replicas (RawDeployment mode) are appropriate for sustained high-throughput workloads.</div>
+  </div>
+
+  <div class="decision">
+    <div class="dq">Q4 — Model size</div>
+    <div class="db"><strong>"How large is the model file — in gigabytes — and how much GPU memory does it consume when loaded?"</strong><br><br>This determines GPU memory requirements and whether MIG partitioning is feasible. A 500MB ONNX model uses approximately 1–2 GB GPU memory when loaded by Triton. A 7B parameter LLM in FP16 uses approximately 14 GB GPU memory. An A100 80GB can host approximately 5–6 medium models or 1 large LLM simultaneously. If the customer cannot answer this question, ask for the model's parameter count and precision (FP32 / FP16 / INT8) — GPU memory ≈ (parameters × bytes per parameter) × 1.2 overhead factor.</div>
+  </div>
+
+  <div class="decision">
+    <div class="dq">Q5 — Retraining cadence</div>
+    <div class="db"><strong>"How often do you expect to retrain and redeploy the model? Is retraining triggered by a schedule, by detected drift, or by the data science team on an ad-hoc basis?"</strong><br><br>This determines whether Data Science Pipelines is needed. If the answer is "once a quarter, manually" — Pipelines is useful but not critical; the team can run training in a Workbench and manually register the result. If the answer is "automatically when we detect performance degradation" — Pipelines plus the Alertmanager integration (Section 12) is required. If the answer is "we don't retrain — we use a vendor-supplied model that is updated by the vendor" — Pipelines is not needed at all.</div>
+  </div>
+
+  <div class="decision">
+    <div class="dq">Q6 — Explainability and audit requirements</div>
+    <div class="db"><strong>"Are the model's decisions subject to regulatory review or customer-facing explanation requirements? Can a regulator ask 'why was this transaction flagged' or 'why was this loan declined' and expect an answer?"</strong><br><br>This determines whether TrustyAI is required. In banking, credit scoring and fraud flagging typically trigger explanation obligations under consumer credit law (NCCP in Australia, FCRA in the US) and AML regulations. If the customer's legal team has not addressed this question, surface it — a production model making customer-affecting decisions without explainability infrastructure is a regulatory risk.</div>
+  </div>
+
+  <div class="decision">
+    <div class="dq">Q7 — Data location constraints</div>
+    <div class="db"><strong>"Are there data sovereignty or data residency requirements for the training data and the model weights? Can model artifacts leave the data centre boundary — for example, can they be stored in a cloud object store?"</strong><br><br>This determines the artifact storage architecture. If training data contains personally identifiable information (PII) — which it does in NovaCrestBank's case, since transaction data and KYC documents are used for training — data sovereignty requirements may prohibit storing model artifacts in cloud object stores. ODF MCG (on-cluster, on-premises S3) is the correct choice for NovaCrestBank. A customer without this constraint can use AWS S3, simplifying the storage architecture.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 MAPPING ══ -->
+  <section id="mapping">
+  <h2>15 — Mapping RHOAI capabilities to customer problems</h2>
+  <p>The final consulting skill is matching what a customer describes — often vaguely — to the specific RHOAI component that addresses their need. Customers rarely walk in saying "I need KServe single-model serving with NVIDIA Triton." They say "we want to use AI for fraud" or "we're looking at automating document processing." The consulting architect translates customer language into RHOAI architecture.</p>
+
+  <table>
+    <thead><tr><th>Customer says</th><th>What they actually need</th><th>RHOAI component</th><th>Key question to ask next</th></tr></thead>
+    <tbody>
+      <tr><td>"We want to score transactions in real time"</td><td>Low-latency synchronous inference endpoint</td><td>KServe + Triton (GPU) — RawDeployment mode, minReplicas &gt; 0</td><td>"What is your latency budget and transactions-per-second peak?"</td></tr>
+      <tr><td>"We want to process documents automatically"</td><td>Async multi-step ML pipeline</td><td>Data Science Pipelines + ModelMesh for model inference steps</td><td>"How many documents per day? What turnaround time is acceptable?"</td></tr>
+      <tr><td>"We want to let data scientists experiment"</td><td>Managed notebook environment with access to data and compute</td><td>Workbenches + DataScienceProjects + PVC storage</td><td>"Do your data scientists need GPU access for training, or just for inference testing?"</td></tr>
+      <tr><td>"We need to know why the model made a decision"</td><td>Per-prediction explanation with feature attribution</td><td>TrustyAI explainer component on the InferenceService</td><td>"Is this for internal audit/risk review, or does the explanation need to reach the end customer?"</td></tr>
+      <tr><td>"We want to track which model version is in production"</td><td>Model versioning and promotion governance</td><td>Model Registry + GitOps (Argo CD) for InferenceService version control</td><td>"Who approves a model promotion from staging to production? Is that a human gate or automated?"</td></tr>
+      <tr><td>"We're worried our model is becoming less accurate over time"</td><td>Ongoing model performance monitoring + automated retraining trigger</td><td>TrustyAI drift monitoring + Data Science Pipelines + Alertmanager integration (AAP)</td><td>"What metric defines 'less accurate' for your use case, and what threshold triggers a retraining?"</td></tr>
+      <tr><td>"We have 50 models and can't afford 50 GPUs"</td><td>Shared GPU inference with efficient resource utilisation</td><td>ModelMesh multi-model serving or MIG partitioning on A100</td><td>"What are the latency requirements for each model? And which are called frequently vs rarely?"</td></tr>
+      <tr><td>"We want to fine-tune a large language model on our own data"</td><td>Distributed GPU training across multiple nodes</td><td>Ray/CodeFlare + Workbench with GPU + Data Science Pipelines for the training run</td><td>"How large is the model you want to fine-tune? This determines whether single-GPU or multi-GPU training is needed."</td></tr>
+      <tr><td>"We're not sure if AI is even the right approach for our problem"</td><td>Architecture discovery — no implementation yet</td><td>No RHOAI component — this needs a discovery workshop first</td><td>"Can you show me a sample of the decisions you want to automate, and the data you currently use to make them manually?"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <span class="cl">The last row matters most</span>
+    <p>The most valuable consulting intervention is recognising when a customer is not ready for an AI platform at all. An organisation that does not yet have labelled training data, does not have a defined decision they want to automate, or does not have a clear success metric for model performance is not ready to deploy RHOAI. Deploying the platform before the use case is clear produces an expensive, underutilised infrastructure — and damages the customer's trust in both the technology and the vendor. The correct response to "we want to do AI" is a discovery engagement — not a platform deployment. This is the conversation that separates a consulting architect from a solutions engineer who sells licenses.</p>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Summary — what this guide enables you to do</div>
+    <div class="gate-item"><div class="gate-box"></div>Explain what AI and machine learning actually are, and why they need dedicated platform infrastructure — without jargon, to a customer who has never worked with ML</div>
+    <div class="gate-item"><div class="gate-box"></div>Describe the RHOAI component stack (Dashboard, Workbenches, KServe, ModelMesh, DSP, Model Registry, TrustyAI, Ray) — what each component does, when to enable it, and when not to</div>
+    <div class="gate-item"><div class="gate-box"></div>Explain why GPU infrastructure is required for AI workloads — and why the DL385 Gen11 nodes were chosen in VIRT-00 with this requirement explicitly in mind</div>
+    <div class="gate-item"><div class="gate-box"></div>Walk through the NVIDIA GPU Operator architecture — NFD, driver container, device plugin, DCGM exporter — and explain why each component is necessary on RHCOS</div>
+    <div class="gate-item"><div class="gate-box"></div>Present two distinct NovaCrestBank AI use cases with clear architecture decision rationale — FDS (KServe, Triton, GPU, low-latency, anti-affinity HA) and KDIS (ModelMesh, async pipeline, multi-model efficiency)</div>
+    <div class="gate-item"><div class="gate-box"></div>Explain how RHOAI integrates with Harbor, Argo CD, ACM, ACS, AAP, ODF, and NetworkPolicy — the existing platform components that govern and operate the AI layer</div>
+    <div class="gate-item"><div class="gate-box"></div>Run an infrastructure readiness assessment before an RHOAI engagement begins — identifying the prerequisites that most commonly cause deployment failures</div>
+    <div class="gate-item"><div class="gate-box"></div>Ask the seven architecture-determining questions (model format, latency, throughput, model size, retraining cadence, explainability, data location) before committing to any implementation approach</div>
+    <div class="gate-item"><div class="gate-box"></div>Translate customer problem statements into specific RHOAI components — including recognising when the customer is not ready for a platform deployment at all</div>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
