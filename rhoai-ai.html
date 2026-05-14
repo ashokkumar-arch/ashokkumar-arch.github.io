@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenShift AI — Architecture Reference | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --red:#c8102e;--blue:#1a5c8f;--green:#0e6b45;--amber:#a87015;
+  --ai:#076678;--ai-light:#e8f4f8;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);text-decoration:none}
+.nav-back{font-size:.875rem;color:var(--ink2);text-decoration:none}
+.nav-back:hover{color:var(--ai)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.standalone-badge{font-family:var(--font-mono);font-size:.72rem;color:var(--ai);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.standalone-badge::before{content:'AI';display:inline-flex;align-items:center;justify-content:center;width:34px;height:24px;background:var(--ai);color:#fff;font-size:.7rem;font-family:var(--font-display)}
+h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem}
+.page-sub{font-size:.95rem;color:var(--ink2);font-weight:300;max-width:680px;line-height:1.7;margin-bottom:1.5rem}
+.meta-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.meta-item{font-family:var(--font-mono);font-size:.75rem;color:var(--ink3)}
+.meta-item strong{color:var(--ink);font-weight:500}
+.standalone-note{margin-top:1.25rem;padding:1rem 1.25rem;background:var(--ai-light);border-left:3px solid var(--ai);font-size:.875rem;color:var(--ink2);line-height:1.7;max-width:740px}
+.standalone-note strong{color:var(--ai)}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.25rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-label:first-child{margin-top:0}
+.guide-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border)}
+.guide-card{background:var(--paper);padding:1.5rem 1.75rem;display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:start;transition:background .15s;text-decoration:none;color:inherit}
+.guide-card:hover{background:var(--paper2)}
+.guide-header{display:flex;align-items:center;gap:1rem;margin-bottom:.75rem}
+.guide-tag-chip{font-family:var(--font-mono);font-size:.68rem;padding:.2rem .7rem;border-radius:2px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0}
+.gtc-ai{background:var(--ai-light);border:1px solid #80c0d0;color:var(--ai)}
+.gtc-solo{background:#e8f4f8;border:1px solid #80c0d0;color:#076678}
+.guide-title{font-size:1.05rem;font-weight:600;color:var(--ink);line-height:1.3}
+.guide-desc{font-size:.875rem;color:var(--ink2);line-height:1.72;margin-bottom:1rem}
+.section-toc{margin:.75rem 0;padding:.875rem 1.1rem;background:var(--paper2);border-left:2px solid var(--border);font-size:.8rem;color:var(--ink3);line-height:1.9}
+.section-toc strong{color:var(--ink2);font-weight:500;font-size:.75rem;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.4rem}
+.toc-item{display:flex;gap:.6rem;align-items:baseline}
+.toc-num{font-family:var(--font-mono);font-size:.7rem;color:var(--ai);flex-shrink:0;width:24px}
+.guide-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.75rem}
+.chip{font-family:var(--font-mono);font-size:.65rem;padding:.15rem .5rem;border-radius:2px;background:var(--paper2);border:1px solid var(--border);color:var(--ink3)}
+.chip-ai{background:#e8f4f8;border-color:#80c0d0;color:#076678}
+.chip-gpu{background:#f0f9e8;border-color:#a8d870;color:#3a5a00}
+.chip-ocp{background:#fff0f0;border-color:#f0b0b0;color:#8a0000}
+.chip-plat{background:#eaf2fb;border-color:#b0cde8;color:#0d3a5c}
+.guide-arrow{font-size:1.1rem;color:var(--border);align-self:center;transition:color .15s;margin-top:.25rem}
+.guide-card:hover .guide-arrow{color:var(--ink2)}
+.disclaimer-box{margin:2.5rem 0 0;padding:1.25rem 1.5rem;background:var(--paper2);border:1px solid var(--border);font-size:.8rem;color:var(--ink3);line-height:1.75}
+.disclaimer-box strong{color:var(--ink2)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Ashok Kumar P.</a>
+    <a href="index.html#projects" class="nav-back">&larr; All projects</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="standalone-badge">Standalone Reference &mdash; AI Platform</div>
+  <h1>OpenShift AI<br><em>Architecture &amp; Implementation Reference</em></h1>
+  <p class="page-sub">A single comprehensive architectural reference for Red Hat OpenShift AI (RHOAI) on the NovaCrestBank bare-metal environment &mdash; written for the reader who is technically strong on OpenShift and Kubernetes but has not yet worked with AI/ML platforms. Covers the complete stack from what AI actually is, through the RHOAI component architecture, GPU infrastructure, two banking use cases with documented decision rationale, and the consulting questions that determine whether an engagement will succeed.</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>1</strong> guide (15 sections)</div>
+    <div class="meta-item"><strong>Environment:</strong> novacrestbank.local &middot; DL385 Gen11 + NVIDIA A100</div>
+    <div class="meta-item"><strong>Use cases:</strong> Fraud Detection &middot; Document Intelligence</div>
+    <div class="meta-item"><strong>Status:</strong> Complete</div>
+  </div>
+  <div class="standalone-note">
+    <strong>A deliberate scope decision.</strong> OpenShift AI is a deep, fast-moving product. A shallow multi-guide series risks appearing to overstate operational depth. This guide takes a different approach: one authoritative architectural reference that demonstrates the thinking a consulting architect brings &mdash; component architecture, use case mapping, infrastructure prerequisites, integration reasoning, and the questions that prevent failed engagements. The GPU infrastructure decision traces directly back to VIRT-00 Section 04, where the DL385 Gen11 node selection explicitly reserved PCIe 5.0 &#215;16 slots for future GPU expansion. This guide is where that forward-planning decision pays off.
+  </div>
+</div>
+
+<main>
+
+  <div class="section-label"><span>The guide &mdash; 15 sections</span><span>1 document</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_AI/rhoai-00-openshift-ai.html" class="guide-card">
+      <div>
+        <div class="guide-header">
+          <span class="guide-tag-chip gtc-ai">Architecture Reference</span>
+          <span class="guide-tag-chip gtc-solo">Standalone</span>
+        </div>
+        <div class="guide-title">OpenShift AI &mdash; Architecture &amp; Implementation Reference</div>
+        <p class="guide-desc">A complete architectural reference covering what AI and machine learning actually are (explained without jargon, from first principles), why MLOps requires a dedicated platform separate from standard CI/CD, the relationship between Open Data Hub (upstream) and Red Hat OpenShift AI (downstream), every RHOAI component with enable/disable rationale, KServe and ModelMesh model serving in depth, Data Science Pipelines, the NVIDIA GPU Operator on RHCOS (why normal driver installation does not work, and how the driver container solves it), and two NovaCrestBank use cases with documented architecture decision rationale. Closes with the infrastructure prerequisite checklist, the seven consulting questions that determine implementation approach, and the customer-problem-to-RHOAI-capability mapping table.</p>
+
+        <div class="section-toc">
+          <strong>Contents</strong>
+          <div class="toc-item"><span class="toc-num">01</span><span>What AI actually is &mdash; before any product</span></div>
+          <div class="toc-item"><span class="toc-num">02</span><span>Machine learning &mdash; the core idea in plain terms</span></div>
+          <div class="toc-item"><span class="toc-num">03</span><span>MLOps &mdash; why models need their own platform</span></div>
+          <div class="toc-item"><span class="toc-num">04</span><span>ODH and RHOAI &mdash; upstream, downstream, and why it matters</span></div>
+          <div class="toc-item"><span class="toc-num">05</span><span>Every RHOAI component &mdash; what it does and when you need it</span></div>
+          <div class="toc-item"><span class="toc-num">06</span><span>KServe &mdash; the model serving engine in depth</span></div>
+          <div class="toc-item"><span class="toc-num">07</span><span>Data Science Pipelines &mdash; the automation engine in depth</span></div>
+          <div class="toc-item"><span class="toc-num">08</span><span>Why AI needs a GPU &mdash; explained from physics up</span></div>
+          <div class="toc-item"><span class="toc-num">09</span><span>NVIDIA GPU Operator &mdash; every component explained</span></div>
+          <div class="toc-item"><span class="toc-num">10</span><span>Fraud Detection System &mdash; architecture decisions</span></div>
+          <div class="toc-item"><span class="toc-num">11</span><span>Document Intelligence System &mdash; architecture decisions</span></div>
+          <div class="toc-item"><span class="toc-num">12</span><span>Integration with the existing NovaCrestBank platform</span></div>
+          <div class="toc-item"><span class="toc-num">13</span><span>Infrastructure prerequisites before an engagement</span></div>
+          <div class="toc-item"><span class="toc-num">14</span><span>Questions to ask before committing to an implementation</span></div>
+          <div class="toc-item"><span class="toc-num">15</span><span>Mapping RHOAI capabilities to customer problems</span></div>
+        </div>
+
+        <div class="guide-chips">
+          <span class="chip chip-ai">OpenShift AI</span>
+          <span class="chip chip-ai">RHOAI</span>
+          <span class="chip chip-ai">ODH</span>
+          <span class="chip chip-ai">KServe</span>
+          <span class="chip chip-ai">ModelMesh</span>
+          <span class="chip chip-ai">Data Science Pipelines</span>
+          <span class="chip chip-ai">Model Registry</span>
+          <span class="chip chip-ai">TrustyAI</span>
+          <span class="chip chip-gpu">NVIDIA GPU Operator</span>
+          <span class="chip chip-gpu">NVIDIA A100</span>
+          <span class="chip chip-gpu">DCGM</span>
+          <span class="chip chip-ocp">Triton Inference Server</span>
+          <span class="chip chip-ocp">HuggingFace TGI</span>
+          <span class="chip chip-plat">Harbor</span>
+          <span class="chip chip-plat">Argo CD</span>
+          <span class="chip chip-plat">ACM</span>
+          <span class="chip chip-plat">ACS</span>
+          <span class="chip chip-plat">AAP / EDA</span>
+          <span class="chip chip-plat">ODF MCG</span>
+          <span class="chip">Fraud Detection</span>
+          <span class="chip">Document Intelligence</span>
+          <span class="chip">Consulting questions</span>
+        </div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <div class="disclaimer-box">
+    <strong>Scope note.</strong> This guide covers RHOAI architecture, component design, GPU infrastructure, use case reasoning, platform integration, and the consulting practice of scoping an AI engagement. It does not cover step-by-step operator installation, DataScienceCluster CR configuration, Workbench walkthroughs, or pipeline SDK code. Those operational details are intentionally excluded &mdash; the guide is an architectural decision record, not an installation runbook. Readers who want to proceed from this reference to a hands-on implementation should refer to the <a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed" target="_blank" style="color:var(--ai)">Red Hat OpenShift AI documentation</a>.
+  </div>
+
+</main>
+
+<footer>
+  Ashok Kumar P. &middot; OpenShift AI &mdash; Architecture Reference &middot; 1 guide &middot; ashokkumar-arch.github.io
+</footer>
+</body>
+</html>
