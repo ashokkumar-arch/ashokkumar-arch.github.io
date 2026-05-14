@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-10 — AAP: Ansible Automation Platform · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --aap:#e8001c;--aap-bg:#fdf0f1;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.aap{border-left-color:var(--aap)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.aap .cl{color:var(--aap)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}.tc{color:#61c5eb}.tg{color:#4ccd99}.td{color:#608b7a}
+.tw{color:#cca700}.te{color:#f85149}.tok{color:#3fb950;font-weight:600}
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+/* playbook colour spans */
+.pk{color:#ff9900}.pv{color:#a8d8a8}.ps{color:#f0c890}.pc{color:#484f58;font-style:italic}
+.pm{color:#d2a8ff}.po{color:#79c0ff}.pe{color:#ffa657}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:14px 0;padding:14px 16px;background:var(--bg3);border-radius:var(--r);border:.5px solid var(--border2)}
+.flow-box{padding:5px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;border:1px solid}
+.fb-alert{background:var(--odf-bg);border-color:#fca5a5;color:#7a0000}
+.fb-aap{background:var(--aap-bg);border-color:#f0a0a8;color:#7a0010}
+.fb-snow{background:var(--purple-bg);border-color:#c8b0e8;color:#2d1a6a}
+.fb-ocp{background:var(--green-bg);border-color:var(--green-border);color:#074a2e}
+.flow-arrow{color:var(--text3);font-size:16px;padding:0 2px}
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-10</div>
+    <div class="sb-title">AAP: Ansible Automation Platform</div>
+    <div class="sb-sub">Playbook anatomy · Day-2 ops · Provisioning · IPAM · LB · Migration · Alertmanager</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">First principles</div>
+    <a class="sb-item active" href="#what-aap-is">01 — What AAP is — from first principles</a>
+    <a class="sb-item" href="#playbook-anatomy">02 — Playbook anatomy — every directive explained</a>
+    <a class="sb-item" href="#modules-catalogue">03 — The real-world module catalogue</a>
+    <a class="sb-item" href="#aap-install">04 — AAP installation and OCP integration</a>
+    <div class="sb-sec">VM provisioning</div>
+    <a class="sb-item" href="#vm-provisioning">05 — New VM provisioning — RHEL and Windows on OCP Virt</a>
+    <a class="sb-item" href="#netapp-storage">06 — NetApp AFF storage — provisioning PVCs via Trident</a>
+    <a class="sb-item" href="#ipam-ad">07 — IPAM and Active Directory dynamic joins on VM spawn</a>
+    <a class="sb-item" href="#windows-migration">08 — Windows Server VM migration from VCF via AAP</a>
+    <div class="sb-sec">Day-2 operations</div>
+    <a class="sb-item" href="#patching">09 — Guest OS patching — RHEL and Windows at scale</a>
+    <a class="sb-item" href="#compliance-scan">10 — Compliance scanning — CIS Benchmark inside VM guests</a>
+    <a class="sb-item" href="#config-drift">11 — Configuration drift remediation in guest OSes</a>
+    <a class="sb-item" href="#vm-scaleup">12 — Automated VM scale-up — CPU and memory hot-plug</a>
+    <a class="sb-item" href="#lb-registration">13 — Hardware load balancer registration for VMs</a>
+    <div class="sb-sec">Automated remediation</div>
+    <a class="sb-item" href="#live-migration-aap">14 — Automated live migration between bare-metal nodes</a>
+    <a class="sb-item" href="#alertmanager-pipeline">15 — Alertmanager → EDA → AAP automated remediation pipeline</a>
+    <a class="sb-item" href="#servicenow">16 — ServiceNow ITSM ticket creation from AAP</a>
+    <a class="sb-item" href="#vm-backup-aap">17 — VM backup orchestration via AAP</a>
+    <a class="sb-item" href="#handover">18 — Readiness checklist — gate to VIRT-11</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-09-acm.html">← VIRT-09 — ACM</a>
+    <a class="sb-item" href="virt-11-nsx-decommission.html">VIRT-11 — NSX Exit →</a>
+  </div>
+  <div class="sb-foot">VIRT-10 · AAP · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-10 · AAP: Ansible Automation Platform</div>
+  <div class="prereq-bar">VIRT-09 complete — ACM Hub operational, governance policies enforced, Thanos observability active</div>
+  <h1>AAP: Ansible Automation Platform</h1>
+  <div class="subtitle">Automating every VM lifecycle operation — from provisioning and guest OS configuration to alert-driven live migration —<br>with every YAML directive explained so you can write playbooks independently in any real-world scenario</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-07<br>Lifecycle</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-08<br>Security</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-09<br>ACM</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-10<br>AAP</div>
+    <div class="pt"><span class="pt-n">12</span>VIRT-11<br>NSX Exit</div>
+  </div>
+
+  <!-- ══ 01 WHAT AAP IS ══ -->
+  <section id="what-aap-is">
+  <h2>01 — What AAP is — from first principles</h2>
+  <p>Ansible Automation Platform (AAP) is Red Hat's enterprise automation framework. At its core, Ansible is an agent-less configuration management and orchestration tool: it connects to target systems over SSH (Linux) or WinRM (Windows), executes tasks described in YAML files called playbooks, and leaves the target in the desired state. Agent-less means nothing needs to be installed on the target — only Python and SSH access are required on Linux targets; WinRM must be enabled on Windows targets.</p>
+  <p>AAP adds the enterprise layer on top of open-source Ansible: Automation Controller (the web UI and REST API, formerly AWX/Tower), Automation Hub (content management for Ansible Collections), containerised Execution Environments (Python environments that run playbooks reproducibly), and Event-Driven Ansible (EDA — triggering playbooks automatically from external events such as Alertmanager webhooks).</p>
+
+  <h3>Where AAP fits in the VIRT automation stack</h3>
+  <p>Three tools manage NovaCrestBank's VM workloads. Each operates at a different layer.</p>
+  <table>
+    <thead><tr><th>Tool</th><th>What it manages</th><th>What it cannot do</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Argo CD (VIRT-07)</strong></td><td>The VirtualMachine CR — the Kubernetes definition. Ensures the CR matches Git.</td><td>Cannot touch the guest OS inside the VM.</td></tr>
+      <tr><td><strong>ACM (VIRT-09)</strong></td><td>The cluster fleet — governance policies, cluster provisioning, fleet observability.</td><td>Cannot configure what runs inside a VM guest.</td></tr>
+      <tr><td><strong>AAP (VIRT-10)</strong></td><td>The guest OS — packages, services, users, firewall, AD join, compliance, patching. Also orchestrates OCP API calls when external conditions (Alertmanager alerts) trigger VM lifecycle operations.</td><td>Cannot manage Kubernetes resources declaratively (that is Argo CD's role).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout aap">
+    <span class="cl">The boundary: Argo CD owns the VM definition, AAP owns the guest OS</span>
+    <p>Argo CD creates and maintains the VirtualMachine CR. AAP connects to the running VM via SSH and configures what runs inside it. Both tools act on the same VM simultaneously without conflict because they operate at different levels: Argo CD at the Kubernetes API level, AAP at the guest OS SSH level. Neither needs to know the other exists to do its job correctly.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 PLAYBOOK ANATOMY ══ -->
+  <section id="playbook-anatomy">
+  <h2>02 — Playbook anatomy — every directive explained</h2>
+  <p>A playbook is a YAML file describing automation work. The goal of this section is that after reading it, you can write a playbook from a blank file and make an independent decision about every line — not just copy from examples. Every structural keyword is explained with its valid values, its effect, and when to use which option.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">complete-playbook-skeleton.yaml — every directive annotated</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pc"># --- marks the start of a YAML document. Optional but conventional for playbooks.
+# A playbook is a LIST of plays. Each play is a YAML dict (mapping of keys to values).
+# The leading hyphen (-) marks each play as a list item.</span>
+
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Descriptive name for this play</span>
+<span class="pc">  # name: (string) Human-readable label shown in output and AAP job logs.
+  # Not a variable — purely descriptive. Best practice: describe WHAT the play does.
+  # Example: "Install and configure qemu-guest-agent on banking VMs"</span>
+
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">virt_vms</span>
+<span class="pc">  # hosts: (string or list) Which machines this play targets.
+  # Sources: inventory file, dynamic inventory plugin, or extra_vars.
+  # Values:
+  #   all              → every host in inventory
+  #   virt_vms         → group named virt_vms in inventory
+  #   10.130.0.50      → specific IP address
+  #   localhost        → run on the AAP execution node (no SSH to remote host)
+  #   "web:&amp;db"        → intersection: hosts in BOTH web AND db groups
+  #   "all:!dev_vms"   → all hosts EXCEPT those in dev_vms group
+  # In NovaCrestBank: kubevirt.io dynamic inventory plugin populates virt_vms
+  # with the VLAN 130 IPs of all Running VMIs in the virt-workloads namespace.</span>
+
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+<span class="pc">  # gather_facts: (bool, default true) Run the 'setup' module on each target BEFORE tasks.
+  # The setup module collects OS facts — variables prefixed with ansible_:
+  #   ansible_os_family        → "RedHat" (RHEL/CentOS/Rocky) or "Windows" or "Debian"
+  #   ansible_distribution     → "RedHat", "CentOS", "Ubuntu", "Windows"
+  #   ansible_distribution_version → "9.3"
+  #   ansible_memtotal_mb      → 32768
+  #   ansible_processor_cores  → 8
+  #   ansible_hostname         → "vm-banking-app-01"
+  #   ansible_default_ipv4.address → primary IP
+  # Use these in when: conditions to make one playbook work across multiple OS types.
+  # Set gather_facts: false when:
+  #   - Target is not yet reachable (pre-boot provisioning play)
+  #   - Play only uses Kubernetes API via delegate_to: localhost
+  #   - Speed is critical and facts are not needed (saves 2-5 seconds per host)</span>
+
+  <span class="pk">become</span><span class="pc">:</span> <span class="pv">true</span>
+<span class="pc">  # become: (bool, default false) Escalate privileges via sudo/su/pbrun.
+  # Required for tasks needing root: package install, /etc/ edits, service restart.
+  # The user escalated TO is controlled by become_user (default: root).
+  # become: false is correct for tasks that run as the SSH user without escalation.
+  # On Windows: do not use become — connect with admin WinRM credentials directly.</span>
+
+  <span class="pk">become_user</span><span class="pc">:</span> <span class="pv">root</span>
+<span class="pc">  # become_user: (string, default "root") Which user to escalate to.
+  # Can be overridden per-task: e.g., become_user: appuser for app-specific tasks.</span>
+
+  <span class="pk">connection</span><span class="pc">:</span> <span class="pv">ssh</span>
+<span class="pc">  # connection: (string, default "ssh") How Ansible connects to the target.
+  # ssh     → standard SSH (Linux/UNIX, default)
+  # winrm   → Windows Remote Management (required for all Windows targets)
+  # local   → run tasks on the controller itself (no remote connection)
+  # kubectl → exec into a Kubernetes pod
+  # smart   → SSH if OpenSSH supports ControlMaster, else paramiko</span>
+
+  <span class="pk">vars</span><span class="pc">:</span>
+<span class="pc">    # vars: (dict) Play-level variables. Available to ALL tasks in this play.
+    # Variable precedence (lowest to highest):
+    #   role defaults → inventory group_vars → inventory host_vars
+    #   → playbook vars → task vars → set_fact → extra_vars
+    # extra_vars (AAP Survey, --extra-vars CLI) ALWAYS wins over everything.
+    # Use vars for constants that might change between runs or environments.</span>
+    <span class="pk">vm_name</span><span class="pc">:</span> <span class="ps">"vm-banking-app-01"</span>
+    <span class="pk">vm_namespace</span><span class="pc">:</span> <span class="ps">"virt-workloads"</span>
+    <span class="pk">vm_ip</span><span class="pc">:</span> <span class="ps">"10.130.0.50"</span>
+    <span class="pk">ad_domain</span><span class="pc">:</span> <span class="ps">"novacrestbank.local"</span>
+
+  <span class="pk">vars_files</span><span class="pc">:</span>
+<span class="pc">    # vars_files: (list of paths) Load variables from external YAML files.
+    # Loaded in order — later files override earlier ones.
+    # Separate variable definitions from playbook logic: cleaner, reusable.</span>
+    <span class="pc">- vars/ncb_common.yml</span>
+    <span class="pc">- vars/banking_vm.yml</span>
+
+  <span class="pk">serial</span><span class="pc">:</span> <span class="pv">2</span>
+<span class="pc">  # serial: (int or string or list) Run the play on N hosts at a time.
+  # Without serial: all hosts in the play run ALL tasks in parallel.
+  # serial: 2 → process 2 hosts, wait for completion, then process next 2.
+  # serial: "20%" → process 20% of inventory at a time.
+  # serial: [1, 5, 10] → ramp up: 1 host first, then 5, then 10.
+  # Use for: rolling patches, rolling restarts, avoiding thundering herd on APIs.
+  # Banking VM patching: serial: 1 for payment VMs, serial: 5 for dev VMs.</span>
+
+  <span class="pk">max_fail_percentage</span><span class="pc">:</span> <span class="pv">20</span>
+<span class="pc">  # max_fail_percentage: (int 0-100) Abort the play if this % of hosts fail.
+  # Prevents a bad patch from cascading: if 3/10 VMs fail (30% > 20%), stop.
+  # 0 → abort on the first failure.
+  # 100 → never abort (run to completion regardless of failures).
+  # Works with serial: applies the threshold per serial batch.</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+<span class="pc">    # tasks: (list) The ordered list of operations to perform on each host.
+    # Tasks run IN ORDER, one at a time per host (unless async is used).
+    # If a task fails: that host is removed from the play (no more tasks run on it)
+    # unless ignore_errors: true is set on that task.
+    # Each task is a dict with: name + one module call + optional directives.</span>
+
+    <span class="pc">    # ── TASK: package installation ────────────────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Install required packages</span>
+      <span class="pm">ansible.builtin.package</span><span class="pc">:</span>
+<span class="pc">        # The module name IS the key in the task dict.
+        # Format: collection.namespace.module_name
+        # ansible.builtin → core modules shipped with Ansible
+        # community.general → community-maintained general-purpose modules
+        # kubernetes.core → Kubernetes API modules
+        # netapp.ontap → NetApp ONTAP/AFF modules
+        # ansible.windows → Windows-specific modules
+        # f5networks.f5_modules → F5 BigIP modules</span>
+        <span class="po">name</span><span class="pc">:</span>
+<span class="pc">          # Module OPTIONS are indented under the module name key.
+          # Each module has its own set of options — documented at docs.ansible.com.
+          # name: which package(s) to manage. Accepts a string or list.</span>
+          <span class="pc">- qemu-guest-agent</span>
+          <span class="pc">- rsyslog</span>
+          <span class="pc">- auditd</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+<span class="pc">          # state: desired state for the package.
+          # present → install if not installed (idempotent: safe to re-run)
+          # latest  → install AND upgrade to latest available version
+          # absent  → remove the package if installed
+          # Idempotency is fundamental to Ansible: every module checks current state
+          # before acting. If state matches desired: report "ok" and do nothing.
+          # If state differs: make the change and report "changed".</span>
+      <span class="pk">notify</span><span class="pc">:</span> <span class="ps">restart qemu-guest-agent</span>
+<span class="pc">      # notify: (string or list) Trigger a HANDLER when this task reports "changed".
+      # If the packages were already installed (ok): handler is NOT triggered.
+      # Handlers run ONCE at the END of the play, even if notified multiple times.
+      # Handler name must EXACTLY match the string in the handlers: section.
+      # Use for: restart a service after its config changes, reload after install.</span>
+
+    <span class="pc">    # ── TASK: register task output ───────────────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Query VMI status from Kubernetes API</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+<span class="pc">          # {{ var_name }} is Jinja2 template syntax — Ansible's variable substitution.
+          # At runtime, {{ vm_name }} becomes the value of the vm_name variable.
+          # Jinja2 also supports filters (pipe operator):
+          #   {{ vm_name | upper }}                     → "VM-BANKING-APP-01"
+          #   {{ mem_gib | int * 1024 }}                → integer arithmetic
+          #   {{ var | default('fallback') }}           → use fallback if undefined
+          #   {{ var | default(omit) }}                 → omit the option if undefined
+          #   {{ list | selectattr('key','eq','val') }} → filter list by attribute
+          #   {{ ip.split('.')[-1] }}                   → last octet of an IP</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vmi_info</span>
+<span class="pc">      # register: (string) Save the module's return value into a variable.
+      # Every module returns a dict. Common fields:
+      #   changed: bool   — did the module change anything?
+      #   failed: bool    — did the module fail?
+      #   msg: string     — human-readable message
+      #   rc: int         — return code (command/shell modules)
+      #   stdout: string  — command output (command/shell modules)
+      #   resources: list — Kubernetes objects (k8s_info module)
+      #   json: dict      — parsed JSON response body (uri module)
+      # Access registered values in subsequent tasks:
+      #   vmi_info.resources[0].status.phase
+      #   vmi_info.resources[0].status.interfaces[1].ipAddress</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">localhost</span>
+<span class="pc">      # delegate_to: (string) Run THIS task on a DIFFERENT host than the play's hosts.
+      # localhost → run on the AAP execution node (the Ansible controller).
+      # Why: kubernetes.core.k8s_info talks to the Kubernetes API.
+      # The API is reachable from the AAP node — not from inside the VM guest OS.
+      # Without delegate_to: Ansible tries to run the module inside the VM via SSH
+      # where kubectl/k8s libraries are not installed.
+      # delegate_to overrides the connection for this one task only.</span>
+      <span class="pk">run_once</span><span class="pc">:</span> <span class="pv">true</span>
+<span class="pc">      # run_once: (bool) Run this task on ONLY the first host in the play.
+      # Used when a task produces shared data (e.g., a single API call that
+      # returns information valid for all hosts). The result is shared via hostvars.</span>
+
+    <span class="pc">    # ── TASK: conditional execution ──────────────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Join Active Directory (RHEL only)</span>
+      <span class="pm">ansible.builtin.command</span><span class="pc">:</span>
+        <span class="po">cmd</span><span class="pc">:</span> <span class="ps">"realm join --user=svc-ocp-virt-mgmt {{ ad_domain }}"</span>
+        <span class="po">stdin</span><span class="pc">:</span> <span class="pe">"{{ ad_password }}"</span>
+<span class="pc">          # command: run a single command on the target.
+          # Does NOT use a shell (no pipes, no redirects, no shell variables).
+          # Safer than shell for most cases — use shell only when pipes/redirects needed.
+          # stdin: feed a string to the command's standard input (for password prompts).</span>
+      <span class="pk">when</span><span class="pc">:</span> <span class="pv">ansible_os_family == "RedHat"</span>
+<span class="pc">      # when: (Jinja2 expression) Task runs ONLY when the expression evaluates to True.
+      # ansible_os_family is an Ansible fact collected by gather_facts.
+      # "RedHat" matches RHEL, CentOS, Rocky Linux, AlmaLinux, Fedora.
+      # "Windows" matches Windows Server 2019/2022/2025.
+      # "Debian" matches Ubuntu, Debian.
+      # Multiple conditions:
+      #   when: ansible_os_family == "RedHat" and vm_ip is defined
+      #   when: ansible_os_family in ["RedHat", "Debian"]
+      #   when: not (skip_ad_join | default(false))
+      #   when: result.rc != 0</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+<span class="pc">      # no_log: (bool) Suppress this task's output and arguments from ALL logs.
+      # Required whenever a task references a credential (password, token, key).
+      # Without no_log: the password appears in AAP job logs — PCI-DSS violation.
+      # Apply to any task that has a secret in cmd, stdin, body, or module options.</span>
+      <span class="pk">changed_when</span><span class="pc">:</span> <span class="pe">false</span>
+<span class="pc">      # changed_when: (Jinja2 expression or bool) Override when a task reports "changed".
+      # The command module always reports changed=true because it ran a command.
+      # changed_when: false → always report "ok" (used for read-only commands).
+      # changed_when: "'Updated' in result.stdout" → changed only if output says so.
+      # changed_when: result.rc != 0 → changed only on non-zero exit.
+      # Correct changed reporting is essential for idempotency and handler triggering.</span>
+
+    <span class="pc">    # ── TASK: loops ───────────────────────────────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Open required ports in guest firewall</span>
+      <span class="pm">ansible.posix.firewalld</span><span class="pc">:</span>
+        <span class="po">port</span><span class="pc">:</span> <span class="pe">"{{ item.port }}/{{ item.proto }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">enabled</span>
+        <span class="po">permanent</span><span class="pc">:</span> <span class="pv">true</span>
+<span class="pc">          # permanent: true → write the rule to the permanent config (survives reboot).
+          # Without permanent: rule exists only in the running config (lost on restart).
+          # Use both permanent: true AND immediate: true for the rule to take effect
+          # immediately AND persist after reboot.</span>
+        <span class="po">immediate</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="po">zone</span><span class="pc">:</span> <span class="pv">public</span>
+      <span class="pk">loop</span><span class="pc">:</span>
+<span class="pc">        # loop: (list) Run this task once for each item in the list.
+        # {{ item }} refers to the current element inside the task.
+        # {{ item.key }} accesses a key if the item is a dict.
+        # loop replaces the deprecated with_items syntax.
+        # Other loop sources: loop: "{{ range(1,6) | list }}"  → [1,2,3,4,5]
+        #                     loop: "{{ my_list_variable }}"   → iterate a variable</span>
+        <span class="pc">- {port: "8443", proto: "tcp"}</span>
+        <span class="pc">- {port: "9100", proto: "tcp"}</span>
+      <span class="pk">loop_control</span><span class="pc">:</span>
+        <span class="pk">label</span><span class="pc">:</span> <span class="pe">"{{ item.port }}/{{ item.proto }}"</span>
+<span class="pc">          # loop_control.label: what to display per iteration in the output.
+          # Without this: Ansible prints the full item dict — unreadable for complex objects.
+          # Other loop_control options:
+          #   pause: 2      → wait 2 seconds between iterations
+          #   index_var: idx → create a variable with the loop iteration index (0,1,2...)</span>
+      <span class="pk">when</span><span class="pc">:</span> <span class="pv">ansible_os_family == "RedHat"</span>
+
+    <span class="pc">    # ── TASK: until/retries for polling ──────────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Wait for VM to reach Running phase</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vmi_status</span>
+      <span class="pk">until</span><span class="pc">:</span>
+        <span class="pe">vmi_status.resources | length > 0 and
+        vmi_status.resources[0].status.phase == "Running"</span>
+<span class="pc">      # until: (Jinja2 expression) Retry the task until the expression is True.
+      # Evaluated after every attempt. Task fails if retries are exhausted.
+      # Essential for polling asynchronous operations (VM boot, PVC bind, etc.).</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">30</span>
+<span class="pc">      # retries: (int) Maximum number of retry attempts. Default: 3.
+      # 30 retries × 20 seconds = up to 10 minutes waiting for the VM to boot.</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">20</span>
+<span class="pc">      # delay: (int, seconds) How long to wait between retries. Default: 5.</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">localhost</span>
+
+    <span class="pc">    # ── TASK: failed_when and ignore_errors ───────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Check if reboot is required after patching</span>
+      <span class="pm">ansible.builtin.command</span><span class="pc">:</span>
+        <span class="po">cmd</span><span class="pc">:</span> <span class="pv">needs-restarting -r</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">needs_reboot</span>
+      <span class="pk">failed_when</span><span class="pc">:</span> <span class="pv">false</span>
+<span class="pc">      # failed_when: (Jinja2 expression or bool) Override when a task reports "failed".
+      # failed_when: false → never fail this task, even on non-zero exit code.
+      # needed here because needs-restarting exits 1 when a reboot IS required —
+      # that is normal (not an error). We capture rc and evaluate it in when:.
+      # Other patterns:
+      #   failed_when: result.rc not in [0, 2]  → fail only on unexpected codes
+      #   failed_when: "'ERROR' in result.stderr"  → fail only on specific output</span>
+      <span class="pk">changed_when</span><span class="pc">:</span> <span class="pv">false</span>
+
+    <span class="pc">    # ── TASK: set_fact, pause, debug, assert ─────────────────────────</span>
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Store derived MAC address as a fact for later use</span>
+      <span class="pm">ansible.builtin.set_fact</span><span class="pc">:</span>
+<span class="pc">        # set_fact: create a new variable at runtime.
+        # Available to all subsequent tasks in the current play.
+        # Essential for storing computed values derived from registered output.
+        # set_fact variables persist across plays in the same playbook run (unlike vars).</span>
+        <span class="po">mac_address</span><span class="pc">:</span>
+          <span class="pe">"02:00:00:{{ vm_ip.split('.')[2] | int | format('%02x') }}:{{ vm_ip.split('.')[3] | int | format('%02x') }}"</span>
+
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Wait 30 seconds for KubeVirt to apply the hot-plug</span>
+      <span class="pm">ansible.builtin.pause</span><span class="pc">:</span>
+<span class="pc">        # pause: wait for a fixed duration or until the operator presses Enter.
+        # seconds: N  → wait N seconds
+        # minutes: N  → wait N minutes
+        # prompt: "Verify the VM before continuing"  → interactive pause (not for automation)</span>
+        <span class="po">seconds</span><span class="pc">:</span> <span class="pv">30</span>
+
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Log the provisioning result to job output</span>
+      <span class="pm">ansible.builtin.debug</span><span class="pc">:</span>
+<span class="pc">        # debug: print a message or variable to job output. Makes no changes.
+        # msg: "string {{ variable }}"  → print a message
+        # var: variable_name            → pretty-print a variable's contents</span>
+        <span class="po">msg</span><span class="pc">:</span> <span class="pe">"VM {{ vm_name }} provisioned at {{ vm_ip }} — MAC {{ mac_address }}"</span>
+
+    <span class="pc">    - name</span><span class="pc">:</span> <span class="ps">Assert the VM is Running after provisioning</span>
+      <span class="pm">ansible.builtin.assert</span><span class="pc">:</span>
+<span class="pc">        # assert: fail the task (and the play) if a condition is not True.
+        # Used for post-action validation — the "verify" step in every workflow.
+        # that: list of Jinja2 expressions — ALL must be True to pass.</span>
+        <span class="po">that</span><span class="pc">:</span>
+          <span class="pc">- vmi_status.resources[0].status.phase == "Running"</span>
+        <span class="po">fail_msg</span><span class="pc">:</span> <span class="ps">"VM did not reach Running phase within the timeout"</span>
+        <span class="po">success_msg</span><span class="pc">:</span> <span class="ps">"VM is Running — provisioning complete"</span>
+
+  <span class="pk">handlers</span><span class="pc">:</span>
+<span class="pc">    # handlers: tasks triggered by notify, run ONCE at the end of the play.
+    # Even if 10 tasks notify the same handler, it runs only once.
+    # Handler names must exactly match the string in notify:.
+    # Handlers are deduped: notifying "restart sshd" 5 times → one restart.
+    # Force handlers to run immediately: meta: flush_handlers task.</span>
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">restart qemu-guest-agent</span>
+      <span class="pm">ansible.builtin.service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pv">qemu-guest-agent</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">restarted</span>
+<span class="pc">          # state: started/stopped/restarted/reloaded
+          # reloaded → SIGHUP (reload config without dropping connections — use for sshd)
+          # restarted → full stop + start (drops connections — use for qemu-guest-agent)
+          # enabled: true/false → controls whether service starts on boot (separate from state)</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 MODULE CATALOGUE ══ -->
+  <section id="modules-catalogue">
+  <h2>03 — The real-world module catalogue</h2>
+  <p>A module is the unit of work in every task. The module name is the KEY in a task dict — its name determines what action is taken. Ansible executes the module as a Python script on the target (or locally for API-based modules). Every module returns a standardised JSON result containing at minimum: <code>changed</code>, <code>failed</code>, and <code>msg</code>. The full return dict is available via <code>register</code>.</p>
+
+  <table>
+    <thead><tr><th style="width:200px">Module</th><th style="width:140px">Collection</th><th>What it does + key options</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>ansible.builtin.package</code></td>
+        <td>ansible.builtin (core)</td>
+        <td>Install/remove packages using the OS native manager (dnf/apt/yum). Generic — works across OS families. <strong>name:</strong> package or list. <strong>state:</strong> present/absent/latest. <strong>use:</strong> auto/dnf/apt to override detection.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.dnf</code></td>
+        <td>ansible.builtin</td>
+        <td>RHEL-specific dnf module. Richer than package: supports security-only updates, advisory filters, exclude patterns. <strong>name:</strong> "*" for all packages. <strong>security:</strong> true for security patches only. <strong>exclude:</strong> list of patterns to skip. <strong>download_only:</strong> true to download without installing.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.service</code></td>
+        <td>ansible.builtin</td>
+        <td>Manage systemd/SysV services. <strong>name:</strong> service name. <strong>state:</strong> started/stopped/restarted/reloaded. <strong>enabled:</strong> true/false for boot persistence. Note: reloaded sends SIGHUP — safer for sshd than restarted.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.template</code></td>
+        <td>ansible.builtin</td>
+        <td>Render a Jinja2 template file and copy to target. The most powerful file distribution tool — generates host-specific configs from a single template. <strong>src:</strong> template path on controller. <strong>dest:</strong> destination on target. <strong>owner/group/mode:</strong> permissions. <strong>backup:</strong> true to keep previous file.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.copy</code></td>
+        <td>ansible.builtin</td>
+        <td>Copy a file or inline content to the target without Jinja2 rendering. <strong>src:</strong> local file. <strong>content:</strong> inline string (alternative to src — write directly without a file). <strong>dest:</strong> remote path. <strong>mode/owner/group.</strong></td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.lineinfile</code></td>
+        <td>ansible.builtin</td>
+        <td>Ensure a single line is present/absent in a file. Idempotent surgical edits. <strong>path:</strong> file to modify. <strong>line:</strong> the exact line to insert. <strong>regexp:</strong> pattern to match an existing line to replace. <strong>state:</strong> present/absent. <strong>insertafter:</strong> "EOF" or a pattern to insert after.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.blockinfile</code></td>
+        <td>ansible.builtin</td>
+        <td>Insert/update/remove a multi-line block in a file. Identifies the block by begin/end marker comments. Safe to re-run — only updates if content changed. <strong>path:</strong> file. <strong>block:</strong> the multi-line content. <strong>marker:</strong> custom marker comment. <strong>insertafter/insertbefore:</strong> position control.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.file</code></td>
+        <td>ansible.builtin</td>
+        <td>Manage file/directory/symlink state. <strong>path:</strong> target path. <strong>state:</strong> file/directory/link/absent/touch. <strong>mode/owner/group:</strong> permissions. <strong>recurse:</strong> true for directories.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.fetch</code></td>
+        <td>ansible.builtin</td>
+        <td>Copy a file FROM the target TO the controller (opposite of copy). Used to collect compliance reports, logs, certificates. <strong>src:</strong> remote path. <strong>dest:</strong> local path on controller. <strong>flat:</strong> true to put file directly in dest without per-host subdirectory.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.command</code></td>
+        <td>ansible.builtin</td>
+        <td>Run a command WITHOUT a shell — no pipes, no redirects. Safer than shell. <strong>cmd:</strong> command string. <strong>chdir:</strong> directory to run in. <strong>creates:</strong> skip if this path exists (idempotency). <strong>removes:</strong> skip if this path does NOT exist. <strong>stdin:</strong> string to feed to stdin.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.shell</code></td>
+        <td>ansible.builtin</td>
+        <td>Run a command through /bin/sh — supports pipes, redirects, shell variables. Use only when pipes are required; otherwise prefer command. <strong>executable:</strong> /bin/bash for bash-specific syntax.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.reboot</code></td>
+        <td>ansible.builtin</td>
+        <td>Reboot the target and wait for it to come back. More reliable than running /sbin/reboot directly — it waits for SSH to reconnect. <strong>reboot_timeout:</strong> seconds to wait. <strong>test_command:</strong> command to verify system health after reboot. <strong>msg:</strong> wall message before reboot.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.posix.firewalld</code></td>
+        <td>ansible.posix</td>
+        <td>Manage firewalld rules on RHEL/CentOS. <strong>port:</strong> "8443/tcp". <strong>service:</strong> predefined service name. <strong>zone:</strong> public/internal/trusted. <strong>state:</strong> enabled/disabled. <strong>permanent:</strong> true. <strong>immediate:</strong> true. Both permanent and immediate must be true for rules to take effect now AND survive reboot.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.posix.sysctl</code></td>
+        <td>ansible.posix</td>
+        <td>Manage kernel parameters persistently. Writes to /etc/sysctl.d/ and applies immediately. <strong>name:</strong> kernel parameter. <strong>value:</strong> desired value. <strong>state:</strong> present/absent. <strong>sysctl_file:</strong> which file to write to. <strong>reload:</strong> true to apply immediately.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.user</code></td>
+        <td>ansible.builtin</td>
+        <td>Manage local user accounts. <strong>name:</strong> username. <strong>state:</strong> present/absent. <strong>groups:</strong> supplementary groups list. <strong>shell:</strong> /bin/bash. <strong>password:</strong> hashed password string. <strong>create_home:</strong> true/false.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.windows.win_package</code></td>
+        <td>ansible.windows</td>
+        <td>Install/remove Windows software (MSI, exe). <strong>path:</strong> installer path or URL. <strong>product_id:</strong> MSI product GUID for detection. <strong>state:</strong> present/absent. <strong>arguments:</strong> installer args. <strong>creates:</strong> skip if path exists.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.windows.win_service</code></td>
+        <td>ansible.windows</td>
+        <td>Manage Windows services. <strong>name:</strong> service name. <strong>state:</strong> started/stopped/restarted/absent. <strong>start_mode:</strong> auto/manual/disabled. <strong>force_dependent_services:</strong> true to stop dependents first.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.windows.win_domain_membership</code></td>
+        <td>ansible.windows</td>
+        <td>Join/leave a Windows Active Directory domain. <strong>dns_domain_name:</strong> AD FQDN. <strong>domain_admin_user:</strong> join account. <strong>domain_admin_password:</strong> (use no_log). <strong>domain_ou_path:</strong> target OU. <strong>state:</strong> domain/workgroup. Returns reboot_required: true after join.</td>
+      </tr>
+      <tr>
+        <td><code>community.windows.win_dns_record</code></td>
+        <td>community.windows</td>
+        <td>Manage DNS records in Windows DNS Server. Runs via delegate_to: dc01. <strong>name:</strong> hostname. <strong>type:</strong> A/PTR/CNAME/MX. <strong>value:</strong> IP or target. <strong>zone:</strong> DNS zone. <strong>ttl:</strong> seconds. <strong>state:</strong> present/absent.</td>
+      </tr>
+      <tr>
+        <td><code>kubernetes.core.k8s</code></td>
+        <td>kubernetes.core</td>
+        <td>Create/update/delete any Kubernetes resource. Equivalent to oc apply. <strong>state:</strong> present/absent/patched. <strong>definition:</strong> inline YAML dict. <strong>src:</strong> YAML file. <strong>namespace.</strong> <strong>wait:</strong> true to block until ready. <strong>wait_condition:</strong> specific condition to wait for.</td>
+      </tr>
+      <tr>
+        <td><code>kubernetes.core.k8s_info</code></td>
+        <td>kubernetes.core</td>
+        <td>Read Kubernetes resources without modifying (GET). Returns resources list. <strong>api_version.</strong> <strong>kind.</strong> <strong>name:</strong> specific resource name. <strong>namespace.</strong> <strong>label_selectors:</strong> list. <strong>field_selectors:</strong> list (e.g., status.nodeName=bm-virt-01).</td>
+      </tr>
+      <tr>
+        <td><code>kubernetes.core.k8s_exec</code></td>
+        <td>kubernetes.core</td>
+        <td>Execute a command inside a running pod (oc exec). <strong>namespace.</strong> <strong>pod:</strong> pod name. <strong>container:</strong> container name. <strong>command:</strong> list of strings.</td>
+      </tr>
+      <tr>
+        <td><code>community.kubevirt.kubevirt_vm</code></td>
+        <td>community.kubevirt</td>
+        <td>High-level VM lifecycle module. Wraps kubernetes.core.k8s with VM-specific logic. <strong>name/namespace.</strong> <strong>state:</strong> present/absent/running/stopped. <strong>memory:</strong> "32Gi". <strong>cpu_cores:</strong> 8. <strong>disks/volumes/interfaces/networks:</strong> lists.</td>
+      </tr>
+      <tr>
+        <td><code>netapp.ontap.na_ontap_volume</code></td>
+        <td>netapp.ontap</td>
+        <td>Create/modify/delete NetApp ONTAP volumes. <strong>hostname:</strong> ONTAP management IP. <strong>username/password.</strong> <strong>name:</strong> volume name. <strong>vserver:</strong> SVM. <strong>size/size_unit:</strong> "200gb". <strong>aggregate_name.</strong> <strong>junction_path:</strong> NFS export path. <strong>space_guarantee:</strong> volume/none. <strong>state:</strong> present/absent.</td>
+      </tr>
+      <tr>
+        <td><code>ansible.builtin.uri</code></td>
+        <td>ansible.builtin</td>
+        <td>Make HTTP/HTTPS requests — the universal REST API module. <strong>url:</strong> full URL. <strong>method:</strong> GET/POST/PUT/PATCH/DELETE. <strong>body:</strong> request body. <strong>body_format:</strong> json/raw/form-urlencoded. <strong>headers:</strong> dict. <strong>status_code:</strong> int or list of acceptable codes. <strong>return_content:</strong> true to include body in result. <strong>force_basic_auth:</strong> true for Basic Auth.</td>
+      </tr>
+      <tr>
+        <td><code>community.general.servicenow</code></td>
+        <td>community.general</td>
+        <td>Create/update/query ServiceNow ITSM records. <strong>instance:</strong> ServiceNow URL. <strong>username/password.</strong> <strong>table:</strong> incident/change_request/cmdb_ci. <strong>number:</strong> existing record number. <strong>state:</strong> present/absent. <strong>data:</strong> dict of field values to set.</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 AAP INSTALL ══ -->
+  <section id="aap-install">
+  <h2>04 — AAP installation and OCP integration</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">aap-instance.yaml — AnsibleAutomationPlatform CR — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">aap.ansible.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">AnsibleAutomationPlatform</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-aap</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">aap</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">controller</span><span class="yc">:</span>
+    <span class="yk">disabled</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # Automation Controller: the web UI and REST API.
+    # Hosts Job Templates, Inventories, Credentials, Schedules, Surveys.
+    # All playbook execution is triggered from and tracked by the Controller.</span>
+    <span class="yk">admin_email</span><span class="yc">:</span> <span class="yv">platform-admin@novacrestbank.local</span>
+    <span class="yk">garbage_collect_secrets</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # garbage_collect_secrets: remove orphaned k8s Secrets when AAP resources are deleted.
+    # Prevents credential accumulation in the aap namespace over time.</span>
+  <span class="yk">hub</span><span class="yc">:</span>
+    <span class="yk">disabled</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # Automation Hub: internal Ansible Galaxy. Hosts Collections and Execution Environments.
+    # NovaCrestBank mirrors all required collections here (air-gap pattern).
+    # Playbooks install modules from the internal Hub, not the internet.</span>
+  <span class="yk">eda</span><span class="yc">:</span>
+    <span class="yk">disabled</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # Event-Driven Ansible: the Alertmanager → AAP bridge.
+    # Listens for external events (webhooks, Kafka, Dynatrace).
+    # Evaluates Rulebooks: IF event matches condition THEN trigger AAP Job Template.
+    # Required for Section 15 (alert-driven live migration).</span>
+  <span class="yk">no_log</span><span class="yc">:</span> <span class="yv">false</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install AAP and verify all components running</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc new-project aap
+oc apply -f aap-subscription.yaml   # channel: stable-2.4</span>
+<span class="tg">subscription.operators.coreos.com/aap-operator created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f aap-instance.yaml</span>
+<span class="tg">ansibleautomationplatform.aap.ansible.com/ncb-aap created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 30 'oc get aap ncb-aap -n aap \
+  -o jsonpath="{.status.conditions[?(@.type==\"Successful\")].status}"'</span>
+<span class="tg">True</span>
+<span class="tok">✓ AAP deployed. Access URL:
+  oc get route ncb-aap -n aap -o jsonpath='{.spec.host}'
+  → ncb-aap.apps.ocp.novacrestbank.local
+  Initial admin password:
+  oc get secret ncb-aap-admin-password -n aap -o jsonpath='{.data.password}' | base64 -d</span>
+
+<span class="td"># Install required collections into the Execution Environment</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ansible-galaxy collection install \
+  kubernetes.core \
+  community.kubevirt \
+  netapp.ontap \
+  ansible.windows \
+  community.windows \
+  ansible.posix \
+  community.general \
+  -p /home/runner/.ansible/collections</span>
+<span class="tg">Installing 'kubernetes.core:3.1.0' to ...
+Installing 'community.kubevirt:1.2.0' to ...
+Installing 'netapp.ontap:22.8.0' to ...</span>
+<span class="tok">✓ Collections installed. Push the Execution Environment image to Harbor
+  and reference it in the AAP Controller Job Template configuration.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 VM PROVISIONING ══ -->
+  <section id="vm-provisioning">
+  <h2>05 — New VM provisioning — RHEL and Windows on OCP Virt</h2>
+  <p>The provisioning playbook creates a complete VM from nothing: VirtualMachine CR, boot disk PVC, cloud-init configuration for network and hostname, and waits for the VM to reach Running phase before handing off to the guest OS configuration plays. Every YAML directive is annotated with its meaning and the reasoning behind the chosen value.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-provision-vm.yaml — create VirtualMachine CR via Kubernetes API</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Create VirtualMachine CR and wait for VM to boot</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pc">  # localhost: this entire play runs on the AAP execution node.
+  # All tasks talk to the Kubernetes API — not SSH into any VM.
+  # The VM does not exist yet; there is nothing to SSH into.</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pc">  # false: skip the setup module. The AAP node's own facts are not needed here.</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">vm_name</span><span class="pc">:</span> <span class="pe">"{{ vm_name_survey }}"</span>
+    <span class="pc">    # vm_name_survey: populated by an AAP Job Template Survey.
+    # A Survey is a web form in the AAP UI that collects runtime input:
+    # VM name, IP, OS type, CPU count, memory size. Input becomes extra_vars.</span>
+    <span class="pk">vm_ip</span><span class="pc">:</span> <span class="pe">"{{ vm_ip_survey }}"</span>
+    <span class="pk">vm_namespace</span><span class="pc">:</span> <span class="pv">virt-workloads</span>
+    <span class="pk">vm_os_type</span><span class="pc">:</span> <span class="pe">"{{ vm_os_type_survey | default('rhel9') }}"</span>
+    <span class="pc">    # default('rhel9'): use 'rhel9' if vm_os_type_survey is undefined.
+    # The default filter prevents "undefined variable" errors in the playbook.</span>
+    <span class="pk">vm_memory</span><span class="pc">:</span> <span class="pe">"{{ vm_memory_survey | default('32Gi') }}"</span>
+    <span class="pk">vm_cpu_cores</span><span class="pc">:</span> <span class="pe">"{{ vm_cpu_survey | default(8) | int }}"</span>
+    <span class="pk">vm_disk_size</span><span class="pc">:</span> <span class="pe">"{{ '80Gi' if vm_os_type == 'win2022' else '40Gi' }}"</span>
+    <span class="pc">    # Ternary expression: if vm_os_type is 'win2022' use 80Gi else 40Gi.
+    # Windows needs more space for the OS + VirtIO drivers + updates.</span>
+    <span class="pk">mac_address</span><span class="pc">:</span>
+      <span class="pe">"02:00:00:{{ '%02x' % vm_ip.split('.')[2]|int }}:{{ '%02x' % vm_ip.split('.')[3]|int }}"</span>
+    <span class="pc">    # Derive MAC from VLAN 130 IP per VIRT-05 convention.
+    # vm_ip = "10.130.0.50" → split on '.' → ["10","130","0","50"]
+    # [2]="0" → hex "00", [3]="50" → hex "32"
+    # Result: "02:00:00:00:00:32"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create VirtualMachine CR</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="pc">        # present: create if not exists; patch if exists and differs.
+        # Idempotent: running this task twice creates the VM once, not twice.</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pc">          # definition: the full Kubernetes resource as an inline YAML dict.
+          # Jinja2 expressions inside definition are resolved before the API call.
+          # Equivalent to: oc apply -f virtualmachine.yaml</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachine</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+            <span class="pk">labels</span><span class="pc">:</span>
+              <span class="pk">app</span><span class="pc">:</span> <span class="pv">banking-app</span>
+              <span class="pk">environment</span><span class="pc">:</span> <span class="pv">production</span>
+              <span class="pk">managed-by</span><span class="pc">:</span> <span class="pv">aap</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">runStrategy</span><span class="pc">:</span> <span class="pv">Always</span>
+            <span class="pk">dataVolumeTemplates</span><span class="pc">:</span>
+              <span class="pc">- metadata</span><span class="pc">:</span>
+                  <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}-disk"</span>
+                <span class="pk">spec</span><span class="pc">:</span>
+                  <span class="pk">sourceRef</span><span class="pc">:</span>
+                    <span class="pk">kind</span><span class="pc">:</span> <span class="pv">DataSource</span>
+                    <span class="pk">name</span><span class="pc">:</span>
+                      <span class="pe">"{{ 'rhel9' if vm_os_type == 'rhel9' else 'win2022' }}"</span>
+                    <span class="pk">namespace</span><span class="pc">:</span> <span class="pv">openshift-virtualization-os-images</span>
+                  <span class="pk">storage</span><span class="pc">:</span>
+                    <span class="pk">storageClassName</span><span class="pc">:</span> <span class="pv">ocs-storagecluster-ceph-rbd-virtualization</span>
+                    <span class="pk">accessModes</span><span class="pc">:</span>
+                      <span class="pc">- ReadWriteMany</span>
+                    <span class="pk">resources</span><span class="pc">:</span>
+                      <span class="pk">requests</span><span class="pc">:</span>
+                        <span class="pk">storage</span><span class="pc">:</span> <span class="pe">"{{ vm_disk_size }}"</span>
+            <span class="pk">template</span><span class="pc">:</span>
+              <span class="pk">spec</span><span class="pc">:</span>
+                <span class="pk">domain</span><span class="pc">:</span>
+                  <span class="pk">cpu</span><span class="pc">:</span>
+                    <span class="pk">cores</span><span class="pc">:</span> <span class="pe">"{{ vm_cpu_cores }}"</span>
+                    <span class="pk">dedicatedCpuPlacement</span><span class="pc">:</span> <span class="pv">true</span>
+                    <span class="pk">model</span><span class="pc">:</span> <span class="pv">host-passthrough</span>
+                  <span class="pk">memory</span><span class="pc">:</span>
+                    <span class="pk">guest</span><span class="pc">:</span> <span class="pe">"{{ vm_memory }}"</span>
+                    <span class="pk">hugepages</span><span class="pc">:</span>
+                      <span class="pk">pageSize</span><span class="pc">:</span> <span class="ps">"1Gi"</span>
+                  <span class="pk">devices</span><span class="pc">:</span>
+                    <span class="pk">disks</span><span class="pc">:</span>
+                      <span class="pc">- disk</span><span class="pc">:</span>
+                          <span class="pk">bus</span><span class="pc">:</span> <span class="pv">virtio</span>
+                        <span class="pk">name</span><span class="pc">:</span> <span class="pv">rootdisk</span>
+                      <span class="pc">- disk</span><span class="pc">:</span>
+                          <span class="pk">bus</span><span class="pc">:</span> <span class="pv">virtio</span>
+                        <span class="pk">name</span><span class="pc">:</span> <span class="pv">cloudinitdisk</span>
+                    <span class="pk">interfaces</span><span class="pc">:</span>
+                      <span class="pc">- masquerade: {}</span>
+                        <span class="pk">name</span><span class="pc">:</span> <span class="pv">default</span>
+                      <span class="pc">- bridge: {}</span>
+                        <span class="pk">name</span><span class="pc">:</span> <span class="pv">vlan130-nic</span>
+                        <span class="pk">macAddress</span><span class="pc">:</span> <span class="pe">"{{ mac_address }}"</span>
+                <span class="pk">networks</span><span class="pc">:</span>
+                  <span class="pc">- name</span><span class="pc">:</span> <span class="pv">default</span>
+                    <span class="pk">pod</span><span class="pc">:</span> <span class="pv">{}</span>
+                  <span class="pc">- name</span><span class="pc">:</span> <span class="pv">vlan130-nic</span>
+                    <span class="pk">multus</span><span class="pc">:</span>
+                      <span class="pk">networkName</span><span class="pc">:</span> <span class="pv">vlan130-primary</span>
+                <span class="pk">volumes</span><span class="pc">:</span>
+                  <span class="pc">- name: rootdisk</span>
+                    <span class="pk">dataVolume</span><span class="pc">:</span>
+                      <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}-disk"</span>
+                  <span class="pc">- name: cloudinitdisk</span>
+                    <span class="pk">cloudInitNoCloud</span><span class="pc">:</span>
+                      <span class="pk">userData</span><span class="pc">:</span> <span class="pe">|
+                        #cloud-config
+                        hostname: {{ vm_name }}
+                        fqdn: {{ vm_name }}.novacrestbank.local
+                        network:
+                          version: 2
+                          ethernets:
+                            eth1:
+                              dhcp4: false
+                              addresses: ["{{ vm_ip }}/24"]
+                              gateway4: 10.130.0.3
+                              nameservers:
+                                addresses: [10.70.0.10, 10.70.0.11]
+                                search: [novacrestbank.local]</span>
+                <span class="pk">evictionStrategy</span><span class="pc">:</span> <span class="pv">LiveMigrate</span>
+                <span class="pk">nodeSelector</span><span class="pc">:</span>
+                  <span class="pk">workload-type</span><span class="pc">:</span> <span class="pv">virtualization</span>
+                <span class="pk">tolerations</span><span class="pc">:</span>
+                  <span class="pc">- key: kubevirt.io/virt</span>
+                    <span class="pk">operator</span><span class="pc">:</span> <span class="pv">Exists</span>
+                    <span class="pk">effect</span><span class="pc">:</span> <span class="pv">NoSchedule</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Poll until VMI phase is Running</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vmi_status</span>
+      <span class="pk">until</span><span class="pc">:</span>
+        <span class="pe">vmi_status.resources | length > 0 and
+        vmi_status.resources[0].status.phase == "Running"</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">30</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">20</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">localhost</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Log provisioning success</span>
+      <span class="pm">ansible.builtin.debug</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span> <span class="pe">"VM {{ vm_name }} running on {{ vmi_status.resources[0].status.nodeName }}"</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 NETAPP STORAGE ══ -->
+  <section id="netapp-storage">
+  <h2>06 — NetApp AFF storage — provisioning PVCs via Trident</h2>
+  <p>When NovaCrestBank VM workloads use NetApp AFF for additional data volumes — accessed via Trident (the NetApp CSI driver) — AAP automates both sides: creating the volume on the ONTAP system and the corresponding PVC in OCP. This is the data disk provisioning flow, separate from the VM boot disk (which uses ODF RBD via dataVolumeTemplates in Section 05).</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-netapp-pvc.yaml — NetApp AFF volume and OCP PVC — every option annotated</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Provision NetApp AFF data volume and bind to OCP PVC</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">netapp_hostname</span><span class="pc">:</span> <span class="ps">"netapp-mgmt.novacrestbank.local"</span>
+    <span class="pk">netapp_svm</span><span class="pc">:</span> <span class="ps">"svm-banking"</span>
+    <span class="pc">    # SVM (Storage Virtual Machine): the logical tenant on ONTAP.
+    # svm-banking is the SVM for banking application data volumes —
+    # separate network interfaces, protocols, and security policies from other SVMs.</span>
+    <span class="pk">volume_name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}_data"</span>
+    <span class="pk">volume_size_gb</span><span class="pc">:</span> <span class="pv">200</span>
+    <span class="pk">nfs_export_path</span><span class="pc">:</span> <span class="pe">"/{{ volume_name }}"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create NFS volume on NetApp AFF via ONTAP API</span>
+      <span class="pm">netapp.ontap.na_ontap_volume</span><span class="pc">:</span>
+        <span class="po">hostname</span><span class="pc">:</span> <span class="pe">"{{ netapp_hostname }}"</span>
+        <span class="po">username</span><span class="pc">:</span> <span class="pe">"{{ netapp_username }}"</span>
+        <span class="po">password</span><span class="pc">:</span> <span class="pe">"{{ netapp_password }}"</span>
+        <span class="pc">        # netapp_username/password: stored in AAP Credentials (type: NetApp ONTAP).
+        # AAP injects credentials as environment variables — never in plaintext in playbooks.</span>
+        <span class="po">https</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="po">validate_certs</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ volume_name }}"</span>
+        <span class="po">vserver</span><span class="pc">:</span> <span class="pe">"{{ netapp_svm }}"</span>
+        <span class="po">aggregate_name</span><span class="pc">:</span> <span class="ps">"aggr1_nvme"</span>
+        <span class="pc">        # aggregate_name: the physical NVMe storage pool on the AFF system.
+        # Provision into the aggregate with most free space for capacity balance.
+        # Use na_ontap_aggregate_info to query available space before provisioning.</span>
+        <span class="po">size</span><span class="pc">:</span> <span class="pe">"{{ volume_size_gb }}"</span>
+        <span class="po">size_unit</span><span class="pc">:</span> <span class="pv">gb</span>
+        <span class="po">space_guarantee</span><span class="pc">:</span> <span class="pv">volume</span>
+        <span class="pc">        # space_guarantee: volume → thick provisioning (pre-allocate full size).
+        # none → thin provisioning (space grows as data is written).
+        # For banking application data volumes: volume (thick) guarantees capacity.</span>
+        <span class="po">junction_path</span><span class="pc">:</span> <span class="pe">"{{ nfs_export_path }}"</span>
+        <span class="pc">        # junction_path: the NFS mount point path for this volume.
+        # Trident's ONTAP-NAS driver uses the junction_path to mount the volume
+        # into the Kubernetes PVC automatically when the PVC is bound.</span>
+        <span class="po">nas_security_style</span><span class="pc">:</span> <span class="pv">unix</span>
+        <span class="po">nas_unix_permissions</span><span class="pc">:</span> <span class="ps">"0755"</span>
+        <span class="po">snapdir_access</span><span class="pc">:</span> <span class="pv">false</span>
+        <span class="pc">        # snapdir_access: false → hide the .snapshot directory from NFS clients.
+        # Snapshots are still taken on schedule but not visible to the VM guest OS.</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create PVC in OCP backed by the NetApp volume</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">v1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">PersistentVolumeClaim</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}-data-pvc"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">storageClassName</span><span class="pc">:</span> <span class="pv">trident-ontap-nfs</span>
+            <span class="pc">            # Trident StorageClass pointing to the AFF SVM.
+            # Trident binds the existing junction_path volume to this PVC.</span>
+            <span class="pk">accessModes</span><span class="pc">:</span>
+              <span class="pc">- ReadWriteMany</span>
+            <span class="pk">resources</span><span class="pc">:</span>
+              <span class="pk">requests</span><span class="pc">:</span>
+                <span class="pk">storage</span><span class="pc">:</span> <span class="pe">"{{ volume_size_gb }}Gi"</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 IPAM AD ══ -->
+  <section id="ipam-ad">
+  <h2>07 — IPAM and Active Directory dynamic joins on VM spawn</h2>
+  <p>Every provisioned VM needs an IP reservation in IPAM (so no other device claims the address) and an Active Directory machine account (so the VM receives GPOs, authenticates to domain services, and is managed by WSUS/SCCM). These operations run automatically as part of the provisioning pipeline — a VM is never allowed into production without both completed.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-ipam-ad.yaml — IPAM reservation, DNS creation, AD domain join — every option annotated</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Reserve IP in Infoblox IPAM and create DNS records</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">infoblox_host</span><span class="pc">:</span> <span class="ps">"infoblox.novacrestbank.local"</span>
+    <span class="pk">dns_zone</span><span class="pc">:</span> <span class="ps">"novacrestbank.local"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Reserve fixed IP in Infoblox IPAM</span>
+      <span class="pm">ansible.builtin.uri</span><span class="pc">:</span>
+        <span class="po">url</span><span class="pc">:</span> <span class="pe">"https://{{ infoblox_host }}/wapi/v2.10/fixedaddress"</span>
+        <span class="pc">        # Infoblox WAPI (Web API): REST interface for IPAM operations.
+        # fixedaddress: creates a static IP reservation tied to a MAC address.
+        # wapi/v2.10: API version — match to your Infoblox NIOS version.</span>
+        <span class="po">method</span><span class="pc">:</span> <span class="pv">POST</span>
+        <span class="po">url_username</span><span class="pc">:</span> <span class="pe">"{{ infoblox_username }}"</span>
+        <span class="po">url_password</span><span class="pc">:</span> <span class="pe">"{{ infoblox_password }}"</span>
+        <span class="po">force_basic_auth</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="pc">        # force_basic_auth: true → send Basic Auth header on the FIRST request.
+        # Without this: uri waits for a 401 challenge before sending credentials.
+        # Infoblox requires Basic Auth — force it to avoid an extra round trip.</span>
+        <span class="po">body_format</span><span class="pc">:</span> <span class="pv">json</span>
+        <span class="pc">        # body_format: json → encode body as JSON and set Content-Type: application/json.
+        # Alternatives: raw (as-is), form-urlencoded (HTML form format).</span>
+        <span class="po">body</span><span class="pc">:</span>
+          <span class="pk">ipv4addr</span><span class="pc">:</span> <span class="pe">"{{ vm_ip }}"</span>
+          <span class="pk">mac</span><span class="pc">:</span> <span class="pe">"{{ mac_address }}"</span>
+          <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}.{{ dns_zone }}"</span>
+          <span class="pk">comment</span><span class="pc">:</span> <span class="pe">"OCP Virt — provisioned by AAP job {{ tower_job_id }}"</span>
+          <span class="pc">          # tower_job_id: auto-populated by AAP — numeric ID of the current job.
+          # Including it in the IPAM comment creates an audit trail:
+          # the IPAM record references the exact AAP job that created it.</span>
+        <span class="po">validate_certs</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="po">status_code</span><span class="pc">:</span> <span class="pv">201</span>
+        <span class="pc">        # status_code: the HTTP code that means success.
+        # 201 Created → standard for successful POST of a new resource.
+        # If the IP is already reserved (409 Conflict): task fails.
+        # To handle idempotently: add status_code: [201, 409] and check result.status.</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">ipam_result</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create DNS A record via Windows DNS on DC01</span>
+      <span class="pm">community.windows.win_dns_record</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">type</span><span class="pc">:</span> <span class="pv">A</span>
+        <span class="po">value</span><span class="pc">:</span> <span class="pe">"{{ vm_ip }}"</span>
+        <span class="po">zone</span><span class="pc">:</span> <span class="pe">"{{ dns_zone }}"</span>
+        <span class="po">ttl</span><span class="pc">:</span> <span class="pv">3600</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.local</span>
+      <span class="pc">      # delegate_to: dc01 — run this task ON DC01 over WinRM (not localhost).
+      # The win_dns_record module requires running on a Windows DNS server.
+      # AAP must have WinRM credentials for DC01 configured as an inventory host.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create DNS PTR record for reverse lookup</span>
+      <span class="pm">community.windows.win_dns_record</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_ip.split('.')[-1] }}"</span>
+        <span class="pc">        # vm_ip.split('.')[-1]: extract the last octet.
+        # "10.130.0.50".split('.') → ["10","130","0","50"] → [-1] → "50"
+        # PTR record name is the last octet in the reverse zone.</span>
+        <span class="po">type</span><span class="pc">:</span> <span class="pv">PTR</span>
+        <span class="po">value</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}.{{ dns_zone }}"</span>
+        <span class="po">zone</span><span class="pc">:</span> <span class="ps">"0.130.10.in-addr.arpa"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.local</span>
+
+<span class="pc"># Play 2: RHEL AD join — runs directly on the VM guest OS via SSH</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Join RHEL VM to Active Directory</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pe">"{{ vm_ip }}"</span>
+  <span class="pc">  # hosts: the VM's IP — added to the AAP dynamic inventory after the VM booted.
+  # This play connects to the VM guest OS via SSH (the primary masquerade interface).</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">become</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Install realmd, sssd and AD integration packages</span>
+      <span class="pm">ansible.builtin.package</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span>
+          <span class="pc">- realmd</span>
+          <span class="pc">- sssd</span>
+          <span class="pc">- adcli</span>
+          <span class="pc">- krb5-workstation</span>
+          <span class="pc">- samba-common-tools</span>
+          <span class="pc">- oddjob-mkhomedir</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Join the AD domain and place computer in OCP-Virt OU</span>
+      <span class="pm">ansible.builtin.command</span><span class="pc">:</span>
+        <span class="po">cmd</span><span class="pc">:</span>
+          <span class="pe">"realm join --user={{ ad_user }} --computer-ou='{{ ad_ou }}' {{ ad_domain }}"</span>
+        <span class="po">stdin</span><span class="pc">:</span> <span class="pe">"{{ ad_password }}"</span>
+        <span class="pc">        # stdin: feed the AD password to realm join's password prompt.
+        # realm join expects the password interactively — stdin supplies it non-interactively.
+        # never pass the password in the cmd string (it would appear in process list and logs).</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">domain_join_result</span>
+      <span class="pk">changed_when</span><span class="pc">:</span> <span class="pe">domain_join_result.rc == 0</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Enable and start SSSD and oddjobd</span>
+      <span class="pm">ansible.builtin.service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ item }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">started</span>
+        <span class="po">enabled</span><span class="pc">:</span> <span class="pv">true</span>
+      <span class="pk">loop</span><span class="pc">:</span>
+        <span class="pc">- sssd</span>
+        <span class="pc">- oddjobd</span>
+
+<span class="pc"># Play 3: Windows AD join — runs via WinRM on the Windows VM guest</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Join Windows Server VM to Active Directory</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pe">"{{ vm_ip }}"</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">connection</span><span class="pc">:</span> <span class="pv">winrm</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">ansible_winrm_transport</span><span class="pc">:</span> <span class="pv">kerberos</span>
+    <span class="pc">    # winrm transport: kerberos → more secure than NTLM (the default).
+    # Requires a valid Kerberos ticket on the AAP execution node.
+    # For initial setup before AD join: use ntlm or basic temporarily,
+    # then switch to kerberos after domain join is complete.</span>
+    <span class="pk">ansible_port</span><span class="pc">:</span> <span class="pv">5986</span>
+    <span class="pc">    # 5985 = WinRM HTTP (unencrypted), 5986 = WinRM HTTPS (encrypted).
+    # Always use 5986 in production. Requires a valid certificate on the Windows VM.</span>
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Join Windows VM to AD domain with OU placement</span>
+      <span class="pm">ansible.windows.win_domain_membership</span><span class="pc">:</span>
+        <span class="po">dns_domain_name</span><span class="pc">:</span> <span class="pe">"{{ ad_domain }}"</span>
+        <span class="po">domain_admin_user</span><span class="pc">:</span> <span class="pe">"{{ ad_user }}"</span>
+        <span class="po">domain_admin_password</span><span class="pc">:</span> <span class="pe">"{{ ad_password }}"</span>
+        <span class="po">domain_ou_path</span><span class="pc">:</span> <span class="pe">"{{ ad_ou }}"</span>
+        <span class="pc">        # domain_ou_path: where in AD the computer account is created.
+        # OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local (from VIRT-02b).
+        # Without this: the computer account goes to the default Computers container
+        # and does not receive the banking VM GPOs.</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">domain</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">win_join</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Reboot Windows VM to complete domain join</span>
+      <span class="pm">ansible.windows.win_reboot</span><span class="pc">:</span>
+        <span class="po">reboot_timeout</span><span class="pc">:</span> <span class="pv">300</span>
+        <span class="pc">        # win_reboot: reboots the Windows VM and waits for WinRM to reconnect.
+        # reboot_timeout: 300 seconds — Windows reboots are slower than Linux.
+        # Domain join REQUIRES a reboot to take effect on Windows.</span>
+      <span class="pk">when</span><span class="pc">:</span> <span class="pv">win_join.reboot_required</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 WINDOWS MIGRATION ══ -->
+  <section id="windows-migration">
+  <h2>08 — Windows Server VM migration from VCF via AAP</h2>
+  <p>AAP orchestrates Windows Server VM migrations in three phases: pre-migration (install VirtIO drivers on the source VM while it is still running in vSphere, gracefully stop application services), trigger (create the MTV Migration object via the Kubernetes API), and post-migration (restart services, update DNS, validate). Without the pre-migration VirtIO driver install, Windows does not recognise QEMU virtual hardware and fails to boot after migration.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-windows-migration.yaml — three-phase orchestrated Windows VM migration</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Phase 1 — Install VirtIO drivers and quiesce services on source VM</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pe">"{{ source_vm_ip }}"</span>
+  <span class="pc">  # Connect to the Windows VM at its CURRENT vSphere IP — before migration.</span>
+  <span class="pk">connection</span><span class="pc">:</span> <span class="pv">winrm</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Copy VirtIO drivers ISO from file share</span>
+      <span class="pm">ansible.windows.win_copy</span><span class="pc">:</span>
+        <span class="po">src</span><span class="pc">:</span> <span class="ps">"\\\\fileserver.novacrestbank.local\\iso\\virtio-win.iso"</span>
+        <span class="po">dest</span><span class="pc">:</span> <span class="ps">"C:\\Temp\\virtio-win.iso"</span>
+        <span class="pc">        # win_copy: copy a file from the AAP execution node to the Windows target.
+        # src can be a UNC path accessible from the AAP node.
+        # Alternatively: use a URL with win_get_url to download from Harbor/S3.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Mount ISO and install VirtIO drivers silently</span>
+      <span class="pm">ansible.windows.win_shell</span><span class="pc">:</span>
+        <span class="pc">        # win_shell: execute a PowerShell script block on the Windows target.
+        # _raw_params: the script to execute (not a module option, but the script itself).
+        # Use win_shell when PowerShell-specific cmdlets are needed (Mount-DiskImage, etc.).</span>
+        <span class="po">_raw_params</span><span class="pc">:</span> <span class="ps">|
+          $iso = "C:\Temp\virtio-win.iso"
+          $letter = (Mount-DiskImage -ImagePath $iso -PassThru |
+                     Get-Volume).DriveLetter
+          Start-Process msiexec -Wait `
+            -ArgumentList "/i","${letter}:\virtio-win-gt-x64.msi","/quiet","/norestart"
+          Dismount-DiskImage -ImagePath $iso</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Stop application services before migration (clean shutdown)</span>
+      <span class="pm">ansible.windows.win_service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ item }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">stopped</span>
+        <span class="po">force_dependent_services</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="pc">        # force_dependent_services: true → stop dependent services first.
+        # Prevents "cannot stop: service has dependents" errors for application services.</span>
+      <span class="pk">loop</span><span class="pc">:</span>
+        <span class="pc">- BankingAppService</span>
+        <span class="pc">- BankingAPIGateway</span>
+
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Phase 2 — Trigger MTV cold migration via Kubernetes API</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create MTV Migration object to start disk transfer</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">forklift.konveyor.io/v1beta1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">Migration</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span> <span class="pe">"aap-migrate-{{ vm_name }}-{{ ansible_date_time.epoch }}"</span>
+            <span class="pc">            # ansible_date_time.epoch: Unix timestamp — ensures unique migration name
+            # across multiple attempts for the same VM.</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pv">openshift-mtv</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">plan</span><span class="pc">:</span>
+              <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ mtv_plan_name }}"</span>
+              <span class="pk">namespace</span><span class="pc">:</span> <span class="pv">openshift-mtv</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Wait for MTV migration to complete (poll every 60 seconds, max 120 minutes)</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">forklift.konveyor.io/v1beta1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">Migration</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pv">openshift-mtv</span>
+        <span class="po">label_selectors</span><span class="pc">:</span>
+          <span class="pc">- "migration-plan={{ mtv_plan_name }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">mtv_migration</span>
+      <span class="pk">until</span><span class="pc">:</span>
+        <span class="pe">mtv_migration.resources | length > 0 and
+        mtv_migration.resources[0].status.conditions |
+        selectattr('type','eq','Succeeded') |
+        selectattr('status','eq','True') | list | length > 0</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">120</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">60</span>
+
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Phase 3 — Post-migration: reconfigure on OCP Virt and update DNS</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pe">"{{ vm_vlan130_ip }}"</span>
+  <span class="pk">connection</span><span class="pc">:</span> <span class="pv">winrm</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Start banking application services on new OCP Virt IP</span>
+      <span class="pm">ansible.windows.win_service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ item }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">started</span>
+      <span class="pk">loop</span><span class="pc">:</span>
+        <span class="pc">- BankingAppService</span>
+        <span class="pc">- BankingAPIGateway</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Update DNS A record to new VLAN 130 IP</span>
+      <span class="pm">community.windows.win_dns_record</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">type</span><span class="pc">:</span> <span class="pv">A</span>
+        <span class="po">value</span><span class="pc">:</span> <span class="pe">"{{ vm_vlan130_ip }}"</span>
+        <span class="po">zone</span><span class="pc">:</span> <span class="pv">novacrestbank.local</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.local</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 PATCHING ══ -->
+  <section id="patching">
+  <h2>09 — Guest OS patching — RHEL and Windows at scale</h2>
+  <p>Guest OS patching is the most frequent AAP operation for VM workloads. Without automation: 50 VMs means 50 SSH sessions, 50 manual <code>dnf update</code> runs, 50 individual reboots. With AAP: one Job Template run, configurable batch size via <code>serial</code>, pre-patch snapshots, and post-patch validation — all logged in the AAP job output for audit evidence.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-patch-vms.yaml — fleet OS patching with serial batches and pre-patch snapshot</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Patch RHEL VM guest OS — pre-patch snapshot, update, reboot, validate</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">rhel_virt_vms</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">become</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">serial</span><span class="pc">:</span> <span class="pv">2</span>
+  <span class="pc">  # serial: 2 → patch 2 VMs simultaneously, wait for completion, then patch next 2.
+  # Prevents all VMs rebooting simultaneously (disrupts banking services).
+  # serial: 1 for payment processing VMs (maximum safety), serial: 5 for dev VMs.</span>
+  <span class="pk">max_fail_percentage</span><span class="pc">:</span> <span class="pv">20</span>
+  <span class="pc">  # max_fail_percentage: 20 → abort patching if more than 20% of VMs fail.
+  # A bad patch killing 3/10 VMs (30%) stops the run before it reaches all VMs.</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Take pre-patch VirtualMachineSnapshot via Kubernetes API</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">snapshot.kubevirt.io/v1alpha1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineSnapshot</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span>
+              <span class="pe">"pre-patch-{{ inventory_hostname | replace('.','--') }}-{{ ansible_date_time.date }}"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pv">virt-workloads</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">source</span><span class="pc">:</span>
+              <span class="pk">apiGroup</span><span class="pc">:</span> <span class="pv">kubevirt.io</span>
+              <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachine</span>
+              <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ hostvars[inventory_hostname].vm_name }}"</span>
+              <span class="pc">              # hostvars[inventory_hostname]: access any variable for the current host
+              # from the inventory. vm_name is set in host_vars/ for each VM.</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">localhost</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Apply all available security patches via dnf</span>
+      <span class="pm">ansible.builtin.dnf</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="ps">"*"</span>
+        <span class="pc">        # "*": update ALL installed packages.
+        # For security-only updates: use name: [] with security: true.</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">latest</span>
+        <span class="po">security</span><span class="pc">:</span> <span class="pv">false</span>
+        <span class="pc">        # security: false → update all packages (full quarterly patch).
+        # security: true → install only RHSA (Red Hat Security Advisory) packages.
+        # Use security: true for patch cycles outside maintenance windows.</span>
+        <span class="po">exclude</span><span class="pc">:</span>
+          <span class="pc">- kernel*</span>
+          <span class="pc">  # Exclude kernel updates — they require reboot AND pre-approval.
+          # Kernel updates run via a separate Job Template with a dedicated change request.</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">dnf_update</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Check if a reboot is required</span>
+      <span class="pm">ansible.builtin.command</span><span class="pc">:</span>
+        <span class="po">cmd</span><span class="pc">:</span> <span class="pv">needs-restarting -r</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">needs_reboot</span>
+      <span class="pk">failed_when</span><span class="pc">:</span> <span class="pv">false</span>
+      <span class="pc">      # needs-restarting exits 1 when a reboot is required — NOT an error.
+      # failed_when: false lets us capture rc=1 without the task failing.
+      # Evaluate: when: needs_reboot.rc == 1 on the next reboot task.</span>
+      <span class="pk">changed_when</span><span class="pc">:</span> <span class="pv">false</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Reboot the VM guest if required</span>
+      <span class="pm">ansible.builtin.reboot</span><span class="pc">:</span>
+        <span class="po">reboot_timeout</span><span class="pc">:</span> <span class="pv">300</span>
+        <span class="po">test_command</span><span class="pc">:</span> <span class="pv">whoami</span>
+        <span class="po">msg</span><span class="pc">:</span> <span class="pe">"Rebooting for post-patch restart — AAP job {{ tower_job_id }}"</span>
+      <span class="pk">when</span><span class="pc">:</span> <span class="pv">needs_reboot.rc == 1</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Gather service facts to verify post-patch state</span>
+      <span class="pm">ansible.builtin.service_facts</span><span class="pc">:</span>
+      <span class="pc">      # service_facts: populate ansible_facts.services — all systemd service states.
+      # No options needed. Use after reboot to verify critical services are running.
+      # Access: ansible_facts.services['qemu-guest-agent.service'].state</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Assert qemu-guest-agent is running after patch</span>
+      <span class="pm">ansible.builtin.assert</span><span class="pc">:</span>
+        <span class="po">that</span><span class="pc">:</span>
+          <span class="pc">- ansible_facts.services['qemu-guest-agent.service'].state == 'running'</span>
+        <span class="po">fail_msg</span><span class="pc">:</span> <span class="ps">"qemu-guest-agent not running after patching — investigate"</span>
+        <span class="po">success_msg</span><span class="pc">:</span> <span class="ps">"qemu-guest-agent running — patch complete"</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 COMPLIANCE SCAN ══ -->
+  <section id="compliance-scan">
+  <h2>10 — Compliance scanning — CIS Benchmark inside VM guests</h2>
+  <p>ACS (VIRT-08) provides container-level security scanning. For guest OS compliance — CIS RHEL 9 Benchmark Level 1 — AAP runs OpenSCAP directly inside the VM. The HTML reports are fetched back to the AAP execution node and stored as audit evidence for PCI-DSS Req 2.2. <span class="reg reg-pci">PCI-DSS v4.0 Req 2.2</span></p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-compliance-scan.yaml — OpenSCAP CIS Benchmark inside RHEL VM guests</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Run OpenSCAP CIS Level 1 scan on RHEL VM guests</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">rhel_virt_vms</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">become</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">scap_profile</span><span class="pc">:</span>
+      <span class="ps">"xccdf_org.ssgproject.content_profile_cis_server_l1_member_server"</span>
+    <span class="pk">report_dir</span><span class="pc">:</span> <span class="ps">"/var/tmp/scap-reports"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Install OpenSCAP scanner and SCAP Security Guide</span>
+      <span class="pm">ansible.builtin.dnf</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span>
+          <span class="pc">- openscap-scanner</span>
+          <span class="pc">- scap-security-guide</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create report directory</span>
+      <span class="pm">ansible.builtin.file</span><span class="pc">:</span>
+        <span class="po">path</span><span class="pc">:</span> <span class="pe">"{{ report_dir }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">directory</span>
+        <span class="po">mode</span><span class="pc">:</span> <span class="ps">"0750"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Run CIS Level 1 scan and generate HTML report</span>
+      <span class="pm">ansible.builtin.command</span><span class="pc">:</span>
+        <span class="po">cmd</span><span class="pc">:</span> <span class="ps">|
+          oscap xccdf eval
+          --profile {{ scap_profile }}
+          --results {{ report_dir }}/results-{{ inventory_hostname }}.xml
+          --report {{ report_dir }}/report-{{ inventory_hostname }}.html
+          --oval-results
+          /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">scap_result</span>
+      <span class="pk">failed_when</span><span class="pc">:</span> <span class="pv">scap_result.rc not in [0, 2]</span>
+      <span class="pc">      # oscap exits:
+      # 0 → all rules pass
+      # 2 → some rules fail (expected — not an error)
+      # 1 → error parsing or loading the SCAP content (actual error)
+      # failed_when: rc not in [0,2] → only fail on rc=1 or unexpected codes.</span>
+      <span class="pk">changed_when</span><span class="pc">:</span> <span class="pv">false</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Fetch the HTML compliance report to AAP execution node</span>
+      <span class="pm">ansible.builtin.fetch</span><span class="pc">:</span>
+        <span class="po">src</span><span class="pc">:</span> <span class="pe">"{{ report_dir }}/report-{{ inventory_hostname }}.html"</span>
+        <span class="po">dest</span><span class="pc">:</span> <span class="ps">"/var/lib/awx/projects/compliance-reports/"</span>
+        <span class="po">flat</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="pc">        # flat: true → put the file directly in dest/ without per-host subdirectory.
+        # Result: /var/lib/awx/projects/compliance-reports/report-10.130.0.50.html</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 CONFIG DRIFT ══ -->
+  <section id="config-drift">
+  <h2>11 — Configuration drift remediation in guest OSes</h2>
+  <p>Configuration drift occurs when a VM guest OS deviates from the desired baseline — a developer modified sshd_config, a package was installed manually, a firewall rule was removed. AAP detects and remediates drift by running idempotent playbooks on a schedule (every 4 hours for production banking VMs). Because Ansible modules check current state before acting, re-running the same playbook is safe — it only changes what differs from the desired state.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-config-drift.yaml — detect and remediate RHEL guest OS configuration drift</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Remediate RHEL VM guest OS configuration drift</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">rhel_virt_vms</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">become</span><span class="pc">:</span> <span class="pv">true</span>
+  <span class="pk">vars_files</span><span class="pc">:</span>
+    <span class="pc">    # vars_files: load variable definitions from external YAML files.
+    # Keeps the playbook clean — large variable sets live in separate files.
+    # Files are loaded in order; later files override earlier ones.</span>
+    <span class="pc">- vars/ncb_common.yml</span>
+    <span class="pc">- vars/banking_vm_baseline.yml</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Enforce SSH baseline configuration block</span>
+      <span class="pm">ansible.builtin.blockinfile</span><span class="pc">:</span>
+        <span class="po">path</span><span class="pc">:</span> <span class="pv">/etc/ssh/sshd_config</span>
+        <span class="po">block</span><span class="pc">:</span> <span class="ps">|
+          PermitRootLogin no
+          PasswordAuthentication no
+          MaxAuthTries 4
+          ClientAliveInterval 300
+          ClientAliveCountMax 0
+          AllowUsers admin svc-ocp-virt-mgmt</span>
+        <span class="po">marker</span><span class="pc">:</span> <span class="ps">"# {mark} ANSIBLE MANAGED — NovaCrestBank SSH baseline"</span>
+        <span class="pc">        # marker: the comment used to find the managed block.
+        # {mark} is replaced with BEGIN or END automatically.
+        # The block lives between these two marker comments.
+        # If someone manually edits between the markers, Ansible overwrites it on next run.
+        # Running this task twice: second run reports "ok" (idempotent — no change needed).</span>
+      <span class="pk">notify</span><span class="pc">:</span> <span class="ps">reload sshd</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Enforce auditd rules from template</span>
+      <span class="pm">ansible.builtin.template</span><span class="pc">:</span>
+        <span class="po">src</span><span class="pc">:</span> <span class="pv">templates/audit-banking-vm.rules.j2</span>
+        <span class="pc">        # Jinja2 template — rendered with all variables before writing.
+        # Use template (not copy) when file content varies per host
+        # (e.g., hostname-specific log paths, per-VM IP in audit filters).</span>
+        <span class="po">dest</span><span class="pc">:</span> <span class="pv">/etc/audit/rules.d/banking-vm.rules</span>
+        <span class="po">owner</span><span class="pc">:</span> <span class="pv">root</span>
+        <span class="po">group</span><span class="pc">:</span> <span class="pv">root</span>
+        <span class="po">mode</span><span class="pc">:</span> <span class="ps">"0640"</span>
+      <span class="pk">notify</span><span class="pc">:</span> <span class="ps">reload auditd</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Enforce kernel parameters via sysctl</span>
+      <span class="pm">ansible.posix.sysctl</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ item.key }}"</span>
+        <span class="po">value</span><span class="pc">:</span> <span class="pe">"{{ item.value }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">sysctl_file</span><span class="pc">:</span> <span class="pv">/etc/sysctl.d/99-ncb-baseline.conf</span>
+        <span class="pc">        # sysctl_file: write the parameter to this file for persistence across reboots.
+        # ansible.posix.sysctl both writes the file AND applies the setting immediately
+        # (equivalent to sysctl -w + writing to /etc/sysctl.d/).</span>
+        <span class="po">reload</span><span class="pc">:</span> <span class="pv">true</span>
+      <span class="pk">loop</span><span class="pc">:</span>
+        <span class="pc">- {key: "net.ipv4.conf.all.accept_redirects",   value: "0"}</span>
+        <span class="pc">- {key: "net.ipv4.tcp_syncookies",              value: "1"}</span>
+        <span class="pc">- {key: "kernel.randomize_va_space",            value: "2"}</span>
+        <span class="pc">- {key: "net.ipv4.conf.all.log_martians",        value: "1"}</span>
+        <span class="pc">- {key: "net.ipv4.conf.default.log_martians",    value: "1"}</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Ensure Splunk rsyslog forwarding is configured</span>
+      <span class="pm">ansible.builtin.lineinfile</span><span class="pc">:</span>
+        <span class="po">path</span><span class="pc">:</span> <span class="pv">/etc/rsyslog.d/99-splunk-fwd.conf</span>
+        <span class="po">line</span><span class="pc">:</span> <span class="ps">"*.* @@splunk-hec.novacrestbank.local:514"</span>
+        <span class="po">create</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="pc">        # create: true → create the file if it does not exist.
+        # Without create: lineinfile fails if the file is absent.
+        # mode/owner: set these when create: true to ensure correct permissions on new files.</span>
+        <span class="po">mode</span><span class="pc">:</span> <span class="ps">"0640"</span>
+      <span class="pk">notify</span><span class="pc">:</span> <span class="ps">reload rsyslog</span>
+
+  <span class="pk">handlers</span><span class="pc">:</span>
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">reload sshd</span>
+      <span class="pm">ansible.builtin.service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pv">sshd</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">reloaded</span>
+        <span class="pc">        # reloaded → SIGHUP: reload config WITHOUT dropping active SSH connections.
+        # Critical for sshd — restarted would disconnect all active sessions.
+        # Not all services support reload; check documentation before using reloaded.</span>
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">reload auditd</span>
+      <span class="pm">ansible.builtin.service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pv">auditd</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">restarted</span>
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">reload rsyslog</span>
+      <span class="pm">ansible.builtin.service</span><span class="pc">:</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pv">rsyslog</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">restarted</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 VM SCALEUP ══ -->
+  <section id="vm-scaleup">
+  <h2>12 — Automated VM scale-up — CPU and memory hot-plug via AAP</h2>
+  <p>An operator submits a scale-up request through the AAP Survey (entering new CPU socket count and memory in GiB). AAP validates available hugepage capacity on the node where the VM is running, applies the VirtualMachine patch, and asserts the guest OS sees the new resources — all without touching kubectl.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-vm-scaleup.yaml — CPU/memory hot-plug with capacity validation</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Validate capacity and apply CPU/memory hot-plug to running VM</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">target_cpu_sockets</span><span class="pc">:</span> <span class="pe">"{{ new_cpu_sockets | int }}"</span>
+    <span class="pk">target_memory_gi</span><span class="pc">:</span> <span class="pe">"{{ new_memory_gib | int }}"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Get VMI details — current state and node placement</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vmi_info</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Store current node and memory as facts</span>
+      <span class="pm">ansible.builtin.set_fact</span><span class="pc">:</span>
+        <span class="po">vm_node</span><span class="pc">:</span> <span class="pe">"{{ vmi_info.resources[0].status.nodeName }}"</span>
+        <span class="po">current_memory_gi</span><span class="pc">:</span>
+          <span class="pe">"{{ vmi_info.resources[0].spec.template.spec.domain.memory.guest
+             | regex_replace('Gi','') | int }}"</span>
+        <span class="pc">          # regex_replace('Gi',''): strip the 'Gi' suffix from '32Gi' → '32'.
+          # | int: convert the string '32' to the integer 32.
+          # Then compare: if target_memory_gi > current_memory_gi + free_hugepages → fail.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Check free hugepages on the target node</span>
+      <span class="pm">kubernetes.core.k8s_exec</span><span class="pc">:</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pv">stackrox</span>
+        <span class="po">pod</span><span class="pc">:</span>
+          <span class="pe">"collector-{{ vm_node | replace('.novacrestbank.local','') | replace('-','') }}"</span>
+        <span class="po">command</span><span class="pc">:</span>
+          <span class="pc">- chroot</span>
+          <span class="pc">- /host</span>
+          <span class="pc">- grep</span>
+          <span class="pc">- HugePages_Free</span>
+          <span class="pc">- /proc/meminfo</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">hugepages_info</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Extract free hugepage count as an integer</span>
+      <span class="pm">ansible.builtin.set_fact</span><span class="pc">:</span>
+        <span class="po">free_hugepages</span><span class="pc">:</span>
+          <span class="pe">"{{ hugepages_info.stdout
+             | regex_search('HugePages_Free:\\s+(\\d+)', '\\1')
+             | first | int }}"</span>
+        <span class="po">memory_delta_gi</span><span class="pc">:</span>
+          <span class="pe">"{{ target_memory_gi | int - current_memory_gi | int }}"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Fail immediately if insufficient hugepages — no change made</span>
+      <span class="pm">ansible.builtin.fail</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span> <span class="pe">|
+          Insufficient hugepages on {{ vm_node }}.
+          Requested: {{ memory_delta_gi }} GiB additional.
+          Available: {{ free_hugepages }} hugepages (1 GiB each).
+          Scale-up aborted — the VM is unchanged.</span>
+      <span class="pk">when</span><span class="pc">:</span> <span class="pe">(memory_delta_gi | int) > (free_hugepages | int)</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Patch VirtualMachine with new CPU socket count and memory</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">patched</span>
+        <span class="pc">        # state: patched → strategic merge patch — only specified fields are updated.
+        # Unlike present (which may replace the whole resource), patched
+        # changes ONLY what you declare in definition. Equivalent to oc patch --type=merge.</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachine</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">template</span><span class="pc">:</span>
+              <span class="pk">spec</span><span class="pc">:</span>
+                <span class="pk">domain</span><span class="pc">:</span>
+                  <span class="pk">cpu</span><span class="pc">:</span>
+                    <span class="pk">sockets</span><span class="pc">:</span> <span class="pe">"{{ target_cpu_sockets }}"</span>
+                  <span class="pk">memory</span><span class="pc">:</span>
+                    <span class="pk">guest</span><span class="pc">:</span> <span class="pe">"{{ target_memory_gi }}Gi"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Wait 30 seconds for KubeVirt to send hot-plug to QEMU</span>
+      <span class="pm">ansible.builtin.pause</span><span class="pc">:</span>
+        <span class="po">seconds</span><span class="pc">:</span> <span class="pv">30</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Re-query VMI to verify hot-plug took effect</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vmi_after</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Assert scale-up was applied</span>
+      <span class="pm">ansible.builtin.assert</span><span class="pc">:</span>
+        <span class="po">that</span><span class="pc">:</span>
+          <span class="pc">- vmi_after.resources[0].status.currentCPUTopology.sockets | int
+            == target_cpu_sockets | int</span>
+        <span class="po">fail_msg</span><span class="pc">:</span> <span class="ps">"CPU hot-plug did not take effect — sockets mismatch"</span>
+        <span class="po">success_msg</span><span class="pc">:</span>
+          <span class="pe">"Scale-up complete: {{ target_cpu_sockets }} sockets, {{ target_memory_gi }} GiB RAM"</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 LB REGISTRATION ══ -->
+  <section id="lb-registration">
+  <h2>13 — Hardware load balancer registration for VMs</h2>
+  <p>Every new banking application VM must be registered with the F5 BigIP pool before production traffic is directed to it. AAP automates the F5 REST API calls: authenticate, add the pool member at the new VM's VLAN 130 IP and port, then enable it. The same pattern works for any REST-API-driven load balancer (Citrix ADC, AWS ALB, HAProxy).</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-lb-register.yaml — F5 BigIP pool member registration via REST API</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Register new banking VM with F5 BigIP load balancer pool</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">f5_host</span><span class="pc">:</span> <span class="ps">"f5-bigip.novacrestbank.local"</span>
+    <span class="pk">f5_pool</span><span class="pc">:</span> <span class="ps">"pool_banking_app_vlan130"</span>
+    <span class="pk">f5_port</span><span class="pc">:</span> <span class="pv">8443</span>
+    <span class="pk">f5_partition</span><span class="pc">:</span> <span class="ps">"Common"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Authenticate to F5 BigIP and get auth token</span>
+      <span class="pm">ansible.builtin.uri</span><span class="pc">:</span>
+        <span class="po">url</span><span class="pc">:</span> <span class="pe">"https://{{ f5_host }}/mgmt/shared/authn/login"</span>
+        <span class="po">method</span><span class="pc">:</span> <span class="pv">POST</span>
+        <span class="po">body_format</span><span class="pc">:</span> <span class="pv">json</span>
+        <span class="po">body</span><span class="pc">:</span>
+          <span class="pk">username</span><span class="pc">:</span> <span class="pe">"{{ f5_username }}"</span>
+          <span class="pk">password</span><span class="pc">:</span> <span class="pe">"{{ f5_password }}"</span>
+          <span class="pk">loginProviderName</span><span class="pc">:</span> <span class="pv">tmos</span>
+        <span class="po">return_content</span><span class="pc">:</span> <span class="pv">true</span>
+        <span class="pc">        # return_content: true → include the response body in the registered result.
+        # Without this: only status_code and headers are returned.
+        # The auth token lives in result.json.token.token.</span>
+        <span class="po">status_code</span><span class="pc">:</span> <span class="pv">200</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">f5_auth</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Store the F5 token as a fact</span>
+      <span class="pm">ansible.builtin.set_fact</span><span class="pc">:</span>
+        <span class="po">f5_token</span><span class="pc">:</span> <span class="pe">"{{ f5_auth.json.token.token }}"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Add VM as a pool member</span>
+      <span class="pm">ansible.builtin.uri</span><span class="pc">:</span>
+        <span class="po">url</span><span class="pc">:</span>
+          <span class="pe">"https://{{ f5_host }}/mgmt/tm/ltm/pool/~{{ f5_partition }}~{{ f5_pool }}/members"</span>
+        <span class="po">method</span><span class="pc">:</span> <span class="pv">POST</span>
+        <span class="po">headers</span><span class="pc">:</span>
+          <span class="pk">X-F5-Auth-Token</span><span class="pc">:</span> <span class="pe">"{{ f5_token }}"</span>
+          <span class="pk">Content-Type</span><span class="pc">:</span> <span class="pv">application/json</span>
+        <span class="po">body_format</span><span class="pc">:</span> <span class="pv">json</span>
+        <span class="po">body</span><span class="pc">:</span>
+          <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_ip }}:{{ f5_port }}"</span>
+          <span class="pk">address</span><span class="pc">:</span> <span class="pe">"{{ vm_ip }}"</span>
+          <span class="pk">description</span><span class="pc">:</span> <span class="pe">"{{ vm_name }} provisioned {{ ansible_date_time.date }}"</span>
+        <span class="po">status_code</span><span class="pc">:</span>
+          <span class="pc">- 200</span>
+          <span class="pc">- 201</span>
+          <span class="pc">          # Accept both 200 (already exists) and 201 (newly created).
+          # This makes the task idempotent — running it twice does not fail.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Enable the pool member to receive production traffic</span>
+      <span class="pm">ansible.builtin.uri</span><span class="pc">:</span>
+        <span class="po">url</span><span class="pc">:</span>
+          <span class="pe">"https://{{ f5_host }}/mgmt/tm/ltm/pool/~{{ f5_partition }}~{{ f5_pool }}/members/{{ vm_ip }}:{{ f5_port }}"</span>
+        <span class="po">method</span><span class="pc">:</span> <span class="pv">PATCH</span>
+        <span class="po">headers</span><span class="pc">:</span>
+          <span class="pk">X-F5-Auth-Token</span><span class="pc">:</span> <span class="pe">"{{ f5_token }}"</span>
+        <span class="po">body_format</span><span class="pc">:</span> <span class="pv">json</span>
+        <span class="po">body</span><span class="pc">:</span>
+          <span class="pk">session</span><span class="pc">:</span> <span class="pv">user-enabled</span>
+          <span class="pk">state</span><span class="pc">:</span> <span class="pv">user-up</span>
+        <span class="po">status_code</span><span class="pc">:</span> <span class="pv">200</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 LIVE MIGRATION AAP ══ -->
+  <section id="live-migration-aap">
+  <h2>14 — Automated live migration between bare-metal nodes</h2>
+  <p>AAP automates live migrations that would otherwise require manual <code>virtctl migrate</code> commands. Two scenarios benefit: scheduled maintenance drains (migrate all VMs off a node before patching it) and alert-driven migrations (a VM is on a node with a failing OSD or CPU thermal event — migrate to safety automatically).</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-live-migrate.yaml — drain a node by migrating all VMs off it</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Drain bare-metal node by live-migrating all VMs to other nodes</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">target_node</span><span class="pc">:</span> <span class="pe">"{{ node_to_drain }}"</span>
+    <span class="pc">    # node_to_drain: from the AAP Survey — operator specifies which node to drain.
+    # e.g., "bm-virt-03.novacrestbank.local"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Find all VMIs running on the target node</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pv">virt-workloads</span>
+        <span class="po">field_selectors</span><span class="pc">:</span>
+          <span class="pc">- "status.nodeName={{ target_node }}"</span>
+          <span class="pc">          # field_selectors: filter by resource field values (not label selectors).
+          # status.nodeName is a VMI field — this returns only VMIs on the target node.
+          # Used instead of label selectors when the filter is on status fields.</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vms_on_node</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Log which VMs will be migrated</span>
+      <span class="pm">ansible.builtin.debug</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span> <span class="pe">"Migrating {{ vms_on_node.resources | length }} VMs off {{ target_node }}"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create VirtualMachineInstanceMigration for each VM on the node</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstanceMigration</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span>
+              <span class="pe">"aap-migrate-{{ item.metadata.name }}-{{ ansible_date_time.epoch }}"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pv">virt-workloads</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">vmiName</span><span class="pc">:</span> <span class="pe">"{{ item.metadata.name }}"</span>
+      <span class="pk">loop</span><span class="pc">:</span> <span class="pe">"{{ vms_on_node.resources }}"</span>
+      <span class="pc">      # loop over the list of VMIs. Creates one VMIM per VM.
+      # KubeVirt queues migrations respecting parallelMigrationsPerCluster
+      # from HyperConverged CR — they do not all run simultaneously.</span>
+      <span class="pk">loop_control</span><span class="pc">:</span>
+        <span class="pk">label</span><span class="pc">:</span> <span class="pe">"{{ item.metadata.name }}"</span>
+        <span class="pc">        # label: show only the VM name in loop output (not the full VMI dict).</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Wait until no VMIs remain on the target node</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pv">virt-workloads</span>
+        <span class="po">field_selectors</span><span class="pc">:</span>
+          <span class="pc">- "status.nodeName={{ target_node }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">remaining</span>
+      <span class="pk">until</span><span class="pc">:</span> <span class="pv">remaining.resources | length == 0</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">60</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">30</span>
+      <span class="pc">      # Poll every 30 seconds for up to 30 minutes.
+      # Migration of 4 production VMs typically completes within 5-10 minutes.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Confirm node is clear and safe for maintenance</span>
+      <span class="pm">ansible.builtin.debug</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span>
+          <span class="pe">"Node {{ target_node }} is clear. {{ vms_on_node.resources | length }} VMs migrated. Safe to proceed."</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 ALERTMANAGER PIPELINE ══ -->
+  <section id="alertmanager-pipeline">
+  <h2>15 — Alertmanager → EDA → AAP automated remediation pipeline</h2>
+  <p>When a VM experiences extreme CPU saturation or memory starvation, the pipeline fires automatically: Prometheus detects the condition, Alertmanager sends a webhook to EDA (Event-Driven Ansible), EDA evaluates a Rulebook and triggers an AAP Job Template that creates a ServiceNow incident and live-migrates the VM to a less-loaded node — without any human intervention.</p>
+
+  <div class="flow">
+    <div class="flow-box fb-alert">Prometheus<br><span style="font-size:10px">VM CPU &gt; 95% for 5m</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box fb-alert">Alertmanager<br><span style="font-size:10px">webhook receiver</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box fb-aap">EDA Rulebook<br><span style="font-size:10px">condition evaluation</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box fb-aap">AAP Controller<br><span style="font-size:10px">Job Template launch</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box fb-snow">ServiceNow<br><span style="font-size:10px">INC ticket created</span></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-box fb-ocp">OCP Virt<br><span style="font-size:10px">VMIM live migrate</span></div>
+  </div>
+
+  <h3>Step 1 — Configure Alertmanager to send webhooks to EDA</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">alertmanager-config-patch.yaml — add EDA webhook receiver to Alertmanager</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Patch the OCP Alertmanager configuration to add the EDA webhook receiver</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">monitoring.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">AlertmanagerConfig</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">eda-vm-alerts</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">route</span><span class="yc">:</span>
+    <span class="yk">groupBy</span><span class="yc">:</span>
+      <span class="yc">- alertname</span>
+      <span class="yc">- namespace</span>
+    <span class="yk">matchers</span><span class="yc">:</span>
+      <span class="yc">- name</span><span class="yc">:</span> <span class="yv">namespace</span>
+        <span class="yk">value</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+    <span class="yk">receiver</span><span class="yc">:</span> <span class="yv">eda-webhook</span>
+  <span class="yk">receivers</span><span class="yc">:</span>
+    <span class="yc">- name</span><span class="yc">:</span> <span class="yv">eda-webhook</span>
+      <span class="yk">webhookConfigs</span><span class="yc">:</span>
+        <span class="yc">- url</span><span class="yc">:</span>
+            <span class="yv">https://ncb-aap-eda.apps.ocp.novacrestbank.local/api/eda/v1/external_event/vm-alerts/</span>
+          <span class="yc">          # EDA's webhook endpoint. EDA listens here for Alertmanager POST requests.
+          # Each firing alert sends one JSON payload containing the alert labels and annotations.
+          # EDA receives the payload and evaluates it against the Rulebook below.</span>
+          <span class="yk">sendResolved</span><span class="yc">:</span> <span class="yv">true</span>
+          <span class="yc">          # sendResolved: true → also send a webhook when the alert resolves.
+          # EDA can trigger a second action on resolution (e.g., close the ServiceNow ticket).</span></pre>
+    </div>
+  </div>
+
+  <h3>Step 2 — EDA Rulebook: evaluate the event and trigger AAP</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">eda-rulebook-vm-performance.yaml — event → condition → action</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pc"># An EDA Rulebook is NOT an Ansible playbook.
+# It defines: sources (where events come from) and rules (IF condition THEN action).
+# Rulebooks are deployed to EDA via the AAP UI and run as always-on Activations.</span>
+
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">NovaCrestBank VM performance alert handler</span>
+  <span class="pk">hosts</span><span class="pc">:</span>
+    <span class="pc">    # hosts in a Rulebook: event SOURCE plugins — not Ansible inventory hosts.</span>
+    <span class="pc">- ansible.eda.webhook</span><span class="pc">:</span>
+        <span class="pk">host</span><span class="pc">:</span> <span class="pv">0.0.0.0</span>
+        <span class="pk">port</span><span class="pc">:</span> <span class="pv">5000</span>
+        <span class="pc">        # ansible.eda.webhook: EDA starts an HTTP listener on port 5000.
+        # Alertmanager POSTs alert JSON to this endpoint.
+        # Each received POST becomes one event for EDA to evaluate against all rules.</span>
+
+  <span class="pk">rules</span><span class="pc">:</span>
+    <span class="pc">    # rules: list of condition-action pairs. Each rule is independent.
+    # EDA evaluates ALL rules against each received event simultaneously.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Trigger remediation on VM CPU saturation alert</span>
+      <span class="pk">condition</span><span class="pc">:</span>
+        <span class="pe">event.payload.alerts[0].status == "firing" and
+        event.payload.alerts[0].labels.alertname == "VMHighCPUSaturation" and
+        event.payload.alerts[0].labels.namespace == "virt-workloads"</span>
+        <span class="pc">        # condition: a Python-like expression evaluated against the event payload.
+        # event.payload: the complete JSON body sent by Alertmanager.
+        # event.payload.alerts[0].labels.alertname: the alert name from the PrometheusRule.
+        # If ALL conditions are True: the action block runs.
+        # If ANY condition is False: this rule is skipped for this event.</span>
+      <span class="pk">action</span><span class="pc">:</span>
+        <span class="pk">run_job_template</span><span class="pc">:</span>
+          <span class="pc">          # run_job_template: trigger an AAP Controller Job Template via REST API.
+          # EDA uses its internal Controller connection (configured in the AAP UI).</span>
+          <span class="pk">name</span><span class="pc">:</span> <span class="ps">"VM Alert Remediation — CPU and Memory"</span>
+          <span class="pc">          # name: the exact Job Template name in AAP Controller.
+          # The Job Template contains: pb-alert-remediation.yaml playbook,
+          # an Execution Environment with kubernetes.core and community.general,
+          # and the Kubernetes API credential for OCP access.</span>
+          <span class="pk">organization</span><span class="pc">:</span> <span class="ps">"NovaCrestBank Platform"</span>
+          <span class="pk">job_args</span><span class="pc">:</span>
+            <span class="pk">extra_vars</span><span class="pc">:</span>
+              <span class="pk">alert_vm_name</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.name }}"</span>
+              <span class="pk">alert_namespace</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.namespace }}"</span>
+              <span class="pk">alert_node</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.node }}"</span>
+              <span class="pk">alert_severity</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.severity }}"</span>
+              <span class="pc">              # job_args.extra_vars: pass alert context as extra_vars to the playbook.
+              # The remediation playbook uses these to identify which VM to migrate
+              # and what information to include in the ServiceNow ticket.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Trigger remediation on VM memory starvation alert</span>
+      <span class="pk">condition</span><span class="pc">:</span>
+        <span class="pe">event.payload.alerts[0].status == "firing" and
+        event.payload.alerts[0].labels.alertname == "VMMemoryStarvation"</span>
+      <span class="pk">action</span><span class="pc">:</span>
+        <span class="pk">run_job_template</span><span class="pc">:</span>
+          <span class="pk">name</span><span class="pc">:</span> <span class="ps">"VM Alert Remediation — CPU and Memory"</span>
+          <span class="pk">organization</span><span class="pc">:</span> <span class="ps">"NovaCrestBank Platform"</span>
+          <span class="pk">job_args</span><span class="pc">:</span>
+            <span class="pk">extra_vars</span><span class="pc">:</span>
+              <span class="pk">alert_vm_name</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.name }}"</span>
+              <span class="pk">alert_namespace</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.namespace }}"</span>
+              <span class="pk">alert_node</span><span class="pc">:</span> <span class="pe">"{{ event.payload.alerts[0].labels.node }}"</span>
+              <span class="pk">alert_severity</span><span class="pc">:</span> <span class="ps">"critical"</span></pre>
+    </div>
+  </div>
+
+  <h3>Step 3 — PrometheusRule: define the VM performance alert conditions</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">prometheusrule-vm-alerts.yaml — alert conditions that trigger the EDA pipeline</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">monitoring.coreos.com/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">PrometheusRule</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-performance-alerts</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">groups</span><span class="yc">:</span>
+    <span class="yc">- name</span><span class="yc">:</span> <span class="yv">vm.performance</span>
+      <span class="yk">rules</span><span class="yc">:</span>
+        <span class="yc">- alert</span><span class="yc">:</span> <span class="yv">VMHighCPUSaturation</span>
+          <span class="yk">expr</span><span class="yc">:</span> <span class="ys">|
+            rate(kubevirt_vmi_vcpu_seconds[5m]) /
+            on(name,namespace) kubevirt_vmi_number_of_vcpus > 0.95</span>
+          <span class="yc">          # expr: PromQL expression that triggers the alert when true.
+          # rate(kubevirt_vmi_vcpu_seconds[5m]): vCPU seconds consumed per second over 5 minutes.
+          # Divided by the total vCPU count: gives per-vCPU utilisation ratio.
+          # > 0.95: alert when average vCPU utilisation exceeds 95%.</span>
+          <span class="yk">for</span><span class="yc">:</span> <span class="yv">5m</span>
+          <span class="yc">          # for: the condition must be true for 5 minutes before firing.
+          # Prevents transient CPU spikes (5-second burst) from triggering migration.</span>
+          <span class="yk">labels</span><span class="yc">:</span>
+            <span class="yk">severity</span><span class="yc">:</span> <span class="yv">critical</span>
+          <span class="yk">annotations</span><span class="yc">:</span>
+            <span class="yk">summary</span><span class="yc">:</span> <span class="yv">"VM {{ $labels.name }} CPU saturation > 95% for 5 minutes"</span>
+            <span class="yk">description</span><span class="yc">:</span> <span class="yv">"VM {{ $labels.name }} on node {{ $labels.node }} has sustained CPU saturation. EDA will trigger live migration."</span>
+
+        <span class="yc">- alert</span><span class="yc">:</span> <span class="yv">VMMemoryStarvation</span>
+          <span class="yk">expr</span><span class="yc">:</span>
+            <span class="yv">kubevirt_vmi_memory_available_bytes / kubevirt_vmi_memory_resident_bytes &lt; 0.05</span>
+          <span class="yc">          # Alert when available memory is less than 5% of resident memory.
+          # This indicates imminent OOM — the VM is about to start swapping or OOM-killing.</span>
+          <span class="yk">for</span><span class="yc">:</span> <span class="yv">3m</span>
+          <span class="yk">labels</span><span class="yc">:</span>
+            <span class="yk">severity</span><span class="yc">:</span> <span class="yv">critical</span>
+          <span class="yk">annotations</span><span class="yc">:</span>
+            <span class="yk">summary</span><span class="yc">:</span> <span class="yv">"VM {{ $labels.name }} memory starvation — &lt; 5% available"</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 SERVICENOW ══ -->
+  <section id="servicenow">
+  <h2>16 — ServiceNow ITSM ticket creation from AAP</h2>
+  <p>The alert remediation playbook creates a ServiceNow incident at the same time as triggering the live migration. The incident is the audit trail for the automated action — it records what alert fired, which VM was affected, which node it migrated from and to, and the outcome. <span class="reg reg-pci">PCI-DSS v4.0 Req 10.2.1</span></p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-alert-remediation.yaml — create ServiceNow ticket AND trigger live migration</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Alert remediation — ITSM ticket and live migration</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">snow_instance</span><span class="pc">:</span> <span class="ps">"novacrestbank.service-now.com"</span>
+    <span class="pk">vm_name</span><span class="pc">:</span> <span class="pe">"{{ alert_vm_name }}"</span>
+    <span class="pc">    # alert_vm_name: passed from EDA Rulebook via extra_vars (Section 15).</span>
+    <span class="pk">vm_namespace</span><span class="pc">:</span> <span class="pe">"{{ alert_namespace }}"</span>
+    <span class="pk">source_node</span><span class="pc">:</span> <span class="pe">"{{ alert_node }}"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create ServiceNow incident for the alert-driven migration</span>
+      <span class="pm">community.general.servicenow</span><span class="pc">:</span>
+        <span class="pc">        # community.general.servicenow: high-level ServiceNow module.
+        # Handles authentication, record creation, and field mapping.
+        # Alternative: use ansible.builtin.uri for full control over the ServiceNow REST API.</span>
+        <span class="po">instance</span><span class="pc">:</span> <span class="pe">"{{ snow_instance }}"</span>
+        <span class="po">username</span><span class="pc">:</span> <span class="pe">"{{ snow_username }}"</span>
+        <span class="po">password</span><span class="pc">:</span> <span class="pe">"{{ snow_password }}"</span>
+        <span class="po">table</span><span class="pc">:</span> <span class="pv">incident</span>
+        <span class="pc">        # table: which ServiceNow table to create a record in.
+        # incident → INC records (operational issues)
+        # change_request → CHG records (planned changes)
+        # cmdb_ci → Configuration Item records</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">data</span><span class="pc">:</span>
+          <span class="pk">short_description</span><span class="pc">:</span>
+            <span class="pe">"[AAP AUTO] VM {{ vm_name }} performance alert — live migration triggered"</span>
+          <span class="pk">description</span><span class="pc">:</span> <span class="pe">|
+            Automated remediation triggered by Prometheus alert: {{ alert_vm_name }}.
+            Alert severity: {{ alert_severity }}
+            Source node: {{ source_node }}
+            Action: Live migration initiated by AAP Job {{ tower_job_id }}
+            Time: {{ ansible_date_time.iso8601 }}</span>
+          <span class="pk">impact</span><span class="pc">:</span> <span class="pv">2</span>
+          <span class="pc">          # impact: 1=High, 2=Medium, 3=Low
+          # A VM performance issue that triggers automated remediation is Medium impact —
+          # the automation handles it but the SOC should be aware.</span>
+          <span class="pk">urgency</span><span class="pc">:</span> <span class="pv">2</span>
+          <span class="pk">category</span><span class="pc">:</span> <span class="pv">Infrastructure</span>
+          <span class="pk">assignment_group</span><span class="pc">:</span> <span class="pv">Platform Engineering</span>
+          <span class="pk">caller_id</span><span class="pc">:</span> <span class="pv">aap-automation</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">snow_ticket</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Log the created ServiceNow ticket number</span>
+      <span class="pm">ansible.builtin.debug</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span>
+          <span class="pe">"ServiceNow ticket created: {{ snow_ticket.record.number }}"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create VirtualMachineInstanceMigration to move the VM off the stressed node</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstanceMigration</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span>
+              <span class="pe">"alert-migrate-{{ vm_name }}-{{ ansible_date_time.epoch }}"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+            <span class="pk">labels</span><span class="pc">:</span>
+              <span class="pk">trigger</span><span class="pc">:</span> <span class="pv">alertmanager</span>
+              <span class="pk">snow-ticket</span><span class="pc">:</span> <span class="pe">"{{ snow_ticket.record.number }}"</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">vmiName</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Wait for migration to complete</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">kubevirt.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineInstance</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">vmi_post</span>
+      <span class="pk">until</span><span class="pc">:</span>
+        <span class="pe">vmi_post.resources[0].status.nodeName != source_node and
+        vmi_post.resources[0].status.phase == "Running"</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">20</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">30</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Update ServiceNow ticket with migration outcome</span>
+      <span class="pm">community.general.servicenow</span><span class="pc">:</span>
+        <span class="po">instance</span><span class="pc">:</span> <span class="pe">"{{ snow_instance }}"</span>
+        <span class="po">username</span><span class="pc">:</span> <span class="pe">"{{ snow_username }}"</span>
+        <span class="po">password</span><span class="pc">:</span> <span class="pe">"{{ snow_password }}"</span>
+        <span class="po">table</span><span class="pc">:</span> <span class="pv">incident</span>
+        <span class="po">number</span><span class="pc">:</span> <span class="pe">"{{ snow_ticket.record.number }}"</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">data</span><span class="pc">:</span>
+          <span class="pk">work_notes</span><span class="pc">:</span> <span class="pe">|
+            Migration completed successfully.
+            VM {{ vm_name }} moved from {{ source_node }} to {{ vmi_post.resources[0].status.nodeName }}.
+            VM phase: {{ vmi_post.resources[0].status.phase }}
+            Automated remediation complete — no manual intervention required.</span>
+          <span class="pk">state</span><span class="pc">:</span> <span class="pv">6</span>
+          <span class="pc">          # state: 6 = Resolved in ServiceNow's default incident states.
+          # The ticket is auto-resolved because the automation fixed the problem.</span>
+      <span class="pk">no_log</span><span class="pc">:</span> <span class="pv">true</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 VM BACKUP AAP ══ -->
+  <section id="vm-backup-aap">
+  <h2>17 — VM backup orchestration via AAP</h2>
+  <p>OADP (VIRT-07) provides scheduled VM backup automatically. AAP complements OADP for two scenarios: on-demand backup triggered by a change management event (take a snapshot before a major application upgrade), and backup verification (trigger a test restore of the most recent backup and verify the restored VM boots successfully). The playbook below demonstrates both patterns.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">pb-vm-backup.yaml — on-demand VirtualMachineSnapshot and OADP backup verification</div></div>
+    <div class="yaml-body"><pre><span class="pc">---</span>
+<span class="pk">- name</span><span class="pc">:</span> <span class="ps">Take on-demand snapshot and trigger OADP backup before a major change</span>
+  <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
+  <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
+  <span class="pk">vars</span><span class="pc">:</span>
+    <span class="pk">snapshot_name</span><span class="pc">:</span>
+      <span class="pe">"pre-change-{{ vm_name }}-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}h"</span>
+    <span class="pk">backup_name</span><span class="pc">:</span>
+      <span class="pe">"aap-ondemand-{{ vm_name }}-{{ ansible_date_time.epoch }}"</span>
+
+  <span class="pk">tasks</span><span class="pc">:</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Create VirtualMachineSnapshot (in-cluster, fast)</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">snapshot.kubevirt.io/v1alpha1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineSnapshot</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ snapshot_name }}"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">source</span><span class="pc">:</span>
+              <span class="pk">apiGroup</span><span class="pc">:</span> <span class="pv">kubevirt.io</span>
+              <span class="pk">kind</span><span class="pc">:</span> <span class="pv">VirtualMachine</span>
+              <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+            <span class="pk">failureDeadline</span><span class="pc">:</span> <span class="pv">5m</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Wait for snapshot to complete</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">snapshot.kubevirt.io/v1alpha1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">VirtualMachineSnapshot</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ snapshot_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pe">"{{ vm_namespace }}"</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">snap_status</span>
+      <span class="pk">until</span><span class="pc">:</span>
+        <span class="pe">snap_status.resources[0].status.readyToUse == true</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">15</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">20</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Trigger on-demand OADP backup (off-cluster, durable)</span>
+      <span class="pm">kubernetes.core.k8s</span><span class="pc">:</span>
+        <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
+        <span class="po">definition</span><span class="pc">:</span>
+          <span class="pk">apiVersion</span><span class="pc">:</span> <span class="pv">velero.io/v1</span>
+          <span class="pk">kind</span><span class="pc">:</span> <span class="pv">Backup</span>
+          <span class="pk">metadata</span><span class="pc">:</span>
+            <span class="pk">name</span><span class="pc">:</span> <span class="pe">"{{ backup_name }}"</span>
+            <span class="pk">namespace</span><span class="pc">:</span> <span class="pv">openshift-adp</span>
+          <span class="pk">spec</span><span class="pc">:</span>
+            <span class="pk">includedNamespaces</span><span class="pc">:</span>
+              <span class="pc">- "{{ vm_namespace }}"</span>
+            <span class="pk">labelSelector</span><span class="pc">:</span>
+              <span class="pk">matchLabels</span><span class="pc">:</span>
+                <span class="pk">kubevirt.io/vm</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
+            <span class="pk">snapshotVolumes</span><span class="pc">:</span> <span class="pv">true</span>
+            <span class="pk">defaultVolumesToFsBackup</span><span class="pc">:</span> <span class="pv">false</span>
+            <span class="pk">ttl</span><span class="pc">:</span> <span class="pv">168h0m0s</span>
+            <span class="pc">            # ttl: 168 hours = 7 days. On-demand backups kept for 7 days.
+            # Nightly scheduled backups (from VIRT-07) have 30-day TTL.</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Wait for OADP backup to complete</span>
+      <span class="pm">kubernetes.core.k8s_info</span><span class="pc">:</span>
+        <span class="po">api_version</span><span class="pc">:</span> <span class="pv">velero.io/v1</span>
+        <span class="po">kind</span><span class="pc">:</span> <span class="pv">Backup</span>
+        <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ backup_name }}"</span>
+        <span class="po">namespace</span><span class="pc">:</span> <span class="pv">openshift-adp</span>
+      <span class="pk">register</span><span class="pc">:</span> <span class="pv">backup_status</span>
+      <span class="pk">until</span><span class="pc">:</span>
+        <span class="pe">backup_status.resources[0].status.phase in ["Completed", "Failed", "PartiallyFailed"]</span>
+      <span class="pk">retries</span><span class="pc">:</span> <span class="pv">40</span>
+      <span class="pk">delay</span><span class="pc">:</span> <span class="pv">60</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Fail if backup did not complete successfully</span>
+      <span class="pm">ansible.builtin.fail</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span>
+          <span class="pe">"OADP backup {{ backup_name }} ended with status: {{ backup_status.resources[0].status.phase }}"</span>
+      <span class="pk">when</span><span class="pc">:</span>
+        <span class="pv">backup_status.resources[0].status.phase != "Completed"</span>
+
+    <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Log backup success</span>
+      <span class="pm">ansible.builtin.debug</span><span class="pc">:</span>
+        <span class="po">msg</span><span class="pc">:</span> <span class="pe">|
+          ✓ Snapshot: {{ snapshot_name }} — readyToUse=true
+          ✓ OADP backup: {{ backup_name }} — Completed
+          Both artefacts are available for restore if the upcoming change causes issues.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 HANDOVER ══ -->
+  <section id="handover">
+  <h2>18 — Readiness checklist — gate to VIRT-11</h2>
+
+  <div class="gate">
+    <div class="gate-title">AAP installation checks</div>
+    <div class="gate-item"><div class="gate-box"></div>AAP operator CSV Succeeded: aap-operator in the aap namespace</div>
+    <div class="gate-item"><div class="gate-box"></div>Automation Controller, Hub, and EDA components all Running</div>
+    <div class="gate-item"><div class="gate-box"></div>AAP admin URL accessible: ncb-aap.apps.ocp.novacrestbank.local</div>
+    <div class="gate-item"><div class="gate-box"></div>Required collections installed in Execution Environment: kubernetes.core, community.kubevirt, netapp.ontap, ansible.windows, community.windows, ansible.posix, community.general</div>
+    <div class="gate-item"><div class="gate-box"></div>AAP Credentials configured: OCP API (ServiceAccount token), AD service account, NetApp ONTAP, Infoblox, F5 BigIP, ServiceNow</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">VM provisioning workflow checks</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-provision-vm.yaml: VirtualMachine CR created, VMI reaches Running phase via until/retries</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-netapp-pvc.yaml: NetApp AFF volume created via na_ontap_volume, PVC bound via Trident StorageClass</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-ipam-ad.yaml: Infoblox fixed address reserved, DNS A and PTR records created on DC01</div>
+    <div class="gate-item"><div class="gate-box"></div>RHEL guest AD join: realm join succeeded, SSSD running, VM in OU=OCP-Virt,OU=Servers</div>
+    <div class="gate-item"><div class="gate-box"></div>Windows guest AD join: win_domain_membership succeeded, reboot completed, GPOs applied</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-windows-migration.yaml: VirtIO drivers installed on source VM, MTV Migration completed, services restarted on new IP</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Day-2 operations checks</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-patch-vms.yaml: serial: 2 patching, pre-patch snapshot created, dnf update applied, reboot completed, qemu-guest-agent asserted Running</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-compliance-scan.yaml: OpenSCAP CIS Level 1 scan ran inside VM guest, HTML report fetched to AAP controller</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-config-drift.yaml: SSH baseline enforced via blockinfile, auditd rules from template, sysctl parameters applied via ansible.posix.sysctl</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-vm-scaleup.yaml: hugepage capacity validated before patching, CPU sockets and memory patched, assert confirmed new topology</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-lb-register.yaml: VM registered in F5 BigIP pool at VLAN 130 IP:8443, member enabled for traffic</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Automated remediation pipeline checks</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-live-migrate.yaml: all VMIs on target node found via field_selectors, VMIM objects created per VM, node confirmed empty within timeout</div>
+    <div class="gate-item"><div class="gate-box"></div>PrometheusRule VMHighCPUSaturation and VMMemoryStarvation deployed to virt-workloads namespace</div>
+    <div class="gate-item"><div class="gate-box"></div>AlertmanagerConfig eda-vm-alerts routing virt-workloads alerts to EDA webhook endpoint</div>
+    <div class="gate-item"><div class="gate-box"></div>EDA Rulebook deployed and Activation running — listening on webhook for Alertmanager events</div>
+    <div class="gate-item"><div class="gate-box"></div>End-to-end pipeline tested: manual alert fire → EDA triggers AAP Job → ServiceNow INC created → VMIM migration started → ticket auto-resolved</div>
+    <div class="gate-item"><div class="gate-box"></div>pb-vm-backup.yaml: VirtualMachineSnapshot readyToUse=true, OADP Backup phase=Completed</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-10 complete — the guest OS automation layer is operational</span>
+    <p>AAP is the bridge between Kubernetes-level VM management and guest OS operations. Every VM lifecycle event from provisioning through patching, compliance scanning, scale-up, load balancer registration, alert-driven migration, and backup is now automated. The playbook anatomy in Section 02 and the module catalogue in Section 03 give you the foundation to write any additional playbook independently. Every YAML directive — gather_facts, become, serial, register, until, when, notify, no_log, changed_when, failed_when, loop, loop_control, delegate_to, run_once, set_fact, pause, debug, assert — has been explained with its valid values, effect, and the reasoning for the choice made in each NovaCrestBank playbook. Proceed to VIRT-11 — NSX Exit — to decommission the NSX overlay network now that VM workloads are running natively on OCP Virt with OVN localnet.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

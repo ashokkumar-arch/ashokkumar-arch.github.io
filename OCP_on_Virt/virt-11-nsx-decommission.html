@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-11 — NSX Decommission · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --nsx:#6e3091;--nsx-bg:#f5f0fb;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.nsx{border-left-color:var(--nsx)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.nsx .cl{color:var(--nsx)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}.tc{color:#61c5eb}.tg{color:#4ccd99}.td{color:#608b7a}
+.tw{color:#cca700}.te{color:#f85149}.tok{color:#3fb950;font-weight:600}
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+/* NSX-specific: before/after comparison */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-radius:var(--r);overflow:hidden;margin:16px 0;border:.5px solid var(--border2)}
+.compare-cell{background:var(--bg2);padding:14px 16px}
+.compare-hd{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-weight:700}
+.ch-nsx{color:var(--nsx)}
+.ch-ovn{color:var(--green)}
+.compare-body{font-size:13px;color:var(--text2);line-height:1.65}
+.compare-body li{font-size:13px;margin-bottom:4px}
+/* decommission phase blocks */
+.phase{background:var(--bg2);border:.5px solid var(--border2);border-radius:var(--r);margin:14px 0;overflow:hidden}
+.phase-hd{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border-bottom:.5px solid var(--border2)}
+.phase-num{font-family:'DM Serif Display',serif;font-size:22px;color:var(--odf);width:32px;flex-shrink:0}
+.phase-title{font-size:14px;font-weight:600;color:var(--text)}
+.phase-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.phase-body{padding:14px 16px;font-size:13.5px;color:var(--text2);line-height:1.7}
+.phase-body ul{margin:6px 0 0 18px}
+.phase-body li{font-size:13.5px;margin-bottom:5px}
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-11</div>
+    <div class="sb-title">NSX Decommission</div>
+    <div class="sb-sub">DFW → NetworkPolicy · BGP migration · Edge decommission · TEP removal · License elimination</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Context and planning</div>
+    <a class="sb-item active" href="#why-decommission">01 — Why NSX can be decommissioned — what OVN-Kubernetes replaces</a>
+    <a class="sb-item" href="#decommission-sequence">02 — Decommission sequence — order matters, rollback at each phase</a>
+    <a class="sb-item" href="#pre-flight">03 — Pre-flight checks — confirm all workloads are off NSX</a>
+    <div class="sb-sec">DFW to NetworkPolicy translation</div>
+    <a class="sb-item" href="#dfw-model">04 — NSX DFW model — what it does and how OVN replaces it</a>
+    <a class="sb-item" href="#dfw-translation">05 — DFW rule-by-rule translation to Kubernetes NetworkPolicy</a>
+    <a class="sb-item" href="#dfw-gaps">06 — What DFW does that NetworkPolicy cannot — and the compensating controls</a>
+    <div class="sb-sec">BGP migration</div>
+    <a class="sb-item" href="#bgp-today">07 — BGP today — NSX T0 peers with Cisco leaf switches</a>
+    <a class="sb-item" href="#egress-gateway">08 — OVN EgressGateway — replacing NSX T0 as the BGP speaker</a>
+    <a class="sb-item" href="#bgp-cutover">09 — BGP cutover — add OVN peer, validate, withdraw NSX peer</a>
+    <div class="sb-sec">NSX infrastructure removal</div>
+    <a class="sb-item" href="#edge-decommission">10 — NSX Edge node decommission sequence</a>
+    <a class="sb-item" href="#manager-decommission">11 — NSX Manager cluster decommission</a>
+    <a class="sb-item" href="#tep-vlan-removal">12 — Leaf switch TEP VLAN removal — Cisco Nexus cleanup</a>
+    <div class="sb-sec">Verification and closure</div>
+    <a class="sb-item" href="#license-elimination">13 — NSX license elimination — verification and VMware contract closure</a>
+    <a class="sb-item" href="#vcf-exit">14 — VCF exit — vCenter and ESXi decommission</a>
+    <a class="sb-item" href="#series-completion">15 — Series completion — NovaCrestBank OCP Virt end state</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-10-aap.html">← VIRT-10 — AAP</a>
+  </div>
+  <div class="sb-foot">VIRT-11 · NSX Decommission · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-11 · NSX Decommission · Series Finale</div>
+  <div class="prereq-bar">VIRT-10 complete — all VM workloads migrated, AAP automation operational, ACS and ACM active on all bare-metal nodes</div>
+  <h1>NSX Decommission</h1>
+  <div class="subtitle">Translating NSX DFW rules to Kubernetes NetworkPolicy · Migrating BGP from NSX T0 to OVN EgressGateway ·<br>Removing Edge nodes, NSX Manager, leaf TEP VLANs · Eliminating VMware NSX and VCF licensing</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-06<br>MTV</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-08<br>Security</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-09<br>ACM</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-10<br>AAP</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-11<br>NSX Exit</div>
+  </div>
+
+  <!-- ══ 01 WHY DECOMMISSION ══ -->
+  <section id="why-decommission">
+  <h2>01 — Why NSX can be decommissioned — what OVN-Kubernetes replaces</h2>
+  <p>NSX was the software-defined networking layer for NovaCrestBank's VCF environment. It provided three capabilities: an overlay network (Geneve tunnels between ESXi hosts), a distributed firewall (DFW — stateful L4 policy enforcement inside each ESXi kernel), and a T0/T1 gateway hierarchy for north-south traffic routing and BGP peering with the physical Cisco leaf switches. As of VIRT-10, every VM workload has been migrated from VCF to OCP Virt. The VMs that depended on the NSX overlay no longer exist on ESXi. That fact — that no traffic-forwarding VM remains on the NSX dataplane — is the prerequisite for decommissioning NSX.</p>
+
+  <div class="compare">
+    <div class="compare-cell">
+      <div class="compare-hd ch-nsx">NSX provided (pre-migration)</div>
+      <div class="compare-body">
+        <ul>
+          <li>Geneve overlay between ESXi hosts for VM-to-VM traffic on logical segments</li>
+          <li>NSX DFW: stateful east-west firewall inside every ESXi kernel for segment-level micro-segmentation</li>
+          <li>T0 gateway: BGP speaker peering with Cisco leaf-01 and leaf-02 for VLAN 110/130/140 route advertisement</li>
+          <li>T1 gateways: NAT, load balancing, and routing between tenant segments</li>
+          <li>NSX Edge nodes: appliances running T0/T1 in dedicated ESXi VMs</li>
+          <li>NSX Manager: 3-node cluster providing the control plane and REST API</li>
+        </ul>
+      </div>
+    </div>
+    <div class="compare-cell">
+      <div class="compare-hd ch-ovn">OVN-Kubernetes provides (post-migration)</div>
+      <div class="compare-body">
+        <ul>
+          <li>Geneve overlay between OCP nodes (bare-metal) for pod and VM primary interface traffic</li>
+          <li>Kubernetes NetworkPolicy + OVN ACLs: east-west enforcement between pods and VM primary interfaces</li>
+          <li>OVN EgressGateway: BGP speaker (via MetalLB BGP mode) peering with leaf-01 and leaf-02 for OCP egress route advertisement</li>
+          <li>VLAN 130/140 traffic: OVN localnet — direct physical fabric, no overlay needed</li>
+          <li>No Edge node equivalent — routing runs in OVN on the bare-metal nodes themselves</li>
+          <li>No NSX Manager — OVN control plane is embedded in OCP (ovnkube-master pods in openshift-ovn-kubernetes)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout nsx">
+    <span class="cl">The one thing that cannot be decommissioned until BGP is migrated</span>
+    <p>Everything in NSX can be removed except the T0 gateway's BGP peering with the Cisco leaf switches — until OVN EgressGateway takes over those BGP sessions. The T0 is currently advertising the OCP cluster subnets (VLAN 110: 10.110.0.0/24, VLAN 130: 10.130.0.0/24, VLAN 140: 10.140.0.0/24) to the leaf switches via BGP. If the T0 BGP sessions drop before OVN takes them over, those subnets become unreachable from the rest of the network — including the banking application VLAN 130 IPs. Section 09 covers the exact cutover procedure: add OVN BGP peer, verify route advertisement, then withdraw the NSX T0 peer. Never remove NSX before this sequence is complete.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 DECOMMISSION SEQUENCE ══ -->
+  <section id="decommission-sequence">
+  <h2>02 — Decommission sequence — order matters, rollback at each phase</h2>
+  <p>The NSX decommission proceeds in five phases. Each phase has a validation gate and a rollback procedure. No phase begins until the previous phase's gate is green. The guiding principle: remove policy before removing infrastructure. DFW rules are replaced by NetworkPolicies first; BGP sessions are migrated second; only then is the NSX dataplane (Edge nodes) removed; then the NSX control plane (Manager); then the physical fabric cleanup (TEP VLANs).</p>
+
+  <div class="phase">
+    <div class="phase-hd"><div class="phase-num">1</div><div><div class="phase-title">DFW → NetworkPolicy translation and validation</div><div class="phase-sub">Weeks 1–2 · Policy — no traffic impact</div></div></div>
+    <div class="phase-body">Audit all NSX DFW rules. Translate each rule to the OVN equivalent (Kubernetes NetworkPolicy, OVN ACL, or guest OS firewall). Apply translated policies. Run parallel validation — verify the same traffic that DFW permitted/denied is permitted/denied by the new policy. Deactivate DFW rules one section at a time, verifying no traffic disruption before deactivating the next.
+      <ul>
+        <li>Rollback: re-enable the DFW section — instant, no infrastructure change required</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><div class="phase-num">2</div><div><div class="phase-title">BGP migration — NSX T0 → OVN EgressGateway</div><div class="phase-sub">Week 3 · One-time cutover during maintenance window · Sub-minute impact</div></div></div>
+    <div class="phase-body">Configure OVN EgressGateway and MetalLB BGP on the bare-metal nodes to peer with leaf-01 and leaf-02. Verify OVN is advertising the correct prefixes. During a maintenance window: withdraw the NSX T0 BGP peering. The leaf switches fail over to the OVN-originated routes. Verify connectivity. If connectivity fails: re-enable NSX T0 BGP immediately (rollback is re-enabling one BGP neighbor on the T0).
+      <ul>
+        <li>Rollback: re-enable BGP neighbor on NSX T0 — connectivity restored in &lt;60 seconds</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><div class="phase-num">3</div><div><div class="phase-title">NSX Edge node decommission</div><div class="phase-sub">Week 4 · Post-BGP migration · No traffic impact if Phase 2 succeeded</div></div></div>
+    <div class="phase-body">Remove T0 and T1 gateway configurations from NSX Manager. Power off and delete the Edge node VMs from vCenter. Remove the Edge node transport nodes from NSX Manager.
+      <ul>
+        <li>Rollback: not straightforward — Edge VMs must be re-deployed from OVA. This phase is one-way. Ensure Phase 2 is fully validated before proceeding.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><div class="phase-num">4</div><div><div class="phase-title">NSX Manager cluster decommission</div><div class="phase-sub">Week 4 · After Edge decommission</div></div></div>
+    <div class="phase-body">Remove all host transport nodes (ESXi hosts) from NSX. Uninstall the NSX vibs from ESXi hosts. Power off and delete the 3 NSX Manager VMs. Release the NSX licenses from VMware's licensing portal.
+      <ul>
+        <li>Rollback: not possible after Manager VMs are deleted. This phase is irreversible.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><div class="phase-num">5</div><div><div class="phase-title">Leaf switch TEP VLAN removal and VCF exit</div><div class="phase-sub">Week 5 · Final cleanup</div></div></div>
+    <div class="phase-body">Remove the NSX TEP VLAN configuration from the Cisco Nexus leaf switches (VLANs and port-channel subinterfaces used for Geneve encapsulation between ESXi and Edge nodes). Decommission vCenter, SDDC Manager, and remaining ESXi hosts. Close VMware contracts.
+      <ul>
+        <li>Rollback: leaf configuration can be restored from backup. Non-critical at this stage.</li>
+      </ul>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 PRE-FLIGHT ══ -->
+  <section id="pre-flight">
+  <h2>03 — Pre-flight checks — confirm all workloads are off NSX</h2>
+  <p>Before any NSX decommission action, verify three things: no VMs remain on ESXi hosts managed by NSX, no active DFW rules are enforcing traffic for OCP workloads, and the NSX T0 BGP sessions are the only remaining dependency on the NSX dataplane.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — pre-flight verification before NSX decommission begins</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: Confirm no VMs remain on ESXi hosts ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">govc vm.list -host.ip 10.110.0.11 2>/dev/null | \
+  grep -v "vCLS\|NSX\|edge\|manager"</span>
+<span class="tg">(no output)</span>
+<span class="tok">✓ bm-virt-01 (ESXi IP 10.110.0.11) has no user VMs remaining.
+  Only VMware infrastructure VMs (vCLS, NSX Edge, NSX Manager) remain — these
+  are removed in Phases 3 and 4. No banking application workloads on ESXi.</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for host in 10.110.0.{11..15}; do
+  echo "=== ESXi ${host} ==="
+  govc vm.list -host.ip "${host}" 2>/dev/null | \
+    grep -v "vCLS\|NSX\|edge\|manager" | wc -l
+done</span>
+<span class="tg">=== ESXi 10.110.0.11 ===
+0
+=== ESXi 10.110.0.12 ===
+0
+=== ESXi 10.110.0.13 ===
+0
+=== ESXi 10.110.0.14 ===
+0
+=== ESXi 10.110.0.15 ===
+0</span>
+<span class="tok">✓ All 5 ESXi hosts: zero user VMs remaining.
+  All banking application VMs have been migrated to OCP Virt bare-metal nodes.</span>
+
+<span class="section">! ══ CHECK 2: All production VMs Running on OCP Virt bare-metal nodes ════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,PHASE:.status.phase,NODE:.status.nodeName" | \
+  grep -v "^NAME"</span>
+<span class="tg">vm-banking-app-01   Running   bm-virt-02.novacrestbank.local
+vm-banking-app-02   Running   bm-virt-04.novacrestbank.local
+vm-api-gateway-01   Running   bm-virt-01.novacrestbank.local
+vm-win-test-01      Running   bm-virt-03.novacrestbank.local
+vm-rhel-test-01     Running   bm-virt-05.novacrestbank.local</span>
+<span class="tok">✓ All 5 VMs Running on bare-metal nodes — none on ESXi.
+  All VMIs on bm-virt-01 through bm-virt-05 (not on ESXi nodes).</span>
+
+<span class="section">! ══ CHECK 3: NSX T0 BGP sessions still active (expected at this stage) ══</span>
+<span class="td"># Query NSX T0 BGP session status via NSX Manager API</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
+  -u "admin:${NSX_PASS}" \
+  "https://10.10.0.63/api/v1/transport-nodes?node_type=EdgeNode" \
+  | python3 -c "import json,sys; nodes=json.load(sys.stdin)
+for n in nodes.get('results',[]): print(n['display_name'], n['state'])"</span>
+<span class="tg">edge-node-01   success
+edge-node-02   success</span>
+<span class="tok">✓ Both NSX Edge nodes are in "success" state.
+  T0 BGP sessions are active and advertising routes to the leaf switches.
+  This is expected at pre-flight — BGP migration happens in Phase 2.</span>
+
+<span class="section">! ══ CHECK 4: OVN overlay is healthy (independent of NSX) ═══════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-ovn-kubernetes \
+  -o custom-columns="POD:.metadata.name,STATUS:.status.phase" | \
+  grep -v "Running"</span>
+<span class="tg">(no output)</span>
+<span class="tok">✓ All OVN-Kubernetes pods Running. OCP overlay is healthy and independent of NSX.
+  OVN has been running the OCP pod network since VIRT-01. It does not depend on NSX.
+  Safe to proceed to Phase 1: DFW → NetworkPolicy translation.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 DFW MODEL ══ -->
+  <section id="dfw-model">
+  <h2>04 — NSX DFW model — what it does and how OVN replaces it</h2>
+  <p>NSX Distributed Firewall (DFW) is a stateful L4 firewall that runs inside every ESXi kernel. Every packet from every VM passes through the DFW kernel module before it reaches the virtual switch. Rules are grouped into Sections (with a priority order) and target NSX Security Groups (dynamic groups of VMs matched by tag, name pattern, or segment). DFW provides micro-segmentation — fine-grained east-west traffic control between VMs on the same segment — without any traffic hairpin to a physical firewall.</p>
+  <p>In OCP, the equivalent is the combination of three controls. Kubernetes NetworkPolicy enforces east-west policy at the OVN overlay level — controlling traffic between pods and VM primary interfaces. OVN ACLs (applied at the localnet port level) control traffic on VLAN 130/140 secondary interfaces. Guest OS firewall (firewalld on RHEL, Windows Firewall via GPO) controls inbound traffic on the VM's secondary interface from the physical fabric. No single OCP control maps 1:1 to DFW — the three-control model together provides equivalent coverage.</p>
+
+  <table>
+    <thead><tr><th>NSX DFW capability</th><th>OVN / OCP equivalent</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td>East-west between VMs on the same segment</td><td>Kubernetes NetworkPolicy between pods/VMIs in the same namespace</td><td>OVN overlay (primary interface traffic)</td></tr>
+      <tr><td>East-west between VMs on different segments</td><td>NetworkPolicy with namespaceSelector across namespaces</td><td>OVN overlay</td></tr>
+      <tr><td>North-south from external to VM (VLAN 130/140)</td><td>Guest OS firewalld / Windows Firewall (VIRT-08 Sections 13–14)</td><td>Physical fabric (localnet — OVN ACL not yet used)</td></tr>
+      <tr><td>L7 application-layer rules (e.g., allow HTTP but block HTTPS)</td><td>Not available in standard NetworkPolicy — requires a Service Mesh (Istio/OpenShift Service Mesh)</td><td>N/A for NovaCrestBank Phase 1</td></tr>
+      <tr><td>Dynamic group membership by VM tag</td><td>Pod label selectors in NetworkPolicy podSelector</td><td>Kubernetes labels on VirtualMachine pods</td></tr>
+      <tr><td>Applied-to scoping (rules applied only to specific VMs)</td><td>NetworkPolicy spec.podSelector — applies to pods matching the selector</td><td>Namespace-scoped</td></tr>
+      <tr><td>Default deny (DFW Default Allow/Deny rule)</td><td>Default-deny-ingress NetworkPolicy in virt-workloads namespace (VIRT-08 Section 10)</td><td>OVN overlay</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 DFW TRANSLATION ══ -->
+  <section id="dfw-translation">
+  <h2>05 — DFW rule-by-rule translation to Kubernetes NetworkPolicy</h2>
+  <p>NovaCrestBank's NSX DFW has four sections relevant to the migrated VM workloads. Each section is translated below to the OVN equivalent that was applied in VIRT-08. The translation follows a consistent pattern: NSX Security Group → Kubernetes label selector, NSX service (port/protocol) → NetworkPolicy ports, NSX source/destination → NetworkPolicy from/to.</p>
+
+  <h3>DFW Section 1: VM-to-VM banking traffic</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">NSX DFW rule → Kubernetes NetworkPolicy translation</div></div>
+    <div class="yaml-body"><pre><span class="yc"># ── NSX DFW Rule (original) ─────────────────────────────────────────────</span>
+<span class="yc"># Section: Banking-App-East-West</span>
+<span class="yc"># Name: Allow API Gateway to Banking App</span>
+<span class="yc"># Source: NSX Security Group "SG-API-Gateway" (VMs tagged app:api-gateway)</span>
+<span class="yc"># Destination: NSX Security Group "SG-Banking-App" (VMs tagged app:banking-app)</span>
+<span class="yc"># Service: TCP port 8080</span>
+<span class="yc"># Action: Allow</span>
+<span class="yc"># Applied-To: SG-Banking-App</span>
+
+<span class="yc"># ── OVN Kubernetes NetworkPolicy (replacement) ───────────────────────────</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-api-gateway-to-banking-app</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yc">  # Namespace-scoped: applies to pods in virt-workloads.
+  # NSX DFW was cluster-scoped across all segments — NetworkPolicy is namespace-scoped.
+  # For cross-namespace traffic: use namespaceSelector in the from/to block.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">app</span><span class="yc">:</span> <span class="yv">banking-app</span>
+    <span class="yc">    # podSelector: the "Applied-To" equivalent.
+    # This NetworkPolicy applies to pods labelled app=banking-app.
+    # In OCP Virt: the virt-launcher pod for vm-banking-app-01 has
+    # this label set on the VirtualMachine CR (labels.app: banking-app).
+    # The label propagates to the virt-launcher pod automatically.</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - podSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">app</span><span class="yc">:</span> <span class="yv">api-gateway</span>
+        <span class="yc">        # from.podSelector: the "Source" equivalent.
+        # Matches pods labelled app=api-gateway in the same namespace.
+        # NSX DFW matched by Security Group tag — here we match by Kubernetes label.
+        # The label is on the VirtualMachine CR for vm-api-gateway-01.</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- protocol</span><span class="yc">:</span> <span class="yv">TCP</span>
+          <span class="yk">port</span><span class="yc">:</span> <span class="yv">8080</span>
+          <span class="yc">          # ports: the "Service" equivalent. TCP port 8080.
+          # NetworkPolicy ports are INGRESS ports on the destination pod —
+          # matching the DFW destination service (port 8080 on SG-Banking-App).</span>
+  <span class="yk">policyTypes</span><span class="yc">:</span>
+    <span class="yc">- Ingress</span>
+<span class="yc">---</span>
+<span class="yc"># ── DFW Rule 2: Allow banking app to ODF storage ─────────────────────────</span>
+<span class="yc"># NSX: SG-Banking-App → SG-ODF-Storage, TCP 3260 (iSCSI) + TCP 6789/3300 (Ceph mon)</span>
+<span class="yc"># OVN: virt-launcher pods (banking-app) → ODF pods (openshift-storage namespace)</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-banking-app-to-odf</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-storage</span>
+  <span class="yc">  # This NetworkPolicy is in the openshift-storage namespace — not virt-workloads.
+  # It permits ingress TO ODF pods FROM the virt-workloads namespace.
+  # Cross-namespace: use namespaceSelector to identify the source namespace.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">app</span><span class="yc">:</span> <span class="yv">rook-ceph-osd</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - namespaceSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubernetes.io/metadata.name</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+          <span class="yc">          # namespaceSelector: select pods from a different namespace.
+          # kubernetes.io/metadata.name is automatically set on all namespaces.
+          # This permits all pods from virt-workloads to reach ODF OSD pods.
+          # Note: ODF-to-VM storage traffic uses the pod network (OVN overlay)
+          # for the RBD protocol — no VLAN 130 involvement for storage access.</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- protocol</span><span class="yc">:</span> <span class="yv">TCP</span>
+          <span class="yk">port</span><span class="yc">:</span> <span class="yv">6800</span>
+          <span class="yc">          # Ceph OSD messenger port (6800-7300 range — OVN allows the base port here;
+          # for production use a port range via endPort in NetworkPolicy v1.25+)</span>
+        <span class="yc">- protocol</span><span class="yc">:</span> <span class="yv">TCP</span>
+          <span class="yk">port</span><span class="yc">:</span> <span class="yv">6789</span>
+          <span class="yc">          # Ceph Monitor port — used for cluster coordination</span></pre>
+    </div>
+  </div>
+
+  <h3>DFW Section 2: Management traffic (Prometheus scrape, AAP SSH)</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">Management traffic NetworkPolicies — translated from NSX DFW management section</div></div>
+    <div class="yaml-body"><pre><span class="yc"># DFW: Allow openshift-monitoring → All VMs, TCP 9100 (node-exporter)</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-monitoring-scrape</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - namespaceSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubernetes.io/metadata.name</span><span class="yc">:</span> <span class="yv">openshift-monitoring</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- port</span><span class="yc">:</span> <span class="yv">9100</span>
+          <span class="yc">          # node_exporter port — Prometheus scrape</span>
+<span class="yc">---</span>
+<span class="yc"># DFW: Allow AAP execution nodes → All VMs, TCP 22 (SSH for playbook execution)</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-aap-ssh</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - namespaceSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubernetes.io/metadata.name</span><span class="yc">:</span> <span class="yv">aap</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- port</span><span class="yc">:</span> <span class="yv">22</span>
+          <span class="yc">          # TCP 22 SSH — for AAP playbook execution into VM guest OS.
+          # Note: AAP connects to the VM via the OVN pod network (masquerade primary interface),
+          # not via VLAN 130. NetworkPolicy controls OVN overlay traffic — this works.</span>
+<span class="yc">---</span>
+<span class="yc"># DFW: Allow KubeVirt live migration tunnel (already in VIRT-08 — included for completeness)</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-migration-tunnel</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - podSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- port</span><span class="yc">:</span> <span class="yv">49152</span>
+          <span class="yk">protocol</span><span class="yc">:</span> <span class="yv">TCP</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply all translated NetworkPolicies and verify DFW parity</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f networkpolicies-dfw-translated/</span>
+<span class="tg">networkpolicy.networking.k8s.io/allow-api-gateway-to-banking-app created
+networkpolicy.networking.k8s.io/allow-banking-app-to-odf created
+networkpolicy.networking.k8s.io/allow-monitoring-scrape configured
+networkpolicy.networking.k8s.io/allow-aap-ssh created
+networkpolicy.networking.k8s.io/allow-migration-tunnel configured</span>
+
+<span class="td"># Verify traffic parity: test connection from api-gateway VM to banking-app VM</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-api-gateway-01 -n virt-workloads -- \
+  curl -sk --connect-timeout 5 http://10.130.0.50:8080/health</span>
+<span class="tg">{"status":"UP","version":"3.2.1"}</span>
+<span class="tok">✓ api-gateway → banking-app TCP 8080 permitted by NetworkPolicy.</span>
+
+<span class="td"># Verify blocked traffic: test connection from unknown pod to banking-app (should fail)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc run test-block --image=ubi9/ubi-minimal:latest \
+  --restart=Never -n virt-workloads -- \
+  curl -sk --connect-timeout 5 http://10.130.0.50:8080/health 2>&1</span>
+<span class="tg">curl: (28) Connection timed out after 5001 milliseconds</span>
+<span class="tok">✓ Connection from unlabelled pod is blocked — default-deny-ingress-virt enforced.
+  NetworkPolicy correctly replicates NSX DFW default-deny behaviour.
+  All DFW rules have been translated and validated. Safe to deactivate DFW.</span>
+
+<span class="td"># Deactivate NSX DFW sections (via NSX Manager API)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk -u "admin:${NSX_PASS}" -X PATCH \
+  "https://10.10.0.63/policy/api/v1/infra/domains/default/security-policies/Banking-App-East-West" \
+  -H "Content-Type: application/json" \
+  -d '{"stateful": false, "_revision": 5}'</span>
+<span class="tg">{"id":"Banking-App-East-West","display_name":"Banking App East-West","stateful":false,...}</span>
+<span class="tok">✓ DFW section Banking-App-East-West deactivated.
+  Repeat for all sections. OVN NetworkPolicy is now the sole enforcement point.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 DFW GAPS ══ -->
+  <section id="dfw-gaps">
+  <h2>06 — What DFW does that NetworkPolicy cannot — and the compensating controls</h2>
+  <p>Kubernetes NetworkPolicy controls traffic at the OVN overlay level. Three DFW capabilities have no direct NetworkPolicy equivalent, and each requires a specific compensating control.</p>
+
+  <table>
+    <thead><tr><th>DFW capability</th><th>NetworkPolicy limitation</th><th>Compensating control</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>VLAN 130/140 east-west</strong><br>DFW enforced rules between VMs communicating via VLAN 130 IPs directly (same segment, not through T0)</td>
+        <td>NetworkPolicy controls OVN overlay traffic only. VLAN 130 traffic goes directly through the physical fabric — NetworkPolicy has no visibility into it.</td>
+        <td>Guest OS firewalld (VIRT-08 Section 13) restricts inbound connections on eth1 (VLAN 130) to specific ports. Cisco leaf ACLs at VLAN boundary provide inter-VLAN enforcement. For Phase 2+ (VIRT-11 complete): OVN localnet ACLs via AdminNetworkPolicy can be applied at the port level.</td>
+      </tr>
+      <tr>
+        <td><strong>Layer 7 inspection</strong><br>NSX DFW with context profiles could permit HTTP but deny HTTPS on the same port, or match specific URL patterns</td>
+        <td>NetworkPolicy is L3/L4 only — port and protocol matching only. No application-layer awareness.</td>
+        <td>NovaCrestBank Phase 1 does not require L7 DFW rules. The migrated banking VMs use port-based access control. If L7 is required in future: OpenShift Service Mesh (Istio) provides L7 policy between service mesh-enrolled workloads.</td>
+      </tr>
+      <tr>
+        <td><strong>Identity-based rules (NSX Security Tag)</strong><br>DFW rules that dynamically include VMs when they receive a specific NSX tag (applied via vCenter or NSX API)</td>
+        <td>NetworkPolicy label selectors are static — a pod must have the label at creation time. Dynamic tag application (equivalent to tagging a running VM) requires modifying the pod label — which is not possible without restarting the pod.</td>
+        <td>ACM Governance policies (VIRT-09 Section 10) enforce required labels on all VirtualMachine CRs. The label is set at VM creation and maintained by ACM policy. Label drift triggers ACM enforcement. VirtualMachine CR labels propagate to virt-launcher pods automatically — no pod restart required.</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 BGP TODAY ══ -->
+  <section id="bgp-today">
+  <h2>07 — BGP today — NSX T0 peers with Cisco leaf switches</h2>
+  <p>Currently, the NSX T0 gateway runs on the two Edge nodes (edge-node-01 and edge-node-02 in an active-standby HA pair). The T0 has two BGP sessions: one to leaf-01 (10.10.0.1) and one to leaf-02 (10.10.0.2). It advertises the OCP cluster subnets into the physical fabric — making the OCP node IPs (VLAN 110), VM VLAN 130 IPs, and VM VLAN 140 IPs reachable from the rest of the NovaCrestBank network (AD domain controllers on VLAN 70, the banking core network on VLAN 80, external connections via the border router).</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">leaf-01 — verify current BGP sessions and which routes come from NSX T0</div></div>
+    <div class="term-body"><pre><span class="tp">leaf-01#</span> <span class="tc">show bgp sessions</span>
+<span class="tg">BGP sessions for VRF default:
+Neighbor         AS       State   Up/Down    PfxRcd PfxSnt
+10.10.0.63       65099    Estab   14d02h     6      2      ← NSX T0 VIP
+10.10.0.64       65099    Estab   14d02h     6      2      ← NSX T0 (edge-node-01 TEP)
+10.110.0.11      65100    Active  never      -      -      ← OVN (not yet configured)
+10.110.0.12      65100    Active  never      -      -      ← OVN (not yet configured)</span>
+
+<span class="tp">leaf-01#</span> <span class="tc">show bgp ipv4 unicast neighbors 10.10.0.63 received-routes</span>
+<span class="tg">Network            Next Hop       Metric  LocPrf  Weight  Path
+10.50.0.0/24       10.10.0.63     0       100     0       65099 i   ← OCP API/Ingress VIPs
+10.110.0.0/24      10.10.0.63     0       100     0       65099 i   ← OCP node network
+10.120.0.0/24      10.10.0.63     0       100     0       65099 i   ← ODF replication
+10.130.0.0/24      10.10.0.63     0       100     0       65099 i   ← VM VLAN 130
+10.140.0.0/24      10.10.0.63     0       100     0       65099 i   ← VM VLAN 140
+172.30.0.0/16      10.10.0.63     0       100     0       65099 i   ← OCP service CIDR</span>
+<span class="tok">✓ 6 prefixes received from NSX T0. These are the routes that must be
+  advertised by OVN EgressGateway before the NSX BGP sessions are withdrawn.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 EGRESS GATEWAY ══ -->
+  <section id="egress-gateway">
+  <h2>08 — OVN EgressGateway — replacing NSX T0 as the BGP speaker</h2>
+  <p>OVN-Kubernetes provides BGP advertisement capability through MetalLB operating in BGP mode. MetalLB is deployed as the OCP LoadBalancer provider and configured with BGP peers pointing to leaf-01 and leaf-02. It then advertises the required subnets — the same 6 prefixes currently advertised by the NSX T0 — from the bare-metal OCP nodes directly to the leaf switches. When the leaf switches see the same prefixes arriving via both NSX T0 (AS 65099) and OVN/MetalLB (AS 65100), they install both paths. The NSX T0 path is then withdrawn, leaving only the OVN path.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">metallb-bgp-config.yaml — MetalLB BGP configuration for OVN EgressGateway</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Install MetalLB operator first via OLM, then configure BGP mode</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">metallb.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">MetalLB</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">metallb</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">metallb-system</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">nodeSelector</span><span class="yc">:</span>
+    <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+  <span class="yc">  # Run MetalLB speakers only on the 5 bare-metal nodes.
+  # These nodes have direct L2 adjacency with the Cisco leaf switches
+  # (VLAN 110 port-channels Po211–Po215 from VIRT-01).
+  # MetalLB BGP sessions originate from the bare-metal node IPs (10.110.0.11–.15).</span>
+<span class="yc">---</span>
+<span class="yc"># BGP peer: leaf-01</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">metallb.io/v1beta2</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">BGPPeer</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">leaf-01</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">metallb-system</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">peerAddress</span><span class="yc">:</span> <span class="yv">10.10.0.1</span>
+  <span class="yc">  # peerAddress: leaf-01 management IP (from VIRT-01 SVI configuration).</span>
+  <span class="yk">peerASN</span><span class="yc">:</span> <span class="yv">65001</span>
+  <span class="yc">  # peerASN: leaf-01's BGP ASN — 65001 (from VIRT-01 BGP configuration).</span>
+  <span class="yk">myASN</span><span class="yc">:</span> <span class="yv">65100</span>
+  <span class="yc">  # myASN: OCP cluster's BGP ASN — 65100.
+  # Different from NSX T0's ASN (65099) so the leaf switches can distinguish
+  # routes originating from OVN vs routes originating from NSX T0.
+  # When both are active: ECMP across both paths for redundancy.</span>
+  <span class="yk">holdTime</span><span class="yc">:</span> <span class="yv">90s</span>
+  <span class="yk">keepaliveTime</span><span class="yc">:</span> <span class="yv">30s</span>
+  <span class="yk">nodeSelectors</span><span class="yc">:</span>
+    <span class="yc">- matchLabels:</span>
+        <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+<span class="yc">---</span>
+<span class="yc"># BGP peer: leaf-02 (identical structure)</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">metallb.io/v1beta2</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">BGPPeer</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">leaf-02</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">metallb-system</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">peerAddress</span><span class="yc">:</span> <span class="yv">10.10.0.2</span>
+  <span class="yk">peerASN</span><span class="yc">:</span> <span class="yv">65002</span>
+  <span class="yk">myASN</span><span class="yc">:</span> <span class="yv">65100</span>
+  <span class="yk">holdTime</span><span class="yc">:</span> <span class="yv">90s</span>
+  <span class="yk">keepaliveTime</span><span class="yc">:</span> <span class="yv">30s</span>
+  <span class="yk">nodeSelectors</span><span class="yc">:</span>
+    <span class="yc">- matchLabels:</span>
+        <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+<span class="yc">---</span>
+<span class="yc"># IPAddressPool: the subnets MetalLB advertises via BGP</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">metallb.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">IPAddressPool</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ocp-virt-subnets</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">metallb-system</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">addresses</span><span class="yc">:</span>
+    <span class="yc">- 10.50.0.0/24</span>
+    <span class="yc">  # OCP API VIP (10.50.0.200) and Ingress VIP (10.50.0.201) subnet</span>
+    <span class="yc">- 10.110.0.0/24</span>
+    <span class="yc">  # OCP bare-metal node network — VLAN 110</span>
+    <span class="yc">- 10.120.0.0/24</span>
+    <span class="yc">  # ODF replication network — VLAN 120</span>
+    <span class="yc">- 10.130.0.0/24</span>
+    <span class="yc">  # VM workload network — VLAN 130 (banking application IPs)</span>
+    <span class="yc">- 10.140.0.0/24</span>
+    <span class="yc">  # VM DMZ network — VLAN 140</span>
+    <span class="yc">- 172.30.0.0/16</span>
+    <span class="yc">  # OCP service CIDR — pod network for Service ClusterIP reachability</span>
+  <span class="yk">autoAssign</span><span class="yc">:</span> <span class="yv">false</span>
+  <span class="yc">  # autoAssign: false — do not auto-assign IPs from this pool to LoadBalancer Services.
+  # This pool is used only for BGP advertisement of the OCP subnets,
+  # not for allocating external IPs to new Services.</span>
+<span class="yc">---</span>
+<span class="yc"># BGPAdvertisement: tell MetalLB to advertise the pool via BGP</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">metallb.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">BGPAdvertisement</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ocp-virt-subnets-bgp</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">metallb-system</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">ipAddressPools</span><span class="yc">:</span>
+    <span class="yc">- ocp-virt-subnets</span>
+  <span class="yk">peers</span><span class="yc">:</span>
+    <span class="yc">- leaf-01</span>
+    <span class="yc">- leaf-02</span>
+  <span class="yk">communities</span><span class="yc">:</span>
+    <span class="yc">- 65001:100</span>
+    <span class="yc">  # BGP community tag — used by the leaf switches to apply routing policy
+    # (local-preference, no-export to external peers, etc.) to OCP-originated routes.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 BGP CUTOVER ══ -->
+  <section id="bgp-cutover">
+  <h2>09 — BGP cutover — add OVN peer, validate, withdraw NSX peer</h2>
+  <p>The BGP cutover is the most operationally sensitive step in the entire decommission. It must be performed during a maintenance window with network engineering present. The procedure is: configure MetalLB BGP peers (Section 08), verify the leaf switches learn the prefixes from OVN, then withdraw the NSX T0 BGP peering. The window between adding OVN peers and withdrawing NSX peers is a dual-homed state — both paths exist simultaneously — which provides a safety net. If OVN route advertisement is incomplete, withdrawing NSX BGP is blocked.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">BGP cutover procedure — maintenance window — network engineer at console</div></div>
+    <div class="term-body"><pre><span class="section">! ══ STEP 1: Apply MetalLB BGP configuration ════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f metallb-bgp-config.yaml</span>
+<span class="tg">metallb.metallb.io/metallb created
+bgppeer.metallb.io/leaf-01 created
+bgppeer.metallb.io/leaf-02 created
+ipaddresspool.metallb.io/ocp-virt-subnets created
+bgpadvertisement.metallb.io/ocp-virt-subnets-bgp created</span>
+
+<span class="td"># Wait 2-3 minutes for MetalLB speaker pods to establish BGP sessions</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n metallb-system -l component=speaker</span>
+<span class="tg">NAME              READY   STATUS    RESTARTS   AGE
+speaker-bm01      1/1     Running   0          2m
+speaker-bm02      1/1     Running   0          2m
+speaker-bm03      1/1     Running   0          2m
+speaker-bm04      1/1     Running   0          2m
+speaker-bm05      1/1     Running   0          2m</span>
+<span class="tok">✓ MetalLB speaker running on all 5 bare-metal nodes.
+  Each node opens a BGP session to leaf-01 and leaf-02.</span>
+
+<span class="section">! ══ STEP 2: Verify BGP sessions from leaf switches ══════════════════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show bgp sessions</span>
+<span class="tg">Neighbor         AS       State   Up/Down    PfxRcd PfxSnt
+10.10.0.63       65099    Estab   14d05h     6      2      ← NSX T0 (still active)
+10.110.0.11      65100    Estab   0d00h02m   6      2      ← OVN bm-virt-01
+10.110.0.12      65100    Estab   0d00h02m   6      2      ← OVN bm-virt-02
+10.110.0.13      65100    Estab   0d00h02m   6      2      ← OVN bm-virt-03
+10.110.0.14      65100    Estab   0d00h01m   6      2      ← OVN bm-virt-04
+10.110.0.15      65100    Estab   0d00h01m   6      2      ← OVN bm-virt-05</span>
+<span class="tok">✓ Both NSX T0 and OVN sessions are Established.
+  OVN nodes are advertising 6 prefixes (same as NSX T0). DUAL-HOMED STATE.</span>
+
+<span class="section">! ══ STEP 3: Verify OVN is advertising ALL 6 required prefixes ══════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show bgp ipv4 unicast neighbors 10.110.0.11 received-routes</span>
+<span class="tg">Network            Next Hop       Metric  LocPrf  Weight  Path
+10.50.0.0/24       10.110.0.11    0       100     0       65100 i
+10.110.0.0/24      10.110.0.11    0       100     0       65100 i
+10.120.0.0/24      10.110.0.11    0       100     0       65100 i
+10.130.0.0/24      10.110.0.11    0       100     0       65100 i
+10.140.0.0/24      10.110.0.11    0       100     0       65100 i
+172.30.0.0/16      10.110.0.11    0       100     0       65100 i</span>
+<span class="tok">✓ All 6 prefixes received from OVN node 10.110.0.11. Same on all 5 nodes.
+  OVN is advertising all subnets. SAFE TO WITHDRAW NSX BGP.</span>
+
+<span class="section">! ══ STEP 4: Test connectivity via OVN path before withdrawing NSX ═══════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show ip route 10.130.0.50</span>
+<span class="tg">IP Route Table for VRF "default"
+'*' denotes best ucast next-hop, '**' denotes best mcast next-hop
+10.130.0.0/24, ubest/mbest: 2/0
+    *via 10.10.0.63, [20/0], ECMP, BGP, tag 65099    ← NSX T0
+    *via 10.110.0.11, [20/0], ECMP, BGP, tag 65100   ← OVN bm-virt-01</span>
+<span class="tok">✓ ECMP routing: both paths are active. Test banking app connectivity:</span>
+<span class="tp">jumphost$</span> <span class="tc">curl -sk --connect-timeout 5 https://banking-app.novacrestbank.local/health</span>
+<span class="tg">{"status":"UP","version":"3.2.1"}</span>
+<span class="tok">✓ Banking application reachable. PROCEED TO BGP CUTOVER.</span>
+
+<span class="section">! ══ STEP 5: Withdraw NSX T0 BGP peer from leaf switches ════════════════</span>
+<span class="td"># Disable NSX T0 BGP neighbor on leaf-01 and leaf-02</span>
+<span class="td"># (Done via NSX Manager API — deactivates the T0 BGP configuration)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk -u "admin:${NSX_PASS}" -X PATCH \
+  "https://10.10.0.63/policy/api/v1/infra/tier-0s/T0-NovaCrestBank/locale-services/default/bgp" \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": false}'</span>
+<span class="tg">{"enabled": false, "graceful_restart_config": {"mode": "DISABLE"}, ...}</span>
+
+<span class="section">! ══ STEP 6: Verify leaf switches now use only OVN routes ════════════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show bgp sessions</span>
+<span class="tg">Neighbor         AS       State   Up/Down    PfxRcd PfxSnt
+10.10.0.63       65099    Idle    0d00h00m   0      0      ← NSX T0 DOWN (expected)
+10.110.0.11      65100    Estab   0d00h08m   6      2      ← OVN bm-virt-01
+10.110.0.12      65100    Estab   0d00h08m   6      2
+10.110.0.13      65100    Estab   0d00h07m   6      2
+10.110.0.14      65100    Estab   0d00h07m   6      2
+10.110.0.15      65100    Estab   0d00h07m   6      2</span>
+<span class="tok">✓ NSX T0 BGP session is DOWN. All 5 OVN sessions are Established.
+  The leaf switches are routing via OVN exclusively.</span>
+
+<span class="tp">jumphost$</span> <span class="tc">curl -sk --connect-timeout 5 https://banking-app.novacrestbank.local/health</span>
+<span class="tg">{"status":"UP","version":"3.2.1"}</span>
+<span class="tok">✓ Banking application still reachable via OVN path only.
+  BGP cutover complete. NSX T0 no longer carries any production traffic.
+  Safe to proceed to Phase 3: NSX Edge decommission.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 EDGE DECOMMISSION ══ -->
+  <section id="edge-decommission">
+  <h2>10 — NSX Edge node decommission sequence</h2>
+  <p>The Edge nodes (edge-node-01 and edge-node-02) host the T0 and T1 gateway VMs. With BGP withdrawn and DFW deactivated, the Edge nodes carry no traffic. They can now be removed. The sequence: remove gateway configuration from NSX Manager, power off Edge node VMs in vCenter, remove Edge transport nodes from NSX Manager.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — NSX Edge node decommission via NSX Manager API and vCenter</div></div>
+    <div class="term-body"><pre><span class="section">! ══ STEP 1: Remove T1 gateways (connected to T0) ═══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk -u "admin:${NSX_PASS}" \
+  "https://10.10.0.63/policy/api/v1/infra/tier-1s" | \
+  python3 -c "import json,sys; [print(t['id']) for t in json.load(sys.stdin)['results']]"</span>
+<span class="tg">T1-Banking-Workload
+T1-Management</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for T1 in T1-Banking-Workload T1-Management; do
+  curl -sk -u "admin:${NSX_PASS}" -X DELETE \
+    "https://10.10.0.63/policy/api/v1/infra/tier-1s/${T1}"
+  echo "Deleted T1: ${T1}"
+done</span>
+<span class="tg">Deleted T1: T1-Banking-Workload
+Deleted T1: T1-Management</span>
+
+<span class="section">! ══ STEP 2: Remove T0 gateway ════════════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk -u "admin:${NSX_PASS}" -X DELETE \
+  "https://10.10.0.63/policy/api/v1/infra/tier-0s/T0-NovaCrestBank"</span>
+<span class="tg">HTTP/1.1 200 OK</span>
+<span class="tok">✓ T0 gateway deleted. No routing configuration remains on the Edge nodes.</span>
+
+<span class="section">! ══ STEP 3: Remove Edge cluster from NSX ═══════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">EDGE_CLUSTER_ID=$(curl -sk -u "admin:${NSX_PASS}" \
+  "https://10.10.0.63/api/v1/edge-clusters" | \
+  python3 -c "import json,sys; print(json.load(sys.stdin)['results'][0]['id'])")
+
+curl -sk -u "admin:${NSX_PASS}" -X DELETE \
+  "https://10.10.0.63/api/v1/edge-clusters/${EDGE_CLUSTER_ID}"</span>
+<span class="tg">HTTP/1.1 200 OK</span>
+
+<span class="section">! ══ STEP 4: Remove Edge transport nodes from NSX ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for EDGE_TN in edge-node-01 edge-node-02; do
+  TN_ID=$(curl -sk -u "admin:${NSX_PASS}" \
+    "https://10.10.0.63/api/v1/transport-nodes?display_name=${EDGE_TN}" | \
+    python3 -c "import json,sys; print(json.load(sys.stdin)['results'][0]['id'])")
+  curl -sk -u "admin:${NSX_PASS}" -X DELETE \
+    "https://10.10.0.63/api/v1/transport-nodes/${TN_ID}?force=true"
+  echo "Removed transport node: ${EDGE_TN}"
+done</span>
+<span class="tg">Removed transport node: edge-node-01
+Removed transport node: edge-node-02</span>
+
+<span class="section">! ══ STEP 5: Power off and delete Edge node VMs in vCenter ═══════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">govc vm.power -off -force edge-node-01 edge-node-02
+govc vm.destroy edge-node-01
+govc vm.destroy edge-node-02</span>
+<span class="tg">Powering off: edge-node-01
+Powering off: edge-node-02
+Destroying: edge-node-01
+Destroying: edge-node-02</span>
+<span class="tok">✓ Both NSX Edge node VMs are destroyed.
+  The T0 and T1 gateway infrastructure is completely removed.
+  No NSX forwarding plane remains. Proceed to NSX Manager decommission.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 MANAGER DECOMMISSION ══ -->
+  <section id="manager-decommission">
+  <h2>11 — NSX Manager cluster decommission</h2>
+  <p>The NSX Manager is a 3-node appliance cluster (management VMs on ESXi) that provides the NSX control plane: the REST API, the policy engine, and the central inventory of transport nodes, segments, and gateways. With the T0/T1 gateways deleted and the Edge nodes removed, the Manager has no remaining forwarding-plane entities to manage. The decommission sequence: remove ESXi host transport nodes (uninstall NSX vibs from each ESXi), then power off and delete the 3 Manager VMs.</p>
+
+  <div class="callout warn">
+    <span class="cl">Confirm ESXi hosts are no longer transport nodes before proceeding</span>
+    <p>NSX installs kernel modules (vibs) into each ESXi host that was a transport node — this enables the DFW and the Geneve overlay within the ESXi kernel. These vibs must be removed cleanly via NSX Manager before the Manager VMs are deleted. If the Manager VMs are deleted first, the vibs cannot be removed through the normal API path — manual ESXi vib removal via esxcli is required. Always remove ESXi transport nodes from NSX Manager before deleting the Manager VMs.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — remove ESXi transport nodes then delete NSX Manager VMs</div></div>
+    <div class="term-body"><pre><span class="section">! ══ STEP 1: List all host transport nodes (ESXi hosts) ══════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk -u "admin:${NSX_PASS}" \
+  "https://10.10.0.63/api/v1/transport-nodes?node_type=HostNode" | \
+  python3 -c "
+import json, sys
+nodes = json.load(sys.stdin)['results']
+for n in nodes:
+    print(n['id'], n['display_name'], n['state'])
+"</span>
+<span class="tg">tn-aa1b2c  esxi-01.novacrestbank.local  success
+tn-bb3d4e  esxi-02.novacrestbank.local  success
+tn-cc5f6g  esxi-03.novacrestbank.local  success
+tn-dd7h8i  esxi-04.novacrestbank.local  success
+tn-ee9j0k  esxi-05.novacrestbank.local  success</span>
+
+<span class="section">! ══ STEP 2: Remove NSX from each ESXi host ══════════════════════════════</span>
+<span class="td"># The DELETE request triggers NSX Manager to uninstall NSX vibs from the ESXi host
+# before removing the transport node record. This takes 2-5 minutes per host.</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for TN_ID in tn-aa1b2c tn-bb3d4e tn-cc5f6g tn-dd7h8i tn-ee9j0k; do
+  echo "Removing transport node ${TN_ID}..."
+  curl -sk -u "admin:${NSX_PASS}" -X DELETE \
+    "https://10.10.0.63/api/v1/transport-nodes/${TN_ID}?force=true&unprepare_host=true"
+  echo "Done: ${TN_ID}"
+  sleep 60
+done</span>
+<span class="tg">Removing transport node tn-aa1b2c...
+Done: tn-aa1b2c
+Removing transport node tn-bb3d4e...
+Done: tn-bb3d4e
+Removing transport node tn-cc5f6g...
+Done: tn-cc5f6g
+Removing transport node tn-dd7h8i...
+Done: tn-dd7h8i
+Removing transport node tn-ee9j0k...
+Done: tn-ee9j0k</span>
+<span class="tok">✓ All 5 ESXi host transport nodes removed.
+  NSX vibs uninstalled from all ESXi hosts. DFW kernel module removed.
+  ESXi hosts are now standard vSphere hosts with no NSX involvement.</span>
+
+<span class="section">! ══ STEP 3: Verify NSX vibs are absent from ESXi hosts ══════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for HOST_IP in 10.110.0.{11..15}; do
+  echo "=== ${HOST_IP} ==="
+  ssh root@${HOST_IP} "esxcli software vib list | grep -i nsx"
+done</span>
+<span class="tg">=== 10.110.0.11 ===
+(no output)
+=== 10.110.0.12 ===
+(no output)
+=== 10.110.0.13 ===
+(no output)
+=== 10.110.0.14 ===
+(no output)
+=== 10.110.0.15 ===
+(no output)</span>
+<span class="tok">✓ No NSX vibs present on any ESXi host. NSX kernel modules completely removed.</span>
+
+<span class="section">! ══ STEP 4: Power off and delete NSX Manager VMs ════════════════════════</span>
+<span class="td"># The NSX Manager cluster consists of 3 VMs. Shut down in order.</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for MANAGER_VM in nsx-manager-01 nsx-manager-02 nsx-manager-03; do
+  echo "Shutting down ${MANAGER_VM}..."
+  govc vm.power -off -force "${MANAGER_VM}"
+  sleep 30
+  govc vm.destroy "${MANAGER_VM}"
+  echo "Destroyed: ${MANAGER_VM}"
+done</span>
+<span class="tg">Shutting down nsx-manager-01...
+Destroyed: nsx-manager-01
+Shutting down nsx-manager-02...
+Destroyed: nsx-manager-02
+Shutting down nsx-manager-03...
+Destroyed: nsx-manager-03</span>
+<span class="tok">✓ All 3 NSX Manager VMs destroyed.
+  The NSX control plane is completely removed.
+  10.10.0.63 (NSX Manager VIP) is now unreachable — expected.
+  Proceed to leaf switch TEP VLAN cleanup.</span>
+
+<span class="section">! ══ STEP 5: Confirm NSX Manager API is gone ═════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk --connect-timeout 5 \
+  "https://10.10.0.63/api/v1/cluster" 2>&1</span>
+<span class="te">curl: (7) Failed to connect to 10.10.0.63 port 443: No route to host</span>
+<span class="tok">✓ NSX Manager API is unreachable. Full NSX infrastructure decommissioned.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 TEP VLAN REMOVAL ══ -->
+  <section id="tep-vlan-removal">
+  <h2>12 — Leaf switch TEP VLAN removal — Cisco Nexus cleanup</h2>
+  <p>NSX required a dedicated VLAN for Tunnel End Point (TEP) traffic — the Geneve-encapsulated overlay between ESXi hosts and between ESXi hosts and Edge nodes. In NovaCrestBank's environment, the NSX TEP VLAN was VLAN 100 (10.100.0.0/24), carried on port-channels Po201–Po205 (the uplinks from the ESXi hosts to the leaf switches). These port-channels and VLAN 100 are no longer needed — the bare-metal OCP nodes use their own port-channels (Po211–Po215, VLAN 110) configured in VIRT-01 and have no NSX TEP traffic. The leaf configuration cleanup removes VLAN 100, the ESXi host port-channels, and any NSX-related routing entries from the Cisco Nexus fabric.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">leaf-01 (and repeat on leaf-02) — remove NSX TEP VLAN and ESXi uplink port-channels</div></div>
+    <div class="term-body"><pre><span class="section">! ══ VERIFY: Confirm ESXi uplink port-channels carry no active traffic ════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show interface port-channel 201 | include bits</span>
+<span class="tg">  0 bits/sec Rx,  0 bits/sec Tx</span>
+<span class="tp">leaf-01#</span> <span class="tc">show interface port-channel 202 | include bits</span>
+<span class="tg">  0 bits/sec Rx,  0 bits/sec Tx</span>
+<span class="tok">✓ Po201-Po205: zero traffic. ESXi hosts are powered off / no longer active.
+  Safe to remove these port-channels and VLAN 100.</span>
+
+<span class="section">! ══ REMOVE: NSX TEP VLAN 100 and ESXi port-channels ════════════════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">configure terminal</span>
+<span class="tp">leaf-01(config)#</span> <span class="tc">no vlan 100</span>
+<span class="tg">leaf-01(config)#</span>
+<span class="tp">leaf-01(config)#</span> <span class="tc">no interface vlan 100</span>
+<span class="tg">leaf-01(config)#</span>
+
+<span class="td"># Remove ESXi uplink port-channels (Po201-Po205)</span>
+<span class="tp">leaf-01(config)#</span> <span class="tc">no interface port-channel 201
+no interface port-channel 202
+no interface port-channel 203
+no interface port-channel 204
+no interface port-channel 205</span>
+<span class="tg">leaf-01(config)#</span>
+
+<span class="td"># Remove the physical interfaces that were members of the ESXi port-channels</span>
+<span class="td"># (these were the dual 25G uplinks from each ESXi host)</span>
+<span class="tp">leaf-01(config)#</span> <span class="tc">default interface eth1/11-eth1/20</span>
+<span class="tg">leaf-01(config)#</span>
+<span class="td"># Interfaces returned to default state — no config, no VLAN membership</span>
+
+<span class="section">! ══ REMOVE: NSX static routes and BGP neighbor (already withdrawn) ═══════</span>
+<span class="tp">leaf-01(config)#</span> <span class="tc">router bgp 65001
+  address-family ipv4 unicast
+    no neighbor 10.10.0.63 remote-as 65099
+    no neighbor 10.10.0.64 remote-as 65099</span>
+<span class="gm">leaf-01(config-router-af)#</span>
+<span class="tp">leaf-01(config-router-af)#</span> <span class="tc">exit
+exit</span>
+
+<span class="section">! ══ REMOVE: NSX Management VLAN 10 SVI (10.10.0.0/24) ══════════════════</span>
+<span class="td"># VLAN 10 carried the NSX Manager and Edge node management traffic.
+# Now that the NSX VMs are destroyed, this SVI is no longer needed.</span>
+<span class="tp">leaf-01(config)#</span> <span class="tc">no interface vlan 10
+no vlan 10</span>
+
+<span class="tp">leaf-01(config)#</span> <span class="tc">copy running-config startup-config</span>
+<span class="tg">[########################################] 100%
+Copy complete.</span>
+<span class="tok">✓ leaf-01 cleanup complete. Repeat identical procedure on leaf-02.</span>
+
+<span class="section">! ══ VERIFY: Confirm remaining VLANs are only OCP-required VLANs ═════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show vlan brief</span>
+<span class="tg">VLAN  Name                             Status    Ports
+----  ----                             ------    -----
+1     default                          active
+110   bm-node-network                  active    Po211, Po212, Po213, Po214, Po215
+120   odf-replication                  active    Po211, Po212, Po213, Po214, Po215
+130   vm-workload-primary              active    Po211, Po212, Po213, Po214, Po215
+140   vm-workload-dmz                  active    Po211, Po212, Po213, Po214, Po215</span>
+<span class="tok">✓ Only the 4 OCP VLANs remain (110, 120, 130, 140 — configured in VIRT-01).
+  VLAN 10 (NSX management) and VLAN 100 (NSX TEP) have been removed.
+  ESXi port-channels (Po201-Po205) are gone.
+  OCP bare-metal port-channels (Po211-Po215) are intact and carrying live traffic.</span>
+
+<span class="section">! ══ FINAL: Verify OCP connectivity is unaffected ════════════════════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show interface port-channel 211 | include bits</span>
+<span class="tg">  2.4 Gbits/sec Rx,  1.8 Gbits/sec Tx</span>
+<span class="tp">leaf-01#</span> <span class="tc">show bgp ipv4 unicast summary | grep Estab</span>
+<span class="tg">10.110.0.11  65100    Estab   6    2
+10.110.0.12  65100    Estab   6    2
+10.110.0.13  65100    Estab   6    2
+10.110.0.14  65100    Estab   6    2
+10.110.0.15  65100    Estab   6    2</span>
+<span class="tok">✓ OCP port-channels carrying live traffic. All 5 OVN BGP sessions established.
+  Leaf switch cleanup is complete. Network fabric is clean of all NSX configuration.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 LICENSE ELIMINATION ══ -->
+  <section id="license-elimination">
+  <h2>13 — NSX license elimination — verification and VMware contract closure</h2>
+  <p>With the NSX Manager VMs destroyed and all vibs removed from ESXi hosts, there are no remaining NSX-consuming components in the NovaCrestBank environment. The NSX licenses can now be decommissioned from the VMware licensing portal and removed from the contract. This section documents the verification steps that prove to the VMware license compliance team that NSX consumption is zero.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — license elimination verification evidence package</div></div>
+    <div class="term-body"><pre><span class="section">! ══ EVIDENCE 1: NSX Manager API is unreachable (Manager destroyed) ═══════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk --connect-timeout 5 \
+  "https://10.10.0.63/api/v1/licenses" 2>&1 | head -1</span>
+<span class="te">curl: (7) Failed to connect to 10.10.0.63 port 443: No route to host</span>
+<span class="tok">✓ EVIDENCE 1: NSX Manager not reachable — Manager cluster destroyed.</span>
+
+<span class="section">! ══ EVIDENCE 2: No NSX vibs on any ESXi host ════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for H in 10.110.0.{11..15}; do
+  COUNT=$(ssh root@${H} "esxcli software vib list 2>/dev/null | grep -ic nsx || true")
+  echo "ESXi ${H}: ${COUNT} NSX vibs"
+done</span>
+<span class="tg">ESXi 10.110.0.11: 0 NSX vibs
+ESXi 10.110.0.12: 0 NSX vibs
+ESXi 10.110.0.13: 0 NSX vibs
+ESXi 10.110.0.14: 0 NSX vibs
+ESXi 10.110.0.15: 0 NSX vibs</span>
+<span class="tok">✓ EVIDENCE 2: Zero NSX vibs on all ESXi hosts.</span>
+
+<span class="section">! ══ EVIDENCE 3: No NSX VMs in vCenter inventory ═════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">govc find / -type m | grep -i "nsx\|edge\|manager"</span>
+<span class="tg">(no output)</span>
+<span class="tok">✓ EVIDENCE 3: No NSX-related VMs in vCenter inventory.</span>
+
+<span class="section">! ══ EVIDENCE 4: No NSX processes on any node in the OCP cluster ═════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for NODE in $(oc get nodes -o name | grep bm-virt); do
+  oc debug ${NODE} -- chroot /host \
+    ps aux 2>/dev/null | grep -i "nsx\|nsxd" | grep -v grep
+done 2>/dev/null | wc -l</span>
+<span class="tg">0</span>
+<span class="tok">✓ EVIDENCE 4: Zero NSX processes on all bare-metal OCP nodes.
+  OCP nodes run OVN-Kubernetes — no NSX components ever ran on bare-metal nodes.</span>
+
+<span class="section">! ══ EVIDENCE 5: Leaf switches have no NSX BGP sessions ══════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ssh admin@10.10.0.1 \
+  "show bgp sessions" | grep "65099"</span>
+<span class="tg">(no output)</span>
+<span class="tok">✓ EVIDENCE 5: No BGP sessions with NSX T0 ASN 65099 on leaf-01.
+  All BGP sessions are with OVN nodes (ASN 65100).</span>
+
+<span class="section">! ══ GENERATE: License elimination evidence package ═══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat > ~/nsx-license-elimination-evidence.txt << 'EOF'
+NovaCrestBank — NSX License Elimination Evidence
+Date: $(date -u +%Y-%m-%d)
+Prepared by: Platform Engineering
+
+EVIDENCE SUMMARY:
+1. NSX Manager cluster (10.10.0.63) VMs destroyed on $(date -u +%Y-%m-%d)
+2. NSX vibs removed from all 5 ESXi hosts — verified via esxcli
+3. No NSX VMs in vCenter inventory — verified via govc
+4. No NSX processes on OCP bare-metal nodes — verified via oc debug
+5. Leaf switches have no active BGP sessions with NSX ASN 65099
+
+REPLACEMENT TECHNOLOGY:
+- OVN-Kubernetes (embedded in OCP 4.16) replaces NSX overlay and DFW
+- MetalLB BGP mode replaces NSX T0 BGP route advertisement
+- Kubernetes NetworkPolicy replaces NSX DFW east-west rules
+- Guest OS firewalld replaces NSX DFW north-south rules for VLAN 130/140
+
+LICENSE ACTIONS REQUIRED:
+- Remove NSX-T Data Center license from VMware Customer Connect portal
+- Remove NSX from VCF subscription entitlement
+- Update VMware contract to reflect zero NSX consumption
+- Retain license keys for 30 days post-decommission per audit requirements
+EOF
+echo "Evidence package written."</span>
+<span class="tg">Evidence package written.</span>
+<span class="tok">✓ Evidence package ready. Submit to VMware licensing team and internal GRC.
+  VMware contract amendment removes NSX licensing — estimated saving:
+  ~$180,000/year (NSX-T DC Advanced, 5 hosts × 2 sockets each).</span></pre>
+    </div>
+  </div>
+
+  <h3>VMware contract closure steps</h3>
+  <table>
+    <thead><tr><th>Action</th><th>Owner</th><th>Timeline</th></tr></thead>
+    <tbody>
+      <tr><td>Submit NSX license elimination evidence package to VMware account team</td><td>Platform Engineering</td><td>Day 1 post-decommission</td></tr>
+      <tr><td>Remove NSX-T license keys from VMware Customer Connect</td><td>IT Procurement</td><td>Within 5 business days</td></tr>
+      <tr><td>Amend VCF subscription to remove NSX entitlement</td><td>IT Procurement + VMware TAM</td><td>Next billing cycle</td></tr>
+      <tr><td>Retain decommission documentation for 7 years per audit policy</td><td>GRC / Platform Engineering</td><td>Ongoing</td></tr>
+      <tr><td>Close VMware NSX support cases and entitlements in MyVMware</td><td>IT Operations</td><td>Within 10 business days</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 VCF EXIT ══ -->
+  <section id="vcf-exit">
+  <h2>14 — VCF exit — vCenter and ESXi decommission</h2>
+  <p>With NSX removed, the VCF stack has three remaining components: vCenter Server, SDDC Manager, and the 5 ESXi hosts. The ESXi hosts still exist as physical servers — they will be repurposed as additional bare-metal OCP nodes or decommissioned from the data centre. The sequence: verify no workloads remain on ESXi (already confirmed in Section 03), power off and delete vCenter and SDDC Manager VMs, then repurpose or decommission the physical ESXi servers.</p>
+
+  <div class="callout blue">
+    <span class="cl">ESXi host repurposing — the preferred outcome for NovaCrestBank</span>
+    <p>The 5 HP ProLiant DL385 Gen11 servers that ran ESXi are the same hardware specification as the 5 bare-metal OCP nodes (AMD EPYC 9354P, 512 GiB RAM, 4×3.84 TB NVMe). Rather than decommissioning them, NovaCrestBank's capacity plan calls for adding these 5 servers as additional bare-metal OCP worker nodes — expanding the VM hosting capacity from 5 nodes to 10. The process: boot the servers from the RHCOS Assisted Installer ISO (the same VIRT-02 process), join them to the existing OCP cluster as additional worker nodes with the <code>workload-type=virtualization</code> label and ODF OSD storage, and the ACM SiteConfig template (VIRT-09 Section 15) handles the cluster registration automatically.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — decommission vCenter and SDDC Manager</div></div>
+    <div class="term-body"><pre><span class="section">! ══ STEP 1: Verify no VMs remain in vCenter (except infra VMs being deleted)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">govc vm.list -dc NovaCrestBank-DC | \
+  grep -v "vcsa\|sddc\|nsx\|edge" | wc -l</span>
+<span class="tg">0</span>
+<span class="tok">✓ No user VMs in vCenter. Only infrastructure VMs (vCenter, SDDC Manager) remain.</span>
+
+<span class="section">! ══ STEP 2: Power off and delete SDDC Manager ═══════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">govc vm.power -off -force sddc-manager
+govc vm.destroy sddc-manager</span>
+<span class="tg">Powering off: sddc-manager
+Destroying: sddc-manager</span>
+<span class="tok">✓ SDDC Manager destroyed. VCF management plane removed.</span>
+
+<span class="section">! ══ STEP 3: Power off and delete vCenter Server ═════════════════════════</span>
+<span class="td"># Note: vCenter must be destroyed last — it hosts the govc/API endpoint itself</span>
+<span class="td"># Run from the ESXi host directly after SDDC Manager is gone</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ssh root@10.110.0.11 \
+  "vim-cmd vmsvc/getallvms | grep vcsa | awk '{print \$1}' | \
+   xargs -I{} vim-cmd vmsvc/power.off {} && \
+   vim-cmd vmsvc/getallvms | grep vcsa | awk '{print \$1}' | \
+   xargs -I{} vim-cmd vmsvc/destroy {}"</span>
+<span class="tg">Power off succeeded.
+Destroy succeeded.</span>
+<span class="tok">✓ vCenter Server destroyed. The VCF stack is completely removed.
+  The 5 DL385 Gen11 servers are now bare hardware — ready for RHCOS provisioning.</span>
+
+<span class="section">! ══ STEP 4: Reprovision ESXi servers as OCP bare-metal nodes ═══════════</span>
+<span class="td"># Boot each server from the RHCOS Assisted Installer ISO via iLO virtual media
+# (same process as VIRT-02 for bm-virt-01 through bm-virt-05)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for ILO_IP in 10.40.0.{76..80}; do
+  curl -sk -u "admin:${ILO_PASS}" \
+    -X POST "https://${ILO_IP}/redfish/v1/Systems/1/Actions/ComputerSystem.Reset" \
+    -H "Content-Type: application/json" \
+    -d '{"ResetType": "ForceRestart"}' | python3 -c \
+    "import json,sys; r=json.load(sys.stdin); print(r.get('Message','Reset initiated'))"
+done</span>
+<span class="tg">Reset initiated
+Reset initiated
+Reset initiated
+Reset initiated
+Reset initiated</span>
+<span class="tok">✓ All 5 former-ESXi servers rebooting from RHCOS Assisted Installer ISO.
+  They will appear in the Assisted Installer UI (VIRT-02 workflow) within 10 minutes.
+  After joining as OCP workers: the cluster grows from 5 to 10 bare-metal VM nodes.
+  VM hosting capacity doubles — 400+ additional hugepages available for VM workloads.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 SERIES COMPLETION ══ -->
+  <section id="series-completion">
+  <h2>15 — Series completion — NovaCrestBank OCP Virt end state</h2>
+  <p>The VIRT series is complete. What started as a VMware VCF environment — ESXi hypervisors, NSX software-defined networking, vCenter management, and SDDC Manager — is now a fully containerised, bare-metal OpenShift Virtualization platform. This section documents the final architecture and the business outcomes delivered by the series.</p>
+
+  <h3>Final infrastructure state</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Before (VCF)</th><th>After (OCP Virt)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Hypervisor</strong></td><td>VMware ESXi 8.x on 5 DL385 Gen11 hosts</td><td>RHCOS + KubeVirt on 10 DL385 Gen11 bare-metal nodes (5 original + 5 repurposed)</td></tr>
+      <tr><td><strong>VM management</strong></td><td>vCenter Server (SDDC Manager)</td><td>OCP Virtualization (KubeVirt) — VirtualMachine CRs in Kubernetes</td></tr>
+      <tr><td><strong>Overlay network</strong></td><td>NSX Geneve overlay between ESXi hosts</td><td>OVN-Kubernetes Geneve overlay between bare-metal nodes</td></tr>
+      <tr><td><strong>East-west firewall</strong></td><td>NSX Distributed Firewall (DFW) in ESXi kernel</td><td>Kubernetes NetworkPolicy enforced by OVN ACLs</td></tr>
+      <tr><td><strong>North-south routing</strong></td><td>NSX T0/T1 gateway hierarchy on Edge nodes</td><td>MetalLB BGP on bare-metal nodes → Cisco Nexus leaf switches</td></tr>
+      <tr><td><strong>VM storage</strong></td><td>vSAN (per-VM VMDK on vSAN datastore)</td><td>ODF Ceph RBD (OCS StorageClass, 20 OSDs across 5 nodes, RF3, ~25 TB usable)</td></tr>
+      <tr><td><strong>GitOps</strong></td><td>None (manual vCenter provisioning)</td><td>Argo CD — VirtualMachine CRs in Git, Kustomize dev/prod overlays</td></tr>
+      <tr><td><strong>Policy governance</strong></td><td>None (manual config enforcement)</td><td>ACM — policies for IdP, NetworkPolicy, evictionStrategy, OCP version across fleet</td></tr>
+      <tr><td><strong>Security</strong></td><td>NSX DFW + vCenter VM security</td><td>ACS (eBPF runtime, admission controller, compliance scans) + guest OS hardening</td></tr>
+      <tr><td><strong>Automation</strong></td><td>Manual runbooks</td><td>AAP — provisioning, patching, compliance, scale-up, LB registration, alert-driven migration</td></tr>
+      <tr><td><strong>Observability</strong></td><td>vCenter performance charts (per-cluster)</td><td>Thanos multi-cluster metrics + ACM global search + ACS → Splunk security events</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Licensing and cost elimination</h3>
+  <table>
+    <thead><tr><th>Eliminated license</th><th>Annual cost (estimated)</th><th>Replaced by</th></tr></thead>
+    <tbody>
+      <tr><td>VMware NSX-T Data Center Advanced (10 sockets)</td><td>~$180,000</td><td>OVN-Kubernetes (included in OCP subscription)</td></tr>
+      <tr><td>VMware vSphere Enterprise Plus (10 sockets)</td><td>~$120,000</td><td>RHCOS (included in OCP subscription)</td></tr>
+      <tr><td>VMware vCenter Server Standard</td><td>~$15,000</td><td>OCP Virtualization operator (included)</td></tr>
+      <tr><td>VMware vSAN Advanced (10 sockets)</td><td>~$90,000</td><td>ODF (included in OCP subscription)</td></tr>
+      <tr><td>VCF subscription (management)</td><td>~$45,000</td><td>ACM + AAP (covered by Red Hat subscription)</td></tr>
+      <tr><td><strong>Total annual elimination</strong></td><td><strong>~$450,000</strong></td><td>Single Red Hat OpenShift Platform Plus subscription</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gate">
+    <div class="gate-title">VIRT-11 decommission completion checklist</div>
+    <div class="gate-item"><div class="gate-box"></div>DFW → NetworkPolicy translation complete — all DFW rules have OVN equivalents, traffic parity validated, DFW sections deactivated</div>
+    <div class="gate-item"><div class="gate-box"></div>BGP cutover complete — OVN MetalLB BGP sessions Established to leaf-01 and leaf-02, all 6 prefixes advertised, NSX T0 BGP withdrawn</div>
+    <div class="gate-item"><div class="gate-box"></div>Banking application reachable via OVN routing only — curl health check passing post-cutover</div>
+    <div class="gate-item"><div class="gate-box"></div>NSX Edge nodes decommissioned — T1/T0 gateways deleted, Edge VMs destroyed in vCenter</div>
+    <div class="gate-item"><div class="gate-box"></div>NSX Manager cluster decommissioned — ESXi transport nodes removed, NSX vibs uninstalled, Manager VMs destroyed</div>
+    <div class="gate-item"><div class="gate-box"></div>NSX Manager API unreachable (10.10.0.63 — no route to host)</div>
+    <div class="gate-item"><div class="gate-box"></div>Leaf switch cleanup complete — VLAN 100 (TEP) removed, VLAN 10 (NSX management) removed, ESXi port-channels (Po201-Po205) removed on both leaf-01 and leaf-02</div>
+    <div class="gate-item"><div class="gate-box"></div>OCP bare-metal port-channels (Po211-Po215) carrying live traffic — verified on both leaves</div>
+    <div class="gate-item"><div class="gate-box"></div>License elimination evidence package compiled and submitted to VMware licensing team</div>
+    <div class="gate-item"><div class="gate-box"></div>vCenter Server and SDDC Manager VMs destroyed</div>
+    <div class="gate-item"><div class="gate-box"></div>Former ESXi servers reprovisioned as RHCOS bare-metal OCP nodes — cluster expanded from 5 to 10 bare-metal nodes</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM governance confirms all 10 bare-metal nodes are in ManagedCluster scope with correct labels (platform=baremetal-virt, compliance=pci-dss)</div>
+    <div class="gate-item"><div class="gate-box"></div>ACS Collector DaemonSet running on all 10 bare-metal nodes (Section 03 toleration check)</div>
+    <div class="gate-item"><div class="gate-box"></div>No VMware-related processes, vibs, or APIs anywhere in the environment</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT series complete — NovaCrestBank's full platform transformation</span>
+    <p><strong>VIRT-00:</strong> Business case, VCF baseline, architecture decisions, hardware spec, VLAN/IP plan, DNS/DHCP, 15-item readiness checklist.</p>
+    <p><strong>VIRT-01:</strong> Cisco Nexus leaf fabric — VLANs 110/120/130/140, SVIs, HSRP, DHCP relay, BGP, bare-metal port-channels Po211–Po215.</p>
+    <p><strong>VIRT-02:</strong> Bare-metal provisioning via Assisted Installer — NMState 5-layer network config, CSR approval, MachineSet labels and taints. VIRT-02b: Windows AD/DNS/PKI/FGPP groundwork on DC01/DC02.</p>
+    <p><strong>VIRT-03:</strong> ODF — Ceph first principles, all 6 daemon types, converged topology, LSO, StorageCluster CR, 7-check health verification, RBD deep-dive.</p>
+    <p><strong>VIRT-04:</strong> OCP Virtualization — KubeVirt architecture, HyperConverged CR with featureGates and nonRoot, PerformanceProfile (hugepages, CPU isolation), VirtualMachine CR anatomy.</p>
+    <p><strong>VIRT-05:</strong> VM networking — Multus meta-plugin, OVN localnet, Model A (NSX) vs Model B (OVN-only), NNCP/NAD, MAC mobility, DNS 4-element hostname chain.</p>
+    <p><strong>VIRT-06:</strong> MTV migration — 6-phase disk-level mechanism, VDDK, cold vs warm, 6 CRDs, Provider/NetworkMap/StorageMap, MigrationPlan, DNS TTL strategy, 10-check post-migration validation, rollback.</p>
+    <p><strong>VIRT-07:</strong> VM lifecycle and GitOps — Argo CD two-repo pattern, base/overlay Kustomize, dev vs production overlays, ApplicationSet, VirtualMachineSnapshot/Restore, OADP backup, CPU/memory hot-plug.</p>
+    <p><strong>VIRT-08:</strong> Security — ACS Collector toleration for bare-metal nodes, virt-launcher baseline, VM-specific policies, NetworkPolicy (default-deny + migration tunnel + monitoring), guest OS hardening (RHEL 9 CIS L1 cloud-init, Windows GPO), ACS compliance scans, PCI-DSS/NIST mapping, Splunk integration.</p>
+    <p><strong>VIRT-09:</strong> ACM — 4 pillars, MultiClusterHub CR, cluster labels, LDAP IdP governance policy, VM NetworkPolicy guardrails with enforce + drift auto-remediation, GitOpsCluster bridge to Argo CD, Placement rules with hugepage prioritiser, SiteConfig ZTP cluster factory, ManagedClusterSet upgrade governance, global search, Thanos multi-cluster observability, hybrid cloud bridge.</p>
+    <p><strong>VIRT-10:</strong> AAP — every playbook directive explained (gather_facts, become, serial, register, until, when, notify, no_log, changed_when, failed_when, loop, loop_control, delegate_to, set_fact, pause, debug, assert). 25-module real-world catalogue. VM provisioning (RHEL + Windows), NetApp AFF Trident PVCs, IPAM + AD join, Windows VCF migration, fleet patching, CIS compliance scanning, config drift remediation, CPU/memory hot-plug with hugepage validation, F5 LB registration, node drain migration, Alertmanager → EDA → AAP → ServiceNow → VMIM pipeline, on-demand backup.</p>
+    <p><strong>VIRT-11:</strong> NSX decommission — DFW → NetworkPolicy translation with traffic parity validation, MetalLB BGP replacing NSX T0, BGP dual-homed cutover procedure, Edge node and Manager cluster decommission, leaf switch TEP VLAN cleanup, license elimination evidence, VCF exit, ESXi servers reprovisioned as OCP bare-metal nodes doubling VM hosting capacity.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

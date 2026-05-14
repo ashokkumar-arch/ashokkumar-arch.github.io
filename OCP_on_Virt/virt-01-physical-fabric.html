@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-01 — Physical Fabric Configuration · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --cisco:#1d6fa4;--cisco-bg:#eff9ff;--cisco-border:#bae6fd;
+  --virt:#7c2d12;--virt-bg:#fff7ed;--virt-border:#fed7aa;
+  --green:#0e6b45;--green-bg:#ecfdf5;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --term-bg:#0d1117;--term-text:#c9d1d9;
+  --term-green:#3fb950;--term-yellow:#e3b341;
+  --term-blue:#58a6ff;--term-gray:#8b949e;
+  --term-orange:#ffa657;--term-red:#f85149;
+  --term-cyan:#39d0d8;--term-purple:#d2a8ff;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.72;-webkit-font-smoothing:antialiased}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-header{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--cisco);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-group{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--cisco-bg);color:var(--cisco);border-left-color:var(--cisco);font-weight:500}
+.sb-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* MAIN */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--cisco);background:var(--cisco-bg);border:1px solid var(--cisco-border);padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid #a7f3d0;border-radius:5px;padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;margin:44px 0 12px;color:var(--text);letter-spacing:-.01em}
+h3{font-size:14.5px;font-weight:600;margin:26px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+h4{font-size:12.5px;font-weight:600;margin:18px 0 6px;color:var(--text2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
+p{margin-bottom:13px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--cisco);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:36px 0}
+
+/* TERMINAL BLOCKS */
+.term{background:var(--term-bg);border-radius:7px;padding:0;margin:16px 0;overflow:hidden}
+.term-header{padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;font-family:'DM Mono',monospace;font-size:10px;color:var(--term-gray);display:flex;align-items:center;gap:8px}
+.term-header::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;background:#3fb950}
+.term-body{padding:16px 20px;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85;overflow-x:auto;white-space:pre}
+.term-body .prompt{color:var(--term-blue)}
+.term-body .cmd{color:var(--term-text)}
+.term-body .out{color:var(--term-gray)}
+.term-body .ok{color:var(--term-green)}
+.term-body .warn{color:var(--term-yellow)}
+.term-body .err{color:var(--term-red)}
+.term-body .hl{color:var(--term-orange)}
+.term-body .comment{color:#484f58;font-style:italic}
+.term-body .section{color:var(--term-cyan)}
+.term-body .key{color:var(--term-purple)}
+
+/* CALLOUTS */
+.callout{border-radius:5px;padding:14px 18px;margin:18px 0;font-size:13.5px;line-height:1.68}
+.callout strong{display:block;margin-bottom:5px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em}
+.callout p{margin-bottom:6px;font-size:13.5px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.callout-cisco{background:var(--cisco-bg);border-left:3px solid var(--cisco)}
+.callout-cisco strong{color:var(--cisco)}
+.callout-green{background:var(--green-bg);border-left:3px solid var(--green)}
+.callout-green strong{color:var(--green)}
+.callout-warn{background:var(--warn-bg);border-left:3px solid var(--warn)}
+.callout-warn strong{color:var(--warn)}
+.callout-amber{background:var(--amber-bg);border-left:3px solid var(--amber)}
+.callout-amber strong{color:var(--amber)}
+.callout-virt{background:var(--virt-bg);border-left:3px solid var(--virt)}
+.callout-virt strong{color:var(--virt)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+th{text-align:left;padding:9px 13px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:9px 13px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.td-new{color:var(--cisco);font-weight:500}
+.td-locked{color:var(--text3)}
+
+/* DECISION BOX */
+.decision{background:var(--bg3);border-radius:6px;padding:16px 18px;margin:18px 0;border-left:4px solid var(--cisco)}
+.decision-q{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--cisco);margin-bottom:6px}
+.decision-q::before{content:'Design decision  '}
+.decision-body{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* VLAN CARD */
+.vlan-card{border-radius:6px;padding:16px 18px;margin:20px 0;border:.5px solid var(--cisco-border);background:var(--cisco-bg)}
+.vlan-id{font-family:'DM Serif Display',serif;font-size:2.8rem;color:var(--cisco);line-height:1;float:right;margin-left:16px}
+.vlan-name{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--cisco);margin-bottom:4px}
+.vlan-subnet{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px}
+.vlan-desc{font-size:13.5px;color:var(--text2);line-height:1.65;clear:both}
+
+/* WHAT GOES WRONG */
+.wrong-box{background:#fdf2f2;border:.5px solid #fca5a5;border-radius:5px;padding:14px 18px;margin:16px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:600}
+
+/* VERIFY BOX */
+.verify{background:var(--green-bg);border:.5px solid #a7f3d0;border-radius:5px;padding:14px 18px;margin:16px 0}
+.verify-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.verify-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.verify-item:last-child{margin-bottom:0}
+.verify-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:600}
+
+/* PROGRESS TRACKER */
+.progress{display:flex;gap:0;margin:0 0 32px;border:.5px solid var(--border2);border-radius:6px;overflow:hidden}
+.prog-step{flex:1;padding:10px 8px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.prog-step:last-child{border-right:none}
+.prog-step.done{background:var(--green-bg);color:var(--green)}
+.prog-step.current{background:var(--cisco-bg);color:var(--cisco);font-weight:600}
+.prog-num{font-size:14px;display:block;margin-bottom:2px}
+
+@media(max-width:900px){
+  body{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static}
+  .main{padding:24px 20px;max-width:100%}
+  .vlan-id{font-size:2rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-01</div>
+    <div class="sb-title">Physical Fabric Configuration</div>
+    <div class="sb-sub">Leaf switches, SVIs, vPC, BGP — from configure terminal</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group">This guide</div>
+    <a class="sb-item active" href="#why-fabric-first">01 — Why the fabric must be configured first</a>
+    <a class="sb-item" href="#what-changes">02 — What changes on the fabric — the delta</a>
+    <a class="sb-item" href="#vlan-design">03 — VLAN design — why four new VLANs</a>
+    <a class="sb-item" href="#vlan-110">04 — VLAN 110 — bare-metal node network</a>
+    <a class="sb-item" href="#vlan-120">05 — VLAN 120 — ODF replication</a>
+    <a class="sb-item" href="#vlan-130">06 — VLAN 130 — VM workload primary</a>
+    <a class="sb-item" href="#vlan-140">07 — VLAN 140 — VM workload DMZ</a>
+    <a class="sb-item" href="#leaf01-config">08 — leaf-01 full configuration</a>
+    <a class="sb-item" href="#leaf02-config">09 — leaf-02 full configuration</a>
+    <a class="sb-item" href="#leaf03-config">10 — leaf-03 verification only</a>
+    <a class="sb-item" href="#vpc-peer-link">11 — vPC peer-link — adding new VLANs</a>
+    <a class="sb-item" href="#bgp-additions">12 — BGP — advertising new subnets</a>
+    <a class="sb-item" href="#port-channels">13 — Port-channels for bare-metal servers</a>
+    <a class="sb-item" href="#dhcp-relay">14 — DHCP relay — why it is needed and how it works</a>
+    <a class="sb-item" href="#mtu-verification">15 — MTU 9000 end-to-end verification</a>
+    <a class="sb-item" href="#full-verification">16 — Full fabric verification before node provisioning</a>
+    <div class="sb-group">Series navigation</div>
+    <a class="sb-item" href="virt-00-foundation-prerequisites.html">← VIRT-00 — Foundation</a>
+    <a class="sb-item" href="virt-02-bare-metal-provisioning.html">VIRT-02 — Node Provisioning →</a>
+  </div>
+  <div class="sb-footer">VIRT-01 · Physical Fabric · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-01 · Physical Fabric Configuration</div>
+  <div class="prereq-bar">VIRT-00 complete — all prerequisites built and readiness checklist signed off</div>
+  <h1>Physical Fabric Configuration</h1>
+  <div class="subtitle">Every Cisco Nexus command for the OpenShift Virtualization environment —<br>from configure terminal through full verification, with the reason behind every decision</div>
+
+  <div class="progress">
+    <div class="prog-step done"><span class="prog-num">✓</span>VIRT-00<br>Foundation</div>
+    <div class="prog-step current"><span class="prog-num">→</span>VIRT-01<br>Fabric</div>
+    <div class="prog-step"><span class="prog-num">3</span>VIRT-02<br>Provision</div>
+    <div class="prog-step"><span class="prog-num">4</span>VIRT-03<br>ODF</div>
+    <div class="prog-step"><span class="prog-num">5</span>VIRT-04<br>OCP Virt</div>
+    <div class="prog-step"><span class="prog-num">6</span>VIRT-05<br>Networking</div>
+  </div>
+
+  <!-- SECTION 01 -->
+  <section id="why-fabric-first">
+  <h2>01 — Why the fabric must be configured first — and what happens if you skip it</h2>
+  <p>The temptation in any infrastructure project is to start with the most visible component — rack the servers, boot them, and figure out the network as you go. That approach works in a greenfield environment with no existing production traffic. NovaCrestBank is not that environment. The leaf switches that will carry VLAN 110 bare-metal node traffic also carry VLAN 10 ESXi management traffic, VLAN 50 OCP node traffic, and VLAN 100/101 NSX TEP traffic — all carrying live production workloads.</p>
+  <p>The rule is: the network must be ready before a single server is powered on. Here is exactly what goes wrong when that order is violated.</p>
+
+  <div class="wrong-box">
+    <div class="wrong-title">What breaks if you power on servers before fabric is configured</div>
+    <div class="wrong-item">The server's NIC sends DHCP discovery packets on VLAN 110. The leaf switch port is either unconfigured (native VLAN 1 — untagged) or has VLAN 110 blocked. The DHCP packet never reaches DC01. The server gets no IP. The Assisted Installer agent cannot register with the cluster. The node appears in the iLO console but never shows up in the Assisted Installer UI. Troubleshooting this takes an hour of confusion when the real fix is a two-minute switch configuration.</div>
+    <div class="wrong-item">If the port-channel is configured but the vPC peer-link does not have VLAN 110 allowed, the two leaf switches disagree about VLAN 110 membership. vPC consistency check fails. The port-channel flaps every 30 seconds. The server sees an intermittent link and the DHCP discovery is never reliably transmitted.</div>
+    <div class="wrong-item">If MTU 9000 is configured on the ODF replication VLAN 120 SVI but not on the physical port-channel interface, all frames larger than 1500 bytes are silently dropped. ODF will appear to install successfully but Ceph OSD replication will fail with inexplicable I/O errors. The symptom — slow storage — points nowhere near the root cause — MTU mismatch on a trunk port.</div>
+  </div>
+
+  <p>None of the above problems is difficult to fix. All of them waste time that could be avoided by doing the fabric first. This guide configures everything the five bare-metal DL385 nodes need before a single server is powered on for provisioning.</p>
+
+  <div class="callout callout-cisco">
+    <strong>The additive principle — never modify existing configuration</strong>
+    <p>Every command in this guide adds to the existing switch configuration — it never modifies or removes anything. The VLANs, SVIs, and port-channels for the existing VCF environment (VLANs 10, 20, 25, 40, 50, 70, 100–103) are not touched. If you are ever uncertain whether a command modifies existing configuration, use <code>show run | include &lt;keyword&gt;</code> to see what is already there before changing anything. When in doubt, read before you write.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 02 -->
+  <section id="what-changes">
+  <h2>02 — What changes on the fabric — the complete delta</h2>
+  <p>Before touching any switch, know exactly what is being added. This is the complete list of every change this guide makes to every switch in the fabric. After reading this section, there should be no surprises in the sections that follow.</p>
+
+  <table>
+    <thead><tr><th>Switch</th><th>What is added</th><th>What is NOT changed</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>leaf-01</strong><br><small>Nexus 93180YC-FX · Rack 1</small></td>
+        <td class="td-new">VLANs 110, 120, 130, 140 in VLAN database<br>SVIs for all four new VLANs with IPs, DHCP relay, HSRP<br>BGP network statements for four new subnets<br>Port-channels Po211–Po215 for bm-virt-01–05<br>VLAN 110/120/130/140 added to vPC peer-link Po1</td>
+        <td class="td-locked">All existing VLANs 10–103<br>All existing SVIs<br>All existing BGP peers and existing network statements<br>All existing port-channels Po101–Po105 (ESXi)<br>All spine uplinks</td>
+      </tr>
+      <tr>
+        <td><strong>leaf-02</strong><br><small>Nexus 93180YC-FX · Rack 2</small></td>
+        <td class="td-new">Same as leaf-01 but with .2 SVI IPs and lower HSRP priority</td>
+        <td class="td-locked">Same as leaf-01</td>
+      </tr>
+      <tr>
+        <td><strong>leaf-03</strong><br><small>Nexus 93180YC-FX · Rack 3</small></td>
+        <td class="td-new">VLANs 110, 120, 130, 140 in VLAN database (propagation only — no new SVIs, no new servers on leaf-03 for VIRT)</td>
+        <td class="td-locked">All existing configuration unchanged</td>
+      </tr>
+      <tr>
+        <td><strong>Spine-01 / Spine-02</strong><br><small>Nexus 9504 · Core</small></td>
+        <td class="td-new">No configuration changes. Spines are pure L3 routing — they learn the new /24 subnets via BGP from leaf-01/02 automatically. No manual changes required.</td>
+        <td class="td-locked">Everything unchanged</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-cisco">
+    <strong>Why the spines require zero configuration changes</strong>
+    <p>This is worth understanding explicitly. The Cisco leaf-spine design used in NovaCrestBank is a pure Layer 3 fabric — the spines do not participate in any VLAN. VLANs exist only at the leaf layer. The spines learn routes via BGP from the leaves. When leaf-01 adds a BGP <code>network 10.110.0.0/24</code> statement, the spine automatically learns this prefix via the existing BGP session. No spine configuration is touched. This is one of the core operational advantages of a leaf-spine architecture — adding a new subnet is a leaf-only operation.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 03 -->
+  <section id="vlan-design">
+  <h2>03 — VLAN design — why four new VLANs and not one</h2>
+  <p>Before configuring anything, understand why four VLANs are needed instead of one. The Classic series (Guide 6) established the framework: every VLAN must exist for a specific reason. Apply that framework here.</p>
+
+  <div class="decision">
+    <div class="decision-q">Why four VLANs — could one VLAN serve all bare-metal node traffic?</div>
+    <div class="decision-body">
+      <p>Technically, you could put all bare-metal traffic — node management, ODF replication, and VM workloads — on a single VLAN. Every device would be reachable. Ceph would replicate. VMs would get IPs. It would work in a lab. But it creates three production problems that a bank cannot accept.</p>
+      <p><strong>Performance problem:</strong> ODF replication during a Ceph PG rebalance event (triggered by a node failure or deliberate rebalancing) can generate sustained 25 Gbps of storage traffic for 10–30 minutes. On a single VLAN, this saturates the same NIC that carries node management traffic — SSH sessions to troubleshoot the rebalancing event itself become unreliable at the exact moment you need them most. With VLAN 120 isolated on a dedicated NIC pair, ODF replication and node management never compete.</p>
+      <p><strong>Security problem:</strong> VM workloads on VLAN 130 are the systems being migrated from the hypervisor environment — they include banking application VMs that may carry cardholder data. If these VMs share a VLAN with the bare-metal node network (VLAN 110), a compromised VM has direct Layer 2 access to the OCP cluster node IPs — bypassing any routing-layer firewall inspection. Separate VLANs force all VM-to-node traffic through the SVI and the NSX gateway firewall.</p>
+      <p><strong>Compliance problem:</strong> PCI-DSS Requirement 1.3.2 requires explicit documentation of all network security controls with business justification. A single-VLAN design cannot satisfy this — there is no demonstrable segmentation between cardholder-data-carrying VMs and infrastructure management traffic. Four VLANs with documented purpose and distinct firewall policies satisfy this requirement cleanly.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-amber">
+    <strong>MTU 9000 applies only to VLAN 120 — here is why</strong>
+    <p>VLAN 120 (ODF replication) requires MTU 9000 — jumbo frames — because Ceph OSD replication uses large I/O block sizes that are fragmented inefficiently at 1500-byte MTU. VLANs 110, 130, and 140 use standard 1500-byte MTU. RHCOS nodes communicate with the OCP API server using standard TCP — 1500-byte MTU is fine. VM workloads use standard Ethernet frames. The MTU configuration on each interface must match the traffic type — configuring jumbo frames everywhere "just in case" is not correct practice and can mask misconfiguration.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 04 -->
+  <section id="vlan-110">
+  <h2>04 — VLAN 110 — bare-metal node network</h2>
+
+  <div class="vlan-card">
+    <div class="vlan-id">110</div>
+    <div class="vlan-name">New · OpenShift Virtualization</div>
+    <div class="vlan-subnet">bm-node-network · 10.110.0.0/24 · Gateway 10.110.0.3 (HSRP) · MTU 1500</div>
+    <div class="vlan-desc">The primary network for the five HP ProLiant DL385 Gen11 bare-metal nodes. Every OCP cluster communication packet, Assisted Installer agent registration call, SSH management session, and OVN-Kubernetes GENEVE tunnel between bare-metal nodes traverses this VLAN.</div>
+  </div>
+
+  <h3>Why this VLAN must exist — and why it cannot reuse VLAN 50</h3>
+  <p>The existing OCP nodes (master-0/1/2, worker-0) are on VLAN 50 — but they reach VLAN 50 through the NSX overlay: the ESXi hypervisor encapsulates their traffic in GENEVE tunnels on VLAN 100 (the Host TEP VLAN), and NSX delivers it to the logical segment <code>seg-ocp-nodes</code>. The VMs themselves think they are on 10.50.0.0/24, but the physical fabric never sees a VLAN 50 tagged frame from those VMs — it sees VLAN 100 TEP frames instead.</p>
+  <p>Bare-metal nodes running RHCOS do not have ESXi underneath them. There is no NSX host TEP, no GENEVE encapsulation. The RHCOS node's NIC connects directly to the leaf switch. There is no overlay. RHCOS needs a real, physical 802.1Q VLAN — not a logical NSX segment.</p>
+  <p>Could we use VLAN 50 directly on the leaf switch for bare-metal nodes? In principle yes — both ESXi-hosted OCP nodes and bare-metal nodes would be on 10.50.0.0/24. But this would mean VLAN 50 frames from bare-metal nodes appear on the Cisco fabric, while VLAN 50 traffic from ESXi-hosted nodes is carried inside GENEVE on VLAN 100. Mixed traffic types on the same logical subnet carried by physically different VLANs creates confusion and makes troubleshooting ambiguous. VLAN 110 is a clean, dedicated physical VLAN for bare-metal nodes — no ambiguity, no mixing.</p>
+
+  <h3>DHCP relay — why VLAN 110 needs it</h3>
+  <p>During the Assisted Installer discovery phase (VIRT-02), each bare-metal node boots from the agent ISO and immediately sends a DHCP discovery broadcast on VLAN 110 to get a temporary IP address. The DHCP server is DC01 at 10.70.0.10 — it is on a different subnet (VLAN 70, via NSX overlay at 10.70.0.0/24).</p>
+  <p>A DHCP discovery packet is a Layer 2 broadcast. Broadcasts do not cross router boundaries. Without a DHCP relay agent on the leaf switch, DC01 never receives the discovery packet. The bare-metal node gets no IP. The Assisted Installer agent cannot register. The node is invisible to the provisioning system.</p>
+  <p>The DHCP relay agent (<code>ip helper-address</code> on the SVI) converts the Layer 2 broadcast into a unicast UDP packet addressed to DC01's IP. The leaf switch — not the server — is responsible for this conversion. This is why <code>ip helper-address 10.70.0.10</code> is mandatory on the VLAN 110 SVI.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 05 -->
+  <section id="vlan-120">
+  <h2>05 — VLAN 120 — ODF replication</h2>
+
+  <div class="vlan-card">
+    <div class="vlan-id">120</div>
+    <div class="vlan-name">New · OpenShift Virtualization</div>
+    <div class="vlan-subnet">odf-replication · 10.120.0.0/24 · No gateway needed · MTU 9000 (jumbo frames mandatory)</div>
+    <div class="vlan-desc">Dedicated network for Ceph OSD-to-OSD replication between bare-metal nodes. Isolated from all other traffic. Carries no pod, VM, or management traffic — only Ceph internal communication.</div>
+  </div>
+
+  <h3>Why ODF replication is identical in principle to vSAN (VLAN 25)</h3>
+  <p>In the Classic series, Guide 6 Section 06 explains why vSAN needs VLAN 25 separate from ESXi management (VLAN 10): a vSAN disk rebuild saturates the replication NIC and must never compete with management traffic. Exactly the same reasoning applies here.</p>
+  <p>Ceph — the storage engine behind ODF — replicates every write to multiple OSD nodes simultaneously. In a replicated storage system with replication factor 3, every 1 GiB written by a VM results in approximately 2 GiB of replication traffic between OSD nodes (the original write goes to the primary OSD, which then replicates to two replica OSDs). Under heavy VM write workload — for example, a banking batch process writing transaction logs — this replication traffic can saturate a 25G NIC for sustained periods.</p>
+  <p>If this replication traffic shares VLAN 110 (the node network), it competes with Kubernetes pod traffic, OCP API calls, and SSH management sessions — all of which use the same NIC. The result is unpredictable: sometimes OCP API calls time out, sometimes SSH sessions stall, sometimes the kubelet misses its liveness probe and a pod is unnecessarily restarted. All of these symptoms look like application problems but are actually caused by a network design choice.</p>
+  <p>VLAN 120 on a dedicated NIC pair (separate from the VLAN 110 NIC pair) ensures Ceph replication has its own physical path. Replication saturation cannot affect node management. This is the same principle as vSAN on dedicated NICs — but for ODF.</p>
+
+  <h3>Why VLAN 120 has no gateway (and why that is correct)</h3>
+  <p>Every other new VLAN (110, 130, 140) has a gateway IP on the leaf SVI — traffic is routed between these VLANs and the rest of the network. VLAN 120 has no gateway. Why?</p>
+  <p>Ceph OSD replication is purely internal — an OSD on bm-virt-01 replicates to an OSD on bm-virt-02 and bm-virt-03. All five bare-metal nodes are in the same /24 subnet (10.120.0.0/24) and can reach each other at Layer 2 without routing. No traffic on VLAN 120 ever needs to leave the 10.120.0.0/24 subnet. Creating a gateway SVI would add an unnecessary routing hop and would advertise 10.120.0.0/24 into BGP — making a purely internal storage network visible to the broader routing domain. That is both unnecessary and a minor security concern (the ODF replication network should not be reachable from outside the bare-metal nodes).</p>
+  <p>The leaf switch needs to carry VLAN 120 on its trunk ports to the bare-metal nodes — but it does not need an SVI for it.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 06 -->
+  <section id="vlan-130">
+  <h2>06 — VLAN 130 — VM workload primary</h2>
+
+  <div class="vlan-card">
+    <div class="vlan-id">130</div>
+    <div class="vlan-name">New · OpenShift Virtualization</div>
+    <div class="vlan-subnet">vm-workload-primary · 10.130.0.0/24 · Gateway 10.130.0.3 (HSRP) · MTU 1500</div>
+    <div class="vlan-desc">The network for VMs migrated from the hypervisor environment. Every migrated banking application VM gets a real, routable IP on this subnet — reachable by name from anywhere in the data centre. This is where DC01, monitoring agents, and the Palo Alto firewall see migrated VMs as network entities.</div>
+  </div>
+
+  <h3>The critical difference between VLAN 130 and a pod overlay network</h3>
+  <p>When a container workload runs in OCP, it gets an IP in the pod overlay network (10.128.0.0/14 — the OVN-Kubernetes overlay). This IP is not directly reachable from outside the cluster. Other systems reach the container via a Service, a Route, or an Ingress — not directly via the pod IP. This is correct and intentional for containers: the overlay provides network isolation, and Services provide the stable endpoint.</p>
+  <p>Virtual machines have fundamentally different requirements. A banking application VM — for example, a Windows Server running a payment processing service — has been reachable at a specific IP for years. Other systems have that IP in their configuration files, firewall rules, and DNS records. When that VM is migrated from the hypervisor environment to OpenShift Virtualization, its network presence must be preserved: same VLAN, same subnet, same IP (or at minimum a new IP in the same subnet with an updated DNS record). An overlay IP in 10.128.0.0/14 is not a substitute — it is unreachable from the rest of the data centre.</p>
+  <p>VLAN 130 provides what VMs need: a real, physical VLAN with a routable subnet, reachable from anywhere in the data centre that has a route to 10.130.0.0/24. The migrated VM gets an IP from this subnet, a DNS A record on DC01, and network presence identical to what it had on VMware. No other system in the data centre needs to know that the VM is now running on KVM instead of ESXi.</p>
+
+  <h3>DHCP relay — VMs need IPs during discovery too</h3>
+  <p>During VM creation (VIRT-04 and VIRT-05), newly created VMs can use DHCP to get a temporary IP from the 10.130.0.0/24 range before a static IP is assigned via cloud-init. The DHCP relay on the VLAN 130 SVI (<code>ip helper-address 10.70.0.10</code>) serves the same purpose as on VLAN 110 — DC01 is on a different subnet and DHCP broadcasts need to be relayed.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 07 -->
+  <section id="vlan-140">
+  <h2>07 — VLAN 140 — VM workload DMZ</h2>
+
+  <div class="vlan-card">
+    <div class="vlan-id">140</div>
+    <div class="vlan-name">New · OpenShift Virtualization</div>
+    <div class="vlan-subnet">vm-workload-dmz · 10.140.0.0/24 · Gateway 10.140.0.3 (HSRP) · MTU 1500</div>
+    <div class="vlan-desc">Secondary VM workload network for VMs that require stricter separation from the primary VM workload — for example, VMs that communicate with external partners, VMs hosting pre-production or testing environments, or VMs designated as DMZ-adjacent by the security team.</div>
+  </div>
+
+  <h3>Why VLAN 140 exists — the compliance argument</h3>
+  <p>Not every migrated VM belongs in the same network zone. A VM running an internal payment processing service (talks to the core banking system, writes to the Oracle database, never touches the internet) and a VM running an API gateway that accepts external partner connections have fundamentally different security profiles. Placing them on the same subnet creates a flat network within the VM workload tier — exactly the problem that separate VLANs exist to solve.</p>
+  <p>VLAN 140 provides a second isolation zone. The NSX gateway firewall (Model A) or Kubernetes NetworkPolicy (Model B) can enforce strict rules between VLAN 130 and VLAN 140 — for example, a VLAN 140 API gateway VM can call services in VLAN 130 on specific ports, but VLAN 130 VMs cannot initiate connections back to VLAN 140. This enforces a unidirectional trust model between the zones.</p>
+  <p>PCI-DSS Requirement 1.3.1 requires that inbound traffic to the cardholder data environment be restricted to only what is necessary. If cardholder-data VMs are in VLAN 130 and internet-facing VMs are in VLAN 140, the firewall rule between them is the PCI compliance control. Without the VLAN separation, there is no firewall boundary between these two categories — and no way to satisfy the requirement.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 08 -->
+  <section id="leaf01-config">
+  <h2>08 — leaf-01 full configuration</h2>
+  <p>leaf-01 is the primary leaf switch for NovaCrestBank — it holds the HSRP active role for all VLANs and the primary vPC leg for all server port-channels. Every command below is applied in a single configuration session. Read the entire section before entering any command — understand what each block does and why before you type it.</p>
+
+  <div class="callout callout-warn">
+    <strong>Take a configuration snapshot before you begin</strong>
+    <p>Before making any changes, save the current running configuration to a file. This is your rollback point. If anything unexpected happens, you can restore from this snapshot.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01 — NX-OS — pre-change snapshot</div>
+    <div class="term-body">
+<span class="prompt">leaf-01#</span> <span class="cmd">show running-config > bootflash:virt-pre-change-$(date +%Y%m%d).txt</span>
+<span class="out">leaf-01#</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">dir bootflash: | include virt-pre</span>
+<span class="out">       61440  Nov 04 09:00:00 2024  virt-pre-change-20241104.txt</span>
+<span class="ok">✓ Snapshot saved. If this session goes wrong, restore with:
+  copy bootflash:virt-pre-change-20241104.txt running-config</span>
+    </div>
+  </div>
+
+  <h3>Step 1 — Add new VLANs to the VLAN database</h3>
+  <p>The first step is always to create the VLANs in the database before referencing them anywhere. NX-OS will reject any interface configuration that references a VLAN that does not exist in the database. This is different from IOS — in IOS, configuring a switchport for a VLAN implicitly creates it. NX-OS does not. Attempting to add VLAN 110 to a trunk before creating it with the <code>vlan 110</code> command results in the trunk port rejecting the VLAN silently — frames tagged with VLAN 110 are dropped, not an error message.</p>
+
+  <div class="term">
+    <div class="term-header">leaf-01# configure terminal</div>
+    <div class="term-body">
+<span class="prompt">leaf-01#</span> <span class="cmd">configure terminal</span>
+<span class="out">Enter configuration commands, one per line. End with CNTL/Z.</span>
+
+<span class="comment">! ── Step 1: Add VLANs to the VLAN database ────────────────────────────────</span>
+<span class="comment">! NX-OS requires VLANs to exist in the database before they can be referenced</span>
+<span class="comment">! on any interface. Create all four VLANs before touching any interface.</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">vlan 110</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  name bm-node-network</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">vlan 120</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  name odf-replication</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">vlan 130</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  name vm-workload-primary</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">vlan 140</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  name vm-workload-dmz</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-01(config-vlan)#</span> <span class="cmd">exit</span>
+    </div>
+  </div>
+
+  <div class="verify">
+    <div class="verify-title">Verify VLAN database before continuing</div>
+    <div class="verify-item">Run <code>show vlan brief | include 110|120|130|140</code> — all four VLANs must show <strong>active</strong> state. If any shows <strong>suspend</strong>, re-enter the <code>state active</code> command for that VLAN.</div>
+    <div class="verify-item">Confirm no existing VLAN IDs were accidentally overwritten: <code>show vlan brief | include 10 |20 |25 |40 |50 |70 |100|101</code> — all existing VLANs must still show their original names and active state.</div>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — verify VLAN database</div>
+    <div class="term-body">
+<span class="prompt">leaf-01#</span> <span class="cmd">show vlan brief | include 110|120|130|140</span>
+<span class="out">110  bm-node-network         active
+120  odf-replication         active
+130  vm-workload-primary     active
+140  vm-workload-dmz         active</span>
+<span class="ok">✓ All four VLANs are active. Proceed to SVI configuration.</span>
+    </div>
+  </div>
+
+  <h3>Step 2 — Create SVIs for the three routed VLANs</h3>
+  <p>An SVI (Switched Virtual Interface) is a Layer 3 interface associated with a VLAN. Creating a SVI on the leaf switch makes the leaf the default router for devices in that VLAN. Without an SVI, VLAN 110 is a Layer 2 island — bare-metal nodes can reach each other within the VLAN but cannot reach anything outside it (not DC01 for DNS, not the OCP API VIP, not the jump host).</p>
+  <p>VLAN 120 (ODF replication) does NOT get an SVI — as explained in Section 05, Ceph replication is entirely within the /24 subnet and needs no routing. All other VLANs get SVIs.</p>
+  <p>The HSRP (Hot Standby Router Protocol) virtual IP is the gateway address that bare-metal nodes and VMs use as their default route. HSRP allows leaf-01 and leaf-02 to present a single shared IP (10.110.0.3, 10.130.0.3, 10.140.0.3) to devices in each VLAN — if leaf-01 fails, leaf-02 takes over the gateway function within 3 seconds without requiring any change on the connected devices.</p>
+
+  <div class="term">
+    <div class="term-header">leaf-01(config)# — SVI creation with HSRP and DHCP relay</div>
+    <div class="term-body">
+<span class="comment">! ── Step 2: Create SVIs for routed VLANs ─────────────────────────────────</span>
+<span class="comment">! VLAN 120 is intentionally excluded — no SVI needed for ODF replication.</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Vlan110</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-node-network -- bare-metal RHCOS nodes</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  ip address 10.110.0.1/24</span>
+<span class="comment">  ! ip helper-address forwards DHCP broadcasts from VLAN 110 to DC01
+  ! Without this, bare-metal nodes get no IP during Assisted Installer discovery</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  ip helper-address 10.70.0.10</span>
+<span class="comment">  ! HSRP group 110 — shared virtual gateway IP across leaf-01 and leaf-02
+  ! Priority 110 on leaf-01 makes it the HSRP active (leaf-02 uses 100)</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  hsrp version 2</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  hsrp 110</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    ip 10.110.0.3</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    priority 110</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    preempt</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="comment">! VLAN 120 — Layer 2 only, no SVI intentionally
+! Ceph replication stays within 10.120.0.0/24 — no routing needed</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Vlan130</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description vm-workload-primary -- migrated banking application VMs</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  ip address 10.130.0.1/24</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  ip helper-address 10.70.0.10</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  hsrp version 2</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  hsrp 130</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    ip 10.130.0.3</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    priority 110</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    preempt</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Vlan140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description vm-workload-dmz -- DMZ-adjacent VMs</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  ip address 10.140.0.1/24</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  ip helper-address 10.70.0.10</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  hsrp version 2</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  hsrp 140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    ip 10.140.0.3</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    priority 110</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">    preempt</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+    </div>
+  </div>
+
+  <div class="verify">
+    <div class="verify-title">Verify SVIs before continuing — three things to check</div>
+    <div class="verify-item">All three SVIs show <strong>line protocol is up</strong> — if an SVI shows "line protocol is down," the VLAN has no active ports yet. This is expected before servers are cabled — the SVI will come up when the first port in that VLAN becomes active.</div>
+    <div class="verify-item">IP addresses match the plan exactly — <code>show interface Vlan110 | include Internet</code> should show <code>Internet address is 10.110.0.1/24</code>.</div>
+    <div class="verify-item">DHCP relay is configured — <code>show running-config interface Vlan110 | include helper</code> should show <code>ip helper-address 10.70.0.10</code>.</div>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — verify SVIs</div>
+    <div class="term-body">
+<span class="prompt">leaf-01#</span> <span class="cmd">show interface Vlan110 brief</span>
+<span class="out">Vlan110              --      up        up     10.110.0.1/24</span>
+<span class="comment">! Note: "up/up" requires at least one port in VLAN 110 to be active.
+! Before servers are cabled, this will show "up/down" — that is expected.
+! The SVI will come up automatically when the first bare-metal server is connected.</span>
+
+<span class="prompt">leaf-01#</span> <span class="cmd">show hsrp brief | include 110|130|140</span>
+<span class="out">Vlan110  110   10 Active   10.110.0.1   10.110.0.3  --
+Vlan130  130   10 Active   10.130.0.1   10.130.0.3  --
+Vlan140  140   10 Active   10.140.0.1   10.140.0.3  --</span>
+<span class="ok">✓ HSRP is Active on leaf-01 for all three VLANs. leaf-02 will show Standby.
+✓ The virtual IP (.3) is the address bare-metal nodes and VMs use as their gateway.</span>
+    </div>
+  </div>
+
+  <h3>Step 3 — Configure MTU 9000 on VLAN 120</h3>
+  <p>VLAN 120 does not have an SVI, but the physical trunk ports that carry it must support 9000-byte frames. MTU 9000 is configured on the port-channel interfaces in Section 13. However, the system MTU must also be set globally on the switch to allow any interface to use 9000-byte frames. In NX-OS, the system MTU defaults to 1500 — interfaces cannot be configured above the system MTU without first raising it.</p>
+  <p>Check the current system MTU before modifying it — it may already be set to 9216 from the existing vSAN (VLAN 25) configuration.</p>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — verify and set system MTU</div>
+    <div class="term-body">
+<span class="prompt">leaf-01#</span> <span class="cmd">show running-config | include system jumbomtu</span>
+<span class="out">system jumbomtu 9216</span>
+<span class="ok">✓ System jumbo MTU is already 9216 — set during initial vSAN configuration.
+✓ No change needed. Skip to Step 4.</span>
+
+<span class="comment">! If the output above is empty (system jumbomtu not set), configure it now:
+! leaf-01(config)# system jumbomtu 9216
+! This requires a reload to take full effect — coordinate with the team before reloading.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 09 -->
+  <section id="leaf02-config">
+  <h2>09 — leaf-02 full configuration</h2>
+  <p>leaf-02 is the vPC peer of leaf-01. Its configuration is nearly identical — the difference is in IP addresses (.2 instead of .1) and HSRP priority (100 instead of 110, making leaf-01 the HSRP active and leaf-02 the standby for all new VLANs). The VLAN database, port-channel configuration, and BGP additions are identical.</p>
+
+  <div class="callout callout-cisco">
+    <strong>Why the IP and HSRP differences matter</strong>
+    <p>leaf-01 uses .1 IPs (10.110.0.1, 10.130.0.1, 10.140.0.1) and HSRP priority 110. leaf-02 uses .2 IPs (10.110.0.2, 10.130.0.2, 10.140.0.2) and HSRP priority 100. The shared HSRP virtual IP (.3) is the same on both switches. This means: under normal conditions, leaf-01 is the active gateway — all routed traffic exits through leaf-01. If leaf-01 fails, HSRP detects the failure within 3 seconds (hello timer × 3) and leaf-02 takes over the .3 VIP automatically. Connected devices never change their gateway — 10.110.0.3 remains valid regardless of which physical switch is active.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-02# configure terminal</div>
+    <div class="term-body">
+<span class="prompt">leaf-02#</span> <span class="cmd">configure terminal</span>
+
+<span class="comment">! ── Step 1: VLAN database (identical to leaf-01) ──────────────────────────</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">vlan 110</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  name bm-node-network</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">vlan 120</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  name odf-replication</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">vlan 130</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  name vm-workload-primary</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">vlan 140</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  name vm-workload-dmz</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">  state active</span>
+<span class="prompt">leaf-02(config-vlan)#</span> <span class="cmd">exit</span>
+
+<span class="comment">! ── Step 2: SVIs — same as leaf-01 but .2 IPs and priority 100 ─────────────</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">interface Vlan110</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  description bm-node-network -- bare-metal RHCOS nodes</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  ip address 10.110.0.2/24</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  ip helper-address 10.70.0.10</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  hsrp version 2</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  hsrp 110</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    ip 10.110.0.3</span>
+<span class="comment">    ! Priority 100 — lower than leaf-01's 110 — leaf-02 is HSRP standby</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    priority 100</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    preempt</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">interface Vlan130</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  description vm-workload-primary -- migrated banking application VMs</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  ip address 10.130.0.2/24</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  ip helper-address 10.70.0.10</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  hsrp version 2</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  hsrp 130</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    ip 10.130.0.3</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    priority 100</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    preempt</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">interface Vlan140</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  description vm-workload-dmz -- DMZ-adjacent VMs</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  ip address 10.140.0.2/24</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  ip helper-address 10.70.0.10</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  hsrp version 2</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  hsrp 140</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    ip 10.140.0.3</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    priority 100</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">    preempt</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">exit</span>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-02# — verify HSRP standby state</div>
+    <div class="term-body">
+<span class="prompt">leaf-02#</span> <span class="cmd">show hsrp brief | include 110|130|140</span>
+<span class="out">Vlan110  110   10 Standby  10.110.0.2   10.110.0.3  10.110.0.1
+Vlan130  130   10 Standby  10.130.0.2   10.130.0.3  10.130.0.1
+Vlan140  140   10 Standby  10.140.0.2   10.140.0.3  10.140.0.1</span>
+<span class="ok">✓ leaf-02 shows Standby for all three VLANs — leaf-01 is Active (10.110.0.1 column).
+✓ The virtual IP column shows 10.x.x.3 — the gateway address for bare-metal nodes and VMs.</span>
+
+<span class="comment">! If leaf-02 shows Active instead of Standby:
+! The HSRP priority on leaf-02 is higher than leaf-01 — verify priority configuration.
+! leaf-01 must have priority 110, leaf-02 must have priority 100 for all three VLANs.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 10 -->
+  <section id="leaf03-config">
+  <h2>10 — leaf-03 — VLAN database update only</h2>
+  <p>leaf-03 carries Rack 3 servers (the ESXi management cluster hosts esxi-mgmt-03/04 and ESXi OCP cluster host esxi-ocp-05). No bare-metal DL385 nodes are connected to leaf-03 in this deployment. However, leaf-03 must still have VLANs 110, 120, 130, and 140 in its VLAN database for one reason: the vPC peer-link between leaf-01 and leaf-02 passes through the fabric, and all VLANs that exist on leaf-01 or leaf-02 must be consistent across all leaf switches participating in the vPC domain. If leaf-03 is in the same vPC domain as leaf-01/02 (which it is in NovaCrestBank's design), its VLAN database must match.</p>
+
+  <div class="term">
+    <div class="term-header">leaf-03# configure terminal — VLAN database only</div>
+    <div class="term-body">
+<span class="prompt">leaf-03#</span> <span class="cmd">configure terminal</span>
+
+<span class="comment">! leaf-03 needs VLANs in its database for vPC consistency.
+! No SVIs, no new port-channels, no BGP changes on leaf-03.</span>
+<span class="prompt">leaf-03(config)#</span> <span class="cmd">vlan 110,120,130,140</span>
+<span class="comment">! NX-OS accepts comma-separated VLAN lists — creates all four in one command</span>
+<span class="prompt">leaf-03(config-vlan)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-03(config)#</span> <span class="cmd">end</span>
+
+<span class="prompt">leaf-03#</span> <span class="cmd">show vlan brief | include 110|120|130|140</span>
+<span class="out">110  VLAN0110                active
+120  VLAN0120                active
+130  VLAN0130                active
+140  VLAN0140                active</span>
+<span class="comment">! Names show VLAN0110 etc. because we did not set names on leaf-03 — this is fine.
+! vPC consistency requires the VLAN to exist, not that its name matches.</span>
+<span class="ok">✓ VLANs 110/120/130/140 are active on leaf-03. vPC consistency will be satisfied.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 11 -->
+  <section id="vpc-peer-link">
+  <h2>11 — vPC peer-link — adding new VLANs to the allowed list</h2>
+  <p>The vPC peer-link (port-channel Po1 on both leaf-01 and leaf-02) is the inter-switch link that carries all Layer 2 traffic between the two leaf switches. For a VLAN to traverse the peer-link — which it must for vPC to work correctly — that VLAN must be in the peer-link's allowed VLAN list. When a new VLAN is added to server port-channels but forgotten on the peer-link, the vPC consistency check fails, the port-channel is marked inconsistent, and frames are dropped.</p>
+
+  <div class="callout callout-warn">
+    <strong>Always add new VLANs to the peer-link before the server port-channels</strong>
+    <p>If a VLAN is in a server port-channel's allowed list but not in the peer-link's allowed list, NX-OS will report a vPC consistency error and the port-channel will not forward traffic for that VLAN. The error appears in <code>show vpc consistency-parameters global</code> — but only after you have already configured the server port-channels. It is cleaner to add VLANs to the peer-link first, then configure server port-channels.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — add new VLANs to vPC peer-link</div>
+    <div class="term-body">
+<span class="comment">! First, check the current allowed VLAN list on the peer-link</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interfaces port-channel 1 trunk | include allowed</span>
+<span class="out">   Vlan  Allowed on trunk
+   Po1   10,20,25,40,50,70,100,101,102,103</span>
+
+<span class="comment">! The new VLANs are not yet allowed. Add them now.</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">configure terminal</span>
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface port-channel 1</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan add 110,120,130,140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">end</span>
+
+<span class="comment">! Verify — all VLANs old and new must appear</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interfaces port-channel 1 trunk | include allowed</span>
+<span class="out">   Vlan  Allowed on trunk
+   Po1   10,20,25,40,50,70,100,101,102,103,110,120,130,140</span>
+<span class="ok">✓ New VLANs 110/120/130/140 are now allowed on the vPC peer-link.
+✓ Existing VLANs 10,20,25,40,50,70,100-103 are unchanged.</span>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-02# — repeat peer-link VLAN addition on leaf-02</div>
+    <div class="term-body">
+<span class="prompt">leaf-02#</span> <span class="cmd">configure terminal</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">interface port-channel 1</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan add 110,120,130,140</span>
+<span class="prompt">leaf-02(config-if)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">end</span>
+
+<span class="comment">! Verify vPC consistency after both peer-links are updated</span>
+<span class="prompt">leaf-02#</span> <span class="cmd">show vpc consistency-parameters global | include Type-2</span>
+<span class="out">Type-2 inconsistency reason:      -</span>
+<span class="ok">✓ No Type-2 inconsistency. Both leaf switches agree on all VLAN configurations.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 12 -->
+  <section id="bgp-additions">
+  <h2>12 — BGP — advertising the new subnets to the fabric</h2>
+  <p>The new subnets (10.110.0.0/24, 10.120.0.0/24, 10.130.0.0/24, 10.140.0.0/24) must be advertised via BGP so that the rest of the network — the spines, the NSX T0 gateway, the Palo Alto NGFW — can route traffic to these subnets. Without BGP advertisements, a bare-metal node at 10.110.0.11 can reach its leaf SVI gateway (10.110.0.1) but nothing beyond it. The OCP API server at 10.50.0.200 cannot route back to 10.110.0.11 — the return path does not exist.</p>
+
+  <div class="callout callout-cisco">
+    <strong>How BGP route advertisement works in a leaf-spine fabric</strong>
+    <p>In NovaCrestBank's leaf-spine design, each leaf switch runs BGP and advertises the local subnets it owns to its BGP peers — the two spine switches. The spine switches learn these routes and re-advertise them to all other leaf switches and to any external BGP peers (in this case, the NSX T0 gateway). When bm-virt-01 at 10.110.0.11 sends a packet to dc01 at 10.70.0.10, the path is: bm-virt-01 → leaf-01/02 SVI (10.110.0.1/2) → spine (BGP routes 10.110.0.0/24 via leaf-01/02 and 10.70.0.0/24 via NSX T0) → NSX T0 → seg-infra-services → DC01. The BGP advertisement is what makes the spine know that 10.110.0.0/24 is reachable via leaf-01/02.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — add network statements to BGP</div>
+    <div class="term-body">
+<span class="comment">! First, confirm existing BGP configuration — know what is already there</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show running-config | section "router bgp"</span>
+<span class="out">router bgp 65001
+  router-id 10.0.1.1
+  neighbor 10.0.0.1 remote-as 65100
+    description spine-01
+  neighbor 10.0.0.3 remote-as 65100
+    description spine-02
+  address-family ipv4 unicast
+    network 10.10.0.0/24
+    network 10.20.0.0/24
+    network 10.25.0.0/24
+    network 10.40.0.0/24
+    network 10.50.0.0/24
+    network 10.70.0.0/24
+    network 10.100.0.0/24
+    network 10.101.0.0/24
+    network 10.102.0.0/29
+    network 10.103.0.0/29</span>
+
+<span class="comment">! Existing network statements are correct and untouched.
+! Add new network statements for the four new subnets.</span>
+
+<span class="prompt">leaf-01#</span> <span class="cmd">configure terminal</span>
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">router bgp 65001</span>
+<span class="prompt">leaf-01(config-router)#</span> <span class="cmd">  address-family ipv4 unicast</span>
+<span class="prompt">leaf-01(config-router-af)#</span> <span class="cmd">    network 10.110.0.0/24</span>
+<span class="comment">    ! 10.120.0.0/24 — ODF replication — intentionally NOT advertised
+    ! This subnet is internal to the bare-metal nodes only. Advertising it to BGP
+    ! would make it reachable from outside the bare-metal cluster, which is a
+    ! security concern. ODF replication must remain unreachable from external systems.</span>
+<span class="prompt">leaf-01(config-router-af)#</span> <span class="cmd">    network 10.130.0.0/24</span>
+<span class="prompt">leaf-01(config-router-af)#</span> <span class="cmd">    network 10.140.0.0/24</span>
+<span class="prompt">leaf-01(config-router-af)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-01(config-router)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">end</span>
+    </div>
+  </div>
+
+  <div class="callout callout-amber">
+    <strong>Why 10.120.0.0/24 is NOT advertised into BGP</strong>
+    <p>VLAN 120 is the ODF Ceph replication network. It is a private, internal network — Ceph OSDs communicate with each other on this subnet, and nothing else. Advertising it into BGP means the spine switches know a route to 10.120.0.0/24. That means the NSX T0 gateway learns the route. That means — in theory — a VM on VLAN 130 or any other subnet could send packets to 10.120.0.0/24 addresses. In practice, firewall rules would block this. But advertising an internal storage network into the global routing table is an unnecessary security exposure. The subnet needs Layer 2 reachability among the five nodes — it does not need Layer 3 reachability from anywhere else. Not advertising it achieves this cleanly.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — verify BGP advertisements</div>
+    <div class="term-body">
+<span class="prompt">leaf-01#</span> <span class="cmd">show ip bgp | include 10.110|10.130|10.140</span>
+<span class="out">*>  10.110.0.0/24    0.0.0.0          0         32768 i
+*>  10.130.0.0/24    0.0.0.0          0         32768 i
+*>  10.140.0.0/24    0.0.0.0          0         32768 i</span>
+<span class="comment">! The ">" means the route is the best path. "0.0.0.0" as next-hop means it is
+! locally originated. "32768" is the local preference for locally-originated routes.</span>
+<span class="ok">✓ Three new subnets are advertised via BGP. 10.120.0.0/24 is correctly absent.</span>
+
+<span class="comment">! Verify the spine has learned the routes from leaf-01</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show ip bgp neighbors 10.0.0.1 advertised-routes | include 10.110|10.130|10.140</span>
+<span class="out">*>  10.110.0.0/24    10.0.1.1         0         32768 i
+*>  10.130.0.0/24    10.0.1.1         0         32768 i
+*>  10.140.0.0/24    10.0.1.1         0         32768 i</span>
+<span class="ok">✓ spine-01 (10.0.0.1) is receiving all three new subnet advertisements from leaf-01.</span>
+
+<span class="comment">! Repeat the same BGP network statements on leaf-02 (same three subnets, same ASN 65002)</span>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-02# — add BGP network statements</div>
+    <div class="term-body">
+<span class="prompt">leaf-02#</span> <span class="cmd">configure terminal</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">router bgp 65002</span>
+<span class="prompt">leaf-02(config-router)#</span> <span class="cmd">  address-family ipv4 unicast</span>
+<span class="prompt">leaf-02(config-router-af)#</span> <span class="cmd">    network 10.110.0.0/24</span>
+<span class="prompt">leaf-02(config-router-af)#</span> <span class="cmd">    network 10.130.0.0/24</span>
+<span class="prompt">leaf-02(config-router-af)#</span> <span class="cmd">    network 10.140.0.0/24</span>
+<span class="prompt">leaf-02(config-router-af)#</span> <span class="cmd">  exit</span>
+<span class="prompt">leaf-02(config-router)#</span> <span class="cmd">exit</span>
+<span class="prompt">leaf-02(config)#</span> <span class="cmd">end</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 13 -->
+  <section id="port-channels">
+  <h2>13 — Port-channels for bare-metal servers — one per server</h2>
+  <p>Each HP ProLiant DL385 Gen11 connects to both leaf-01 and leaf-02 via a vPC port-channel — the same dual-homing pattern used for the existing ESXi servers. vPC port-channels provide two benefits: 50 Gbps aggregate bandwidth (2 × 25G active links via LACP) and full redundancy (if either leaf fails, the port-channel continues on the surviving leaf).</p>
+
+  <h3>What LACP is and why it is used here</h3>
+  <p>LACP (Link Aggregation Control Protocol, IEEE 802.3ad) is the protocol that bundles multiple physical NIC ports into a single logical link. Without LACP, the switch sees four individual 25G ports from bm-virt-01 — it does not know they belong to the same server and would need STP to prevent loops. With LACP, the switch treats all four ports as one logical port-channel — no STP involvement, no blocked ports, full bandwidth utilisation.</p>
+  <p>In NX-OS, LACP is configured with <code>channel-group &lt;number&gt; mode active</code> on each physical port. "Active" means the switch sends LACP PDUs (Protocol Data Units) to negotiate the bundle. The server's NIC (Mellanox ConnectX-7 on the DL385) must also be configured for LACP — this is done by the NMState configuration in VIRT-02 when RHCOS is installed.</p>
+
+  <h3>Port-channel numbering convention</h3>
+  <p>Existing ESXi server port-channels use Po101–Po109 (one per ESXi host). Bare-metal virtualization nodes use Po211–Po215 (one per DL385 node). The gap between 109 and 211 is intentional — it makes it immediately clear from a <code>show vpc</code> output which port-channels belong to which environment. Any network engineer reviewing the switch configuration six months from now can identify the environment from the port-channel number without reading descriptions.</p>
+
+  <div class="callout callout-cisco">
+    <strong>This section requires physical cabling to be complete first</strong>
+    <p>Port-channel configuration on the switch does not depend on the server being cabled — you can pre-configure the port-channel, and it will come up as "waiting for the connected device" in <code>show vpc</code>. However, you must know which physical switch ports each server will connect to before configuring the port-channel. The port assignments below assume: Rack 3 servers connecting to Ethernet1/25–Ethernet1/34 on each leaf (the next available ports after existing ESXi connections). Verify actual port availability with <code>show interface status | include notconnect</code> before committing to specific port numbers.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — port-channels for bm-virt-01 through bm-virt-05</div>
+    <div class="term-body">
+<span class="comment">! ── Pre-check: confirm ports are free ──────────────────────────────────────</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interface status | include Eth1/25|Eth1/26|Eth1/27|Eth1/28|Eth1/29</span>
+<span class="out">Eth1/25    --          notconnect  1       auto  auto  10G
+Eth1/26    --          notconnect  1       auto  auto  10G
+Eth1/27    --          notconnect  1       auto  auto  10G
+Eth1/28    --          notconnect  1       auto  auto  10G
+Eth1/29    --          notconnect  1       auto  auto  10G</span>
+<span class="ok">✓ Ports Eth1/25–29 are free on leaf-01. Same check required on leaf-02.</span>
+
+<span class="prompt">leaf-01#</span> <span class="cmd">configure terminal</span>
+
+<span class="comment">! ── bm-virt-01 — vPC Po211 ────────────────────────────────────────────────
+! bm-virt-01 connects eth0 to leaf-01 Eth1/25 and eth1 to leaf-02 Eth1/25
+! (Two ports per switch — four ports total per server for 4-port LACP bond)</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Ethernet1/25</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-virt-01 NIC1-port0 LACP</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport mode trunk</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan 110,120,130,140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  channel-group 211 mode active</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Ethernet1/26</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-virt-01 NIC2-port0 LACP</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport mode trunk</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan 110,120,130,140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  channel-group 211 mode active</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface port-channel 211</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-virt-01 -- HP DL385 Gen11 bare-metal RHCOS</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport mode trunk</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan 110,120,130,140</span>
+<span class="comment">  ! mtu 9216 on the port-channel is required for VLAN 120 (ODF replication, MTU 9000)
+  ! Without this, frames larger than 1500 bytes on VLAN 120 are silently dropped</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  mtu 9216</span>
+<span class="comment">  ! vpc 211 binds this port-channel to the vPC domain with ID 211
+  ! leaf-02 must have a matching port-channel with the same vpc 211 ID</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  vpc 211</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="comment">! ── Repeat pattern for bm-virt-02 through bm-virt-05 ─────────────────────
+! Port assignments: bm-virt-02 → Eth1/27,28 → Po212 | vpc 212
+!                  bm-virt-03 → Eth1/29,30 → Po213 | vpc 213
+!                  bm-virt-04 → Eth1/31,32 → Po214 | vpc 214
+!                  bm-virt-05 → Eth1/33,34 → Po215 | vpc 215</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Ethernet1/27</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-virt-02 NIC1-port0 LACP</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport mode trunk</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan 110,120,130,140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  channel-group 212 mode active</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface Ethernet1/28</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-virt-02 NIC2-port0 LACP</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport mode trunk</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan 110,120,130,140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  channel-group 212 mode active</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  no shutdown</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">interface port-channel 212</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  description bm-virt-02 -- HP DL385 Gen11 bare-metal RHCOS</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport mode trunk</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  switchport trunk allowed vlan 110,120,130,140</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  mtu 9216</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">  vpc 212</span>
+<span class="prompt">leaf-01(config-if)#</span> <span class="cmd">exit</span>
+
+<span class="comment">! bm-virt-03, bm-virt-04, bm-virt-05 follow identical pattern
+! Po213 | vpc 213 | Eth1/29,30
+! Po214 | vpc 214 | Eth1/31,32
+! Po215 | vpc 215 | Eth1/33,34</span>
+
+<span class="prompt">leaf-01(config)#</span> <span class="cmd">end</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">copy running-config startup-config</span>
+<span class="out">Copy complete.</span>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>Repeat all port-channel configuration on leaf-02</strong>
+    <p>leaf-02 must have matching port-channel numbers (Po211–Po215), matching vPC IDs (211–215), matching VLAN allowed lists, and matching MTU settings. Use the same port numbers on leaf-02 (Eth1/25–34) if the cabling plan is symmetric. The vPC consistency check will fail if leaf-02's port-channels do not match leaf-01's. After configuring leaf-02, run <code>show vpc consistency-parameters interface port-channel 211</code> — it must show "success" for each port-channel.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 14 -->
+  <section id="dhcp-relay">
+  <h2>14 — DHCP relay — understanding what was configured and verifying it works</h2>
+  <p>The <code>ip helper-address 10.70.0.10</code> command was applied to the VLAN 110 and VLAN 130/140 SVIs in Sections 08 and 09. This section explains what that command does at the packet level — so that when DHCP fails during bare-metal provisioning (and at some point it will), you know exactly where to look.</p>
+
+  <h3>What happens when a bare-metal node sends a DHCP request</h3>
+  <p>When bm-virt-01 boots from the Assisted Installer ISO for the first time, RHCOS sends a DHCP DISCOVER packet. Let us trace exactly what happens at every network hop.</p>
+
+  <ol>
+    <li><strong>The DHCP DISCOVER packet leaves bm-virt-01's NIC</strong> tagged with VLAN 110. The destination MAC address is ff:ff:ff:ff:ff:ff (broadcast). The source IP is 0.0.0.0 (the node has no IP yet). The destination IP is 255.255.255.255 (limited broadcast).</li>
+    <li><strong>The packet arrives at leaf-01 on Po211</strong> (the LACP port-channel for bm-virt-01). The switch receives the frame, strips the VLAN tag, and processes it in VLAN 110. The destination is a broadcast — the switch floods it to all VLAN 110 ports. This includes the VLAN 110 SVI (Vlan110 interface on the switch itself).</li>
+    <li><strong>The Vlan110 SVI receives the DHCP DISCOVER</strong>. The switch's IP routing stack checks: does this interface have an <code>ip helper-address</code> configured? Yes — 10.70.0.10. The switch converts the broadcast DHCP DISCOVER into a unicast DHCP packet, changes the destination from 255.255.255.255 to 10.70.0.10 (DC01), and adds a "giaddr" (gateway IP address) field set to 10.110.0.1 (the SVI's IP). This tells DC01 which scope to use for the DHCP lease.</li>
+    <li><strong>The relayed packet is routed to DC01</strong> at 10.70.0.10. The routing table on leaf-01 shows 10.70.0.0/24 is reachable via the NSX T0 gateway (learned via BGP). The packet is forwarded to the T0, which routes it to the seg-infra-services segment, which delivers it to DC01.</li>
+    <li><strong>DC01 receives the DHCP DISCOVER</strong> with giaddr=10.110.0.1. It identifies the VLAN110-BM-Discovery scope (which covers 10.110.0.0/24) because giaddr falls within that scope's network. DC01 sends a DHCP OFFER back to the relay agent (leaf-01 SVI at 10.110.0.1).</li>
+    <li><strong>leaf-01 receives the DHCP OFFER</strong> from DC01. It converts it back to a Layer 2 frame and broadcasts it on VLAN 110. bm-virt-01 receives the OFFER, accepts it with a DHCP REQUEST, and leaf-01 relays the REQUEST back to DC01. DC01 sends DHCP ACK. bm-virt-01 now has an IP address.</li>
+  </ol>
+
+  <h3>Verifying the relay works — before the servers are powered on</h3>
+  <div class="term">
+    <div class="term-header">jumphost — test DHCP relay from jump host</div>
+    <div class="term-body">
+<span class="comment"># The jump host cannot directly test DHCP relay on behalf of a server,
+# but we can verify the relay configuration is visible on the switch
+# and that routing between VLAN 110 and VLAN 70 (DC01) works.</span>
+
+<span class="comment"># Step 1 — Verify ip helper-address is configured on VLAN 110 SVI</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show running-config interface Vlan110 | include helper</span>
+<span class="out">  ip helper-address 10.70.0.10</span>
+<span class="ok">✓ DHCP relay is configured.</span>
+
+<span class="comment"># Step 2 — Verify routing between leaf-01 VLAN 110 SVI and DC01</span>
+<span class="comment"># leaf-01 must be able to route from 10.110.0.1 to 10.70.0.10</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show ip route 10.70.0.10</span>
+<span class="out">IP Route Table for VRF "default"
+'*' denotes best ucast next-hop
+'**' denotes best mcast next-hop
+10.70.0.0/24, ubest/mbest: 1/0
+    *via 10.0.0.1, [20/0], 00:45:12, bgp-65001, external, tag 65100</span>
+<span class="ok">✓ Route to 10.70.0.0/24 exists via spine (BGP). DHCP relay packets can reach DC01.</span>
+
+<span class="comment"># Step 3 — After first server is powered on, verify DHCP lease in DC01
+# Open DHCP Manager on DC01 → IPv4 → Scope VLAN110-BM-Discovery → Address Leases
+# bm-virt-01 should appear with a lease from 10.110.0.20–250 range within 2 minutes</span>
+    </div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">DHCP relay failure — symptoms and causes</div>
+    <div class="wrong-item">Node boots from ISO but stays at "Waiting for network..." indefinitely → DHCP discover is not reaching DC01. Check: is <code>ip helper-address 10.70.0.10</code> on the Vlan110 SVI? Is VLAN 110 allowed on the port-channel? Is the route to 10.70.0.10 present in leaf-01's routing table?</div>
+    <div class="wrong-item">Node gets an IP in the 169.254.x.x range → DHCP discovery failed and the OS assigned an APIPA (Automatic Private IP Addressing) address. Root cause is always the same: DHCP relay is not working. Check the three points above.</div>
+    <div class="wrong-item">Node gets an IP but it is in VLAN 1 (e.g., 192.168.1.x) → The port-channel is not configured as a trunk. The server's VLAN 110 tagged frame was sent, but the switch port is in access mode (native VLAN 1). Verify <code>switchport mode trunk</code> on the port-channel interface.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 15 -->
+  <section id="mtu-verification">
+  <h2>15 — MTU 9000 end-to-end verification</h2>
+  <p>MTU mismatches are the most common and most difficult-to-diagnose problem in storage networks. The symptom — poor ODF performance, Ceph OSD heartbeat timeouts, seemingly random I/O errors — looks like a software problem but is caused by a network configuration oversight. The verification in this section must be completed before VIRT-03 (ODF installation) begins.</p>
+
+  <h3>What end-to-end MTU means</h3>
+  <p>For a 9000-byte frame to travel from bm-virt-01's ODF replication interface (on VLAN 120) to bm-virt-02's ODF replication interface, every device and every interface in the path must support 9000-byte frames:</p>
+  <ol>
+    <li>bm-virt-01's RHCOS NIC bond sub-interface (bond0.120) — MTU 9000</li>
+    <li>The LACP port-channel on leaf-01 (Po211) — MTU 9216</li>
+    <li>The vPC peer-link between leaf-01 and leaf-02 (Po1) — MTU 9216</li>
+    <li>The LACP port-channel on leaf-02 (Po212) — MTU 9216</li>
+    <li>bm-virt-02's RHCOS NIC bond sub-interface (bond0.120) — MTU 9000</li>
+  </ol>
+  <p>The switch uses MTU 9216 rather than 9000 because switch interfaces need headroom for encapsulation headers (VLAN tag = 4 bytes, Ethernet header = 18 bytes). Setting switch interfaces to 9216 guarantees 9000-byte frames from servers are never fragmented in the switch.</p>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — verify MTU on port-channels and peer-link</div>
+    <div class="term-body">
+<span class="comment">! Check MTU on all bare-metal port-channels</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interface port-channel 211-215 | include MTU</span>
+<span class="out">  MTU 9216 bytes, BW 50000000 Kbit/sec, DLY 10 usec
+  MTU 9216 bytes, BW 50000000 Kbit/sec, DLY 10 usec
+  MTU 9216 bytes, BW 50000000 Kbit/sec, DLY 10 usec
+  MTU 9216 bytes, BW 50000000 Kbit/sec, DLY 10 usec
+  MTU 9216 bytes, BW 50000000 Kbit/sec, DLY 10 usec</span>
+<span class="ok">✓ All five port-channels are MTU 9216. ODF replication frames will not be fragmented.</span>
+
+<span class="comment">! Verify the vPC peer-link also supports 9216 — it must carry VLAN 120 frames</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interface port-channel 1 | include MTU</span>
+<span class="out">  MTU 9216 bytes, BW 200000000 Kbit/sec, DLY 10 usec</span>
+<span class="ok">✓ vPC peer-link is MTU 9216 — existing vSAN (VLAN 25) required this, confirming it is already set.</span>
+    </div>
+  </div>
+
+  <div class="callout callout-cisco">
+    <strong>MTU verification with an actual test frame — do this after servers are cabled</strong>
+    <p>After bare-metal nodes are provisioned in VIRT-02, verify MTU end-to-end with a ping test between nodes on VLAN 120. From bm-virt-01's ODF replication interface, run: <code>ping -M do -s 8972 10.120.0.12</code>. The <code>-M do</code> flag sets the "Don't Fragment" bit. The size 8972 + 28 bytes (IP header + ICMP header) = 9000 bytes total. If this ping succeeds, MTU 9000 is confirmed end-to-end. If it fails with "Frag needed" or simply times out, there is a MTU mismatch somewhere in the path.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 16 -->
+  <section id="full-verification">
+  <h2>16 — Full fabric verification before node provisioning begins</h2>
+  <p>This is the sign-off checkpoint. Run every command below on both leaf-01 and leaf-02. Every output must match the expected result. Do not proceed to VIRT-02 until every check passes.</p>
+
+  <div class="term">
+    <div class="term-header">leaf-01# — complete verification sequence</div>
+    <div class="term-body">
+<span class="section">! ══ CHECK 1: VLAN database ═══════════════════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show vlan brief | include 110|120|130|140</span>
+<span class="out">110  bm-node-network         active
+120  odf-replication         active
+130  vm-workload-primary     active
+140  vm-workload-dmz         active</span>
+<span class="ok">✓ Expected: all four VLANs active with correct names</span>
+
+<span class="section">! ══ CHECK 2: SVIs are configured ═════════════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show ip interface brief | include Vlan11|Vlan13|Vlan14</span>
+<span class="out">Vlan110              10.110.0.1      protocol-up/link-up/admin-up
+Vlan130              10.130.0.1      protocol-up/link-up/admin-up
+Vlan140              10.140.0.1      protocol-up/link-up/admin-up</span>
+<span class="ok">✓ Expected: three SVIs with correct IPs. (Vlan120 intentionally absent — no SVI for ODF replication)</span>
+<span class="comment">! If an SVI shows "protocol-down/link-down" before servers are cabled: expected.
+! The SVI comes up when first port in that VLAN becomes active.</span>
+
+<span class="section">! ══ CHECK 3: HSRP active on leaf-01 ═════════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show hsrp brief | include 110|130|140</span>
+<span class="out">Vlan110  110   10 Active   10.110.0.1   10.110.0.3  --
+Vlan130  130   10 Active   10.130.0.1   10.130.0.3  --
+Vlan140  140   10 Active   10.140.0.1   10.140.0.3  --</span>
+<span class="ok">✓ Expected: Active state on leaf-01 for all three VLANs. Virtual IP shows .3 addresses.</span>
+
+<span class="section">! ══ CHECK 4: DHCP relay configured ══════════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show running-config interface Vlan110 | include helper</span>
+<span class="out">  ip helper-address 10.70.0.10</span>
+<span class="ok">✓ Expected: ip helper-address 10.70.0.10 on Vlan110, Vlan130, and Vlan140</span>
+
+<span class="section">! ══ CHECK 5: BGP advertising new subnets ════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show ip bgp | include 10.110|10.130|10.140</span>
+<span class="out">*>  10.110.0.0/24    0.0.0.0          0         32768 i
+*>  10.130.0.0/24    0.0.0.0          0         32768 i
+*>  10.140.0.0/24    0.0.0.0          0         32768 i</span>
+<span class="ok">✓ Expected: three new subnets with local origin (0.0.0.0 next-hop). 10.120.0.0/24 must NOT appear.</span>
+
+<span class="section">! ══ CHECK 6: vPC peer-link allows new VLANs ════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interfaces port-channel 1 trunk | include 110</span>
+<span class="out">   110,120,130,140</span>
+<span class="ok">✓ Expected: 110,120,130,140 appear in the allowed VLAN list on Po1</span>
+
+<span class="section">! ══ CHECK 7: Port-channels pre-configured ═══════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show vpc brief | include 211|212|213|214|215</span>
+<span class="out">211      Po211     down*  success    110,120,130,140
+212      Po212     down*  success    110,120,130,140
+213      Po213     down*  success    110,120,130,140
+214      Po214     down*  success    110,120,130,140
+215      Po215     down*  success    110,120,130,140</span>
+<span class="ok">✓ Expected: All five vPCs show "success" consistency and correct VLANs.
+✓ "down*" is expected — servers are not yet connected. Will change to "up" after cabling.</span>
+
+<span class="section">! ══ CHECK 8: vPC consistency — no errors ═══════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show vpc consistency-parameters global | include Type-2</span>
+<span class="out">Type-2 inconsistency reason:      -</span>
+<span class="ok">✓ Expected: no Type-2 inconsistency. A Type-2 error means leaf-01 and leaf-02 disagree on
+✓ VLAN configuration and port-channels will not forward traffic correctly.</span>
+
+<span class="section">! ══ CHECK 9: MTU on port-channels ══════════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">show interface port-channel 211 | include MTU</span>
+<span class="out">  MTU 9216 bytes, BW 50000000 Kbit/sec, DLY 10 usec</span>
+<span class="ok">✓ Expected: MTU 9216 on all five port-channels (Po211–Po215)</span>
+
+<span class="section">! ══ CHECK 10: Save configuration ════════════════════════════════════════</span>
+<span class="prompt">leaf-01#</span> <span class="cmd">copy running-config startup-config</span>
+<span class="out">Copy complete, now saving to disk (please wait)...</span>
+<span class="ok">✓ Configuration saved. leaf-01 fabric preparation is complete.
+✓ Repeat all 10 checks on leaf-02 before proceeding to VIRT-02.</span>
+    </div>
+  </div>
+
+  <div class="callout callout-virt">
+    <strong>VIRT-01 complete — fabric is ready for bare-metal node provisioning</strong>
+    <p>All ten checks have passed on both leaf-01 and leaf-02. The physical fabric is configured and verified. The five HP DL385 Gen11 nodes can now be cabled and powered on in VIRT-02. When the first server is powered on, its DHCP DISCOVER will be relayed to DC01, a lease will be granted from the VLAN110-BM-Discovery scope, and the Assisted Installer agent will register with the OCP cluster. Open VIRT-02.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

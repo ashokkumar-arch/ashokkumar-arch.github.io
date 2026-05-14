@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-09 — ACM: Advanced Cluster Management · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --acm:#0066cc;--acm-bg:#e8f1fb;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.acm{border-left-color:var(--acm)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.acm .cl{color:var(--acm)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}.tc{color:#61c5eb}.tg{color:#4ccd99}.td{color:#608b7a}
+.tw{color:#cca700}.te{color:#f85149}.tok{color:#3fb950;font-weight:600}
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+/* ACM-specific */
+.pillar{background:var(--bg2);border:.5px solid var(--border2);border-radius:var(--r);padding:18px;margin:12px 0}
+.pillar-hd{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.pillar-num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--acm);line-height:1;width:36px;flex-shrink:0}
+.pillar-title{font-size:15px;font-weight:700;color:var(--text)}
+.pillar-tag{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-top:2px}
+.pillar-body{font-size:13.5px;color:var(--text2);line-height:1.7}
+.pillar-body ul{margin:6px 0 0 18px}
+.pillar-body li{font-size:13.5px;margin-bottom:5px}
+.arch-row{display:flex;gap:8px;margin-bottom:8px;align-items:stretch}
+.arch-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:140px;flex-shrink:0;padding-top:6px}
+.arch-boxes{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.arch-box{border:1px solid;border-radius:4px;padding:6px 12px;font-size:12.5px;font-family:'DM Mono',monospace;flex:1;text-align:center;min-width:100px;line-height:1.4}
+.ab-hub{background:var(--acm-bg);border-color:#80b3e8;color:#003d7a}
+.ab-spoke{background:var(--blue-bg);border-color:#93b4e8;color:#1a3a6f}
+.ab-vm{background:var(--odf-bg);border-color:#fca5a5;color:#7a0000}
+.ab-cloud{background:var(--purple-bg);border-color:#c8b0e8;color:#2d1a6a}
+.ab-policy{background:var(--green-bg);border-color:var(--green-border);color:#074a2e}
+.arch-wrap{background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);padding:18px;margin:16px 0}
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-09</div>
+    <div class="sb-title">ACM: Advanced Cluster Management</div>
+    <div class="sb-sub">Hub · Governance · GitOps · Lifecycle · Observability · Hybrid cloud</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">First principles</div>
+    <a class="sb-item active" href="#what-acm-is">01 — What ACM is — the four pillars from first principles</a>
+    <a class="sb-item" href="#why-acm-vms">02 — Why ACM for VM management — what it adds to VIRT-07</a>
+    <a class="sb-item" href="#acm-architecture">03 — ACM architecture — Hub, Managed Clusters, and the data plane</a>
+    <div class="sb-sec">Installation</div>
+    <a class="sb-item" href="#acm-install">04 — Install ACM via OLM — MultiClusterHub</a>
+    <a class="sb-item" href="#import-cluster">05 — Import the NovaCrestBank OCP cluster as a Managed Cluster</a>
+    <a class="sb-item" href="#cluster-labels">06 — Cluster labels — the foundation of all ACM targeting</a>
+    <div class="sb-sec">Pillar 1 — Governance &amp; Compliance</div>
+    <a class="sb-item" href="#governance-model">07 — How ACM Governance works — Policy, PlacementRule, PolicySet</a>
+    <a class="sb-item" href="#policy-idp">08 — Enforcing Identity Providers — LDAP IdP on all clusters</a>
+    <a class="sb-item" href="#policy-network">09 — Security and network guardrails — SCCs and NetworkPolicy</a>
+    <a class="sb-item" href="#policy-vm-config">10 — VM configuration governance — evictionStrategy and hugepages</a>
+    <a class="sb-item" href="#drift-detection">11 — Detecting and remediating configuration drift</a>
+    <div class="sb-sec">Pillar 2 — Application Lifecycle &amp; GitOps</div>
+    <a class="sb-item" href="#acm-gitops-bridge">12 — ACM as the bridge between GitOps and multi-cluster placement</a>
+    <a class="sb-item" href="#placement-rules">13 — Placement rules via labels — targeting clusters for VM workloads</a>
+    <a class="sb-item" href="#app-mapping">14 — Unified application mapping — Subscription and Channel</a>
+    <div class="sb-sec">Pillar 3 — Cluster Lifecycle</div>
+    <a class="sb-item" href="#cluster-factory">15 — Cluster factories — self-service infrastructure provisioning</a>
+    <a class="sb-item" href="#fleet-upgrades">16 — Fleet-wide upgrades — rolling OCP version management</a>
+    <div class="sb-sec">Pillar 4 — Observability</div>
+    <a class="sb-item" href="#global-search">17 — Global search — finding VMs and resources across all clusters</a>
+    <a class="sb-item" href="#metric-aggregation">18 — Centralised metric aggregation — Thanos multi-cluster</a>
+    <div class="sb-sec">Hybrid cloud bridge</div>
+    <a class="sb-item" href="#hybrid-cloud">19 — ACM as the hybrid cloud bridge — on-premises to public cloud</a>
+    <a class="sb-item" href="#handover">20 — Readiness checklist — gate to VIRT-10</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-08-security-acs.html">← VIRT-08 — Security</a>
+    <a class="sb-item" href="virt-10-aap.html">VIRT-10 — AAP →</a>
+  </div>
+  <div class="sb-foot">VIRT-09 · ACM · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-09 · ACM: Advanced Cluster Management</div>
+  <div class="prereq-bar">VIRT-08 complete — ACS operational on all bare-metal nodes, VM security policies enforced, compliance evidence active</div>
+  <h1>ACM: Advanced Cluster Management</h1>
+  <div class="subtitle">From single-cluster VM management to fleet-wide governance, GitOps placement, cluster lifecycle, and observability —<br>ACM as the control plane for NovaCrestBank's expanding hybrid infrastructure</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-05<br>Networking</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-07<br>Lifecycle</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-08<br>Security</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-09<br>ACM</div>
+    <div class="pt"><span class="pt-n">11</span>VIRT-10<br>AAP</div>
+    <div class="pt"><span class="pt-n">12</span>VIRT-11<br>NSX Exit</div>
+  </div>
+
+  <!-- ══ 01 WHAT ACM IS ══ -->
+  <section id="what-acm-is">
+  <h2>01 — What ACM is — the four pillars from first principles</h2>
+  <p>Red Hat Advanced Cluster Management (ACM) is the control plane for managing a fleet of Kubernetes clusters — not just one. Everything built in VIRT-01 through VIRT-08 operates on NovaCrestBank's single OCP cluster. ACM raises the abstraction level: instead of managing resources in a single cluster, ACM manages clusters themselves — provisioning them, governing what runs on them, distributing applications across them, and observing their health from a single hub.</p>
+  <p>The key mental model: ACM's relationship to an OCP cluster is analogous to an OCP cluster's relationship to individual pods. OCP abstracts away the node — you declare a Pod and OCP decides which node runs it. ACM abstracts away the cluster — you declare a policy or an application and ACM decides which cluster enforces it or hosts it.</p>
+
+  <div class="pillar">
+    <div class="pillar-hd"><div class="pillar-num">1</div><div><div class="pillar-title">Centralised Policy Governance &amp; Compliance</div><div class="pillar-tag">SecOps · DevSecOps · PCI-DSS · NIST</div></div></div>
+    <div class="pillar-body">
+      <p>ACM deploys security and configuration policies from the Hub to all managed clusters simultaneously. A policy that enforces the NovaCrestBank LDAP Identity Provider, or that requires <code>evictionStrategy: LiveMigrate</code> on all production VMs, is defined once on the Hub and propagated to every cluster in the fleet automatically. Compliance status — Pass/Fail per policy per cluster — is visible on the Hub's governance dashboard.</p>
+      <ul>
+        <li>Enforcing Identity Providers (LDAP, OIDC) across all clusters from one definition</li>
+        <li>Security and network guardrails — SCCs, NetworkPolicy, admission webhooks</li>
+        <li>Detecting and remediating configuration drift — any cluster that diverges from policy is flagged and optionally auto-remediated</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pillar">
+    <div class="pillar-hd"><div class="pillar-num">2</div><div><div class="pillar-title">Multi-Cluster Application Lifecycle &amp; GitOps</div><div class="pillar-tag">DevOps · GitOps · Placement · Argo CD integration</div></div></div>
+    <div class="pillar-body">
+      <p>ACM's application model uses Placement rules to decide which clusters receive which applications — based on cluster labels, resource availability, or geographic location. When combined with Argo CD (deployed in VIRT-07), ACM becomes the placement engine and Argo CD becomes the delivery engine. The result: a GitOps pipeline that knows not just what to deploy but which clusters in the fleet should receive each workload.</p>
+      <ul>
+        <li>Placement rules via cluster labels — target bare-metal VM clusters, exclude dev clusters, prefer clusters with available hugepage capacity</li>
+        <li>Unified application mapping — one Application definition, many cluster targets</li>
+        <li>ACM channels (Git, Helm, OCI) as the source of truth for multi-cluster deployment</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pillar">
+    <div class="pillar-hd"><div class="pillar-num">3</div><div><div class="pillar-title">Automated Cluster Lifecycle Management</div><div class="pillar-tag">Platform Engineering · Cluster Factories · Fleet Upgrades</div></div></div>
+    <div class="pillar-body">
+      <p>ACM provisions new OCP clusters using Hive (for infrastructure-provider clusters) or the Assisted Installer (for bare-metal clusters). A "cluster factory" is an ACM ClusterDeployment template that creates a new, fully configured cluster — including all governance policies, monitoring, and GitOps configuration — in a reproducible, self-service way. Fleet-wide upgrades manage rolling OCP version updates across all clusters from the Hub.</p>
+      <ul>
+        <li>Simplified provisioning via ClusterDeployment templates and SiteConfig (ZTP)</li>
+        <li>Cluster APIs — programmatic cluster creation for self-service developer environments</li>
+        <li>Fleet-wide fleet upgrades — coordinated rolling OCP upgrades across all managed clusters</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pillar">
+    <div class="pillar-hd"><div class="pillar-num">4</div><div><div class="pillar-title">Cross-Cluster Observability &amp; Multi-Tenant Search</div><div class="pillar-tag">SRE · Platform visibility · Centralised metrics</div></div></div>
+    <div class="pillar-body">
+      <p>ACM's observability stack aggregates metrics, alerts, and resource inventory from all managed clusters into a single Hub-level view. The global search box indexes every Kubernetes object across every managed cluster — finding a specific VirtualMachine CR across a 20-cluster fleet takes seconds rather than iterating through individual cluster contexts.</p>
+      <ul>
+        <li>Global search box — find any VM, pod, node, or policy across all clusters instantly</li>
+        <li>Centralised metric aggregation via Thanos — single Grafana dashboard for fleet-wide VM metrics</li>
+        <li>Multi-cluster alert consolidation — one PagerDuty notification for a cluster-wide event, not N cluster-specific alerts</li>
+      </ul>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 WHY ACM VMS ══ -->
+  <section id="why-acm-vms">
+  <h2>02 — Why ACM for VM management — what it adds beyond VIRT-07 GitOps</h2>
+  <p>VIRT-07 put VirtualMachine CRs under Argo CD management. That solves the single-cluster GitOps problem. ACM solves a different, larger problem: what happens when NovaCrestBank runs VM workloads on more than one cluster?</p>
+
+  <h3>The single-cluster ceiling</h3>
+  <p>NovaCrestBank's current VIRT environment is one OCP cluster with five bare-metal nodes. As the platform matures, additional clusters are inevitable: a dedicated DR cluster in a second data centre, a developer cluster where VMs can be tested without competing for bare-metal hugepages, a production expansion cluster when the five bare-metal nodes reach capacity, or an edge cluster at a bank branch. Each new cluster needs the same governance policies (LDAP IdP, evictionStrategy enforcement, ACS deployment), the same monitoring, the same upgrade cadence, and the same GitOps configuration.</p>
+  <p>Without ACM, every new cluster is a manual repetition of VIRT-01 through VIRT-08 — with the risk that each repetition introduces subtle differences. With ACM, the Hub enforces consistency. Every new cluster registered with ACM receives all governance policies automatically. The platform engineer's job changes from "configure this cluster" to "register this cluster and let the Hub handle it."</p>
+
+  <table>
+    <thead><tr><th>Capability</th><th>VIRT-07 Argo CD alone</th><th>VIRT-09 ACM + Argo CD</th></tr></thead>
+    <tbody>
+      <tr><td>VM config in Git</td><td>✓ Single cluster</td><td>✓ All clusters — Placement decides which cluster receives each VM</td></tr>
+      <tr><td>Policy enforcement</td><td>Manual per cluster</td><td>✓ Hub policies propagate to all clusters automatically</td></tr>
+      <tr><td>IdP consistency</td><td>Manual per cluster</td><td>✓ ACM Policy enforces LDAP IdP on every managed cluster</td></tr>
+      <tr><td>Cluster provisioning</td><td>Not in scope</td><td>✓ ACM ClusterDeployment templates — self-service cluster factory</td></tr>
+      <tr><td>OCP upgrades</td><td>Manual per cluster</td><td>✓ ACM ManagedClusterSet with rolling upgrade policies</td></tr>
+      <tr><td>Global VM inventory</td><td>Requires oc context switching</td><td>✓ Hub search — find any VM across all clusters instantly</td></tr>
+      <tr><td>Fleet-wide metrics</td><td>Per-cluster Prometheus only</td><td>✓ Thanos aggregation — single Grafana for all clusters</td></tr>
+      <tr><td>Compliance reporting</td><td>Per-cluster ACS</td><td>✓ ACM Governance dashboard — compliance per policy per cluster</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 ACM ARCHITECTURE ══ -->
+  <section id="acm-architecture">
+  <h2>03 — ACM architecture — Hub, Managed Clusters, and the data plane</h2>
+  <p>ACM has a two-tier architecture. The Hub cluster runs the ACM control plane. Managed clusters run the ACM agent (klusterlet). Every managed cluster reports its resource inventory to the Hub and receives policies and application deployments from the Hub.</p>
+
+  <div class="arch-wrap">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:14px">NovaCrestBank ACM topology — current and planned</div>
+    <div class="arch-row">
+      <div class="arch-label">ACM Hub</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-hub" style="flex:4">Hub cluster — runs on NovaCrestBank's OCP cluster<br><span style="font-size:11px">MultiClusterHub · Policy engine · Search indexer · Observability stack</span></div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Managed clusters</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-spoke">ncb-ocp-prod<br><span style="font-size:11px">Current VIRT cluster — 5 bare-metal VM nodes</span></div>
+        <div class="arch-box ab-spoke">ncb-ocp-dev<br><span style="font-size:11px">Dev/test VMs — shared CPU, no hugepages</span></div>
+        <div class="arch-box ab-cloud">ncb-ocp-dr<br><span style="font-size:11px">DR cluster — second data centre (planned)</span></div>
+        <div class="arch-box ab-cloud">aws-rosa-prod<br><span style="font-size:11px">ROSA — public cloud burst (future)</span></div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Hub → Spoke</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-policy" style="flex:2">Governance policies propagated to all clusters</div>
+        <div class="arch-box ab-policy" style="flex:2">Application Subscriptions placed by Placement rules</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Spoke → Hub</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-vm" style="flex:2">Resource inventory (VMs, pods, nodes) reported to Hub search</div>
+        <div class="arch-box ab-vm" style="flex:2">Compliance status, metrics, alerts aggregated to Hub</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px">The Hub runs on the same OCP cluster as the VIRT workloads in Phase 1. When the fleet grows, the Hub moves to a dedicated management cluster.</div>
+  </div>
+
+  <h3>What runs on the Hub — the MultiClusterHub components</h3>
+  <table>
+    <thead><tr><th>Component</th><th>What it does</th><th>Namespace</th></tr></thead>
+    <tbody>
+      <tr><td><strong>MultiClusterHub operator</strong></td><td>Installs and manages all other ACM components. Reconciles the MultiClusterHub CR to the desired state.</td><td>open-cluster-management</td></tr>
+      <tr><td><strong>Hub of Hubs (registration controller)</strong></td><td>Maintains the registry of all managed clusters — their status, version, labels, and conditions.</td><td>open-cluster-management</td></tr>
+      <tr><td><strong>Policy framework</strong></td><td>Policy engine that evaluates Policy objects and propagates them to managed clusters via klusterlet. Computes compliance status.</td><td>open-cluster-management</td></tr>
+      <tr><td><strong>Application lifecycle</strong></td><td>Subscription controller that watches Channels (Git, Helm, OCI) and propagates manifests to clusters selected by Placement.</td><td>open-cluster-management</td></tr>
+      <tr><td><strong>Search collector</strong></td><td>Indexes resource inventory from all managed clusters into a PostgreSQL store. Powers the global search API and console search box.</td><td>open-cluster-management</td></tr>
+      <tr><td><strong>Observability</strong></td><td>Thanos-based multi-cluster metric aggregation. Receives metrics from klusterlet metric collectors on each managed cluster.</td><td>open-cluster-management-observability</td></tr>
+      <tr><td><strong>Klusterlet (on each Managed Cluster)</strong></td><td>The ACM agent on every managed cluster. Receives policies and application subscriptions from Hub. Reports resource inventory and compliance status back to Hub.</td><td>open-cluster-management-agent</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 ACM INSTALL ══ -->
+  <section id="acm-install">
+  <h2>04 — Install ACM via OLM — MultiClusterHub</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">acm-subscription.yaml — ACM Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">advanced-cluster-management</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">open-cluster-management</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">release-2.11</span>
+  <span class="yc">  # release-2.11 is the current stable channel for OCP 4.16.
+  # ACM version must be within one minor version of the OCP version.
+  # OCP 4.16 → ACM 2.11 or 2.10. Using the latest compatible version.</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">advanced-cluster-management</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span></pre>
+    </div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">multiclusterhub.yaml — MultiClusterHub CR — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operator.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">MultiClusterHub</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">multiclusterhub</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">open-cluster-management</span>
+  <span class="yc">  # One MultiClusterHub per cluster — the Hub is a singleton.
+  # The name "multiclusterhub" is conventional and expected by ACM tooling.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">disableHubSelfManagement</span><span class="yc">:</span> <span class="yv">false</span>
+  <span class="yc">  # false: the Hub cluster also manages itself as a managed cluster.
+  # This means governance policies and search indexing apply to the Hub cluster too.
+  # The Hub appears in the ACM console as "local-cluster" alongside other managed clusters.</span>
+  <span class="yk">availabilityConfig</span><span class="yc">:</span> <span class="yv">High</span>
+  <span class="yc">  # High: deploys Hub components with multiple replicas for HA.
+  # Basic: single replica. Use High for production — the Hub is a critical control plane.</span>
+  <span class="yk">enableClusterBackup</span><span class="yc">:</span> <span class="yv">true</span>
+  <span class="yc">  # true: enable the Hub backup operator. Backs up ACM Hub configuration
+  # (managed cluster registrations, policies, applications) to an S3 bucket.
+  # If the Hub cluster fails, the Hub can be restored to a new cluster
+  # and all managed clusters re-register automatically. Uses OADP under the hood.</span>
+  <span class="yk">overrides</span><span class="yc">:</span>
+    <span class="yk">components</span><span class="yc">:</span>
+      <span class="yc">- name</span><span class="yc">:</span> <span class="yv">cluster-backup</span>
+        <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+      <span class="yc">- name</span><span class="yc">:</span> <span class="yv">multicluster-observability</span>
+        <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+        <span class="yc">        # Enable the ACM observability stack — Thanos multi-cluster metric aggregation.
+        # Required for Section 18 (centralised metric aggregation).
+        # Requires an ObjectBucketClaim for Thanos metric storage (uses MCG, same as OADP).</span>
+      <span class="yc">- name</span><span class="yc">:</span> <span class="yv">search</span>
+        <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+        <span class="yc">        # Enable the global search indexer.
+        # Required for Section 17 (global VM search across all clusters).</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install ACM and verify MultiClusterHub running</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc new-project open-cluster-management
+oc apply -f acm-subscription.yaml</span>
+<span class="tg">namespace/open-cluster-management created
+subscription.operators.coreos.com/advanced-cluster-management created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">PLAN=$(oc get installplan -n open-cluster-management \
+  -o jsonpath='{.items[0].metadata.name}')
+oc patch installplan ${PLAN} -n open-cluster-management \
+  --type merge -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-acm12 patched</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csv -n open-cluster-management | grep advanced</span>
+<span class="tg">advanced-cluster-management.v2.11.x   Red Hat Advanced Cluster Management   2.11.x   Succeeded</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f multiclusterhub.yaml</span>
+<span class="tg">multiclusterhub.operator.open-cluster-management.io/multiclusterhub created</span>
+
+<span class="td"># Wait ~8 minutes for all Hub components to deploy</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 20 'oc get multiclusterhub multiclusterhub \
+  -n open-cluster-management \
+  -o jsonpath="{.status.phase}"'</span>
+<span class="tg">Running</span>
+<span class="tok">✓ MultiClusterHub phase=Running. All ACM Hub components deployed.
+  ACM console accessible at:
+  oc get route multicloud-console -n open-cluster-management -o jsonpath='{.spec.host}'
+  → multicloud-console.apps.ocp.novacrestbank.local</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 IMPORT CLUSTER ══ -->
+  <section id="import-cluster">
+  <h2>05 — Import the NovaCrestBank OCP cluster as a Managed Cluster</h2>
+  <p>When <code>disableHubSelfManagement: false</code>, the Hub cluster is automatically imported as the <code>local-cluster</code> ManagedCluster. This means NovaCrestBank's single OCP cluster is immediately managed by ACM — all governance policies, search indexing, and observability apply to it without any additional import steps.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify local-cluster is registered and healthy</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get managedcluster</span>
+<span class="tg">NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                       JOINED   AVAILABLE   AGE
+local-cluster   true           https://api.ocp.novacrestbank.local:6443   True     True        6m</span>
+<span class="tok">✓ local-cluster Joined=True, Available=True.
+  The NovaCrestBank OCP cluster is now a managed cluster.
+  All ACM policies created on the Hub will apply to local-cluster.</span>
+
+<span class="td"># View the cluster in the ACM console — Clusters view</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get managedcluster local-cluster \
+  -o jsonpath='{.status.conditions[?(@.type=="ManagedClusterConditionAvailable")].status}'</span>
+<span class="tg">True</span>
+<span class="tok">✓ ManagedClusterConditionAvailable=True.
+  Klusterlet is running on local-cluster and reporting to Hub.
+  Resource inventory is being indexed by the Hub search collector.</span></pre>
+    </div>
+  </div>
+
+  <p>When a second cluster is added — the DR cluster, a dev cluster, or a public cloud ROSA cluster — the import process is identical: create a ManagedCluster object on the Hub, apply the generated import YAML to the new cluster, and the klusterlet self-registers. All existing governance policies that match the cluster's labels are applied automatically.</p>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 CLUSTER LABELS ══ -->
+  <section id="cluster-labels">
+  <h2>06 — Cluster labels — the foundation of all ACM targeting</h2>
+  <p>Cluster labels are the mechanism ACM uses to target policies and applications to specific subsets of managed clusters. Every ACM object that selects clusters (PlacementRule, ManagedClusterSet, Policy namespace binding) uses labels to identify its targets. Getting the label taxonomy correct before creating any policies is essential — retrofitting labels onto clusters that already have policies applied is error-prone.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">Apply NovaCrestBank label taxonomy to local-cluster</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">cluster.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">ManagedCluster</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">local-cluster</span>
+  <span class="yk">labels</span><span class="yc">:</span>
+    <span class="yk">environment</span><span class="yc">:</span> <span class="yv">production</span>
+    <span class="yc">    # environment: production | development | staging | dr
+    # Primary targeting dimension — policies that apply only to production clusters
+    # use matchLabels: environment: production.</span>
+    <span class="yk">region</span><span class="yc">:</span> <span class="yv">ap-southeast-2</span>
+    <span class="yc">    # region: AP-Southeast-2 (Sydney) for the on-premises VCF cluster.
+    # Used to target disaster recovery policies and cross-region placement rules.
+    # When a DR cluster in a different region is added, its region label differs —
+    # enabling placement rules that target the primary region vs the DR region.</span>
+    <span class="yk">platform</span><span class="yc">:</span> <span class="yv">baremetal-virt</span>
+    <span class="yc">    # platform: baremetal-virt — this cluster has bare-metal nodes with hugepages
+    # and OCP Virt installed. VM workload policies and applications target this label.
+    # A cloud cluster would have platform: rosa or platform: eks.
+    # This label is how the VM placement rules in Section 13 target this cluster.</span>
+    <span class="yk">compliance</span><span class="yc">:</span> <span class="yv">pci-dss</span>
+    <span class="yc">    # compliance: pci-dss — this cluster is in scope for PCI-DSS.
+    # PCI-DSS governance policies target clusters with this label.
+    # A development cluster might have compliance: non-pci — receiving less strict policies.</span>
+    <span class="yk">vendor</span><span class="yc">:</span> <span class="yv">OpenShift</span>
+    <span class="yc">    # vendor: OpenShift (auto-populated by ACM). Used to scope policies to OCP
+    # clusters only — a future EKS cluster would have vendor: EKS and would not
+    # receive OCP-specific policies (SCC, route53 annotations, etc.).</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply labels and verify</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc label managedcluster local-cluster \
+  environment=production \
+  region=ap-southeast-2 \
+  platform=baremetal-virt \
+  compliance=pci-dss \
+  --overwrite</span>
+<span class="tg">managedcluster.cluster.open-cluster-management.io/local-cluster labeled</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get managedcluster local-cluster \
+  -o jsonpath='{.metadata.labels}' | python3 -c \
+  "import json,sys; [print(f'{k}: {v}') for k,v in json.load(sys.stdin).items() \
+   if not k.startswith('feature.open')]"</span>
+<span class="tg">compliance: pci-dss
+environment: production
+platform: baremetal-virt
+region: ap-southeast-2
+vendor: OpenShift</span>
+<span class="tok">✓ Label taxonomy applied. These labels are now the targeting mechanism for all
+  governance policies, application placements, and observability groupings in VIRT-09.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 GOVERNANCE MODEL ══ -->
+  <section id="governance-model">
+  <h2>07 — How ACM Governance works — Policy, PlacementRule, PolicySet</h2>
+  <p>ACM Governance uses three objects that work together: the <code>Policy</code> defines what the desired state is, the <code>PlacementRule</code> (or the newer <code>Placement</code> object) defines which clusters receive the policy, and the <code>PlacementBinding</code> connects them. A <code>PolicySet</code> groups related policies into a named set that is targeted as a unit.</p>
+
+  <h3>How a policy propagates to a managed cluster</h3>
+  <p>When a Policy is created on the Hub and a PlacementBinding connects it to a PlacementRule that selects <code>environment=production</code> clusters, ACM creates a copy of the Policy's inner manifest as a <code>ConfigurationPolicy</code> on each selected managed cluster via the klusterlet. The klusterlet evaluates the ConfigurationPolicy against the cluster's actual state — if the cluster's OAuth configuration does not match the Policy's desired state, the klusterlet reports a violation. If <code>remediationAction: enforce</code>, the klusterlet applies the desired state directly, bringing the cluster into compliance.</p>
+
+  <div class="callout acm">
+    <span class="cl">Inform vs Enforce — the mandatory observation period for ACM policies</span>
+    <p>ACM policies have two remediation modes — <code>inform</code> (report violations, do not fix) and <code>enforce</code> (apply the desired state automatically). The correct operational pattern is identical to ACS's 14-day baseline rule: every new policy starts in <code>inform</code> mode for at least one week, so violations can be reviewed and understood before auto-remediation makes changes to production clusters. A policy switched directly to <code>enforce</code> without an observation period may auto-remediate something that was intentionally different — causing a production incident. All policies in this guide are created in <code>inform</code> mode with an explicit note of when to switch to <code>enforce</code>.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 POLICY IDP ══ -->
+  <section id="policy-idp">
+  <h2>08 — Enforcing Identity Providers — LDAP IdP on all clusters</h2>
+  <p>NovaCrestBank's OCP cluster uses AD LDAP as its identity provider (configured via the OAuth CR during the OCP-VCF series). If a second cluster is added — the DR cluster, a dev cluster — that cluster must also be configured with the same LDAP IdP. Without ACM governance, this is a manual step that is easily forgotten. With ACM governance, the IdP configuration is a Policy: any managed cluster that does not have the correct OAuth LDAP configuration is immediately flagged as non-compliant.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">policy-idp-ldap.yaml — enforce LDAP IdP on all production OCP clusters</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Policy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">policy-idp-ldap</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+  <span class="yc">  # Policies live in a dedicated namespace on the Hub — not in open-cluster-management.
+  # The "policies" namespace is conventional. All Hub policies go here.</span>
+  <span class="yk">annotations</span><span class="yc">:</span>
+    <span class="yk">policy.open-cluster-management.io/categories</span><span class="yc">:</span> <span class="yv">PR.AC Identity Management and Access Control</span>
+    <span class="yk">policy.open-cluster-management.io/controls</span><span class="yc">:</span> <span class="yv">PR.AC-4 Access Permissions</span>
+    <span class="yk">policy.open-cluster-management.io/standards</span><span class="yc">:</span> <span class="yv">NIST SP 800-53</span>
+    <span class="yc">    # These annotations populate the ACM Governance dashboard's compliance categories.
+    # They map each policy to a standard and control for compliance reporting.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">inform</span>
+  <span class="yc">  # inform: report violations only. Start here, switch to enforce after 7 days.
+  # enforce would apply the OAuth CR to any non-compliant cluster automatically.</span>
+  <span class="yk">disabled</span><span class="yc">:</span> <span class="yv">false</span>
+  <span class="yk">policy-templates</span><span class="yc">:</span>
+    <span class="yc">- objectDefinition:</span>
+        <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+        <span class="yk">kind</span><span class="yc">:</span> <span class="yv">ConfigurationPolicy</span>
+        <span class="yk">metadata</span><span class="yc">:</span>
+          <span class="yk">name</span><span class="yc">:</span> <span class="yv">config-idp-ldap</span>
+        <span class="yk">spec</span><span class="yc">:</span>
+          <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">inform</span>
+          <span class="yk">severity</span><span class="yc">:</span> <span class="yv">high</span>
+          <span class="yk">object-templates</span><span class="yc">:</span>
+            <span class="yc">- complianceType: musthave</span>
+              <span class="yk">objectDefinition</span><span class="yc">:</span>
+                <span class="yc">                # The inner object: the cluster OAuth CR that must exist on every managed cluster.</span>
+                <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">config.openshift.io/v1</span>
+                <span class="yk">kind</span><span class="yc">:</span> <span class="yv">OAuth</span>
+                <span class="yk">metadata</span><span class="yc">:</span>
+                  <span class="yk">name</span><span class="yc">:</span> <span class="yv">cluster</span>
+                <span class="yk">spec</span><span class="yc">:</span>
+                  <span class="yk">identityProviders</span><span class="yc">:</span>
+                    <span class="yc">- name</span><span class="yc">:</span> <span class="yv">NovaCrestBank-AD</span>
+                      <span class="yk">type</span><span class="yc">:</span> <span class="yv">LDAP</span>
+                      <span class="yk">ldap</span><span class="yc">:</span>
+                        <span class="yk">url</span><span class="yc">:</span> <span class="yv">ldaps://dc01.novacrestbank.local:636/...</span>
+                        <span class="yk">insecure</span><span class="yc">:</span> <span class="yv">false</span>
+                        <span class="yc">        # complianceType: musthave — the cluster's OAuth CR must contain
+                        # an identityProvider named NovaCrestBank-AD of type LDAP pointing to DC01.
+                        # If a managed cluster has no LDAP IdP, or has a different IdP URL,
+                        # it is flagged as non-compliant on the ACM Governance dashboard.
+                        # In enforce mode: the klusterlet would apply this OAuth CR to the cluster,
+                        # configuring LDAP authentication automatically on cluster registration.</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">PlacementBinding</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">binding-idp-ldap</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+<span class="yk">placementRef</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">placement-prod-ocp</span>
+  <span class="yk">kind</span><span class="yc">:</span> <span class="yv">PlacementRule</span>
+<span class="yk">subjects</span><span class="yc">:</span>
+  <span class="yc">- name</span><span class="yc">:</span> <span class="yv">policy-idp-ldap</span>
+    <span class="yk">kind</span><span class="yc">:</span> <span class="yv">Policy</span>
+    <span class="yk">apiGroup</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">apps.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">PlacementRule</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">placement-prod-ocp</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">clusterConditions</span><span class="yc">:</span>
+    <span class="yc">- status</span><span class="yc">:</span> <span class="yv">"True"</span>
+      <span class="yk">type</span><span class="yc">:</span> <span class="yv">ManagedClusterConditionAvailable</span>
+  <span class="yk">clusterSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">environment</span><span class="yc">:</span> <span class="yv">production</span>
+      <span class="yk">vendor</span><span class="yc">:</span> <span class="yv">OpenShift</span>
+      <span class="yc">      # Targets all clusters labelled environment=production AND vendor=OpenShift.
+      # local-cluster matches both — the LDAP policy is evaluated against it.
+      # A future dev cluster (environment=development) is excluded from this policy.
+      # A future ROSA cluster (vendor=OpenShift, environment=production) is included.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply IdP policy and check compliance status</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc new-project policies && \
+  oc apply -f policy-idp-ldap.yaml</span>
+<span class="tg">policy.policy.open-cluster-management.io/policy-idp-ldap created
+placementrule.apps.open-cluster-management.io/placement-prod-ocp created
+placementbinding.policy.open-cluster-management.io/binding-idp-ldap created</span>
+
+<span class="td"># Wait ~60 seconds for the klusterlet to evaluate the policy</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get policy policy-idp-ldap -n policies \
+  -o jsonpath='{.status.compliant}'</span>
+<span class="tg">Compliant</span>
+<span class="tok">✓ local-cluster is Compliant with the LDAP IdP policy.
+  The OAuth CR on the cluster already matches the policy template.
+  If the cluster had no LDAP IdP: status=NonCompliant, visible on ACM Governance dashboard.
+  After a future cluster is registered: ACM evaluates this policy automatically
+  and flags it NonCompliant until LDAP IdP is applied.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 POLICY NETWORK ══ -->
+  <section id="policy-network">
+  <h2>09 — Security and network guardrails — SCCs and NetworkPolicy</h2>
+  <p>Two categories of guardrail policies are essential for NovaCrestBank's fleet: SCC policies (ensuring the kubevirt-controller SCC exists and that privileged SCCs cannot be granted to arbitrary service accounts) and NetworkPolicy policies (ensuring the default-deny NetworkPolicy from VIRT-08 exists in the virt-workloads namespace on every cluster that runs VM workloads).</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">policy-vm-network-guardrails.yaml — enforce VM NetworkPolicy on all baremetal-virt clusters</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Policy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">policy-vm-network-guardrails</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+  <span class="yk">annotations</span><span class="yc">:</span>
+    <span class="yk">policy.open-cluster-management.io/standards</span><span class="yc">:</span> <span class="yv">PCI-DSS v4.0</span>
+    <span class="yk">policy.open-cluster-management.io/controls</span><span class="yc">:</span> <span class="yv">1.3.1 1.3.2</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">enforce</span>
+  <span class="yc">  # enforce: if the NetworkPolicy is absent from virt-workloads on any baremetal-virt cluster,
+  # the klusterlet creates it automatically. This is safe to enforce immediately —
+  # the NetworkPolicy is additive and does not remove existing permissions,
+  # it only enforces the default-deny plus the allowed exceptions.</span>
+  <span class="yk">policy-templates</span><span class="yc">:</span>
+    <span class="yc">- objectDefinition:</span>
+        <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+        <span class="yk">kind</span><span class="yc">:</span> <span class="yv">ConfigurationPolicy</span>
+        <span class="yk">metadata</span><span class="yc">:</span>
+          <span class="yk">name</span><span class="yc">:</span> <span class="yv">config-virt-deny-all</span>
+        <span class="yk">spec</span><span class="yc">:</span>
+          <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">enforce</span>
+          <span class="yk">severity</span><span class="yc">:</span> <span class="yv">critical</span>
+          <span class="yk">object-templates</span><span class="yc">:</span>
+            <span class="yc">- complianceType: musthave</span>
+              <span class="yk">objectDefinition</span><span class="yc">:</span>
+                <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+                <span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+                <span class="yk">metadata</span><span class="yc">:</span>
+                  <span class="yk">name</span><span class="yc">:</span> <span class="yv">default-deny-ingress-virt</span>
+                  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+                <span class="yk">spec</span><span class="yc">:</span>
+                  <span class="yk">podSelector</span><span class="yc">:</span> <span class="yv">{}</span>
+                  <span class="yk">policyTypes</span><span class="yc">:</span>
+                    <span class="yc">-</span> <span class="yv">Ingress</span>
+                  <span class="yc">  # This is the exact NetworkPolicy from VIRT-08 Section 10.
+                  # If a new cluster is added with platform=baremetal-virt, this NetworkPolicy
+                  # is automatically created in its virt-workloads namespace by the klusterlet.
+                  # The platform engineer does not need to manually apply it.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 POLICY VM CONFIG ══ -->
+  <section id="policy-vm-config">
+  <h2>10 — VM configuration governance — evictionStrategy and hugepages</h2>
+  <p>ACM Governance can enforce VirtualMachine CR configuration requirements across all production VM clusters. Two configuration properties are governance-enforced at NovaCrestBank: <code>evictionStrategy: LiveMigrate</code> on all production VMs (to ensure zero-downtime node maintenance) and the presence of a hugepage request (to ensure banking VMs always use 1 GiB hugepages and never fall back to standard pages).</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">policy-vm-eviction-strategy.yaml — enforce evictionStrategy on banking VMs</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Policy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">policy-vm-eviction-strategy</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+  <span class="yk">annotations</span><span class="yc">:</span>
+    <span class="yk">policy.open-cluster-management.io/standards</span><span class="yc">:</span> <span class="yv">NIST SP 800-53</span>
+    <span class="yk">policy.open-cluster-management.io/controls</span><span class="yc">:</span> <span class="yv">CP-7 Alternate Processing Site</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">inform</span>
+  <span class="yc">  # inform: report VMs without evictionStrategy: LiveMigrate — do not auto-remediate.
+  # Auto-remediation of evictionStrategy would modify running VM specs —
+  # safer to alert the platform team and let them update via the GitOps workflow.</span>
+  <span class="yk">policy-templates</span><span class="yc">:</span>
+    <span class="yc">- objectDefinition:</span>
+        <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+        <span class="yk">kind</span><span class="yc">:</span> <span class="yv">ConfigurationPolicy</span>
+        <span class="yk">metadata</span><span class="yc">:</span>
+          <span class="yk">name</span><span class="yc">:</span> <span class="yv">config-vm-eviction</span>
+        <span class="yk">spec</span><span class="yc">:</span>
+          <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">inform</span>
+          <span class="yk">severity</span><span class="yc">:</span> <span class="yv">high</span>
+          <span class="yk">namespaceSelector</span><span class="yc">:</span>
+            <span class="yk">include</span><span class="yc">:</span>
+              <span class="yc">-</span> <span class="yv">virt-workloads</span>
+          <span class="yk">object-templates</span><span class="yc">:</span>
+            <span class="yc">- complianceType: musthave</span>
+              <span class="yk">objectDefinition</span><span class="yc">:</span>
+                <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">kubevirt.io/v1</span>
+                <span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+                <span class="yk">metadata</span><span class="yc">:</span>
+                  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+                  <span class="yk">labels</span><span class="yc">:</span>
+                    <span class="yk">environment</span><span class="yc">:</span> <span class="yv">production</span>
+                <span class="yk">spec</span><span class="yc">:</span>
+                  <span class="yk">template</span><span class="yc">:</span>
+                    <span class="yk">spec</span><span class="yc">:</span>
+                      <span class="yk">evictionStrategy</span><span class="yc">:</span> <span class="yv">LiveMigrate</span>
+                      <span class="yc">                      # complianceType: musthave — every VirtualMachine in virt-workloads
+                      # with label environment=production must have evictionStrategy: LiveMigrate.
+                      # Any VM missing this field is flagged NonCompliant on the ACM dashboard.
+                      # The platform team then raises a GitOps PR to add evictionStrategy
+                      # to the production Kustomize overlay for the non-compliant VM.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 DRIFT DETECTION ══ -->
+  <section id="drift-detection">
+  <h2>11 — Detecting and remediating configuration drift</h2>
+  <p>Configuration drift occurs when a cluster's actual state diverges from its desired state — a direct <code>oc apply</code> that bypasses GitOps, an automated process that modifies a resource, or an operator upgrade that changes a field. ACM Governance detects drift continuously: the klusterlet re-evaluates every ConfigurationPolicy on its cluster every 10 minutes (configurable). Any drift appears as a NonCompliant status on the ACM Governance dashboard within minutes.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — simulate drift and observe ACM detection</div></div>
+    <div class="term-body"><pre><span class="td"># Simulate drift: manually remove the default-deny NetworkPolicy from virt-workloads
+# (as might happen if an engineer accidentally deleted it during troubleshooting)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc delete networkpolicy default-deny-ingress-virt \
+  -n virt-workloads</span>
+<span class="tg">networkpolicy.networking.k8s.io "default-deny-ingress-virt" deleted</span>
+
+<span class="td"># Wait up to 10 minutes for the klusterlet to detect the violation</span>
+<span class="td"># (typically detected within 60-120 seconds with default evaluation interval)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get policy policy-vm-network-guardrails \
+  -n policies \
+  -o jsonpath="{.status.compliant}"'</span>
+<span class="tg">NonCompliant</span>
+<span class="tok">✓ ACM detected the drift within 90 seconds.
+  Policy policy-vm-network-guardrails is now NonCompliant on local-cluster.
+  Because remediationAction: enforce is set, the klusterlet auto-remediates:</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get networkpolicy default-deny-ingress-virt \
+  -n virt-workloads</span>
+<span class="tg">NAME                        POD-SELECTOR   AGE
+default-deny-ingress-virt   &lt;none&gt;         45s</span>
+<span class="tok">✓ The klusterlet re-created the NetworkPolicy automatically (enforce mode).
+  The cluster is back in compliance. No manual intervention required.
+  This event is logged in ACM and forwarded to Splunk via the ACM → Splunk integration.</span>
+
+<span class="td"># View compliance history on the ACM dashboard:</td>
+<span class="td"># ACM Console → Governance → Policies → policy-vm-network-guardrails → Clusters tab</span>
+<span class="td"># Shows: NonCompliant at 14:32:10 → Compliant at 14:33:01 (auto-remediated in 51 seconds)</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 ACM GITOPS BRIDGE ══ -->
+  <section id="acm-gitops-bridge">
+  <h2>12 — ACM as the bridge between GitOps and multi-cluster placement</h2>
+  <p>In VIRT-07, Argo CD manages VMs on one cluster. ACM + Argo CD together manage VMs across a fleet of clusters. The architectural pattern: ACM decides <em>where</em> to deploy (which clusters), Argo CD decides <em>what</em> to deploy (the Kustomize overlay content from Git). ACM's ApplicationSet generator integration with Argo CD makes this seamless — ACM Placement generates a cluster list, Argo CD's ACM generator creates one Application per cluster automatically.</p>
+
+  <h3>How ACM integrates with the VIRT-07 Argo CD instance</h3>
+  <p>ACM registers itself as a GitOpsCluster — it tells the Argo CD instance running in the <code>gitops</code> namespace about every managed cluster. Argo CD gains the ability to deploy to all ACM-managed clusters, not just the local cluster. The ApplicationSet in VIRT-07 used a static list generator (two environments: dev and production). With ACM integration, the generator becomes a ClusterDecisionResource — it queries ACM for all clusters matching a label selector and generates one Argo CD Application per cluster automatically.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">gitopscluster-ncb.yaml — register ACM clusters with the VIRT-07 Argo CD instance</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">apps.open-cluster-management.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">GitOpsCluster</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-gitops-cluster</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">gitops</span>
+  <span class="yc">  # Same namespace as the Argo CD instance from VIRT-07.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">argoServer</span><span class="yc">:</span>
+    <span class="yk">cluster</span><span class="yc">:</span> <span class="yv">local-cluster</span>
+    <span class="yk">argoNamespace</span><span class="yc">:</span> <span class="yv">gitops</span>
+    <span class="yc">    # Points to the ncb-argocd instance in the gitops namespace.
+    # ACM will register all managed clusters matching the Placement below
+    # as Argo CD destination clusters. Argo CD ApplicationSets can then
+    # use the ACM cluster generator to dynamically target these clusters.</span>
+  <span class="yk">placementRef</span><span class="yc">:</span>
+    <span class="yk">kind</span><span class="yc">:</span> <span class="yv">Placement</span>
+    <span class="yk">apiGroup</span><span class="yc">:</span> <span class="yv">cluster.open-cluster-management.io</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">placement-baremetal-virt-clusters</span>
+    <span class="yc">    # The Placement object selects which managed clusters are registered with Argo CD.
+    # Initially: local-cluster only (platform=baremetal-virt).
+    # When a second bare-metal VM cluster is registered with ACM, it is automatically
+    # added to Argo CD's cluster list and becomes available as an ApplicationSet target.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 PLACEMENT RULES ══ -->
+  <section id="placement-rules">
+  <h2>13 — Placement rules via labels — targeting clusters for VM workloads</h2>
+  <p>ACM's Placement API selects clusters based on label expressions, cluster conditions, and resource requirements. For VM workloads, placement rules can express: "deploy this VM workload to clusters that have bare-metal nodes with hugepages available, in the production environment, in the AP-Southeast-2 region."</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">placement-vm-workloads.yaml — target bare-metal VM clusters for banking VM placement</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">cluster.open-cluster-management.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Placement</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">placement-banking-vms</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">numberOfClusters</span><span class="yc">:</span> <span class="yv">1</span>
+  <span class="yc">  # Select 1 cluster from all that match the predicates below.
+  # Increase to 2 when a second baremetal-virt cluster is registered —
+  # ACM will place the banking VM application on both clusters simultaneously.</span>
+  <span class="yk">predicates</span><span class="yc">:</span>
+    <span class="yc">- requiredClusterSelector:</span>
+        <span class="yk">labelSelector</span><span class="yc">:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">environment</span><span class="yc">:</span> <span class="yv">production</span>
+            <span class="yk">platform</span><span class="yc">:</span> <span class="yv">baremetal-virt</span>
+            <span class="yk">compliance</span><span class="yc">:</span> <span class="yv">pci-dss</span>
+            <span class="yc">            # All three labels must match:
+            # - environment=production: no dev clusters
+            # - platform=baremetal-virt: must have bare-metal nodes with hugepages
+            # - compliance=pci-dss: must be in scope for PCI-DSS (VIRT-08 security controls applied)
+            # local-cluster matches all three. A future dev cluster (environment=development)
+            # does not match — VM production workloads are not placed there.</span>
+  <span class="yk">prioritizerPolicy</span><span class="yc">:</span>
+    <span class="yk">mode</span><span class="yc">:</span> <span class="yv">Exact</span>
+    <span class="yk">configurations</span><span class="yc">:</span>
+      <span class="yc">- scoreCoordinate:</span>
+          <span class="yk">type</span><span class="yc">:</span> <span class="yv">AddOn</span>
+          <span class="yk">addOn</span><span class="yc">:</span>
+            <span class="yk">resourceName</span><span class="yc">:</span> <span class="yv">hugepages</span>
+            <span class="yk">scoreName</span><span class="yc">:</span> <span class="yv">freeHugepages</span>
+        <span class="yk">weight</span><span class="yc">:</span> <span class="yv">1</span>
+        <span class="yc">        # When multiple baremetal-virt clusters exist, prefer the cluster
+        # with the most free hugepages — ensuring VM placement on the cluster
+        # with the most available memory capacity for the hugepage-backed VMs.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 APP MAPPING ══ -->
+  <section id="app-mapping">
+  <h2>14 — Unified application mapping — Subscription and Channel</h2>
+  <p>ACM's application model uses a Channel (the source — a Git repository, Helm chart, or OCI registry) and a Subscription (the binding between a Channel and a set of clusters via Placement). This is distinct from Argo CD's Application model — ACM's Subscription works at a lower level and can be used without Argo CD, or in combination with it for GitOps delivery.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">channel-and-subscription.yaml — ACM application mapping for VM workloads</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Channel: points to the banking-config Git repository</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">apps.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Channel</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-config-git</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">banking-config-channel</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">type</span><span class="yc">:</span> <span class="yv">Git</span>
+  <span class="yk">pathname</span><span class="yc">:</span> <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+  <span class="yc">  # The same banking-config repo used in VIRT-07 by Argo CD.
+  # ACM Channel and Argo CD source can both reference the same Git repo —
+  # they do not conflict. ACM's Subscription can coexist with Argo CD Applications.</span>
+  <span class="yk">secretRef</span><span class="yc">:</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-config-git-creds</span>
+<span class="yc">---</span>
+<span class="yc"># Subscription: binds the Channel to the Placement</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">apps.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-vm-subscription</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+  <span class="yk">labels</span><span class="yc">:</span>
+    <span class="yk">app</span><span class="yc">:</span> <span class="yv">banking-vms</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">banking-config-channel/banking-config-git</span>
+  <span class="yk">placement</span><span class="yc">:</span>
+    <span class="yk">placementRef</span><span class="yc">:</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">Placement</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">placement-banking-vms</span>
+      <span class="yc">      # References the Placement from Section 13.
+      # ACM delivers the vms/banking-app-vm/overlays/production path from the Channel
+      # to all clusters selected by placement-banking-vms.
+      # When a second baremetal-virt cluster is registered, the Placement selects it
+      # and the Subscription automatically delivers the production VM overlay to it too.</span>
+  <span class="yk">packageFilter</span><span class="yc">:</span>
+    <span class="yk">filterRef</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vms/banking-app-vm/overlays/production</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 CLUSTER FACTORY ══ -->
+  <section id="cluster-factory">
+  <h2>15 — Cluster factories — self-service infrastructure provisioning</h2>
+  <p>A cluster factory is the pattern of using ACM's ClusterDeployment (for vSphere/cloud provider clusters) or SiteConfig/ZTP (Zero Touch Provisioning, for bare-metal clusters) to create new OCP clusters in a fully automated, reproducible way. The cluster factory produces a new cluster that is pre-configured — it emerges from the provisioning process already registered with ACM, already receiving all governance policies, already integrated with GitOps.</p>
+
+  <h3>SiteConfig — bare-metal cluster provisioning via ZTP</h3>
+  <p>For NovaCrestBank's bare-metal expansion cluster (a second set of DL385 Gen11 nodes for capacity expansion or DR), the Zero Touch Provisioning (ZTP) pipeline uses ACM + GitOps to provision an OCP cluster from bare hardware. A SiteConfig YAML committed to Git is the complete specification of the new cluster: node names, IP addresses, BIOS settings, OCP version, and the initial MachineConfigPool configuration. The ZTP pipeline watches the Git repository, generates the Assisted Installer manifests, and provisions the cluster without any manual SSH or BMC interaction.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">siteconfig-ncb-dr.yaml — ZTP SiteConfig for a second bare-metal VM cluster</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">ran.openshift.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">SiteConfig</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-dr-site</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">siteconfig</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">baseDomain</span><span class="yc">:</span> <span class="yv">novacrestbank.local</span>
+  <span class="yk">pullSecretRef</span><span class="yc">:</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">pullsecret</span>
+  <span class="yk">clusters</span><span class="yc">:</span>
+    <span class="yc">- clusterName</span><span class="yc">:</span> <span class="yv">ncb-ocp-dr</span>
+      <span class="yk">clusterType</span><span class="yc">:</span> <span class="yv">Standard</span>
+      <span class="yk">clusterLabels</span><span class="yc">:</span>
+        <span class="yk">environment</span><span class="yc">:</span> <span class="yv">production</span>
+        <span class="yk">platform</span><span class="yc">:</span> <span class="yv">baremetal-virt</span>
+        <span class="yk">compliance</span><span class="yc">:</span> <span class="yv">pci-dss</span>
+        <span class="yk">region</span><span class="yc">:</span> <span class="yv">ap-southeast-4</span>
+        <span class="yc">        # The cluster labels are applied at provisioning time.
+        # Immediately upon cluster registration with ACM, all policies that match
+        # these labels are evaluated against ncb-ocp-dr:
+        # - policy-idp-ldap (environment=production, vendor=OpenShift) → evaluates LDAP IdP
+        # - policy-vm-network-guardrails (baremetal-virt) → creates NetworkPolicy in virt-workloads
+        # - policy-vm-eviction-strategy → checks VMs for evictionStrategy: LiveMigrate
+        # The cluster factory produces a governance-compliant cluster from day one.</span>
+      <span class="yk">nodes</span><span class="yc">:</span>
+        <span class="yc">- hostName</span><span class="yc">:</span> <span class="yv">bm-dr-01.novacrestbank.local</span>
+          <span class="yk">bmcAddress</span><span class="yc">:</span> <span class="yv">redfish+https://10.40.1.71/redfish/v1/Systems/1</span>
+          <span class="yk">bmcCredentialsName</span><span class="yc">:</span>
+            <span class="yk">name</span><span class="yc">:</span> <span class="yv">bm-dr-01-bmc-secret</span>
+          <span class="yc">          # ZTP uses Redfish (iLO on HP DL385) to power-cycle nodes,
+          # boot from the Assisted Installer ISO, and monitor installation progress.
+          # Completely automated — no BMC console access required.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 FLEET UPGRADES ══ -->
+  <section id="fleet-upgrades">
+  <h2>16 — Fleet-wide upgrades — rolling OCP version management</h2>
+  <p>ACM manages OCP cluster upgrades through the ManagedClusterSet and ClusterCurator. Rather than logging into each cluster and running <code>oc adm upgrade</code> separately, ACM orchestrates upgrades across the fleet with controlled sequencing — dev clusters upgrade first, production clusters upgrade after dev is validated, DR clusters upgrade last.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">managedclusterset and upgrade policy</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Group clusters into sets for coordinated upgrade waves</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">cluster.open-cluster-management.io/v1beta2</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">ManagedClusterSet</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">production-virt-clusters</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">clusterSelector</span><span class="yc">:</span>
+    <span class="yk">selectorType</span><span class="yc">:</span> <span class="yv">LabelSelector</span>
+    <span class="yk">labelSelector</span><span class="yc">:</span>
+      <span class="yk">matchLabels</span><span class="yc">:</span>
+        <span class="yk">environment</span><span class="yc">:</span> <span class="yv">production</span>
+        <span class="yk">platform</span><span class="yc">:</span> <span class="yv">baremetal-virt</span>
+<span class="yc">---</span>
+<span class="yc"># ACM Policy to enforce the target OCP version across all production clusters</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Policy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">policy-ocp-version</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">policies</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">inform</span>
+  <span class="yc">  # inform: report clusters running older than the target version.
+  # Do NOT enforce: cluster upgrades require change management approval — not auto-remediation.
+  # The policy reports which clusters need upgrading; engineers trigger upgrades via ClusterCurator.</span>
+  <span class="yk">policy-templates</span><span class="yc">:</span>
+    <span class="yc">- objectDefinition:</span>
+        <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">policy.open-cluster-management.io/v1</span>
+        <span class="yk">kind</span><span class="yc">:</span> <span class="yv">ConfigurationPolicy</span>
+        <span class="yk">metadata</span><span class="yc">:</span>
+          <span class="yk">name</span><span class="yc">:</span> <span class="yv">config-ocp-version</span>
+        <span class="yk">spec</span><span class="yc">:</span>
+          <span class="yk">remediationAction</span><span class="yc">:</span> <span class="yv">inform</span>
+          <span class="yk">severity</span><span class="yc">:</span> <span class="yv">medium</span>
+          <span class="yk">object-templates</span><span class="yc">:</span>
+            <span class="yc">- complianceType: musthave</span>
+              <span class="yk">objectDefinition</span><span class="yc">:</span>
+                <span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">config.openshift.io/v1</span>
+                <span class="yk">kind</span><span class="yc">:</span> <span class="yv">ClusterVersion</span>
+                <span class="yk">metadata</span><span class="yc">:</span>
+                  <span class="yk">name</span><span class="yc">:</span> <span class="yv">version</span>
+                <span class="yk">status</span><span class="yc">:</span>
+                  <span class="yk">history</span><span class="yc">:</span>
+                    <span class="yc">- version</span><span class="yc">:</span> <span class="yv">4.16.x</span>
+                      <span class="yk">state</span><span class="yc">:</span> <span class="yv">Completed</span>
+                      <span class="yc">              # Clusters running 4.16.x with state Completed are Compliant.
+                      # Clusters on 4.15.x are NonCompliant — flagged in ACM Governance dashboard.
+                      # The platform engineer reviews the flag, raises a change request,
+                      # and uses ClusterCurator to trigger the upgrade with pre/post hooks.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 GLOBAL SEARCH ══ -->
+  <section id="global-search">
+  <h2>17 — Global search — finding VMs and resources across all clusters</h2>
+  <p>ACM's search indexer continuously collects resource inventory from every managed cluster's klusterlet and indexes it in the Hub's search store. From the ACM console or the search API, any resource in any managed cluster is findable in seconds — without switching kubectl contexts, without iterating through cluster lists, without writing custom scripts.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — global VM search via ACM search API</div></div>
+    <div class="term-body"><pre><span class="td"># Search for all VirtualMachine objects across all managed clusters</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get route search-api -n open-cluster-management \
+  -o jsonpath='{.spec.host}'</span>
+<span class="tg">search-api-open-cluster-management.apps.ocp.novacrestbank.local</span>
+
+<span class="td"># Query: find all VirtualMachines across all clusters</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">SEARCH_URL="https://search-api-open-cluster-management.apps.ocp.novacrestbank.local"
+TOKEN=$(oc whoami -t)
+
+curl -sk -X POST "${SEARCH_URL}/searchapi/graphql" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "{ searchComplete(property: \"kind\") }",
+    "variables": {}
+  }' | python3 -m json.tool | head -5</span>
+
+<span class="td"># More practical: search for VMs by name pattern</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk -X POST "${SEARCH_URL}/searchapi/graphql" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "{ search(input: [{filters: [{property: \"kind\", values: [\"VirtualMachine\"]}, {property: \"label\", values: [\"app=banking-app\"]}]}]) { items { name namespace cluster _uid } } }"
+  }' | python3 -c "
+import json,sys
+r = json.load(sys.stdin)
+for item in r.get(\"data\",{}).get(\"search\",[{}])[0].get(\"items\",[]):
+    print(f\"{item[\"cluster\"]}/{item[\"namespace\"]}/{item[\"name\"]}\")"</span>
+<span class="tg">local-cluster/virt-workloads/vm-banking-app-01
+local-cluster/virt-workloads/vm-banking-app-02
+local-cluster/virt-workloads/vm-api-gateway-01</span>
+<span class="tok">✓ All banking VMs found across all clusters in one search.
+  When a second cluster is added, its VMs appear here too — no additional configuration.
+  In the ACM console: Search box → kind:VirtualMachine label:app=banking-app
+  → instant results across all registered clusters.</span>
+
+<span class="td"># Search for any VM that is NOT in Running phase (potential issues)</td>
+<span class="td"># ACM Console: kind:VirtualMachineInstance status:!Running</span>
+<span class="td"># Returns: any VMI across any cluster that is Pending, Scheduling, or Failed</span>
+<span class="tok">✓ Use case: daily fleet health check — one search replaces N cluster kubectl queries.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 METRIC AGGREGATION ══ -->
+  <section id="metric-aggregation">
+  <h2>18 — Centralised metric aggregation — Thanos multi-cluster</h2>
+  <p>ACM's observability stack deploys a Thanos-based metric aggregation layer on the Hub. Each managed cluster runs a metrics collector (a minimal observability add-on) that forwards selected Prometheus metrics to the Hub's Thanos Receive component. The Hub's Thanos Query aggregates metrics from all clusters behind a single query endpoint — enabling Grafana dashboards that show VM metrics from all clusters in one view.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">multiclusterobservability.yaml — configure which metrics to collect from managed clusters</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">observability.open-cluster-management.io/v1beta2</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">MultiClusterObservability</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">observability</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">open-cluster-management-observability</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">storageConfig</span><span class="yc">:</span>
+    <span class="yk">metricObjectStorage</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">thanos-object-storage</span>
+      <span class="yk">key</span><span class="yc">:</span> <span class="yv">thanos.yaml</span>
+      <span class="yc">      # Secret containing MCG S3 credentials for Thanos metric storage.
+      # Uses the same MCG (NooBaa) bucket infrastructure as OADP (VIRT-07) —
+      # a separate bucket is created for Thanos metric storage.</span>
+  <span class="yk">observabilityAddonSpec</span><span class="yc">:</span>
+    <span class="yk">enableMetrics</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yk">interval</span><span class="yc">:</span> <span class="yv">300</span>
+    <span class="yc">    # 300 seconds = 5 minute scrape interval for Hub-level aggregated metrics.
+    # The local cluster Prometheus still scrapes at 30s — this is the aggregation interval.</span>
+  <span class="yk">advanced</span><span class="yc">:</span>
+    <span class="yk">customMetrics</span><span class="yc">:</span>
+      <span class="yc">- group</span><span class="yc">:</span> <span class="yv">kubevirt</span>
+        <span class="yk">resource</span><span class="yc">:</span> <span class="yv">virtualmachines</span>
+        <span class="yk">names</span><span class="yc">:</span>
+          <span class="yc">-</span> <span class="yv">kubevirt_vmi_phase_count</span>
+          <span class="yc">  # Number of VMIs by phase (Running, Pending, Failed) per cluster.
+          # Enables a fleet-level "VM health" dashboard in Grafana.</span>
+          <span class="yc">-</span> <span class="yv">kubevirt_vmi_memory_used_bytes</span>
+          <span class="yc">  # VM memory consumption per cluster — visible in fleet-wide capacity planning.</span>
+          <span class="yc">-</span> <span class="yv">kubevirt_vmi_vcpu_seconds</span>
+          <span class="yc">  # VM CPU usage — fleet-wide CPU utilisation for capacity planning.</span>
+          <span class="yc">-</span> <span class="yv">kubevirt_vmi_network_traffic_bytes_total</span>
+          <span class="yc">  # VM network I/O per cluster — useful for identifying migration storm traffic.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify Thanos is aggregating VM metrics from managed clusters</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">THANOS_URL=$(oc get route thanos-querier \
+  -n open-cluster-management-observability \
+  -o jsonpath='{.spec.host}')
+
+curl -sk "https://${THANOS_URL}/api/v1/query" \
+  -H "Authorization: Bearer $(oc whoami -t)" \
+  --data-urlencode \
+  'query=sum by (cluster) (kubevirt_vmi_phase_count{phase="Running"})' | \
+  python3 -c "
+import json,sys
+r = json.load(sys.stdin)
+for result in r[\"data\"][\"result\"]:
+    cluster = result[\"metric\"].get(\"cluster\", \"?\")
+    count = result[\"value\"][1]
+    print(f\"{cluster}: {count} VMs Running\")
+"</span>
+<span class="tg">local-cluster: 4 VMs Running</span>
+<span class="tok">✓ Thanos aggregating kubevirt VM metrics from local-cluster.
+  When a second cluster is registered, its VM metrics appear here automatically —
+  labelled with cluster="ncb-ocp-dr" for cluster-level breakdown in Grafana.</span>
+
+<span class="td"># Import the ACM VM fleet Grafana dashboard via the ACM console</td>
+<span class="td"># ACM Console → Observe → Dashboards → Import → paste the KubeVirt fleet dashboard JSON</td>
+<span class="td"># Dashboard shows: VM count by cluster, VM memory utilisation by cluster,
+# migration events over time, node hugepage availability across the fleet</td></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 19 HYBRID CLOUD ══ -->
+  <section id="hybrid-cloud">
+  <h2>19 — ACM as the hybrid cloud bridge — on-premises to public cloud</h2>
+  <p>ACM's architecture is provider-agnostic: it manages OCP clusters on bare metal, VMware vSphere, AWS, Azure, GCP, IBM Cloud, and any Kubernetes cluster that can run the klusterlet agent. This makes ACM the natural bridge for NovaCrestBank's hybrid cloud expansion — the same governance policies, application placement, and observability that manage the on-premises bare-metal VM cluster extend to public cloud clusters without architectural changes.</p>
+
+  <h3>Three hybrid cloud use cases for NovaCrestBank</h3>
+  <p><strong>Cloud burst for dev/test VM capacity:</strong> When the five bare-metal nodes are at capacity and developers need additional VM resources for testing, a ROSA (Red Hat OpenShift Service on AWS) cluster can be provisioned and registered with ACM. The dev Kustomize overlay (from VIRT-07) is placed on the ROSA cluster via Placement. Developers get VM capacity without waiting for hardware procurement. When the dev workload completes, the ROSA cluster is deprovisioned. ACM policies ensure dev VMs on ROSA receive the same IdP configuration and security guardrails as on-premises dev VMs.</p>
+  <p><strong>Disaster recovery cluster in a second region:</strong> The DR cluster (in ap-southeast-4, Melbourne) is managed by ACM alongside the production cluster (in ap-southeast-2, Sydney). The same governance policies apply. ACM's Placement rules can be configured to prefer the primary region and failover to the DR region automatically based on cluster availability conditions. OADP (from VIRT-07) backs up VM disk data to ODF MCG on the primary cluster; cross-region replication delivers backup data to the DR cluster's ODF for recovery.</p>
+  <p><strong>Regulatory-isolated workloads:</strong> If a future regulatory requirement mandates that certain banking data cannot leave Australian jurisdiction, ACM Placement rules enforce this through regional label selectors — only clusters labelled <code>region: ap-southeast-2</code> or <code>region: ap-southeast-4</code> receive those workloads. Non-Australian clusters are structurally excluded from receiving regulated VM workloads regardless of capacity.</p>
+
+  <div class="callout acm">
+    <span class="cl">ACM does not replace VCF — it manages the OCP clusters that replace VCF workloads</span>
+    <p>A common question: does ACM manage VMware VCF directly? No. ACM manages OCP clusters. The VCF hypervisor environment (ESXi, vCenter, NSX) is managed by vCenter/SDDC Manager, not ACM. ACM's role in the VIRT series is to manage the OCP clusters that are receiving the VM workloads being migrated from VCF. As VMs migrate from VCF (VIRT-06) to OCP Virt, and as additional OCP Virt clusters are provisioned (cluster factory in Section 15), all of those OCP Virt clusters come under ACM management. Eventually — when all VCF workloads are migrated and NSX is decommissioned (VIRT-11) — VCF is removed from the picture entirely, and ACM is the management plane for the entire NovaCrestBank cluster fleet.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 20 HANDOVER ══ -->
+  <section id="handover">
+  <h2>20 — Readiness checklist — gate to VIRT-10</h2>
+
+  <div class="gate">
+    <div class="gate-title">ACM installation checks</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM operator CSV Succeeded: advanced-cluster-management.v2.11.x in open-cluster-management namespace</div>
+    <div class="gate-item"><div class="gate-box"></div>MultiClusterHub phase=Running — all Hub components deployed</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM console accessible at multicloud-console.apps.ocp.novacrestbank.local</div>
+    <div class="gate-item"><div class="gate-box"></div>local-cluster ManagedCluster Joined=True, Available=True</div>
+    <div class="gate-item"><div class="gate-box"></div>Cluster labels applied: environment=production, platform=baremetal-virt, compliance=pci-dss, region=ap-southeast-2</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Governance &amp; Compliance (Pillar 1) checks</div>
+    <div class="gate-item"><div class="gate-box"></div>policy-idp-ldap: status=Compliant on local-cluster — LDAP IdP governance active</div>
+    <div class="gate-item"><div class="gate-box"></div>policy-vm-network-guardrails: status=Compliant, remediationAction=enforce — drift auto-remediation active</div>
+    <div class="gate-item"><div class="gate-box"></div>policy-vm-eviction-strategy: status=Compliant on all production VMs — evictionStrategy: LiveMigrate confirmed</div>
+    <div class="gate-item"><div class="gate-box"></div>Drift detection tested: NetworkPolicy deletion detected as NonCompliant within 120 seconds, auto-remediated in enforce mode</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM Governance dashboard showing all policies Compliant for local-cluster</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Application Lifecycle &amp; GitOps (Pillar 2) checks</div>
+    <div class="gate-item"><div class="gate-box"></div>GitOpsCluster ncb-gitops-cluster registered — Argo CD instance in gitops namespace knows about all ACM managed clusters</div>
+    <div class="gate-item"><div class="gate-box"></div>Placement placement-banking-vms selecting local-cluster correctly based on environment+platform+compliance labels</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM Channel banking-config-git pointing to banking-config repo in GitLab</div>
+    <div class="gate-item"><div class="gate-box"></div>Banking VM Subscription placed correctly — production VM overlay delivered to local-cluster</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Cluster Lifecycle (Pillar 3) checks</div>
+    <div class="gate-item"><div class="gate-box"></div>ManagedClusterSet production-virt-clusters grouping all baremetal-virt production clusters</div>
+    <div class="gate-item"><div class="gate-box"></div>policy-ocp-version: local-cluster showing Compliant at OCP 4.16.x</div>
+    <div class="gate-item"><div class="gate-box"></div>SiteConfig template for DR cluster documented and validated (dry-run) — ready for DR cluster provisioning</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Observability (Pillar 4) checks</div>
+    <div class="gate-item"><div class="gate-box"></div>MultiClusterObservability running — Thanos components in open-cluster-management-observability</div>
+    <div class="gate-item"><div class="gate-box"></div>Thanos aggregating kubevirt_vmi_phase_count from local-cluster — verified via Thanos query API</div>
+    <div class="gate-item"><div class="gate-box"></div>Global search returning all banking VMs across managed clusters — kind:VirtualMachine label:app=banking-app</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM fleet Grafana dashboard imported — VM count by cluster, memory utilisation, migration events visible</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-09 complete — NovaCrestBank has a multi-cluster management control plane</span>
+    <p>ACM is operational. The NovaCrestBank OCP cluster is managed by the Hub as local-cluster. Four governance pillars are active: policies enforce LDAP IdP, VM network guardrails, and evictionStrategy across the fleet with automatic drift remediation. The GitOps + ACM integration enables cluster-aware application placement. Cluster factory templates are ready for DR cluster provisioning. Global search indexes all VM resources across all clusters. Thanos aggregates VM metrics fleet-wide. ACM is the bridge to hybrid cloud — any future cluster registered with ACM immediately receives all governance, GitOps placement, and observability without additional configuration. Proceed to VIRT-10 — AAP — to bring Ansible Automation Platform into the platform for VM guest OS operations.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

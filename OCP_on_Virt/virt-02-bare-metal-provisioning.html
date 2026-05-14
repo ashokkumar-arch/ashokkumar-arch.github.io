@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-02 — Bare-Metal Node Provisioning · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --ceph:#ef5c55;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* ── MAIN ── */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+
+/* ── PROGRESS TRACKER ── */
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+
+/* ── CALLOUTS ── */
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+
+/* ── TERMINAL BLOCKS ── */
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}
+.tc{color:#61c5eb}
+.tg{color:#4ccd99}
+.td{color:#608b7a}
+.tw{color:#cca700}
+.te{color:#f85149}
+.tok{color:#3fb950;font-weight:600}
+
+/* ── YAML BLOCKS ── */
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── SPEC ROWS ── */
+.spec{border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden;margin:14px 0}
+.spec-row{display:grid;grid-template-columns:220px 1fr}
+.spec-row:not(:last-child){border-bottom:.5px solid var(--border)}
+.spec-row:hover .sk,.spec-row:hover .sv{background:var(--bg3)}
+.sk{padding:9px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text2)}
+.sv{padding:9px 14px;background:var(--bg2);font-size:13px;color:var(--text);line-height:1.5}
+
+/* ── COMPONENT CARDS ── */
+.ceph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.ceph-card{background:var(--bg2);padding:14px 16px}
+.ceph-daemon{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);margin-bottom:4px;font-weight:700}
+.ceph-name{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.ceph-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.ceph-ncb{font-size:12px;color:var(--text3);margin-top:5px;font-style:italic}
+
+/* ── DECISION BOX ── */
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* ── WRONG / VERIFY ── */
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+
+/* ── CHECKLIST ── */
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+
+/* ── REG BADGES ── */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+
+/* ── TOPOLOGY DIAGRAM ── */
+.topo{background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);padding:18px;margin:16px 0}
+.topo-row{display:flex;gap:8px;margin-bottom:8px;align-items:stretch}
+.topo-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:140px;flex-shrink:0;padding-top:6px;letter-spacing:.03em}
+.topo-boxes{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.topo-box{border:1px solid;border-radius:4px;padding:5px 10px;font-size:12.5px;font-family:'DM Mono',monospace;flex:1;text-align:center;min-width:100px}
+.tb-node{background:#e8f0fb;border-color:#93b4e8;color:#1a3a6f}
+.tb-osd{background:#fff0e8;border-color:#f0a070;color:#7a2800}
+.tb-mon{background:#e8f5e8;border-color:#70c070;color:#0a4a0a}
+.tb-fd{background:#f8e8ff;border-color:#c890e8;color:#4a006a}
+
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+
+
+/* ── VIRT-02 SPECIFIC ── */
+.spec-grid{border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.spec-row{display:grid;grid-template-columns:200px 1fr}
+.spec-row:not(:last-child){border-bottom:.5px solid var(--border)}
+.spec-row:hover .sk,.spec-row:hover .sv{background:var(--bg3)}
+.sk{padding:10px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text2)}
+.sv{padding:10px 14px;background:var(--bg2);font-size:13px;color:var(--text);line-height:1.5}
+
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-02</div>
+    <div class="sb-title">Bare-Metal Node Provisioning</div>
+    <div class="sb-sub">5 HP DL385 Gen11 nodes joining the existing OCP cluster</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group">Pre-flight</div>
+    <a class="sb-item active" href="#what-this-guide-does">01 — What this guide does — and what it does not</a>
+    <a class="sb-item" href="#preflight">02 — Pre-flight checks — run all before powering any server</a>
+    <a class="sb-item" href="#preflight-cluster">02a — Cluster health gate</a>
+    <a class="sb-item" href="#preflight-dns">02b — DNS gate — forward and reverse</a>
+    <a class="sb-item" href="#preflight-fabric">02c — Fabric gate — LLDP and DHCP relay</a>
+    <a class="sb-item" href="#preflight-ilo">02d — iLO gate — all five nodes reachable</a>
+    <a class="sb-item" href="#preflight-bios">02e — BIOS gate — VT-x, VT-d, SR-IOV</a>
+    <div class="sb-group">Assisted Installer</div>
+    <a class="sb-item" href="#what-assisted-installer">03 — What the Assisted Installer is — from first principles</a>
+    <a class="sb-item" href="#add-hosts-flow">04 — The Add Hosts flow — how it works before you run it</a>
+    <a class="sb-item" href="#generate-iso">05 — Generate the discovery ISO</a>
+    <a class="sb-item" href="#mount-iso">06 — Mount ISO via iLO virtual media on all 5 nodes</a>
+    <a class="sb-item" href="#boot-discovery">07 — Boot nodes — discovery phase</a>
+    <a class="sb-item" href="#validate-nodes">08 — Validate discovered nodes in the Assisted Installer</a>
+    <div class="sb-group">Installation</div>
+    <a class="sb-item" href="#nmstate-explained">09 — NMState — what it is and every directive explained</a>
+    <a class="sb-item" href="#configure-static-ips">10 — Configure static IPs and NIC bonding via NMState</a>
+    <a class="sb-item" href="#trigger-install">11 — Trigger installation on all 5 nodes</a>
+    <a class="sb-item" href="#monitor-install">12 — Monitor installation — what you will see and when</a>
+    <div class="sb-group">Cluster join</div>
+    <a class="sb-item" href="#csr-approval">13 — CSRs — what they are and how to approve them</a>
+    <a class="sb-item" href="#node-verification">14 — Node verification — 10 things to check</a>
+    <a class="sb-item" href="#machineset">15 — MachineSet — labelling and tainting bare-metal nodes</a>
+    <a class="sb-item" href="#debugging">16 — Debugging — what goes wrong and why</a>
+    <div class="sb-group">Series navigation</div>
+    <a class="sb-item" href="virt-01-physical-fabric.html">← VIRT-01 — Physical Fabric</a>
+    <a class="sb-item" href="virt-03-odf.html">VIRT-03 — ODF →</a>
+  </div>
+  <div class="sb-footer">VIRT-02 · Bare-Metal Provisioning · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-02 · Bare-Metal Node Provisioning</div>
+  <div class="prereq-bar">VIRT-01 complete — fabric verified, all 10 checks passed on leaf-01 and leaf-02</div>
+  <h1>Bare-Metal Node Provisioning</h1>
+  <div class="subtitle">Five HP ProLiant DL385 Gen11 nodes — from powered off to joined and Ready<br>using the Assisted Installer Add Hosts flow</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-00<br>Foundation</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-01<br>Fabric</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-02<br>Provision</div>
+    <div class="pt"><span class="pt-n">4</span>VIRT-03<br>ODF</div>
+    <div class="pt"><span class="pt-n">5</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt"><span class="pt-n">6</span>VIRT-05<br>Networking</div>
+  </div>
+
+  <!-- SECTION 01 -->
+  
+  <!-- ══ WHAT THIS GUIDE DOES ══ -->
+  <section id="what-this-guide-does">
+  <h2>01 — What this guide does — and what it does not</h2>
+  <p>This guide provisions five HP ProLiant DL385 Gen11 bare-metal servers as RHCOS worker nodes and joins them to the existing OCP cluster that was built in the OpenShift on VCF + NSX series. By the end of this guide, running <code>oc get nodes</code> will show five new <code>bm-virt-xx</code> nodes in Ready state alongside the existing master and worker nodes.</p>
+  <p>This guide does <em>not</em> install OpenShift Virtualization (the HyperConverged Operator). It does not configure ODF. It does not create any VMs. Those are VIRT-03 and VIRT-04. The only thing this guide does is add bare-metal nodes to the cluster. Everything else comes after.</p>
+  <p>Why this order? Because OpenShift Virtualization requires nodes before it can be installed. ODF requires nodes with raw disks before it can be configured. The node provisioning step is the foundation — it must be solid and verified before anything is built on top of it.</p>
+
+  <div class="callout">
+    <span class="cl">Why the Assisted Installer Add Hosts flow — not manual coreos-installer</span>
+    <p>There are two ways to add bare-metal nodes to an existing OCP cluster. The manual method downloads the RHCOS live ISO, boots each server from it, runs <code>coreos-installer</code> with the ignition config URL, approves CSRs, and repeats for each node. It works — but it is a sequence of manual steps with multiple places for error to hide.</p>
+    <p>The Assisted Installer Add Hosts flow uses the same agent-based technology that Red Hat uses for its own internal deployments. You generate one discovery ISO, boot all five servers from it simultaneously, and the Assisted Installer handles discovery, pre-installation validation, and the RHCOS installation on each node in a managed sequence. It also produces detailed logs for each node — a complete audit trail of what happened on each server during provisioning. For a banking environment with change management requirements, this audit trail is valuable. For a consulting architect portfolio, demonstrating familiarity with the Assisted Installer shows current knowledge of Red Hat's recommended approach.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 02 -->
+  
+  <!-- ══ PREFLIGHT ══ -->
+  <section id="preflight">
+  <h2>02 — Pre-flight checks — run all before powering any server</h2>
+  <p>The Classic series' approach to pre-flight checks applies here without exception: every check is a gate. If any gate fails, stop and fix it before continuing. The 20 minutes spent fixing a pre-flight failure saves hours of debugging a failed installation.</p>
+  <p>The non-negotiable rule: do not power on any bare-metal server until all five pre-flight gates pass. A node that boots before the DNS records exist, before the DHCP relay is working, or before the iLO credentials are set will fail in a way that produces confusing symptoms — because the failure happens in the first 30 seconds of boot, before any useful logs are written.</p>
+  </section>
+
+  
+  <!-- ══ PREFLIGHT CLUSTER ══ -->
+  <section id="preflight-cluster">
+  <h3>02a — Gate 1: Cluster health</h3>
+  <p>Adding nodes to a degraded cluster compounds the problem. Before touching any server, verify the cluster is fully healthy. Every cluster operator must be Available, not Progressing, and not Degraded.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — cluster health gate</div>
+    <div class="term-body"><pre><span class="td"># Gate 1: No operator may be degraded</span>
+<span class="tp">admin@jumphost ~]$</span> <span class="tc">oc get clusteroperators | grep -v "True.*False.*False"</span>
+<span class="tg">&lt;no output&gt;</span>
+<span class="tok">✓ Gate 1 passed. No output means all operators are Available=True, Progressing=False, Degraded=False.</span>
+
+<span class="td"># If any operator appears in the output, it has a problem.
+# Investigate with: oc describe clusteroperator &lt;name&gt;
+# Do not proceed until this command produces no output.</span>
+
+<span class="td"># Also verify the cluster version — you will need this in Section 05</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get clusterversion version -o jsonpath='{.status.desired.version}'; echo</span>
+<span class="tg">4.16.14</span>
+<span class="td"># Record this version. The discovery ISO must be generated for this exact cluster version.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  
+  <!-- ══ PREFLIGHT DNS ══ -->
+  <section id="preflight-dns">
+  <h3>02b — Gate 2: DNS — forward and reverse for all five nodes</h3>
+  <p>The Assisted Installer agent performs a reverse DNS lookup of the node's IP during discovery. If the PTR record does not exist or does not resolve to the correct FQDN, the node fails the validation phase with a hostname mismatch error. Both forward (A) and reverse (PTR) records must exist and resolve correctly <em>before</em> any node is powered on.</p>
+  <p>These records were created in VIRT-00 Section 07d. This gate confirms they are actually resolving from the jump host — not just that they were entered in DNS Manager.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — DNS gate — forward and reverse</div>
+    <div class="term-body"><pre><span class="td"># Gate 2: Test forward (A) and reverse (PTR) DNS for all 5 nodes</span>
+<span class="td"># DNS server is DC01 at 10.70.0.10</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for n in 01 02 03 04 05; do
+  fwd=$(dig +short bm-virt-${n}.novacrestbank.local @10.70.0.10)
+  rev=$(dig +short -x ${fwd} @10.70.0.10 2>/dev/null)
+  echo "bm-virt-${n}: A=${fwd} PTR=${rev}"
+done</span>
+<span class="tg">bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.local.
+bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.local.
+bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.local.
+bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.local.
+bm-virt-05: A=10.110.0.15 PTR=bm-virt-05.novacrestbank.local.</span>
+<span class="tok">✓ Gate 2 passed. All five nodes resolve forward and reverse correctly from DC01.</span>
+    </pre></div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">DNS gate failure — causes and fixes</div>
+    <div class="wrong-item"><strong>A record returns empty:</strong> The forward A record was not created in DNS Manager on DC01. Open DNS Manager → Forward Lookup Zones → novacrestbank.local → right-click → New Host (A or AAAA) → enter the name (bm-virt-01) and IP (10.110.0.11) → check "Create associated pointer (PTR) record" → Add Host.</div>
+    <div class="wrong-item"><strong>PTR record returns empty but A record works:</strong> The reverse zone does not exist. Open DNS Manager → Reverse Lookup Zones → right-click → New Zone → Primary zone → AD-integrated → enter network ID 10.110.0. → finish. Then re-create the A record with "Create associated pointer" checked.</div>
+    <div class="wrong-item"><strong>DNS times out (no response):</strong> The jump host's <code>/etc/resolv.conf</code> does not point to DC01. Verify with <code>cat /etc/resolv.conf</code> — it must show <code>nameserver 10.70.0.10</code>.</div>
+  </div>
+  </section>
+
+  
+  <!-- ══ PREFLIGHT FABRIC ══ -->
+  <section id="preflight-fabric">
+  <h3>02c — Gate 3: Fabric — LLDP neighbours and DHCP relay</h3>
+  <p>After servers are physically cabled, the leaf switch should see each server via LLDP (Link Layer Discovery Protocol). LLDP is a Layer 2 protocol that switches and servers use to advertise their identity — the switch can tell you which device is connected to each port before that device has an IP address. This is the fastest way to confirm the physical cabling is correct.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>leaf-01 — LLDP and vPC verification after cabling</div>
+    <div class="term-body"><pre><span class="td">! Verify LLDP neighbours — servers must be visible before powering on for RHCOS install</span>
+<span class="tp">leaf-01#</span> <span class="tc">show lldp neighbors Ethernet1/25</span>
+<span class="tg">Capability codes:
+  (R) Router, (B) Bridge, (T) Telephone, (C) DOCSIS Cable Device
+  (W) WLAN Access Point, (P) Repeater, (S) Station, (O) Other
+Device ID         Local Intf     Hold-time  Capability  Port ID
+bm-virt-01        Eth1/25        120        S           eth0</span>
+<span class="tok">✓ bm-virt-01 is physically connected and visible via LLDP on Eth1/25.</span>
+
+<span class="td">! Verify link speed — must be 25G for all bare-metal server ports</span>
+<span class="tp">leaf-01#</span> <span class="tc">show interface Ethernet1/25 | include connected,speed</span>
+<span class="tg">Ethernet1/25 is up
+  Port Speed: 25G</span>
+<span class="tok">✓ Link is 25G. If speed shows 10G or 1G, the NIC autonegotiation is using the wrong speed.
+✓ Verify the cable type (DAC/SFP+ must match NIC and switch port specification).</span>
+
+<span class="td">! Verify vPC status — must show "up" and "success" after cabling</span>
+<span class="tp">leaf-01#</span> <span class="tc">show vpc 211</span>
+<span class="tg">vPC status
+id    Port      Status  Consistency  Reason          Active vlans
+211   Po211     up      success      -               110,120,130,140</span>
+<span class="tok">✓ vPC 211 is up and consistent. Both leaf-01 and leaf-02 agree on configuration.
+✓ Active VLANs show 110,120,130,140 — all four VLANs are passing traffic.</span>
+
+<span class="td">! Verify DHCP relay is active on VLAN 110 SVI</span>
+<span class="tp">leaf-01#</span> <span class="tc">show running-config interface Vlan110 | include helper</span>
+<span class="tg">  ip helper-address 10.70.0.10</span>
+<span class="tok">✓ Gate 3 passed. LLDP confirms physical connectivity. vPC is consistent. DHCP relay is active.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  
+  <!-- ══ PREFLIGHT ILO ══ -->
+  <section id="preflight-ilo">
+  <h3>02d — Gate 4: iLO reachability</h3>
+  <p>The discovery ISO is mounted via iLO virtual media (explained in Section 06). If iLO is not reachable before attempting the ISO mount, the Redfish API call fails and the server cannot be provisioned remotely. Verify all five iLO interfaces respond before generating the ISO.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — iLO reachability gate</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">for ip in 10.40.0.71 10.40.0.72 10.40.0.73 10.40.0.74 10.40.0.75; do
+  code=$(curl -sk -o /dev/null -w "%{http_code}" \
+    -u admin:$(cat /opt/novacrest/secrets/ilo-admin-pass) \
+    https://${ip}/redfish/v1/Systems/1)
+  echo "${ip} → HTTP ${code}"
+done</span>
+<span class="tg">10.40.0.71 → HTTP 200
+10.40.0.72 → HTTP 200
+10.40.0.73 → HTTP 200
+10.40.0.74 → HTTP 200
+10.40.0.75 → HTTP 200</span>
+<span class="tok">✓ Gate 4 passed. All five iLO interfaces respond HTTP 200 with correct credentials.</span>
+    </pre></div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">iLO gate failure — causes and fixes</div>
+    <div class="wrong-item"><strong>HTTP 401 Unauthorized:</strong> Credentials are wrong. The password was not set correctly in VIRT-00 Section 07f, or the iLO has been factory-reset. Use the default credentials printed on the pull-tab label on the server chassis to authenticate, then reset the password via the iLO web GUI or Redfish PATCH.</div>
+    <div class="wrong-item"><strong>Connection refused / curl: (7) Failed to connect:</strong> The iLO IP is not reachable from the jump host. Check: (1) OOB switch port for this server is up — <code>show interface status</code> on the Catalyst 9200. (2) The iLO was configured with the correct static IP in VIRT-00. (3) The jump host has a route to 10.40.0.0/24 — the OOB network is physically separate and must be reachable from the jump host's OOB NIC.</div>
+  </div>
+  </section>
+
+  
+  <!-- ══ PREFLIGHT BIOS ══ -->
+  <section id="preflight-bios">
+  <h3>02e — Gate 5: BIOS — VT-x, VT-d, SR-IOV</h3>
+  <p>OpenShift Virtualization (VIRT-04) requires specific BIOS settings to be enabled on every bare-metal node. These settings are verified now — before RHCOS is installed — because changing a BIOS setting after OS installation requires rebooting the node, which is a disruptive operation once workloads are running. Verify once, correctly, before installation.</p>
+  <p>The HP ProLiant DL385 Gen11 uses different BIOS attribute names than the DL380. The Redfish API returns these as standardised JSON — use Python to extract the relevant fields.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — BIOS verification via Redfish on all 5 nodes</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">ILO_PASS=$(cat /opt/novacrest/secrets/ilo-admin-pass)
+
+for ip in 10.40.0.71 10.40.0.72 10.40.0.73 10.40.0.74 10.40.0.75; do
+  echo "=== ${ip} ==="
+  curl -sk https://${ip}/redfish/v1/Systems/1/bios/settings \
+    -u admin:${ILO_PASS} | python3 -c "
+import sys, json
+b = json.load(sys.stdin)['Attributes']
+checks = {
+  'ProcVirtualization': 'VT-x (VM hardware support)',
+  'IntelProcVtd':       'VT-d (IOMMU — SR-IOV and device passthrough)',
+  'SriovGlobalEnable':  'SR-IOV (NIC Virtual Functions — needed for high-perf VM networking)',
+  'ProcHyperthreading': 'Hyperthreading'
+}
+for key, label in checks.items():
+  val = b.get(key, 'NOT FOUND')
+  status = '✓' if val == 'Enabled' else '✗ PROBLEM'
+  print(f'  {status}  {label}: {val}')
+"
+done</span>
+<span class="tg">=== 10.40.0.71 ===
+  ✓  VT-x (VM hardware support): Enabled
+  ✓  VT-d (IOMMU — SR-IOV and device passthrough): Enabled
+  ✓  SR-IOV (NIC Virtual Functions — needed for high-perf VM networking): Enabled
+  ✓  Hyperthreading: Enabled
+=== 10.40.0.72 ===
+  ✓  VT-x (VM hardware support): Enabled
+  ✓  VT-d (IOMMU — SR-IOV and device passthrough): Enabled
+  ✓  SR-IOV (NIC Virtual Functions — needed for high-perf VM networking): Enabled
+  ✓  Hyperthreading: Enabled
+=== 10.40.0.73 ===
+  ✓  VT-x (VM hardware support): Enabled
+  ✓  VT-d (IOMMU — SR-IOV and device passthrough): Enabled
+  ✓  SR-IOV (NIC Virtual Functions — needed for high-perf VM networking): Enabled
+  ✓  Hyperthreading: Enabled
+=== 10.40.0.74 ===
+  ✓  VT-x (VM hardware support): Enabled
+  ✓  VT-d (IOMMU — SR-IOV and device passthrough): Enabled
+  ✓  SR-IOV (NIC Virtual Functions — needed for high-perf VM networking): Enabled
+  ✓  Hyperthreading: Enabled
+=== 10.40.0.75 ===
+  ✓  VT-x (VM hardware support): Enabled
+  ✓  VT-d (IOMMU — SR-IOV and device passthrough): Enabled
+  ✓  SR-IOV (NIC Virtual Functions — needed for high-perf VM networking): Enabled
+  ✓  Hyperthreading: Enabled</span>
+<span class="tok">✓ Gate 5 passed. All BIOS settings are correct on all five nodes.</span>
+    </pre></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">If any BIOS setting shows ✗ PROBLEM</span>
+    <p>Fix it via Redfish PATCH before proceeding. A BIOS change requires a server reboot to take effect — the server does not need an OS, so reboot it from iLO now:</p>
+    <p><code>curl -sk -X PATCH https://10.40.0.71/redfish/v1/Systems/1/bios/settings -u admin:${ILO_PASS} -H "Content-Type: application/json" -d '{"Attributes": {"IntelProcVtd": "Enabled", "SriovGlobalEnable": "Enabled"}}'</code></p>
+    <p>Then reboot: <code>curl -sk -X POST https://10.40.0.71/redfish/v1/Systems/1/Actions/ComputerSystem.Reset -u admin:${ILO_PASS} -H "Content-Type: application/json" -d '{"ResetType":"GracefulRestart"}'</code></p>
+    <p>Wait 5 minutes for the DL385 Gen11 POST to complete, then re-run the BIOS gate check.</p>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">All five gates must pass before section 03</div>
+    <div class="gate-item"><div class="gate-box"></div>Gate 1: Cluster health — no operator degraded</div>
+    <div class="gate-item"><div class="gate-box"></div>Gate 2: DNS — forward and reverse for bm-virt-01 through bm-virt-05</div>
+    <div class="gate-item"><div class="gate-box"></div>Gate 3: Fabric — LLDP visible, vPC up and consistent, DHCP relay active</div>
+    <div class="gate-item"><div class="gate-box"></div>Gate 4: iLO — all five interfaces return HTTP 200 with correct credentials</div>
+    <div class="gate-item"><div class="gate-box"></div>Gate 5: BIOS — VT-x, VT-d, SR-IOV all Enabled on all five nodes</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 03 -->
+  
+  <!-- ══ WHAT ASSISTED INSTALLER ══ -->
+  <section id="what-assisted-installer">
+  <h2>03 — What the Assisted Installer is — from first principles</h2>
+  <p>Before running any command, understand what the Assisted Installer is and what role each of its components plays. This understanding is what allows you to diagnose problems when they occur — because you know where each piece of the process lives and what it is responsible for.</p>
+
+  <h3>The problem the Assisted Installer solves</h3>
+  <p>Adding a bare-metal node to an OCP cluster involves a sequence of steps that must happen in the right order: boot the server with the correct OS image, apply the correct ignition configuration, install RHCOS to disk, reboot, have the kubelet register with the API server, and then have a cluster administrator approve the Certificate Signing Request (CSR) that the new node submits. If any step fails, the node does not join the cluster — and the error is often cryptic because it happens before the OS is fully operational and before any logging infrastructure is running.</p>
+  <p>The Assisted Installer wraps this entire sequence in a managed workflow. It runs a lightweight agent on each node during the provisioning process that communicates with a service (the Assisted Installer service, running either in the cloud or on-cluster) to coordinate the provisioning, validate the hardware, and report progress. The engineer interacts with a single interface — the Assisted Installer UI or API — rather than managing each node individually.</p>
+
+  <h3>The four components you will work with</h3>
+  <p><strong>The Assisted Installer service:</strong> For clusters managed by Red Hat (ROSA, OCP on cloud), the Assisted Installer service runs at <code>api.openshift.com</code> and is accessed via the Red Hat Hybrid Cloud Console. For on-premises clusters like NovaCrestBank's, the Assisted Installer service is accessed via the Console's "Add hosts" workflow for an existing cluster. This service manages the provisioning lifecycle — it tracks each node's state (discovering, validating, installing, installed, failed) and coordinates the ISO generation.</p>
+  <p><strong>The discovery ISO:</strong> A bootable ISO image generated specifically for your cluster. It contains the Assisted Installer agent pre-configured with your cluster's API endpoint and pull secret. When a node boots from this ISO, the agent automatically discovers the node's hardware (CPU count, RAM, disk inventory, NIC list), runs pre-installation validations, and registers the node with the Assisted Installer service — all without any manual interaction on the node console.</p>
+  <p><strong>The Assisted Installer agent:</strong> A process running inside the discovery ISO's RAM disk on each booted node. It communicates outbound to the Assisted Installer service. It reports hardware inventory, runs validation checks (does the node have enough RAM? is the disk large enough? are the NICs configured correctly?), and then executes the RHCOS installation when the engineer triggers it from the UI or API. The agent runs entirely in RAM — it does not touch the node's disk until installation is explicitly triggered.</p>
+  <p><strong>CSR approval:</strong> After RHCOS is installed and the node reboots into its new OS, the kubelet process starts and submits a Certificate Signing Request to the cluster's API server. This CSR is the node's way of saying "I exist and I want to join the cluster." A cluster administrator must approve this CSR — it is a security gate that prevents unauthorised nodes from joining. This guide covers CSR approval in Section 13.</p>
+
+  <h3>What "Add Hosts" means for an existing cluster</h3>
+  <p>The Assisted Installer "Add Hosts" flow is specifically designed for the use case of adding bare-metal nodes to an existing cluster — which is exactly what VIRT-02 does. It differs from a full cluster installation in one important way: the existing cluster's API endpoint and credentials are used to generate the discovery ISO. The new nodes join the existing cluster — they do not form a new one. The existing master nodes, existing worker nodes, and all existing operators continue to run without interruption during the provisioning of the new nodes.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 04 -->
+  
+  <!-- ══ ADD HOSTS FLOW ══ -->
+  <section id="add-hosts-flow">
+  <h2>04 — The Add Hosts flow — understanding the complete sequence before running it</h2>
+  <p>Here is the complete sequence of what happens from the moment you trigger the Add Hosts workflow to the moment the new nodes appear as Ready in the cluster. Read this entire section before running any command — knowing the full sequence in advance means you can recognise where you are in the process when something unexpected happens.</p>
+
+  <ol>
+    <li><strong>Generate discovery ISO</strong> (Section 05): The <code>openshift-install agent</code> command generates a bootable ISO specific to your cluster. This ISO contains the Assisted Installer agent, your cluster's API endpoint, and your pull secret. It takes approximately 2 minutes.</li>
+    <li><strong>Mount ISO via iLO virtual media</strong> (Section 06): The ISO is served from the jump host's HTTP server (set up in VIRT-00 Section 07b) and mounted to each server's virtual DVD drive via the iLO Redfish API. No physical media is involved.</li>
+    <li><strong>Boot each server from virtual DVD</strong> (Section 07): Each server is powered on and booted from the virtual DVD. The server boots into RAM — it does not touch its local NVMe disks. The Assisted Installer agent starts and sends a DHCP discover on VLAN 110 to get a temporary IP from DC01's discovery DHCP scope.</li>
+    <li><strong>Agent registers with the cluster</strong>: Once the node has an IP, the agent calls the cluster's infrastructure API endpoint (<code>https://api.ocp.novacrestbank.local:6443</code>) to register itself and report its hardware inventory. This is why gate 1 (cluster health) and gate 2 (DNS — specifically the API endpoint) must pass before this step.</li>
+    <li><strong>Discovery and validation</strong> (Section 08): The Assisted Installer validates each node's hardware against the minimum requirements: CPU count, RAM, disk size, NIC count, network connectivity. Validation results appear in the Assisted Installer UI within 3–5 minutes of the node booting.</li>
+    <li><strong>Configure static IPs via NMState</strong> (Section 10): Before triggering installation, each node's permanent network configuration is set via NMState. This assigns the static IP (10.110.0.11–.15), configures the LACP bond (bond0), and creates VLAN sub-interfaces for VLANs 110, 120, 130, and 140.</li>
+    <li><strong>Trigger installation</strong> (Section 11): Installation is triggered on all five nodes simultaneously. The agent writes the RHCOS image to each node's OS disk (the 2 × 480 GB SSD RAID-1 volume), applies the ignition configuration, and reboots the node.</li>
+    <li><strong>Node reboots into RHCOS</strong>: After installation, each node reboots from its local disk. The Assisted Installer agent is no longer running — RHCOS is now fully in control. The kubelet starts and submits a CSR to the API server.</li>
+    <li><strong>CSR approval</strong> (Section 13): The cluster administrator approves the pending CSRs. Each node typically requires two CSR approvals — one for the node's client certificate and one for its serving certificate.</li>
+    <li><strong>Node joins and becomes Ready</strong>: After CSR approval, the node completes its bootstrap sequence, the DaemonSets (kubelet, CSI drivers, monitoring agents) deploy to it, and it transitions to Ready state. The entire process from boot to Ready takes approximately 20–25 minutes per batch of nodes.</li>
+  </ol>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 05 -->
+  
+  <!-- ══ GENERATE ISO ══ -->
+  <section id="generate-iso">
+  <h2>05 — Generate the discovery ISO</h2>
+  <p>The discovery ISO is generated using the <code>openshift-install agent create image</code> command. This command requires two input files: <code>install-config.yaml</code> (which defines cluster parameters) and <code>agent-config.yaml</code> (which defines the hosts being added). Both files are consumed and deleted by the command — always keep backups.</p>
+
+  <h3>What install-config.yaml provides for Add Hosts</h3>
+  <p>For an Add Hosts operation on an existing cluster, the <code>install-config.yaml</code> does not define a new cluster — it tells the agent which existing cluster to join. The critical fields are the cluster name (<code>metadata.name: ocp</code>) and base domain (<code>baseDomain: novacrestbank.local</code>), which together form the cluster's API endpoint: <code>api.ocp.novacrestbank.local</code>. The agent uses this endpoint to register discovered nodes with the cluster.</p>
+
+  <h3>What agent-config.yaml provides</h3>
+  <p><code>agent-config.yaml</code> is specific to the Assisted Installer Add Hosts flow. It defines the hosts being added — their MAC addresses (used to match discovery reports to specific servers) and the rendezvous IP (the IP of one node that acts as the coordination point during discovery). The rendezvous node does not have a special role after installation — any node can be the rendezvous. Use bm-virt-01 (10.110.0.11) as the rendezvous.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — create input files for ISO generation</div>
+    <div class="term-body"><pre><span class="td"># Create working directory for this provisioning session</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">mkdir -p /opt/novacrest/virt-provisioning
+cd /opt/novacrest/virt-provisioning</span>
+
+<span class="td"># Collect MAC addresses from each server via iLO Redfish
+# These are the MAC addresses of the NIC ports that form the LACP bond (VLAN 110)
+# Each HP DL385 Gen11 has NIC1-port0 connected to leaf-01 and NIC1-port1 to leaf-02</span>
+<span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">ILO_PASS=$(cat /opt/novacrest/secrets/ilo-admin-pass)
+for ip in 10.40.0.71 10.40.0.72 10.40.0.73 10.40.0.74 10.40.0.75; do
+  mac=$(curl -sk https://${ip}/redfish/v1/Systems/1 \
+    -u admin:${ILO_PASS} | python3 -c \
+    "import sys,json; d=json.load(sys.stdin); \
+     nic=d.get('NetworkAdapters',{}).get('@odata.id',''); \
+     print('query:', nic)")
+  # Simplified — in practice, query /redfish/v1/Systems/1/NetworkAdapters
+  # and find the MAC of the first port of the first NIC
+  echo "${ip}: (retrieve MAC from iLO GUI or Redfish NetworkAdapters endpoint)"
+done</span>
+<span class="tg">10.40.0.71: NIC1-port0 MAC: 52:54:00:a1:b1:01  (example — use actual MAC from iLO)
+10.40.0.72: NIC1-port0 MAC: 52:54:00:a1:b1:02
+10.40.0.73: NIC1-port0 MAC: 52:54:00:a1:b1:03
+10.40.0.74: NIC1-port0 MAC: 52:54:00:a1:b1:04
+10.40.0.75: NIC1-port0 MAC: 52:54:00:a1:b1:05</span>
+<span class="td"># Record the actual MAC addresses — you need them for agent-config.yaml</span>
+    </pre></div>
+  </div>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — create install-config.yaml (backed up before use)</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">cat > install-config.yaml << 'EOF'
+apiVersion: v1
+metadata:
+  name: ocp
+baseDomain: novacrestbank.local
+pullSecret: 'PASTE_PULL_SECRET_JSON_HERE'
+sshKey: 'ssh-ed25519 AAAAC3NzaC1...   ocp-novacrestbank'
+additionalTrustBundle: |
+  -----BEGIN CERTIFICATE-----
+  PASTE_ROOTCA_PEM_HERE
+  -----END CERTIFICATE-----
+  -----BEGIN CERTIFICATE-----
+  PASTE_ISSUINGCA_PEM_HERE
+  -----END CERTIFICATE-----
+EOF</span>
+
+<span class="td"># Back up immediately — the installer DELETES install-config.yaml during execution</span>
+<span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">cp install-config.yaml install-config.yaml.bak</span>
+    </pre></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">Why install-config.yaml is deleted by the installer — and why backups are mandatory</span>
+    <p>The OpenShift installer deletes <code>install-config.yaml</code> after reading it. This is intentional design — it prevents accidental reuse of the same configuration for a second installation. The file contains credentials (pull secret, SSH key) and cluster configuration. If the install fails after the file is deleted and you need to retry, you must recreate the file from your backup. Always keep <code>install-config.yaml.bak</code>. Always.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — create agent-config.yaml</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">cat > agent-config.yaml << 'EOF'
+apiVersion: v1beta1
+kind: AgentConfig
+metadata:
+  name: ocp
+rendezvousIP: 10.110.0.11
+hosts:
+  - hostname: bm-virt-01.novacrestbank.local
+    role: worker
+    interfaces:
+      - name: eth0
+        macAddress: "52:54:00:a1:b1:01"
+  - hostname: bm-virt-02.novacrestbank.local
+    role: worker
+    interfaces:
+      - name: eth0
+        macAddress: "52:54:00:a1:b1:02"
+  - hostname: bm-virt-03.novacrestbank.local
+    role: worker
+    interfaces:
+      - name: eth0
+        macAddress: "52:54:00:a1:b1:03"
+  - hostname: bm-virt-04.novacrestbank.local
+    role: worker
+    interfaces:
+      - name: eth0
+        macAddress: "52:54:00:a1:b1:04"
+  - hostname: bm-virt-05.novacrestbank.local
+    role: worker
+    interfaces:
+      - name: eth0
+        macAddress: "52:54:00:a1:b1:05"
+EOF</span>
+
+<span class="td"># Back up agent-config.yaml as well</span>
+<span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">cp agent-config.yaml agent-config.yaml.bak</span>
+    </pre></div>
+  </div>
+
+  <h3>agent-config.yaml — every field explained</h3>
+  <p>Before generating the ISO, understand every field in this file. If something goes wrong during discovery, the values in this file are the first place to check.</p>
+
+  <table>
+    <thead><tr><th>Field</th><th>Value</th><th>What it does — and what breaks if it is wrong</th></tr></thead>
+    <tbody>
+      <tr><td><code>rendezvousIP</code></td><td>10.110.0.11</td><td>The IP of the node that acts as the coordination point during multi-node discovery. The agent on every other node sends its discovery data to this IP. If bm-virt-01 does not get this IP via DHCP (e.g., DHCP relay is broken), the other nodes cannot complete discovery. This is why bm-virt-01's DHCP lease must be confirmed before others are booted.</td></tr>
+      <tr><td><code>hostname</code></td><td>bm-virt-01.novacrestbank.local</td><td>The FQDN the agent assigns to the node. Must exactly match the DNS A record created in VIRT-00. If this does not match the reverse DNS lookup of the node's IP, the Assisted Installer validation fails with "hostname mismatch."</td></tr>
+      <tr><td><code>role: worker</code></td><td>worker</td><td>Tells the Assisted Installer to provision this node as a worker, not a control plane node. All five DL385 nodes are workers — they run VM workloads and ODF, not the API server or etcd.</td></tr>
+      <tr><td><code>macAddress</code></td><td>NIC MAC address</td><td>The MAC address of the NIC port the agent will use for discovery communication. The agent uses this to match the physical node to the hostname definition in agent-config.yaml. If the MAC address is wrong, the node boots and registers but is assigned the wrong hostname — it may appear as an unknown host in the Assisted Installer UI.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — generate the discovery ISO</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">openshift-install agent create image --dir /opt/novacrest/virt-provisioning</span>
+<span class="tg">INFO Consuming Add-Nodes Config from target directory
+INFO Consuming Install Config from target directory
+INFO Consuming Agent Config from target directory
+INFO The rendezvous host IP (resolved from host name) 10.110.0.11
+INFO Generated ISO at agent.x86_64.iso</span>
+
+<span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">ls -lh agent.x86_64.iso</span>
+<span class="tg">-rw-r--r-- 1 admin admin 1.1G Nov 04 10:15 agent.x86_64.iso</span>
+
+<span class="td"># Move the ISO to the HTTP server directory so iLO can mount it</span>
+<span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">cp agent.x86_64.iso /opt/novacrest/isos/virt-discovery.iso</span>
+
+<span class="td"># Verify the HTTP server serves it correctly</span>
+<span class="tp">[admin@jumphost virt-provisioning]$</span> <span class="tc">curl -I http://10.40.0.61:8080/virt-discovery.iso</span>
+<span class="tg">HTTP/1.0 200 OK
+Content-type: application/octet-stream
+Content-Length: 1181116416</span>
+<span class="tok">✓ ISO is generated (1.1 GB) and served by the internal HTTP server.
+✓ install-config.yaml and agent-config.yaml have been consumed and deleted.
+✓ Backups (.bak files) exist for both.</span>
+    </pre></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">The ISO is valid for 24 hours</span>
+    <p>The discovery ISO contains a time-limited token for authenticating with the cluster. If you generate the ISO but do not boot the nodes within 24 hours, the token expires and the agent will fail to register with the cluster. Generate the ISO only when you are ready to boot all five nodes within the same working session. If the token expires, simply re-generate the ISO using the backup install-config.yaml.bak and agent-config.yaml.bak files.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 06 -->
+  
+  <!-- ══ MOUNT ISO ══ -->
+  <section id="mount-iso">
+  <h2>06 — Mount the discovery ISO via iLO virtual media on all 5 nodes</h2>
+  <p>iLO virtual media allows the iLO to present an ISO file to the server as if it were a physical DVD drive. The server's BIOS sees a DVD drive with the discovery ISO inserted. When the boot order is set to boot from DVD first, the server boots into the Assisted Installer agent environment — no physical media handling required.</p>
+  <p>The ISO is served from the jump host's HTTP server at <code>http://10.40.0.61:8080/virt-discovery.iso</code>. The iLO fetches it via HTTP from the OOB network (VLAN 40). This is the same network the iLO interfaces are on — no routing through the production fabric is required.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — mount ISO and set boot order on all 5 nodes simultaneously</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">ILO_PASS=$(cat /opt/novacrest/secrets/ilo-admin-pass)
+ISO_URL="http://10.40.0.61:8080/virt-discovery.iso"
+
+for ip in 10.40.0.71 10.40.0.72 10.40.0.73 10.40.0.74 10.40.0.75; do
+  echo "=== Mounting ISO on ${ip} ==="
+
+  # Step 1: Mount the ISO as virtual DVD
+  result=$(curl -sk -X POST \
+    https://${ip}/redfish/v1/Managers/1/VirtualMedia/2/Actions/VirtualMedia.InsertMedia \
+    -u admin:${ILO_PASS} \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"Image\": \"${ISO_URL}\",
+      \"Inserted\": true,
+      \"WriteProtected\": true,
+      \"TransferMethod\": \"Stream\"
+    }" -w " HTTP:%{http_code}")
+  echo "  Mount: ${result}"
+
+  # Step 2: Set boot order — boot from DVD once (not permanently)
+  result=$(curl -sk -X PATCH \
+    https://${ip}/redfish/v1/Systems/1 \
+    -u admin:${ILO_PASS} \
+    -H "Content-Type: application/json" \
+    -d '{"Boot": {"BootSourceOverrideTarget": "Cd", "BootSourceOverrideEnabled": "Once"}}' \
+    -w " HTTP:%{http_code}")
+  echo "  Boot order: ${result}"
+
+  # Step 3: Power on the server (or reboot if already powered on)
+  result=$(curl -sk -X POST \
+    https://${ip}/redfish/v1/Systems/1/Actions/ComputerSystem.Reset \
+    -u admin:${ILO_PASS} \
+    -H "Content-Type: application/json" \
+    -d '{"ResetType": "On"}' -w " HTTP:%{http_code}")
+  echo "  Power on: ${result}"
+  echo ""
+done</span>
+<span class="tg">=== Mounting ISO on 10.40.0.71 ===
+  Mount: HTTP:200
+  Boot order: HTTP:200
+  Power on: HTTP:204
+
+=== Mounting ISO on 10.40.0.72 ===
+  Mount: HTTP:200
+  Boot order: HTTP:200
+  Power on: HTTP:204
+
+=== Mounting ISO on 10.40.0.73 ===
+  Mount: HTTP:200
+  Boot order: HTTP:200
+  Power on: HTTP:204
+
+=== Mounting ISO on 10.40.0.74 ===
+  Mount: HTTP:200
+  Boot order: HTTP:200
+  Power on: HTTP:204
+
+=== Mounting ISO on 10.40.0.75 ===
+  Mount: HTTP:200
+  Boot order: HTTP:200
+  Power on: HTTP:204</span>
+<span class="tok">✓ ISO mounted on all 5 nodes. Boot order set to DVD for next boot only. All servers powered on.
+✓ HTTP 204 on Power on is correct — "No Content" is the iLO's success response for power actions.</span>
+    </pre></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">BootSourceOverrideEnabled: "Once" — why not "Continuous"</span>
+    <p>"Once" means the server boots from the DVD for the next boot only. After the installation completes and the node reboots into RHCOS on its local disk, the boot order automatically reverts to the default (local disk first). If "Continuous" were set, the node would boot from the DVD again after installation — booting back into the discovery agent instead of the newly installed RHCOS. Setting boot override to "Once" is the correct approach for provisioning — it is self-correcting.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 07 -->
+  
+  <!-- ══ BOOT DISCOVERY ══ -->
+  <section id="boot-discovery">
+  <h2>07 — Boot nodes — what happens during the discovery phase</h2>
+  <p>After all five servers are powered on, the next 5–8 minutes are automatic. You do not need to interact with the servers during this phase. Understanding what is happening internally tells you whether the process is progressing normally or stuck.</p>
+
+  <h3>Minute 0–2: Server POST and DVD boot</h3>
+  <p>The HP DL380 Gen11 (and DL385 Gen11) has a thorough POST (Power-On Self-Test) sequence. It tests memory, initialises NICs, checks RAID controller status, and negotiates LACP with the leaf switch. This takes approximately 90 seconds. You can watch the POST progress in the iLO remote console — but you do not need to. After POST, the server boots from the virtual DVD.</p>
+
+  <h3>Minute 2–4: Discovery agent starts and gets a DHCP IP</h3>
+  <p>The ISO boots into a minimal Linux environment and starts the Assisted Installer agent. The agent sends a DHCP DISCOVER on VLAN 110. DC01's DHCP relay (configured in VIRT-01 via <code>ip helper-address</code> on the leaf SVI) relays the request to DC01. DC01 responds with an IP from the VLAN110-BM-Discovery scope (10.110.0.20–250). The node now has a temporary IP and network connectivity.</p>
+  <p>You can confirm the DHCP lease was granted from the jump host by checking DC01's DHCP scope, or by watching the leaf switch MAC address table:</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>leaf-01 — watch MAC address table for new entries on VLAN 110</div>
+    <div class="term-body"><pre><span class="td">! Run this about 3 minutes after powering on the servers</span>
+<span class="tp">leaf-01#</span> <span class="tc">show mac address-table vlan 110</span>
+<span class="tg">   VLAN  MAC Address      Type    Age   Secure NTFY  Ports
+------+----------------+--------+-----+------+----+-----------
+  110  5254.00a1.b101   dynamic  0:00  F      F    Po211
+  110  5254.00a1.b102   dynamic  0:00  F      F    Po212
+  110  5254.00a1.b103   dynamic  0:00  F      F    Po213
+  110  5254.00a1.b104   dynamic  0:00  F      F    Po214
+  110  5254.00a1.b105   dynamic  0:00  F      F    Po215</span>
+<span class="tok">✓ All five MAC addresses are visible in VLAN 110 on the correct port-channels.
+✓ This confirms the LACP bond is negotiated and the servers are active on the network.</span>
+    </pre></div>
+  </div>
+
+  <h3>Minute 4–8: Hardware discovery and registration</h3>
+  <p>The agent inventories the node's hardware: AMD EPYC CPU count (64 cores), RAM (512 GiB), disk inventory (2 × 480 GB SSD OS disks + 4 × 3.84 TB NVMe OSD disks), and NIC list (Mellanox ConnectX-7 × 3). It then calls <code>https://api.ocp.novacrestbank.local:6443</code> to register with the cluster and submit its hardware inventory. The cluster API endpoint is embedded in the ISO — this is why the cluster's DNS must resolve before the nodes are booted.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — watch agent registration with the cluster</div>
+    <div class="term-body"><pre><span class="td"># The Assisted Installer agent registers as an InfraEnv and BareMetalHost object
+# Watch for new BareMetalHost objects appearing in the cluster</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 10 'oc get agents -A 2>/dev/null || echo "No agents yet — waiting..."'</span>
+<span class="tg">Every 10.0s: oc get agents -A
+
+NAMESPACE              NAME                                   CLUSTER  APPROVED  ROLE    STAGE
+assisted-installer     bm-virt-01.novacrestbank.local-xxx     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-02.novacrestbank.local-yyy     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-03.novacrestbank.local-zzz     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-04.novacrestbank.local-aaa     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-05.novacrestbank.local-bbb     ocp      false     worker  Waiting for control plane</span>
+<span class="tok">✓ All five agents have registered. "Waiting for control plane" is the expected state
+✓ before validation completes and installation is triggered.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 08 -->
+  
+  <!-- ══ VALIDATE NODES ══ -->
+  <section id="validate-nodes">
+  <h2>08 — Validate discovered nodes in the Assisted Installer</h2>
+  <p>Before triggering installation, the Assisted Installer performs automatic validation checks on each discovered node. These checks ensure the hardware meets the minimum requirements for OpenShift and OpenShift Virtualization. Understanding what is checked and why allows you to interpret validation failures without guessing.</p>
+
+  <table>
+    <thead><tr><th>Validation</th><th>Requirement</th><th>NovaCrestBank DL385 Gen11</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td>CPU count</td><td>Minimum 2 cores for worker</td><td>64 cores ✓</td><td>VMs require physical CPU cores. With OpenShift Virtualization, the recommendation is minimum 16 cores per node for practical VM density.</td></tr>
+      <tr><td>RAM</td><td>Minimum 16 GiB for worker</td><td>512 GiB ✓</td><td>Each VM reserves its configured RAM at boot. 512 GiB supports approximately 60–80 banking application VMs at 4–8 GiB RAM each per node.</td></tr>
+      <tr><td>Disk</td><td>Minimum 120 GiB for OS</td><td>480 GiB SSD RAID-1 ✓</td><td>RHCOS installation requires approximately 60 GiB. The OS disk must be separate from ODF OSD disks.</td></tr>
+      <tr><td>Network connectivity</td><td>Can reach cluster API</td><td>10.110.0.11–15 → 10.50.0.200 ✓</td><td>The node must be able to reach <code>api.ocp.novacrestbank.local:6443</code>. This verifies that BGP routing between VLAN 110 and VLAN 50 is working through the NSX T0.</td></tr>
+      <tr><td>Hostname DNS</td><td>Hostname resolves forward and reverse</td><td>A + PTR records exist ✓</td><td>The agent performs a reverse DNS lookup of its IP. If the PTR record is missing, this check fails with "hostname mismatch."</td></tr>
+      <tr><td>NTP sync</td><td>Clock within 4 seconds of NTP</td><td>Synced from DC01 ✓</td><td>etcd leader election uses time. Large clock skew between nodes causes etcd to reject writes and degrades cluster operation.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — check validation status for all five agents</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get agents -A -o json | python3 -c "
+import json, sys
+agents = json.load(sys.stdin)['items']
+for a in agents:
+  name = a['metadata']['name'][:20]
+  validations = a.get('status', {}).get('validationsInfo', {})
+  failures = []
+  for category, checks in validations.items():
+    for check in checks:
+      if check.get('status') != 'success':
+        failures.append(f\"{check.get('id')}: {check.get('message')}\")
+  status = 'READY' if not failures else 'FAILED: ' + ', '.join(failures)
+  print(f'{name}: {status}')
+"</span>
+<span class="tg">bm-virt-01.novacre: READY
+bm-virt-02.novacre: READY
+bm-virt-03.novacre: READY
+bm-virt-04.novacre: READY
+bm-virt-05.novacre: READY</span>
+<span class="tok">✓ All five nodes pass all validation checks. Installation can be triggered.</span>
+    </pre></div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">Common validation failures and their root causes</div>
+    <div class="wrong-item"><strong>hostname-not-resolvable-to-ip:</strong> The A record for this node does not exist in DNS or does not resolve to the node's current IP. The node got a DHCP IP from the discovery pool (10.110.0.20–250) and the PTR record for that IP does not exist. This is a temporary validation failure — it resolves automatically when static IPs are configured in Section 10. Do not worry about this failure if it is the only one showing.</div>
+    <div class="wrong-item"><strong>ntp-synced: max-time-diff exceeded:</strong> The node's clock is more than 4 seconds off from NTP. The DHCP scope in VIRT-00 included the NTP server option pointing to DC01. If the node got a DHCP lease but NTP sync is failing, verify that UDP port 123 is not blocked between VLAN 110 and VLAN 70 by the NSX DFW rules.</div>
+    <div class="wrong-item"><strong>connected: node is not connected:</strong> The agent cannot reach the cluster API at 10.50.0.200:6443. Verify that the BGP route for 10.110.0.0/24 is being advertised by the leaf switches and that the NSX T0 gateway has a route back to 10.110.0.0/24. Run <code>show ip bgp 10.110.0.0</code> from the NSX Manager's EdgeNode CLI.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 09 -->
+  
+  <!-- ══ NMSTATE EXPLAINED ══ -->
+  <section id="nmstate-explained">
+  <h2>09 — NMState — what it is and every directive explained</h2>
+  <p>Before configuring static IPs and NIC bonding in Section 10, you must understand NMState completely. The Classic series standard applies: no configuration appears without a full explanation of every concept and every directive.</p>
+
+  <h3>What NMState is — the fundamental concept</h3>
+  <p>NMState is a declarative network configuration API for Linux. Instead of running a sequence of <code>ip link</code>, <code>ip addr</code>, and <code>ip route</code> commands — which are imperative ("do this now") and do not survive reboots unless separately persisted — you write a YAML file describing the desired state of the network. NMState reads the YAML and configures the network to match. If the system is rebooted, NMState re-applies the desired state automatically at boot.</p>
+  <p>For RHCOS specifically, NMState is the only supported mechanism for persistent network configuration. RHCOS's root filesystem is read-only — you cannot edit <code>/etc/sysconfig/network-scripts</code> files directly and have the changes persist across reboots. NMState configuration is applied via the Machine Config Operator, which stores it in etcd and re-applies it if the node is rebuilt. Every network configuration change on an RHCOS node is a NMState change.</p>
+
+  <h3>The NMState structure — five layers in the file</h3>
+  <p>A NMState configuration file for the DL385 Gen11 nodes has five distinct layers. Each layer configures a specific aspect of the networking stack. Understanding the layer model tells you exactly where to look when a specific network interface has a problem.</p>
+
+  <p><strong>Layer 1 — Physical interfaces:</strong> The raw NIC ports (eth0, eth1, eth2, eth3). At this layer, NMState configures the physical NIC's speed, duplex, and whether it participates in a bond. No IP addresses are assigned at this layer.</p>
+
+  <p><strong>Layer 2 — Bond:</strong> A logical interface (bond0) that aggregates multiple physical NICs into a single logical link. NMState configures the bond mode (802.3ad for LACP), LACP timing (fast or slow — fast sends PDUs every second instead of every 30 seconds, enabling faster failover detection), and which physical interfaces are bond members. No IP addresses here either — the bond is the Layer 2 aggregation. IPs go on Layer 3.</p>
+
+  <p><strong>Layer 3 — VLAN sub-interfaces:</strong> Logical interfaces on top of the bond (bond0.110, bond0.120, bond0.130, bond0.140). Each sub-interface is associated with a VLAN ID. Frames sent on bond0.110 are tagged with VLAN ID 110. Frames received from the switch with VLAN ID 110 are delivered to bond0.110. This is 802.1Q VLAN tagging at the OS level.</p>
+
+  <p><strong>Layer 4 — IP addressing:</strong> Static IP addresses are assigned to VLAN sub-interfaces. bond0.110 gets the node IP (10.110.0.11 for bm-virt-01). bond0.120 gets the ODF replication IP (10.120.0.11). bond0.130 and bond0.140 have no static IP — VM traffic uses them at Layer 2, and VMs get their own IPs.</p>
+
+  <p><strong>Layer 5 — Routing:</strong> The default route (0.0.0.0/0 via 10.110.0.3) is assigned to bond0.110 — the node's primary interface. All traffic that is not destined for the local subnets exits via this gateway (the HSRP VIP on the leaf switches). A specific host route or route policy can be added for ODF replication traffic to ensure it always uses bond0.120 — not the default gateway.</p>
+
+  <h3>Every directive in the NMState YAML — annotated</h3>
+  <p>Below is the NMState configuration for bm-virt-01, every field explained inline. This is the authoritative reference — when you see any NMState field in VIRT-03 (ODF), VIRT-04 (OCP Virt), or any subsequent guide, the explanation is here.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>nmstate-bm-virt-01.yaml — complete annotated configuration</div>
+    <div class="term-body"><pre><span class="key">interfaces:</span>
+
+<span class="td">  # ── Layer 1: Physical NIC ports ─────────────────────────────────────────
+  # eth0 through eth3 are the four physical 25G ports on the two Mellanox ConnectX-7 NICs
+  # NIC1 (slot 1): eth0 → leaf-01 Eth1/25, eth1 → leaf-02 Eth1/25
+  # NIC2 (slot 2): eth2 → leaf-01 Eth1/26, eth3 → leaf-02 Eth1/26
+  # The exact ethX names may vary — verify with 'ip link show' in the discovery environment</span>
+
+  - <span class="key">name:</span> eth0
+    <span class="key">type:</span> ethernet
+    <span class="td">    # state: up — this interface must be active. "down" would mean the cable is unplugged
+    # or the port on the leaf is shutdown. If eth0 is down, the bond cannot form.</span>
+    <span class="key">state:</span> up
+
+  - <span class="key">name:</span> eth1
+    <span class="key">type:</span> ethernet
+    <span class="key">state:</span> up
+
+  - <span class="key">name:</span> eth2
+    <span class="key">type:</span> ethernet
+    <span class="key">state:</span> up
+
+  - <span class="key">name:</span> eth3
+    <span class="key">type:</span> ethernet
+    <span class="key">state:</span> up
+
+<span class="td">  # ── Layer 2: LACP bond ────────────────────────────────────────────────────
+  # bond0 aggregates all four physical ports into one logical 100G link
+  # (theoretical max: 4 × 25G = 100G; practical usable: ~50G with LACP hash distribution)</span>
+
+  - <span class="key">name:</span> bond0
+    <span class="key">type:</span> bond
+    <span class="key">state:</span> up
+    <span class="key">link-aggregation:</span>
+      <span class="td">      # mode: 802.3ad — this is LACP (Link Aggregation Control Protocol)
+      # The switch (leaf-01/02) is also configured for LACP on the port-channels (VIRT-01 Section 13)
+      # Both sides must agree on LACP — if the switch is in "on" mode (static) and the OS
+      # is in 802.3ad mode (LACP), the bond will not form. Verify the switch port-channel
+      # uses "channel-group 211 mode active" — not "mode on"</span>
+      <span class="key">mode:</span> 802.3ad
+      <span class="key">options:</span>
+        <span class="td">        # lacp-rate: fast — send LACP PDUs every 1 second instead of every 30 seconds
+        # Faster LACP rate means the bond detects a link failure in ~3 seconds (3 missed PDUs)
+        # instead of ~90 seconds. For a production banking environment, 90-second failover
+        # detection is unacceptable. "fast" is the correct setting for production.</span>
+        <span class="key">lacp-rate:</span> fast
+        <span class="td">        # xmit-hash-policy: layer3+4 — uses source/destination IP and port for LACP hash
+        # This distributes flows across the bond's physical links based on the TCP/IP tuple.
+        # "layer2" (MAC-based) concentrates flows to the same destination on one link.
+        # "layer3+4" distributes better for a server with multiple concurrent connections.</span>
+        <span class="key">xmit-hash-policy:</span> layer3+4
+      <span class="key">port:</span>
+        - eth0
+        - eth1
+        - eth2
+        - eth3
+    <span class="key">ipv4:</span>
+      <span class="td">      # bond0 itself has no IP — IPs are assigned to VLAN sub-interfaces below
+      # dhcp: false — no DHCP on the bond interface directly. DHCP is handled on bond0.110.</span>
+      <span class="key">enabled:</span> false
+      <span class="key">dhcp:</span> false
+
+<span class="td">  # ── Layer 3 and 4: VLAN sub-interfaces with IP addressing ─────────────────</span>
+
+  - <span class="key">name:</span> bond0.110
+    <span class="key">type:</span> vlan
+    <span class="key">state:</span> up
+    <span class="key">vlan:</span>
+      <span class="td">      # base-iface: bond0 — this VLAN sub-interface sits on top of the bond
+      # id: 110 — frames sent on this interface are tagged with VLAN 110 by the OS
+      # The leaf switch receives VLAN 110 tagged frames on Po211 — it matches the trunk config</span>
+      <span class="key">base-iface:</span> bond0
+      <span class="key">id:</span> 110
+    <span class="key">ipv4:</span>
+      <span class="key">enabled:</span> true
+      <span class="key">dhcp:</span> false
+      <span class="key">address:</span>
+        <span class="td">        # ip: 10.110.0.11 — this is bm-virt-01's static node IP (from VIRT-00 Section 05)
+        # prefix-length: 24 — the subnet is /24 (10.110.0.0/24)
+        # This is the IP the OCP cluster uses for kubelet-to-API communication,
+        # pod-to-pod OVN tunnels, and node management</span>
+        - <span class="key">ip:</span> 10.110.0.11
+          <span class="key">prefix-length:</span> 24
+    <span class="key">ipv6:</span>
+      <span class="key">enabled:</span> false
+
+  - <span class="key">name:</span> bond0.120
+    <span class="key">type:</span> vlan
+    <span class="key">state:</span> up
+    <span class="key">vlan:</span>
+      <span class="key">base-iface:</span> bond0
+      <span class="td">      # id: 120 — ODF replication VLAN
+      # All Ceph OSD replication traffic uses this sub-interface
+      # VLAN 120 frames go on NIC2 (eth2/eth3 in the bond) through leaf-01/02
+      # but LACP hash may distribute to any port — both physical paths support VLAN 120</span>
+      <span class="key">id:</span> 120
+    <span class="key">ipv4:</span>
+      <span class="key">enabled:</span> true
+      <span class="key">dhcp:</span> false
+      <span class="key">address:</span>
+        <span class="td">        # 10.120.0.11 — ODF replication IP for bm-virt-01
+        # Ceph OSDs on other nodes reach this IP for replication traffic
+        # No gateway needed — all Ceph peers are in the same /24</span>
+        - <span class="key">ip:</span> 10.120.0.11
+          <span class="key">prefix-length:</span> 24
+    <span class="key">ipv6:</span>
+      <span class="key">enabled:</span> false
+
+  - <span class="key">name:</span> bond0.130
+    <span class="key">type:</span> vlan
+    <span class="key">state:</span> up
+    <span class="key">vlan:</span>
+      <span class="key">base-iface:</span> bond0
+      <span class="key">id:</span> 130
+    <span class="td">    # bond0.130 — VM workload primary VLAN
+    # This sub-interface has no static IP on the node itself
+    # VM traffic uses it at Layer 2 — the VM gets an IP from 10.130.0.0/24
+    # The node acts as a bridge between the VM and the physical VLAN
+    # This is the OVN localnet topology configured in VIRT-05</span>
+    <span class="key">ipv4:</span>
+      <span class="key">enabled:</span> false
+      <span class="key">dhcp:</span> false
+    <span class="key">ipv6:</span>
+      <span class="key">enabled:</span> false
+
+  - <span class="key">name:</span> bond0.140
+    <span class="key">type:</span> vlan
+    <span class="key">state:</span> up
+    <span class="key">vlan:</span>
+      <span class="key">base-iface:</span> bond0
+      <span class="key">id:</span> 140
+    <span class="td">    # bond0.140 — VM workload DMZ VLAN — same pattern as bond0.130
+    # No node IP — L2 bridge only for VM traffic</span>
+    <span class="key">ipv4:</span>
+      <span class="key">enabled:</span> false
+      <span class="key">dhcp:</span> false
+    <span class="key">ipv6:</span>
+      <span class="key">enabled:</span> false
+
+<span class="td"># ── Layer 5: Routing ─────────────────────────────────────────────────────</span>
+<span class="key">routes:</span>
+  <span class="key">config:</span>
+    <span class="td">    # Default route — all traffic not destined for local subnets exits via 10.110.0.3
+    # 10.110.0.3 is the HSRP virtual IP on the leaf switches (leaf-01 is Active)
+    # table-id: 254 is the main routing table (the default)</span>
+    - <span class="key">destination:</span> 0.0.0.0/0
+      <span class="key">next-hop-address:</span> 10.110.0.3
+      <span class="key">next-hop-interface:</span> bond0.110
+      <span class="key">table-id:</span> 254
+
+<span class="td"># ── DNS configuration ──────────────────────────────────────────────────────</span>
+<span class="key">dns-resolver:</span>
+  <span class="key">config:</span>
+    <span class="td">    # search: novacrestbank.local — unqualified hostnames are searched in this domain
+    # server: DC01 and DC02 — the Windows DNS servers from the VCF environment
+    # These are the same DNS servers used by all other components in NovaCrestBank</span>
+    <span class="key">search:</span>
+      - novacrestbank.local
+    <span class="key">server:</span>
+      - 10.70.0.10
+      - 10.70.0.11
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 10 -->
+  
+  <!-- ══ CONFIGURE STATIC IPS ══ -->
+  <section id="configure-static-ips">
+  <h2>10 — Configure static IPs and NIC bonding via NMState</h2>
+  <p>The NMState configuration is applied to each node via the Assisted Installer UI or API. During the discovery phase, nodes have temporary DHCP IPs from the 10.110.0.20–250 range. Before installation is triggered, the NMState configuration must be applied so that after installation and reboot, each node comes up with its correct static IP.</p>
+
+  <div class="callout">
+    <span class="cl">Why static IPs must be set before installation — not after</span>
+    <p>After installation, each node reboots into RHCOS and the kubelet starts. The kubelet registers with the cluster API using the node's IP address. If the node comes up with a DHCP IP from the discovery pool (10.110.0.20–250), the kubelet registers with that temporary IP. After DHCP lease expiry, the node's IP changes — and the cluster still thinks the node is at the old IP. This causes CSR approval to fail and the node appears as NotReady. Static IP configuration before installation prevents this entirely.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — apply NMState configuration to each agent</div>
+    <div class="term-body"><pre><span class="td"># Get the agent names (UUIDs) for all five nodes</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get agents -A -o custom-columns=NAME:.metadata.name,HOST:.spec.hostname</span>
+<span class="tg">NAME                                   HOST
+bm-virt-01.novacrestbank.local-abc123  bm-virt-01.novacrestbank.local
+bm-virt-02.novacrestbank.local-def456  bm-virt-02.novacrestbank.local
+bm-virt-03.novacrestbank.local-ghi789  bm-virt-03.novacrestbank.local
+bm-virt-04.novacrestbank.local-jkl012  bm-virt-04.novacrestbank.local
+bm-virt-05.novacrestbank.local-mno345  bm-virt-05.novacrestbank.local</span>
+
+<span class="td"># Create NMState files for each node (only the IP differs between nodes)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for n in 01 02 03 04 05; do
+  num=$((10 + 10#${n} - 1 + 11 - 10))  # generates 11, 12, 13, 14, 15
+  ip="10.110.0.1${n#0}"
+  odf_ip="10.120.0.1${n#0}"
+  cat > /opt/novacrest/virt-provisioning/nmstate-bm-virt-${n}.yaml << EOF
+interfaces:
+  - name: eth0
+    type: ethernet
+    state: up
+  - name: eth1
+    type: ethernet
+    state: up
+  - name: eth2
+    type: ethernet
+    state: up
+  - name: eth3
+    type: ethernet
+    state: up
+  - name: bond0
+    type: bond
+    state: up
+    link-aggregation:
+      mode: 802.3ad
+      options:
+        lacp-rate: fast
+        xmit-hash-policy: layer3+4
+      port: [eth0, eth1, eth2, eth3]
+    ipv4:
+      enabled: false
+      dhcp: false
+  - name: bond0.110
+    type: vlan
+    state: up
+    vlan:
+      base-iface: bond0
+      id: 110
+    ipv4:
+      enabled: true
+      dhcp: false
+      address:
+        - ip: ${ip}
+          prefix-length: 24
+    ipv6:
+      enabled: false
+  - name: bond0.120
+    type: vlan
+    state: up
+    vlan:
+      base-iface: bond0
+      id: 120
+    ipv4:
+      enabled: true
+      dhcp: false
+      address:
+        - ip: ${odf_ip}
+          prefix-length: 24
+    ipv6:
+      enabled: false
+  - name: bond0.130
+    type: vlan
+    state: up
+    vlan:
+      base-iface: bond0
+      id: 130
+    ipv4:
+      enabled: false
+      dhcp: false
+  - name: bond0.140
+    type: vlan
+    state: up
+    vlan:
+      base-iface: bond0
+      id: 140
+    ipv4:
+      enabled: false
+      dhcp: false
+routes:
+  config:
+    - destination: 0.0.0.0/0
+      next-hop-address: 10.110.0.3
+      next-hop-interface: bond0.110
+      table-id: 254
+dns-resolver:
+  config:
+    search:
+      - novacrestbank.local
+    server:
+      - 10.70.0.10
+      - 10.70.0.11
+EOF
+  echo "Created nmstate for bm-virt-${n} (node IP: ${ip}, ODF IP: ${odf_ip})"
+done</span>
+<span class="tg">Created nmstate for bm-virt-01 (node IP: 10.110.0.11, ODF IP: 10.120.0.11)
+Created nmstate for bm-virt-02 (node IP: 10.110.0.12, ODF IP: 10.120.0.12)
+Created nmstate for bm-virt-03 (node IP: 10.110.0.13, ODF IP: 10.120.0.13)
+Created nmstate for bm-virt-04 (node IP: 10.110.0.14, ODF IP: 10.120.0.14)
+Created nmstate for bm-virt-05 (node IP: 10.110.0.15, ODF IP: 10.120.0.15)</span>
+
+<span class="td"># Apply NMState to each agent using the Assisted Installer API
+# Replace the agent UUIDs with actual values from 'oc get agents -A' output above</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">AGENTS=(
+  "bm-virt-01.novacrestbank.local-abc123:bm-virt-01"
+  "bm-virt-02.novacrestbank.local-def456:bm-virt-02"
+  "bm-virt-03.novacrestbank.local-ghi789:bm-virt-03"
+  "bm-virt-04.novacrestbank.local-jkl012:bm-virt-04"
+  "bm-virt-05.novacrestbank.local-mno345:bm-virt-05"
+)
+
+for entry in "${AGENTS[@]}"; do
+  agent_name="${entry%%:*}"
+  node="${entry##*:}"
+  nmstate=$(cat /opt/novacrest/virt-provisioning/nmstate-${node}.yaml)
+  oc patch agent ${agent_name} -n assisted-installer \
+    --type merge \
+    -p "{\"spec\": {\"nmstateConfigName\": \"${node}-nmstate\"}}"
+  echo "Applied NMState to ${node}"
+done</span>
+<span class="tok">✓ NMState configuration applied to all five agents.
+✓ Each node will use its static IP configuration after installation and reboot.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 11 -->
+  
+  <!-- ══ TRIGGER INSTALL ══ -->
+  <section id="trigger-install">
+  <h2>11 — Trigger installation on all 5 nodes</h2>
+  <p>With all five nodes validated and NMState configured, installation can be triggered. All five nodes are installed in parallel — each runs its own Assisted Installer agent independently and writes RHCOS to its own disk. The process takes approximately 10–15 minutes per node from installation trigger to reboot.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — trigger installation on all five agents</div>
+    <div class="term-body"><pre><span class="td"># Approve and trigger installation for each agent</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for agent in $(oc get agents -A -o name); do
+  ns=$(echo ${agent} | cut -d/ -f1 | sed 's/agents.//')
+  name=$(echo ${agent} | cut -d/ -f2)
+  oc patch agent ${name} -n ${ns} \
+    --type merge \
+    -p '{"spec": {"approved": true}}'
+  echo "Approved: ${name}"
+done</span>
+<span class="tg">Approved: bm-virt-01.novacrestbank.local-abc123
+Approved: bm-virt-02.novacrestbank.local-def456
+Approved: bm-virt-03.novacrestbank.local-ghi789
+Approved: bm-virt-04.novacrestbank.local-jkl012
+Approved: bm-virt-05.novacrestbank.local-mno345</span>
+<span class="tok">✓ Installation triggered on all five nodes simultaneously.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 12 -->
+  
+  <!-- ══ MONITOR INSTALL ══ -->
+  <section id="monitor-install">
+  <h2>12 — Monitor installation — what you will see and when</h2>
+  <p>After triggering installation, each node goes through a defined sequence of stages. The agent updates its status in real time. Understanding the stages means you can tell whether a node is progressing normally or stuck.</p>
+
+  <table>
+    <thead><tr><th>Stage</th><th>Duration</th><th>What is happening</th><th>What success looks like</th></tr></thead>
+    <tbody>
+      <tr><td>Preparing for installation</td><td>1–2 min</td><td>Agent validates the final configuration, pulls any remaining images, and prepares the disk</td><td>Stage transitions to "Installing"</td></tr>
+      <tr><td>Installing</td><td>5–10 min</td><td>RHCOS image is written to the OS disk. The agent writes the compressed image from RAM to disk, decompresses it, and applies the ignition configuration</td><td>Stage transitions to "Rebooting"</td></tr>
+      <tr><td>Rebooting</td><td>2–3 min</td><td>Node reboots from local disk. iLO boot override was set to "Once" — this boot uses the local disk. RHCOS starts for the first time.</td><td>Agent connection lost (node is rebooting). Stage transitions to "Joined" or node appears in <code>oc get nodes</code></td></tr>
+      <tr><td>Joined</td><td>3–5 min</td><td>RHCOS booted, kubelet started, CSR submitted. Awaiting CSR approval from cluster administrator.</td><td>Node appears in <code>oc get nodes</code> as NotReady. CSR pending.</td></tr>
+      <tr><td>Ready</td><td>2–3 min after CSR approval</td><td>CSRs approved, DaemonSets deploy to the node, node completes bootstrap</td><td>Node shows Ready in <code>oc get nodes</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — watch agent installation progress</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get agents -A -o custom-columns="HOST:.spec.hostname,STAGE:.status.progress.currentStage,PROGRESS:.status.progress.installationPercentage"'</span>
+<span class="tg">Every 15.0s: oc get agents -A
+
+HOST                             STAGE         PROGRESS
+bm-virt-01.novacrestbank.local   Installing    45%
+bm-virt-02.novacrestbank.local   Installing    38%
+bm-virt-03.novacrestbank.local   Installing    52%
+bm-virt-04.novacrestbank.local   Rebooting     100%
+bm-virt-05.novacrestbank.local   Joined        100%</span>
+<span class="td"># bm-virt-04 has finished writing RHCOS and is rebooting
+# bm-virt-05 has rebooted into RHCOS and has submitted its CSR (Joined)
+# bm-virt-01/02/03 are still writing the OS image to disk</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 13 -->
+  
+  <!-- ══ CSR APPROVAL ══ -->
+  <section id="csr-approval">
+  <h2>13 — CSRs — what they are and how to approve them</h2>
+  <p>After each node reboots into RHCOS and the kubelet starts, the node submits a Certificate Signing Request (CSR) to the cluster's API server. A CSR is the Kubernetes mechanism by which a new node proves its identity and requests a certificate that allows it to communicate securely with the cluster. Without an approved CSR, the node cannot join the cluster — it stays in NotReady state indefinitely.</p>
+
+  <h3>Why CSR approval is a manual step</h3>
+  <p>CSR approval is manual because it is a security gate. Any machine that can reach the cluster API can submit a CSR claiming to be any node name. If CSR approval were automatic, a compromised machine in the network could submit a CSR claiming to be master-0, get approved, and receive a certificate that grants it the permissions of a master node. Manual approval by a cluster administrator is the verification step that says "yes, I know about this node, I racked it, and I am approving it intentionally."</p>
+
+  <h3>Two CSRs per node — why two</h3>
+  <p>Each node actually submits two CSRs in sequence. The first CSR is the <strong>client CSR</strong> — it is submitted by the node bootstrap agent and requests a client certificate allowing the node to authenticate to the API server. The second CSR is the <strong>server CSR</strong> — submitted by the kubelet after the client CSR is approved, it requests a serving certificate allowing the API server to authenticate communications coming from the node. Both must be approved. If only the first is approved, the node appears in <code>oc get nodes</code> but stays NotReady because the serving certificate is missing.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — CSR approval — watch and approve in batches</div>
+    <div class="term-body"><pre><span class="td"># Watch for pending CSRs — run this as nodes transition to "Joined" state</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csr | grep Pending</span>
+<span class="tg">csr-abc12   16m   kubernetes.io/kube-apiserver-client-kubelet   system:node:bm-virt-01   Pending
+csr-def34   14m   kubernetes.io/kube-apiserver-client-kubelet   system:node:bm-virt-02   Pending
+csr-ghi56   11m   kubernetes.io/kube-apiserver-client-kubelet   system:node:bm-virt-03   Pending
+csr-jkl78    9m   kubernetes.io/kube-apiserver-client-kubelet   system:node:bm-virt-04   Pending
+csr-mno90    7m   kubernetes.io/kube-apiserver-client-kubelet   system:node:bm-virt-05   Pending</span>
+
+<span class="td"># Verify each CSR is from an expected node before approving
+# The "Requested By" column must show system:node:bm-virt-0X — not an unknown system
+# If you see an unexpected node name, do NOT approve — investigate first</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csr -o json | python3 -c "
+import json, sys
+csrs = json.load(sys.stdin)['items']
+for c in csrs:
+  if c['status'].get('conditions') is None:  # pending
+    name = c['metadata']['name']
+    requester = c.get('spec', {}).get('username', 'unknown')
+    print(f'{name}: {requester}')
+"</span>
+<span class="tg">csr-abc12: system:node:bm-virt-01
+csr-def34: system:node:bm-virt-02
+csr-ghi56: system:node:bm-virt-03
+csr-jkl78: system:node:bm-virt-04
+csr-mno90: system:node:bm-virt-05</span>
+<span class="tok">✓ All pending CSRs are from the expected bm-virt-0X nodes. Safe to approve.</span>
+
+<span class="td"># Approve all pending CSRs (first round — client certificates)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csr -o name | xargs oc adm certificate approve</span>
+<span class="tg">certificatesigningrequest.certificates.k8s.io/csr-abc12 approved
+certificatesigningrequest.certificates.k8s.io/csr-def34 approved
+certificatesigningrequest.certificates.k8s.io/csr-ghi56 approved
+certificatesigningrequest.certificates.k8s.io/csr-jkl78 approved
+certificatesigningrequest.certificates.k8s.io/csr-mno90 approved</span>
+
+<span class="td"># Wait 2–3 minutes — the second round of CSRs (server certificates) will appear
+# The nodes submit these after their client certificates are approved</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">sleep 180 && oc get csr | grep Pending</span>
+<span class="tg">csr-pqr12   1m   kubernetes.io/kubelet-serving   system:node:bm-virt-01   Pending
+csr-stu34   1m   kubernetes.io/kubelet-serving   system:node:bm-virt-02   Pending
+csr-vwx56   1m   kubernetes.io/kubelet-serving   system:node:bm-virt-03   Pending
+csr-yza78   1m   kubernetes.io/kubelet-serving   system:node:bm-virt-04   Pending
+csr-bcd90   1m   kubernetes.io/kubelet-serving   system:node:bm-virt-05   Pending</span>
+<span class="td"># Second round — kubelet-serving CSRs (not kube-apiserver-client-kubelet)
+# These are the serving certificates — also required. Approve them the same way.</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csr -o name | xargs oc adm certificate approve</span>
+<span class="tok">✓ Both rounds of CSRs approved. Nodes will transition to Ready within 2–3 minutes.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 14 -->
+  
+  <!-- ══ NODE VERIFICATION ══ -->
+  <section id="node-verification">
+  <h2>14 — Node verification — 10 things to check before VIRT-03</h2>
+  <p>Do not proceed to VIRT-03 (ODF) until every check below passes. These 10 checks confirm that the nodes are not just Ready in Kubernetes terms, but actually functioning correctly at every layer — network, storage, and platform.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — 10-point node verification</div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: All nodes are Ready ════════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes | grep bm-virt</span>
+<span class="tg">bm-virt-01   Ready   worker   8m    v1.29.x
+bm-virt-02   Ready   worker   7m    v1.29.x
+bm-virt-03   Ready   worker   6m    v1.29.x
+bm-virt-04   Ready   worker   5m    v1.29.x
+bm-virt-05   Ready   worker   4m    v1.29.x</span>
+<span class="tok">✓ Check 1 passed. All five nodes are Ready.</span>
+
+<span class="section">! ══ CHECK 2: Nodes have correct IPs ═════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -o wide | grep bm-virt | awk '{print $1, $6}'</span>
+<span class="tg">bm-virt-01   10.110.0.11
+bm-virt-02   10.110.0.12
+bm-virt-03   10.110.0.13
+bm-virt-04   10.110.0.14
+bm-virt-05   10.110.0.15</span>
+<span class="tok">✓ Check 2 passed. All nodes have their correct static IPs from the NMState configuration.</span>
+<span class="td"># If a node shows a DHCP IP from the 10.110.0.20–250 range, the NMState was not applied
+# correctly. Debug by SSH'ing to the node and running: nmstatectl show</span>
+
+<span class="section">! ══ CHECK 3: RHCOS version matches cluster version ══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -o custom-columns="NAME:.metadata.name,OS:.status.nodeInfo.osImage" | grep bm-virt</span>
+<span class="tg">bm-virt-01   Red Hat Enterprise Linux CoreOS 416.94.202407011234-0
+bm-virt-02   Red Hat Enterprise Linux CoreOS 416.94.202407011234-0
+bm-virt-03   Red Hat Enterprise Linux CoreOS 416.94.202407011234-0
+bm-virt-04   Red Hat Enterprise Linux CoreOS 416.94.202407011234-0
+bm-virt-05   Red Hat Enterprise Linux CoreOS 416.94.202407011234-0</span>
+<span class="tok">✓ Check 3 passed. RHCOS version is consistent across all five nodes and matches cluster version 4.16.14.</span>
+
+<span class="section">! ══ CHECK 4: No node has taints yet (taints are added in Section 15) ═══</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -o json | jq '.items[] | select(.metadata.name | startswith("bm-virt")) | {node: .metadata.name, taints: .spec.taints}'</span>
+<span class="tg">{"node": "bm-virt-01", "taints": null}
+{"node": "bm-virt-02", "taints": null}
+{"node": "bm-virt-03", "taints": null}
+{"node": "bm-virt-04", "taints": null}
+{"node": "bm-virt-05", "taints": null}</span>
+<span class="tok">✓ Check 4 passed. No taints yet — nodes accept all pods currently. Taints are added in Section 15.</span>
+
+<span class="section">! ══ CHECK 5: ODF disks are visible on each node ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
+  echo "=== ${node} ==="
+  oc debug node/${node} -- chroot /host lsblk -d -o NAME,SIZE,TYPE,ROTA | \
+    grep -E "nvme|ssd|disk" | head -10 2>/dev/null
+done</span>
+<span class="tg">=== bm-virt-01 ===
+sda    480G  disk  0   ← OS disk (SSD, RAID-1)
+sdb    480G  disk  0   ← OS disk mirror
+nvme0n1 3.8T disk  0   ← ODF OSD disk 1
+nvme1n1 3.8T disk  0   ← ODF OSD disk 2
+nvme2n1 3.8T disk  0   ← ODF OSD disk 3
+nvme3n1 3.8T disk  0   ← ODF OSD disk 4
+=== bm-virt-02 ===
+sda    480G  disk  0
+sdb    480G  disk  0
+nvme0n1 3.8T disk  0
+nvme1n1 3.8T disk  0
+nvme2n1 3.8T disk  0
+nvme3n1 3.8T disk  0</span>
+<span class="tg">[bm-virt-03, 04, 05 show identical output]</span>
+<span class="tok">✓ Check 5 passed. 4 × NVMe OSD disks visible on all five nodes. These are the disks ODF will use.</span>
+
+<span class="section">! ══ CHECK 6: ODF replication network — node-to-node connectivity ═══════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01 -- chroot /host \
+  ping -c 3 -M do -s 8972 10.120.0.12 2>/dev/null | tail -5</span>
+<span class="tg">PING 10.120.0.12 (10.120.0.12) 8972(9000) bytes of data.
+8980 bytes from 10.120.0.12: icmp_seq=1 ttl=64 time=0.412 ms
+8980 bytes from 10.120.0.12: icmp_seq=2 ttl=64 time=0.388 ms
+8980 bytes from 10.120.0.12: icmp_seq=3 ttl=64 time=0.401 ms
+--- ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss</span>
+<span class="tok">✓ Check 6 passed. MTU 9000 ping succeeds between bm-virt-01 and bm-virt-02 on VLAN 120.
+✓ ODF replication network is working at full MTU. This is the critical verification before ODF install.</span>
+
+<span class="section">! ══ CHECK 7: Node can reach cluster API ════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01 -- chroot /host \
+  curl -sk -o /dev/null -w "%{http_code}" https://api.ocp.novacrestbank.local:6443/healthz</span>
+<span class="tg">200</span>
+<span class="tok">✓ Check 7 passed. Node can reach the cluster API endpoint on VLAN 50 via routing through the NSX T0.</span>
+
+<span class="section">! ══ CHECK 8: DaemonSets are running on all new nodes ═══════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get daemonset -n openshift-multus | grep -v "DESIRED.*CURRENT.*READY"</span>
+<span class="tg">NAME                   DESIRED   CURRENT   READY   ...
+multus                 9         9         9       ← 4 existing + 5 new = 9 total
+kube-multus-ds         9         9         9</span>
+<span class="tok">✓ Check 8 passed. Multus DaemonSet shows 9 = 4 existing workers + 5 new bare-metal nodes.
+✓ All DaemonSets are running on all nodes.</span>
+
+<span class="section">! ══ CHECK 9: No cluster operator degraded after node addition ═══════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get clusteroperators | grep -v "True.*False.*False"</span>
+<span class="tg">&lt;no output&gt;</span>
+<span class="tok">✓ Check 9 passed. No cluster operator degraded after adding five new nodes.</span>
+
+<span class="section">! ══ CHECK 10: Hardware resource capacity visible to the scheduler ════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc describe node bm-virt-01 | grep -A 10 "Allocatable:"</span>
+<span class="tg">Allocatable:
+  cpu:                           127500m
+  hugepages-1Gi:                 0
+  hugepages-2Mi:                 0
+  memory:                        527382Mi
+  pods:                          250</span>
+<span class="tok">✓ Check 10 passed. Scheduler sees 127.5 vCPUs and ~527 GiB RAM available on bm-virt-01.
+✓ (64 physical cores × 2 threads − kernel overhead = ~127.5 allocatable CPUs)
+✓ All 10 checks passed. Proceed to Section 15 to add labels and taints.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 15 -->
+  
+  <!-- ══ MACHINESET ══ -->
+  <section id="machineset">
+  <h2>15 — MachineSet — labelling and tainting bare-metal nodes</h2>
+  <p>At this point, the five bare-metal nodes are Ready and accepting all workloads. This is not the desired production state. The nodes must be labelled and tainted so that VM workloads are isolated to bare-metal nodes and container workloads remain on ESXi-hosted workers. This section applies those labels and taints.</p>
+
+  <h3>What labels do — and what taints do</h3>
+  <p><strong>Labels</strong> are metadata tags attached to nodes. Workloads can use node selectors or node affinity rules to prefer or require nodes with specific labels. Labels alone do not prevent workloads from landing on a node — they only attract workloads that actively select for those labels. A pod with no node selector can still land on a labelled node.</p>
+  <p><strong>Taints</strong> are repellents. A taint on a node repels all pods that do not have a matching toleration. The taint <code>kubevirt.io/virt=true:NoSchedule</code> means "do not schedule any pod on this node unless it has a toleration for kubevirt.io/virt=true." The HyperConverged Operator (installed in VIRT-04) automatically adds this toleration to all virt-launcher pods (the pods that run VMs). Regular application pods — Deployments, StatefulSets, Jobs — do not have this toleration, so they never land on tainted bare-metal nodes. This achieves clean workload isolation without a separate cluster.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — label and taint all five bare-metal nodes</div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
+  # Label: identifies this node as a bare-metal worker in the virtualization pool
+  # kubevirt.io/schedulable=true tells the virt-handler DaemonSet to run here
+  oc label node ${node} \
+    node-role.kubernetes.io/bm-worker="" \
+    kubevirt.io/schedulable="true" \
+    workload-type=virtualization \
+    --overwrite
+
+  # Taint: prevents regular container workloads from landing here
+  # NoSchedule — pods without this toleration are not scheduled here
+  # Does not evict pods already running — only affects new scheduling decisions
+  oc adm taint node ${node} \
+    kubevirt.io/virt=true:NoSchedule \
+    --overwrite
+
+  echo "${node}: labelled and tainted"
+done</span>
+<span class="tg">bm-virt-01: labelled and tainted
+bm-virt-02: labelled and tainted
+bm-virt-03: labelled and tainted
+bm-virt-04: labelled and tainted
+bm-virt-05: labelled and tainted</span>
+
+<span class="td"># Verify labels and taints</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -o custom-columns=\
+"NAME:.metadata.name,\
+ROLES:.metadata.labels.node-role\.kubernetes\.io/bm-worker,\
+SCHEDULABLE:.metadata.labels.kubevirt\.io/schedulable,\
+TAINTS:.spec.taints[*].key" | grep bm-virt</span>
+<span class="tg">bm-virt-01   (empty string)  true  kubevirt.io/virt
+bm-virt-02   (empty string)  true  kubevirt.io/virt
+bm-virt-03   (empty string)  true  kubevirt.io/virt
+bm-virt-04   (empty string)  true  kubevirt.io/virt
+bm-virt-05   (empty string)  true  kubevirt.io/virt</span>
+<span class="tok">✓ All five nodes are labelled kubevirt.io/schedulable=true and tainted kubevirt.io/virt=true:NoSchedule.
+✓ Regular container workloads will not land on these nodes.
+✓ After VIRT-04 installs the HyperConverged Operator, VM virt-launcher pods will schedule here.</span>
+    </pre></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 16 -->
+  
+  <!-- ══ DEBUGGING ══ -->
+  <section id="debugging">
+  <h2>16 — Debugging — what goes wrong and the root cause of each failure</h2>
+  <p>This section documents the most common failures during bare-metal provisioning — with the exact symptom, the root cause, and the fix. When something fails, check this section before spending time in the wrong place.</p>
+
+  <div class="wrong-box">
+    <div class="wrong-title">Node boots but never appears in Assisted Installer — root causes</div>
+    <div class="wrong-item"><strong>Symptom:</strong> Server powers on, boots from ISO, but no agent appears in <code>oc get agents -A</code> after 10 minutes. <strong>Root cause:</strong> DHCP relay is not working — the node has no IP and cannot reach the cluster API to register. <strong>Fix:</strong> Check leaf switch SVI for <code>ip helper-address 10.70.0.10</code>. Check DC01 DHCP scope is active and has available addresses. Check the route from leaf SVI to 10.70.0.10 exists in the routing table.</div>
+    <div class="wrong-item"><strong>Symptom:</strong> Server gets a DHCP IP but agent does not register. <strong>Root cause:</strong> The agent cannot reach <code>api.ocp.novacrestbank.local:6443</code>. The BGP route for 10.50.0.0/24 is not reachable from VLAN 110. <strong>Fix:</strong> From the jump host, verify <code>nc -zv 10.50.0.200 6443</code> from a host on VLAN 110. Check that the BGP advertisement for 10.110.0.0/24 from the leaf reaches the NSX T0, and that the T0 has a return route.</div>
+    <div class="wrong-item"><strong>Symptom:</strong> Agent appears but hostname shows as unknown or incorrect. <strong>Root cause:</strong> The MAC address in agent-config.yaml does not match the physical NIC. The agent cannot correlate the discovered hardware to a hostname definition. <strong>Fix:</strong> Retrieve the actual MAC from the iLO Redfish <code>/redfish/v1/Systems/1/EthernetInterfaces</code> endpoint and update agent-config.yaml, then regenerate the ISO.</div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">CSR never appears after node reboots — root causes</div>
+    <div class="wrong-item"><strong>Symptom:</strong> Node rebooted but no CSR appears in <code>oc get csr</code> after 5 minutes. <strong>Root cause:</strong> The NMState configuration was not applied correctly — the node came up with a DHCP IP instead of its static IP. The kubelet cannot register because it has the wrong IP. <strong>Fix:</strong> SSH to the node using its DHCP IP (visible in the leaf MAC address table) and run <code>nmstatectl show</code>. Verify the bond and VLAN sub-interfaces are present. If not, re-apply the NMState manually: <code>nmstatectl apply nmstate-bm-virt-01.yaml</code>.</div>
+    <div class="wrong-item"><strong>Symptom:</strong> CSR appears but shows an unexpected node name. <strong>Root cause:</strong> The hostname in agent-config.yaml does not match the DNS reverse lookup of the node's IP. <strong>Fix:</strong> Do not approve this CSR. Investigate why the hostname assignment is wrong before proceeding.</div>
+  </div>
+
+  <div class="callout">
+    <span class="cl">VIRT-02 complete — five bare-metal nodes are Ready</span>
+    <p>All five HP ProLiant DL385 Gen11 nodes are Running RHCOS, joined to the existing OCP cluster, labelled and tainted for OpenShift Virtualization workloads, and verified across 10 checks. The ODF replication network (VLAN 120) passes the MTU 9000 end-to-end ping test. Open VIRT-03 to install ODF on the bare-metal nodes' NVMe disks.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

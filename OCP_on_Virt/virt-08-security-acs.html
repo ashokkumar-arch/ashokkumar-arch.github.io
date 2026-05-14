@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-08 — Security: ACS &amp; VM Hardening · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --acs:#c0392b;--acs-bg:#fdf0ef;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.acs{border-left-color:var(--acs)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.acs .cl{color:var(--acs)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}.tc{color:#61c5eb}.tg{color:#4ccd99}.td{color:#608b7a}
+.tw{color:#cca700}.te{color:#f85149}.tok{color:#3fb950;font-weight:600}
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+/* ACS-specific */
+.pillar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.pillar-card{background:var(--bg2);padding:14px 16px}
+.pillar-tag{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--acs);margin-bottom:4px;font-weight:700}
+.pillar-name{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.pillar-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.pillar-vm{font-size:12px;color:var(--text3);margin-top:6px;font-style:italic}
+.policy-table td:first-child{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--text)}
+.badge{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:12px}
+.badge-enforce{background:#fce8e8;color:#7a0000;border:1px solid #fca5a5}
+.badge-inform{background:var(--amber-bg);color:var(--amber);border:1px solid #fcd38a}
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-08</div>
+    <div class="sb-title">Security: ACS &amp; VM Hardening</div>
+    <div class="sb-sub">ACS on bare-metal · VM policies · NetworkPolicy · Compliance · PCI-DSS</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">ACS on bare-metal nodes</div>
+    <a class="sb-item active" href="#acs-and-vms">01 — What ACS sees on bare-metal VM nodes — and what it cannot</a>
+    <a class="sb-item" href="#acs-install-recap">02 — ACS installation recap — Central and SecuredCluster</a>
+    <a class="sb-item" href="#collector-bm">03 — Extending the Collector DaemonSet to bare-metal nodes</a>
+    <a class="sb-item" href="#virt-launcher-visibility">04 — What ACS sees inside virt-launcher pods</a>
+    <div class="sb-sec">VM-specific security policies</div>
+    <a class="sb-item" href="#vm-policies">05 — VM-specific ACS policies — what to enforce and when</a>
+    <a class="sb-item" href="#policy-virt-launcher">06 — virt-launcher runtime behaviour — building the baseline</a>
+    <a class="sb-item" href="#custom-policies">07 — Custom ACS policies for banking VM workloads</a>
+    <a class="sb-item" href="#admission-vms">08 — Admission controller for VirtualMachine CRs</a>
+    <div class="sb-sec">Network policies for VM traffic</div>
+    <a class="sb-item" href="#acs-network-graph-vms">09 — ACS network graph — observing VM traffic</a>
+    <a class="sb-item" href="#networkpolicy-virt">10 — NetworkPolicy for virt-workloads namespace</a>
+    <a class="sb-item" href="#vlan-policy-scope">11 — VLAN 130/140 traffic — what NetworkPolicy cannot control</a>
+    <div class="sb-sec">VM guest OS hardening</div>
+    <a class="sb-item" href="#scc-virt">12 — Security Context Constraints for virt-launcher pods</a>
+    <a class="sb-item" href="#guest-hardening">13 — RHEL 9 guest OS hardening — CIS Benchmark Level 1</a>
+    <a class="sb-item" href="#windows-hardening">14 — Windows Server 2022 guest hardening</a>
+    <div class="sb-sec">Compliance scanning</div>
+    <a class="sb-item" href="#compliance-scan-virt">15 — Running ACS compliance scans for the VIRT environment</a>
+    <a class="sb-item" href="#pci-dss-mapping">16 — PCI-DSS controls satisfied by ACS for virtualised workloads</a>
+    <a class="sb-item" href="#nist-mapping">17 — NIST SP 800-53 controls satisfied by ACS</a>
+    <a class="sb-item" href="#splunk-integration">18 — ACS → Splunk — VM security event forwarding</a>
+    <a class="sb-item" href="#handover">19 — Readiness checklist — gate to VIRT-09</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-07-lifecycle-gitops.html">← VIRT-07 — VM Lifecycle</a>
+    <a class="sb-item" href="virt-09-acm.html">VIRT-09 — ACM →</a>
+  </div>
+  <div class="sb-foot">VIRT-08 · Security · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-08 · Security: ACS &amp; VM Hardening</div>
+  <div class="prereq-bar">VIRT-07 complete — VMs under GitOps control, OADP backup active, evictionStrategy configured</div>
+  <h1>Security: ACS &amp; VM Hardening</h1>
+  <div class="subtitle">Extending Red Hat Advanced Cluster Security to bare-metal VM nodes —<br>VM-specific policies, NetworkPolicy, guest OS hardening, and PCI-DSS/NIST compliance evidence</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-06<br>MTV</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-07<br>Lifecycle</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-08<br>Security</div>
+    <div class="pt"><span class="pt-n">10</span>VIRT-09<br>ACM</div>
+    <div class="pt"><span class="pt-n">11</span>VIRT-10<br>AAP</div>
+    <div class="pt"><span class="pt-n">12</span>VIRT-11<br>NSX Exit</div>
+  </div>
+
+  <!-- ══ 01 ACS AND VMS ══ -->
+  <section id="acs-and-vms">
+  <h2>01 — What ACS sees on bare-metal VM nodes — and what it cannot</h2>
+  <p>ACS was deployed in OCP-OPS-03 for NovaCrestBank's existing OCP workloads. Its Collector DaemonSet runs on every node, using eBPF probes to observe system calls from every container. In the VIRT environment, the bare-metal nodes run virt-launcher pods — each pod contains a running QEMU process that hosts a VM guest OS. ACS sees the virt-launcher pod as it sees any other pod. The key distinction is what is visible inside the virt-launcher versus what is happening inside the VM guest OS.</p>
+
+  <h3>The three visibility layers for VM workloads</h3>
+  <p><strong>Layer 1 — The virt-launcher pod (fully visible to ACS):</strong> The virt-launcher pod is a standard Kubernetes pod running on the bare-metal node. ACS's Collector eBPF probe observes every system call from the virt-launcher process: the QEMU process that starts, the vhost-net threads that handle VM I/O, the libvirt management socket. ACS can detect anomalous behaviour in the virt-launcher itself — unexpected process executions, unexpected network connections made by the virt-launcher pod, unexpected file writes by QEMU. This is the same level of visibility ACS has for any container.</p>
+  <p><strong>Layer 2 — Guest OS processes through QEMU (partially visible):</strong> The VM's guest OS runs as a QEMU subprocess. Guest OS I/O passes through the QEMU virtual device drivers. Network traffic that goes through the masquerade primary interface (VLAN 110, OVN overlay) is visible to ACS as network connections from the virt-launcher pod — ACS sees the source and destination IP but not the content. Process executions inside the guest OS are not visible to ACS — they are inside the QEMU virtualisation boundary, which the host's eBPF probes cannot cross.</p>
+  <p><strong>Layer 3 — Guest OS internal processes (not visible to ACS):</strong> What the banking application running inside the VM does — file opens, internal TCP connections between services within the VM, process trees — is not visible to ACS via eBPF. The eBPF probe runs on the host kernel; it cannot observe system calls made inside the guest kernel. This is the fundamental visibility boundary for VM workloads: ACS sees the container (virt-launcher), not what is happening inside the VM.</p>
+
+  <div class="callout acs">
+    <span class="cl">The visibility gap — and what compensates for it</span>
+    <p>For containerised workloads, ACS provides complete visibility inside every running pod. For VM workloads, ACS's visibility stops at the virt-launcher boundary. What compensates for this gap? Three controls work together:</p>
+    <p><strong>qemu-guest-agent:</strong> Installed in all NovaCrestBank VMs (confirmed in VIRT-04). The agent provides a bidirectional channel between the host and the guest OS. KubeVirt uses it for filesystem freeze/thaw (OADP backup). With additional configuration, it can also report guest process lists and guest file system events — supplementing ACS's host-level visibility.</p>
+    <p><strong>Guest OS hardening (Sections 13–14):</strong> Rather than relying on external detection, the guest OS is hardened to reduce the attack surface — CIS Benchmark controls, minimal package sets, audit logging from within the guest. Guest OS audit logs are forwarded to Splunk from within the VM, providing the process-level visibility inside the VM that ACS cannot.</p>
+    <p><strong>Network traffic analysis:</strong> ACS sees all network traffic leaving the VM via the masquerade interface (primary, OVN overlay) and can detect unexpected external connections even if the guest OS process that initiated them is not visible. <span class="reg reg-pci">PCI-DSS v4.0 Req 11.5.1</span></p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 ACS INSTALL RECAP ══ -->
+  <section id="acs-install-recap">
+  <h2>02 — ACS installation recap — Central and SecuredCluster</h2>
+  <p>ACS was installed in OCP-OPS-03. This section confirms that the existing ACS deployment is ready to extend to the VIRT environment and identifies any additional configuration needed for bare-metal VM nodes.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify ACS is healthy and operational before extending to VM nodes</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: ACS Central and all components Running ════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n stackrox --no-headers | \
+  grep -v "Running\|Completed" | wc -l</span>
+<span class="tg">0</span>
+<span class="tok">✓ All ACS pods Running. No pods in error state.</span>
+
+<span class="section">! ══ CHECK 2: SecuredCluster registered and Healthy ══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl central cluster list \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --ca ~/ocp-kit/certs/chain.pem \
+  --password "${ACS_PASS}"</span>
+<span class="tg">NAME               STATUS    ADMCTL   SENSOR VERSION   LAST CONTACT
+ncb-ocp-cluster    Healthy   Active   4.4.x            just now</span>
+<span class="tok">✓ SecuredCluster Healthy. Admission Controller Active. Sensor reporting.</span>
+
+<span class="section">! ══ CHECK 3: Collector count — bare-metal nodes included ════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n stackrox -l app=collector \
+  -o custom-columns="NAME:.metadata.name,NODE:.spec.nodeName" | wc -l</span>
+<span class="tg">16</span>
+<span class="tok">✓ 16 Collector pods (1 header + 15 nodes: 3 masters + 3 infra + 4 ESXi workers + 5 bare-metal).
+  The Collector DaemonSet already schedules on bare-metal nodes because it targets ALL nodes.
+  Bare-metal nodes have no special taint that would block the Collector.</span>
+
+<span class="td"># Confirm bare-metal nodes have Collector pods</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n stackrox -l app=collector \
+  -o custom-columns="POD:.metadata.name,NODE:.spec.nodeName" | \
+  grep bm-virt</span>
+<span class="tg">collector-bm01   bm-virt-01.novacrestbank.local
+collector-bm02   bm-virt-02.novacrestbank.local
+collector-bm03   bm-virt-03.novacrestbank.local
+collector-bm04   bm-virt-04.novacrestbank.local
+collector-bm05   bm-virt-05.novacrestbank.local</span>
+<span class="tok">✓ All 5 bare-metal nodes have Collector pods. ACS already has eBPF visibility
+  into virt-launcher pods on these nodes. No additional Collector configuration needed.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 COLLECTOR BM ══ -->
+  <section id="collector-bm">
+  <h2>03 — Extending the Collector DaemonSet to bare-metal nodes</h2>
+  <p>The ACS Collector DaemonSet deploys to all nodes by default — it does not require special configuration to reach bare-metal nodes. However, the bare-metal nodes carry the <code>kubevirt.io/virt=true:NoSchedule</code> taint. Without a toleration, the Collector DaemonSet cannot schedule on tainted nodes.</p>
+
+  <div class="callout warn">
+    <span class="cl">The kubevirt.io/virt taint — does the Collector tolerate it?</span>
+    <p>The ACS Collector DaemonSet in OCP-OPS-03 was configured for ESXi-hosted nodes that do not carry the <code>kubevirt.io/virt</code> taint. If the Collector was deployed before the bare-metal nodes were tainted (in VIRT-02), the existing DaemonSet may already be running on bare-metal nodes — the taint only blocks new scheduling; it does not evict pods that were already running when the taint was added. However, if the Collector pod on a bare-metal node is restarted for any reason (node reboot, pod crash, ACS upgrade), it will fail to reschedule without the toleration. Verify the toleration is present in the SecuredCluster CR and patch it if absent.</p>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">Patch SecuredCluster to add kubevirt toleration to Collector DaemonSet</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Check if the Collector DaemonSet already tolerates the kubevirt taint</span>
+<span class="yc"># If not: patch the SecuredCluster CR to add the toleration</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">platform.stackrox.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">SecuredCluster</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">stackrox-secured-cluster-services</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">stackrox</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">clusterName</span><span class="yc">:</span> <span class="yv">ncb-ocp-cluster</span>
+  <span class="yk">centralEndpoint</span><span class="yc">:</span> <span class="yv">central.stackrox.svc:443</span>
+  <span class="yk">perNode</span><span class="yc">:</span>
+    <span class="yk">collector</span><span class="yc">:</span>
+      <span class="yk">collection</span><span class="yc">:</span> <span class="yv">EBPF</span>
+      <span class="yc">      # EBPF: use eBPF probes for system call observation.
+      # EBPF is the modern, kernel-module-free collection method.
+      # Required for bare-metal RHCOS nodes — kernel modules are not supported on RHCOS.
+      # CORE_BPF is available in ACS 4.3+ and has lower overhead than EBPF on newer kernels.
+      # For OCP 4.16 with RHCOS kernel 5.14+, CORE_BPF is the preferred option — but
+      # EBPF is fully supported and proven.</span>
+    <span class="yk">tolerations</span><span class="yc">:</span>
+      <span class="yc">- key</span><span class="yc">:</span> <span class="yv">kubevirt.io/virt</span>
+        <span class="yk">operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+        <span class="yk">effect</span><span class="yc">:</span> <span class="yv">NoSchedule</span>
+        <span class="yc">        # The bare-metal nodes carry kubevirt.io/virt=true:NoSchedule.
+        # This toleration allows the Collector DaemonSet pod to schedule on tainted nodes.
+        # Without this toleration, the Collector pod is evicted from bare-metal nodes
+        # on any restart — creating a silent eBPF visibility gap on VM-hosting nodes.
+        # Effect: ACS would have no visibility into virt-launcher pods after any Collector restart.</span>
+      <span class="yc">- key</span><span class="yc">:</span> <span class="yv">cluster.ocs.openshift.io/openshift-storage</span>
+        <span class="yk">operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+        <span class="yk">effect</span><span class="yc">:</span> <span class="yv">NoSchedule</span>
+        <span class="yc">        # The bare-metal nodes also carry the ODF storage label/taint.
+        # Adding this toleration ensures Collector survives any future storage taint additions.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply toleration patch and verify Collector on all bare-metal nodes</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f secured-cluster-with-tolerations.yaml</span>
+<span class="tg">securedcluster.platform.stackrox.io/stackrox-secured-cluster-services configured</span>
+
+<span class="td"># Wait for the ACS operator to update the Collector DaemonSet (~60 seconds)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc rollout status daemonset/collector -n stackrox</span>
+<span class="tg">daemon set "collector" successfully rolled out</span>
+
+<span class="td"># Verify all 5 bare-metal nodes have Running Collector pods</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n stackrox -l app=collector \
+  -o custom-columns="POD:.metadata.name,NODE:.spec.nodeName,STATUS:.status.phase" | \
+  grep bm-virt</span>
+<span class="tg">collector-bm01   bm-virt-01.novacrestbank.local   Running
+collector-bm02   bm-virt-02.novacrestbank.local   Running
+collector-bm03   bm-virt-03.novacrestbank.local   Running
+collector-bm04   bm-virt-04.novacrestbank.local   Running
+collector-bm05   bm-virt-05.novacrestbank.local   Running</span>
+<span class="tok">✓ All 5 bare-metal nodes have Running Collector pods.
+  ACS now has persistent eBPF visibility into all virt-launcher pods on all bare-metal nodes.
+  The toleration ensures Collector reschedules correctly after any node reboot or pod restart.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 VIRT LAUNCHER VISIBILITY ══ -->
+  <section id="virt-launcher-visibility">
+  <h2>04 — What ACS sees inside virt-launcher pods</h2>
+  <p>With the Collector running on bare-metal nodes, ACS builds a behavioural baseline for virt-launcher pods. Understanding what is normal for a virt-launcher pod — and what deviates from normal — is what makes the baseline meaningful and the policy alert thresholds correct.</p>
+
+  <h3>Normal virt-launcher process tree</h3>
+  <p>A healthy virt-launcher pod running a RHEL 9 banking application VM has a predictable process tree. ACS's Collector observes every process execution via eBPF and builds this as the baseline for the deployment:</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">ACS Central — normal process baseline for a virt-launcher pod</div></div>
+    <div class="term-body"><pre><span class="td"># In ACS Central UI: Workloads → Deployments → virt-workloads → vm-banking-app-01
+# Process Discovery tab shows the observed process baseline:</span>
+
+<span class="tg">PID 1    /usr/bin/virt-launcher-monitor    ← virt-launcher entrypoint
+  PID 2  /usr/bin/virt-launcher            ← KubeVirt VM manager
+    PID 3  /usr/libexec/qemu-kvm [args]   ← QEMU/KVM — the VM hypervisor process
+              -machine q35                 ← x86-64 machine type
+              -cpu host                    ← host-passthrough (EPYC 9354P)
+              -m 32G                       ← 32 GiB guest memory
+              -object memory-backend-file  ← hugepage-backed guest RAM
+              -drive file=/dev/vda         ← VM boot disk (ODF RBD PVC)
+    PID 4  /usr/sbin/virtqemud             ← libvirt daemon for QEMU management
+    PID 5  /usr/bin/qemu-ga               ← qemu-guest-agent — filesystem quiesce</span>
+
+<span class="tok">✓ This is the complete normal process tree. Every process is expected.
+  ACS baseline: virt-launcher-monitor, virt-launcher, qemu-kvm, virtqemud, qemu-ga.
+  Any process outside this set during the baseline period creates a deviation alert.</span></pre>
+    </div>
+  </div>
+
+  <div class="callout acs">
+    <span class="cl">What would indicate virt-launcher compromise</span>
+    <p><strong>Shell process spawned by QEMU:</strong> If the QEMU process spawns <code>/bin/bash</code> or <code>/bin/sh</code>, this indicates a VM escape exploit — an attacker has broken out of the guest OS and is executing code on the host. This is an extremely high-severity event. ACS detects it at the eBPF level immediately.</p>
+    <p><strong>Unexpected network connection from virt-launcher:</strong> virt-launcher makes only known network connections — to the OVN overlay (for the masquerade interface) and to ODF storage (RBD PVC). An unexpected connection to an external IP from the virt-launcher process indicates host-level compromise following a VM escape.</p>
+    <p><strong>File write outside known paths:</strong> QEMU writes only to the PVC block device and to its socket files in <code>/var/run/kubevirt-private</code>. Unexpected writes to <code>/tmp</code>, <code>/usr/bin</code>, or the node's filesystem indicate post-escape activity.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 VM POLICIES ══ -->
+  <section id="vm-policies">
+  <h2>05 — VM-specific ACS policies — what to enforce and when</h2>
+  <p>ACS ships with over 70 built-in security policies. Some apply directly to VM workloads. Others need to be scoped carefully — policies written for containerised applications may generate false positives against virt-launcher pods because virt-launcher behaves differently from a standard application container.</p>
+
+  <table class="policy-table">
+    <thead><tr><th>ACS Policy</th><th>VM relevance</th><th>Mode</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Shell Spawned by Java Application</td>
+        <td>Applies to banking application containers on OCP — not directly to virt-launcher. Relevant if any Java container runs on the same bare-metal node.</td>
+        <td><span class="badge badge-enforce">Enforce</span></td>
+        <td>Post-baseline. Java RCE detection — highest value policy for NovaCrestBank's Java banking services.</td>
+      </tr>
+      <tr>
+        <td>Privileged Container</td>
+        <td>Directly relevant — virt-launcher pods require elevated capabilities (CAP_NET_ADMIN, KVM device access). Must be scoped to exclude virt-launcher, then enforced on all other workloads.</td>
+        <td><span class="badge badge-enforce">Enforce</span> with scope exclusion</td>
+        <td>Immediate after scoping. Prevents non-VM pods from running with elevated privileges. Section 06 covers the exclusion.</td>
+      </tr>
+      <tr>
+        <td>Process with UID 0</td>
+        <td>Relevant — virt-launcher runs with <code>nonRoot: true</code> (set in VIRT-04 HyperConverged CR). Any virt-launcher pod running as root is a configuration regression.</td>
+        <td><span class="badge badge-enforce">Enforce</span></td>
+        <td>Post-baseline. Confirms nonRoot: true is in effect. Any root process in a virt-launcher triggers immediate investigation.</td>
+      </tr>
+      <tr>
+        <td>Network Baseline Violation</td>
+        <td>Critical for VM workloads. virt-launcher makes only known network connections — OVN overlay, ODF RBD storage, migration network. Any connection outside this set indicates compromise.</td>
+        <td><span class="badge badge-enforce">Enforce</span> post-baseline</td>
+        <td>After 14-day baseline. Most valuable runtime detection policy for VM workloads. Detects VM escape network activity.</td>
+      </tr>
+      <tr>
+        <td>Cryptocurrency Mining Process Execution</td>
+        <td>Relevant — a compromised bare-metal node hosting VMs is an attractive crypto-mining target due to the high CPU and memory resources available on the DL385 Gen11 nodes.</td>
+        <td><span class="badge badge-enforce">Enforce</span></td>
+        <td>Immediate. Known-bad process names — no false positives expected in a banking environment.</td>
+      </tr>
+      <tr>
+        <td>Iptables Execution</td>
+        <td>Must be carefully scoped for VM nodes. virt-launcher uses iptables for masquerade NAT (the primary interface). This policy would fire continuously on virt-launcher pods without an exclusion.</td>
+        <td><span class="badge badge-inform">Inform</span> with exclusion</td>
+        <td>Exclude virt-workloads namespace from this policy. Apply Enforce only to namespaces with no VM workloads.</td>
+      </tr>
+      <tr>
+        <td>Secret Access in Environment Variables</td>
+        <td>Relevant — cloud-init Secrets should be mounted as files (via secretRef in VirtualMachine CR), not as environment variables. ACS detects Secrets mounted as env vars.</td>
+        <td><span class="badge badge-inform">Inform</span></td>
+        <td>Advisory — used to audit VM Secret mounting practice. Does not block deployments.</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 POLICY VIRT LAUNCHER ══ -->
+  <section id="policy-virt-launcher">
+  <h2>06 — virt-launcher runtime behaviour — building the baseline correctly</h2>
+  <p>The most important step before enforcing any ACS policy on the virt-workloads namespace is the 14-day baseline observation period — and it must cover virt-launcher pods specifically. virt-launcher behaves differently from standard application containers. Without a correct baseline, legitimate virt-launcher activity generates false-positive alerts and enforcement causes VM operations to fail.</p>
+
+  <h3>What happens during a live migration — and why the baseline must include it</h3>
+  <p>During live migration, the virt-launcher pod on the destination node is created fresh. KubeVirt sets up the migration tunnel — the source virt-launcher pod opens a network connection to the destination virt-launcher pod on the migration port (port 49152 by default). This is an unexpected network connection from the source virt-launcher's perspective — it is connecting to a previously unseen IP (the destination virt-launcher pod IP) on a previously unseen port.</p>
+  <p>Without a baseline that includes live migration traffic, the ACS Network Baseline Violation policy fires every time a VM is live-migrated. In a Enforce mode, this would kill the source virt-launcher pod mid-migration — crashing the VM. Before switching Network Baseline Violation to Enforce mode, verify that at least one live migration has occurred during the observation period and that the migration network connection appears in the baseline.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — trigger a live migration during baseline observation to include it in the baseline</div></div>
+    <div class="term-body"><pre><span class="td"># During the 14-day observation period, trigger at least one live migration
+# of each production VM to ensure migration traffic appears in the ACS network baseline</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl migrate vm-banking-app-01 -n virt-workloads && \
+  virtctl migrate vm-banking-app-02 -n virt-workloads && \
+  virtctl migrate vm-api-gateway-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to migrate
+VM vm-banking-app-02.virt-workloads was scheduled to migrate
+VM vm-api-gateway-01.virt-workloads was scheduled to migrate</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmim -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,PHASE:.status.phase"</span>
+<span class="tg">NAME                              PHASE
+kubevirt-migrate-vm-banking-01    Succeeded
+kubevirt-migrate-vm-banking-02    Succeeded
+kubevirt-migrate-vm-api-01        Succeeded</span>
+<span class="tok">✓ All three production VMs migrated during the baseline observation period.
+  Migration network connections (port 49152, pod-to-pod VLAN 110) are now in the baseline.
+  After 14 days, Network Baseline Violation can be switched to Enforce without false positives.</span>
+
+<span class="td"># Also trigger a VirtualMachineSnapshot during the observation period
+# The freeze/thaw via qemu-guest-agent creates temporary process activity in the baseline</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f vmsnapshot-baseline-test.yaml -n virt-workloads</span>
+<span class="tg">virtualmachinesnapshot.snapshot.kubevirt.io/baseline-test-snapshot created</span>
+<span class="tok">✓ Snapshot activity (qemu-agent-command freeze/thaw) added to the baseline.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 CUSTOM POLICIES ══ -->
+  <section id="custom-policies">
+  <h2>07 — Custom ACS policies for banking VM workloads</h2>
+  <p>Beyond the built-in ACS policies, two custom policies are created specifically for NovaCrestBank's VM workloads: one that detects QEMU process anomalies, and one that enforces the MAC address convention for VM secondary interfaces.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — create custom ACS policy via roxctl API</div></div>
+    <div class="term-body"><pre><span class="td"># Custom Policy 1: Alert if any process other than known QEMU processes
+# executes inside a virt-launcher pod after the baseline period</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
+  -u "admin:${ACS_PASS}" \
+  -X POST \
+  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/policies" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "VM Escape Indicator — Unexpected Process in virt-launcher",
+    "description": "Detects unexpected process execution inside a virt-launcher pod. Any process other than qemu-kvm, virt-launcher, virt-launcher-monitor, virtqemud, and qemu-ga is a potential VM escape indicator.",
+    "severity": "CRITICAL_SEVERITY",
+    "categories": ["Anomalous Activity"],
+    "lifecycleStages": ["RUNTIME"],
+    "enforcementActions": ["KILL_POD_ENFORCEMENT"],
+    "scope": [{"namespace": "virt-workloads"}],
+    "conditions": [{
+      "fieldName": "Process Name",
+      "op": "NOT_IN",
+      "value": "qemu-kvm,virt-launcher,virt-launcher-monitor,virtqemud,qemu-ga,pause"
+    }]
+  }' | python3 -c "import json,sys; p=json.load(sys.stdin); print(f\"Created: {p['\''id'\'']}\")"</span>
+<span class="tg">Created: policy-vm-escape-abc123</span>
+<span class="tok">✓ Custom VM escape detection policy created. Severity: CRITICAL. Mode: Enforce (kill pod).
+  Any unexpected process in a virt-launcher pod kills the pod immediately.
+  This is aggressive but correct: an unexpected process in virt-launcher is either
+  a configuration error (fix the VirtualMachine CR) or an active VM escape (kill immediately).</span>
+
+<span class="td"># Custom Policy 2: Alert if a VirtualMachine CR is created without an explicit macAddress
+# on secondary interfaces — prevents live migration MAC mobility issues (VIRT-05 Section 16)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
+  -u "admin:${ACS_PASS}" \
+  -X POST \
+  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/policies" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "VM Secondary Interface Missing Explicit MAC Address",
+    "description": "VirtualMachine CRs with secondary (bridge) interfaces must have an explicit macAddress. Without it, live migration changes the MAC and causes network disruption.",
+    "severity": "HIGH_SEVERITY",
+    "categories": ["Network"],
+    "lifecycleStages": ["DEPLOY"],
+    "enforcementActions": [],
+    "scope": [{"namespace": "virt-workloads"}]
+  }' | python3 -c "import json,sys; p=json.load(sys.stdin); print(f\"Created: {p['\''id'\'']}\")"</span>
+<span class="tg">Created: policy-vm-mac-abc456</span>
+<span class="tok">✓ VM MAC address policy created. Mode: Inform (advisory). Deployment-time check.
+  This policy informs when a VM is deployed without an explicit MAC on secondary interfaces.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 ADMISSION VMS ══ -->
+  <section id="admission-vms">
+  <h2>08 — Admission controller for VirtualMachine CRs</h2>
+  <p>ACS's admission controller intercepts pod creation requests and evaluates them against security policies before the pod runs. However, the ACS admission controller intercepts <em>Pod</em> admission — not <em>VirtualMachine</em> CR admission. When a VirtualMachine CR is applied to Kubernetes, the ACS admission controller does not see it — it is a custom resource. ACS sees the admission of the virt-launcher <em>Pod</em> that KubeVirt creates when the VM starts.</p>
+
+  <h3>What the admission controller evaluates for virt-launcher pods</h3>
+  <p>When a VM is started and KubeVirt creates the virt-launcher pod, the ACS admission controller evaluates the pod spec against all configured policies. At this point, ACS can block the virt-launcher pod from starting if it violates a policy — which effectively prevents the VM from starting. The key policies evaluated at admission time for virt-launcher pods:</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — test admission controller evaluation of a virt-launcher pod</div></div>
+    <div class="term-body"><pre><span class="td"># Test: try to start a VM that would violate the Privileged Container policy
+# (i.e., a VirtualMachine CR without the nonRoot feature gate being set properly)
+# In practice this is prevented by HyperConverged nonRoot: true — this is a verification</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl start vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to start</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Running</span>
+<span class="tok">✓ virt-launcher pod was admitted by ACS admission controller.
+  The pod does not run as root (nonRoot: true from HyperConverged CR).
+  The pod uses KVM device access via capabilities, not privileged: true.
+  No policy violations — VM started successfully.</span>
+
+<span class="td"># View the admission controller evaluation in ACS Central for this pod start</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl alert list \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --ca ~/ocp-kit/certs/chain.pem \
+  --password "${ACS_PASS}" \
+  --since 5m --namespace virt-workloads 2>/dev/null | head -5</span>
+<span class="tg">(no output)</span>
+<span class="tok">✓ No alerts for the virt-launcher pod admission. Clean admission — all policies passed.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 ACS NETWORK GRAPH VMS ══ -->
+  <section id="acs-network-graph-vms">
+  <h2>09 — ACS network graph — observing VM traffic patterns</h2>
+  <p>ACS's network graph shows all observed network connections enriched with Kubernetes metadata. For VM workloads, the network graph shows connections made by virt-launcher pods — which includes the VM's traffic that flows through the masquerade primary interface (OVN overlay, VLAN 110). The network graph does not show traffic on the VM's secondary VLAN 130/140 interface — that traffic bypasses the OVN overlay entirely (it is localnet traffic that goes directly to the physical fabric). Section 11 explains this scope limitation and what compensates for it.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — generate NetworkPolicy for virt-workloads from ACS network baseline</div></div>
+    <div class="term-body"><pre><span class="td"># After the 14-day baseline observation period, export the observed network traffic
+# for the virt-workloads namespace and generate NetworkPolicy from it</span>
+
+<span class="td"># In ACS Central UI: Network Graph → virt-workloads namespace → 14 days window
+# → Generate and simulate network policies → Export YAML</span>
+
+<span class="td"># Or via API — get the network graph for virt-workloads</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
+  -u "admin:${ACS_PASS}" \
+  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/networkgraph?clusterId=ncb-ocp-cluster&namespaces=virt-workloads&since=336h" \
+  | python3 -c "
+import json,sys
+g = json.load(sys.stdin)
+for edge in g.get('edges', []):
+    src = edge.get('source', {}).get('deploymentName', '?')
+    dst = edge.get('destination', {}).get('deploymentName', '?')
+    dport = edge.get('ports', [{}])[0].get('port', '?')
+    print(f'{src} → {dst} :{dport}')
+" 2>/dev/null | sort -u | head -15</span>
+<span class="tg">vm-banking-app-01 → central (OVN overlay) :443
+vm-banking-app-01 → vm-banking-app-01 (migration tunnel) :49152
+vm-banking-app-01 → openshift-monitoring/prometheus :9090
+vm-banking-app-02 → central (OVN overlay) :443
+vm-api-gateway-01 → vm-banking-app-01 :8080
+openshift-monitoring → vm-banking-app-01 :9100</span>
+<span class="tok">✓ Network baseline shows observed pod-network (OVN overlay) connections for VMs:
+  - OCP cluster management (port 443)
+  - Migration tunnel (port 49152) — correctly in baseline after Section 06 migration test
+  - Prometheus scrape (port 9100) from monitoring namespace
+  - Inter-VM pod-network traffic (api-gateway → banking-app port 8080)
+  These are the only connections on the OVN overlay. Generating NetworkPolicy from these.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 NETWORKPOLICY VIRT ══ -->
+  <section id="networkpolicy-virt">
+  <h2>10 — NetworkPolicy for virt-workloads namespace</h2>
+  <p>NetworkPolicy objects control traffic on the OVN pod overlay network — the primary interface of virt-launcher pods. This covers cluster-internal VM-to-VM traffic through the overlay (not through the physical VLANs), traffic from monitoring components to VMs, and migration tunnel traffic. Apply the ACS-generated NetworkPolicy after confirming all legitimate connections are in the baseline.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">networkpolicies-virt-workloads.yaml — generated from ACS baseline and committed to Git</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Policy 1: Default-deny all ingress to virt-workloads pods (virt-launcher pods)</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">default-deny-ingress-virt</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span> <span class="yv">{}</span>
+  <span class="yc">  # Applies to all pods in the namespace — including all virt-launcher pods.
+  # No ingress rules = deny all pod-network ingress by default.
+  # Note: this does NOT block VLAN 130/140 traffic (see Section 11).</span>
+  <span class="yk">policyTypes</span><span class="yc">:</span>
+    <span class="yc">-</span> <span class="yv">Ingress</span>
+<span class="yc">---</span>
+<span class="yc"># Policy 2: Allow Prometheus scrape from openshift-monitoring</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-monitoring-scrape</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - namespaceSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubernetes.io/metadata.name</span><span class="yc">:</span> <span class="yv">openshift-monitoring</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- protocol</span><span class="yc">:</span> <span class="yv">TCP</span>
+          <span class="yk">port</span><span class="yc">:</span> <span class="yv">9100</span>
+<span class="yc">---</span>
+<span class="yc"># Policy 3: Allow live migration tunnel between virt-launcher pods in this namespace</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-migration-tunnel</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - podSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- protocol</span><span class="yc">:</span> <span class="yv">TCP</span>
+          <span class="yk">port</span><span class="yc">:</span> <span class="yv">49152</span>
+          <span class="yc">          # Port 49152: the KubeVirt live migration tunnel port.
+          # Source (migrating FROM) virt-launcher pod connects to destination pod on this port.
+          # This NetworkPolicy allows virt-launcher pods to communicate only with
+          # other virt-launcher pods on port 49152 — not with any other pods.
+          # Without this policy: live migration fails with a network policy violation.
+          # With default-deny and no migration rule: drain-triggered migrations cause VM crashes.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply NetworkPolicies and verify migration still works</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f networkpolicies-virt-workloads.yaml</span>
+<span class="tg">networkpolicy.networking.k8s.io/default-deny-ingress-virt created
+networkpolicy.networking.k8s.io/allow-monitoring-scrape created
+networkpolicy.networking.k8s.io/allow-migration-tunnel created</span>
+
+<span class="td"># Verify live migration still works with NetworkPolicy in place</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl migrate vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to migrate</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmim -n virt-workloads \
+  -o jsonpath='{.items[0].status.phase}'</span>
+<span class="tg">Succeeded</span>
+<span class="tok">✓ Live migration succeeded with NetworkPolicy in place.
+  Migration tunnel (port 49152) permitted by allow-migration-tunnel policy.
+  Prometheus scrape still works (allow-monitoring-scrape policy).
+  All unauthorised pod-network ingress to virt-launcher pods is now blocked.</span>
+
+<span class="td"># Commit the NetworkPolicies to the GitOps config repo as per VIRT-07 workflow</span>
+<span class="td"># vms/banking-app-vm/base/networkpolicies.yaml → referenced from kustomization.yaml</span>
+<span class="tok">✓ NetworkPolicies committed to Git and synced via Argo CD (banking-vms-production Application).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 VLAN POLICY SCOPE ══ -->
+  <section id="vlan-policy-scope">
+  <h2>11 — VLAN 130/140 traffic — what NetworkPolicy cannot control</h2>
+  <p>Kubernetes NetworkPolicy controls traffic on the OVN pod overlay network. It does not control traffic on the VM's secondary VLAN 130/140 interfaces — those interfaces connect directly to the physical fabric via OVN localnet, bypassing the OVN overlay entirely. A NetworkPolicy object in the <code>virt-workloads</code> namespace has no effect on traffic flowing in and out of the VM's VLAN 130 interface at 10.130.0.50.</p>
+  <p>This is not a gap — it is by design. VLAN 130/140 traffic is controlled by:</p>
+  <ul>
+    <li><strong>Model A (NSX present):</strong> NSX gateway firewall rules at the T0/T1 boundary control inter-zone traffic (VLAN 130 ↔ VLAN 70 for AD, VLAN 130 ↔ VLAN 140). NSX DFW controls intra-zone traffic where it has guest introspection visibility.</li>
+    <li><strong>Model B (post-NSX, VIRT-11):</strong> OVN ACLs applied at the localnet port level — configured via OVN-Kubernetes annotations, not standard Kubernetes NetworkPolicy. VIRT-11 documents this in full.</li>
+    <li><strong>Cisco leaf ACLs:</strong> VLAN-level access control lists on the Cisco Nexus leaf switches control which VLANs can reach which subnets — a coarse but effective first line of defence for VLAN 130/140 traffic.</li>
+    <li><strong>Guest OS firewall:</strong> The VM's own firewalld/iptables rules control inbound connections on VLAN 130/140. These are configured during guest OS hardening (Sections 13–14).</li>
+  </ul>
+
+  <div class="callout blue">
+    <span class="cl">ACS network graph — VLAN 130 traffic is not visible</span>
+    <p>The ACS network graph shows connections made by pod primary interfaces through the OVN overlay. Traffic from VM eth1 (VLAN 130, 10.130.0.50) to a remote system (10.70.0.10 DC01) does not appear in the ACS network graph because it never enters the OVN overlay — it flows directly from the Linux bridge (br-vlan130) through bond0.130 to the Cisco leaf, and from there to NSX T0 / DC01. ACS does not see this traffic. For VLAN 130/140 traffic monitoring, the data sources are NSX flow logs, Cisco NetFlow from the leaf switches, and Windows/Linux audit logs from the VMs themselves — all forwarded to Splunk.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 SCC VIRT ══ -->
+  <section id="scc-virt">
+  <h2>12 — Security Context Constraints for virt-launcher pods</h2>
+  <p>OpenShift Security Context Constraints (SCCs) are the OCP-specific mechanism for controlling the privileges that pods are allowed to request. KubeVirt ships with its own SCC — <code>kubevirt-controller</code> — that virt-launcher pods use. This SCC grants the specific capabilities required by QEMU (KVM device access, network configuration) without granting full <code>privileged: true</code>.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify virt-launcher SCC and confirm it is not privileged</div></div>
+    <div class="term-body"><pre><span class="td"># Verify which SCC is assigned to the virt-launcher pod</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pod -n virt-workloads \
+  -l vm.kubevirt.io=vm-banking-app-01 \
+  -o jsonpath='{.items[0].metadata.annotations.openshift\.io/scc}'</span>
+<span class="tg">kubevirt-controller</span>
+<span class="tok">✓ virt-launcher pod is using kubevirt-controller SCC — not privileged.</span>
+
+<span class="td"># Verify the kubevirt-controller SCC does not grant privileged access</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get scc kubevirt-controller \
+  -o jsonpath='{.allowPrivilegedContainer}'</span>
+<span class="tg">false</span>
+<span class="tok">✓ allowPrivilegedContainer=false. virt-launcher pods run without host root privileges.
+  The SCC grants specific capabilities (NET_ADMIN, SYS_PTRACE) and device access (/dev/kvm)
+  but does not grant the full privileged security context that would allow host OS escape.</span>
+
+<span class="td"># Verify the capabilities granted by the kubevirt-controller SCC</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get scc kubevirt-controller \
+  -o jsonpath='{.allowedCapabilities}'</span>
+<span class="tg">["NET_BIND_SERVICE","SYS_PTRACE"]</span>
+<span class="tok">✓ Only NET_BIND_SERVICE and SYS_PTRACE granted — the minimum required for QEMU/KVM.
+  NET_ADMIN is not granted at the SCC level — virt-handler handles network setup.
+  This satisfies PCI-DSS Req 6.4.1 (minimum necessary privileges).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 GUEST HARDENING ══ -->
+  <section id="guest-hardening">
+  <h2>13 — RHEL 9 guest OS hardening — CIS Benchmark Level 1</h2>
+  <p>ACS provides security visibility for the virt-launcher pod (the host-level container). The VM guest OS requires its own hardening — applied during the initial boot via cloud-init, maintained via RHEL system profiles, and audited via guest OS audit logs forwarded to Splunk. The target is CIS Red Hat Enterprise Linux 9 Benchmark Level 1.</p>
+
+  <h3>Key CIS Benchmark Level 1 controls applied via cloud-init</h3>
+  <p>The cloud-init <code>userData</code> in the VirtualMachine CR (committed to Git as a Kubernetes Secret in VIRT-07) applies hardening on first boot. The key controls:</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">cloud-init hardening snippet — applied on first VM boot via cloudInitNoCloud secretRef</div></div>
+    <div class="yaml-body"><pre><span class="yc">#cloud-config — RHEL 9 guest OS hardening (CIS Benchmark Level 1)</span>
+<span class="yk">runcmd</span><span class="yc">:</span>
+  <span class="yc">  # ── Minimal package set ─────────────────────────────────────────────</span>
+  <span class="yc">  - dnf remove -y telnet rsh-server ypbind tftp-server xinetd</span>
+  <span class="yc">  # Remove services not needed by the banking application.
+  # Minimal attack surface — no legacy remote access protocols.</span>
+
+  <span class="yc">  # ── SSH hardening ───────────────────────────────────────────────────</span>
+  <span class="yc">  - sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config</span>
+  <span class="yc">  - sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config</span>
+  <span class="yc">  - sed -i 's/^#MaxAuthTries.*/MaxAuthTries 4/' /etc/ssh/sshd_config</span>
+  <span class="yc">  - sed -i 's/^#ClientAliveInterval.*/ClientAliveInterval 300/' /etc/ssh/sshd_config</span>
+  <span class="yc">  - sed -i 's/^#ClientAliveCountMax.*/ClientAliveCountMax 0/' /etc/ssh/sshd_config</span>
+  <span class="yc">  # CIS 5.2.10: PermitRootLogin no. CIS 5.2.11: PasswordAuthentication no.
+  # SSH key-only access — the key is injected via cloud-init users.ssh_authorized_keys.
+  # ClientAliveInterval + CountMax=0: SSH sessions idle for 5 minutes are terminated.</span>
+
+  <span class="yc">  # ── Audit logging ───────────────────────────────────────────────────</span>
+  <span class="yc">  - systemctl enable --now auditd</span>
+  <span class="yc">  - cat >> /etc/audit/rules.d/banking-vm.rules << 'EOF'</span>
+  <span class="yc">    -w /etc/passwd -p wa -k passwd-change</span>
+  <span class="yc">    -w /etc/sudoers -p wa -k sudoers-change</span>
+  <span class="yc">    -a exit,always -F arch=b64 -S execve -k exec-banking</span>
+  <span class="yc">    -a exit,always -F arch=b64 -S open,openat -F exit=-EACCES -k access-denied</span>
+  <span class="yc">    EOF</span>
+  <span class="yc">  # auditd captures: all writes to /etc/passwd and /etc/sudoers (privilege escalation attempts),
+  # all process executions (execve — the guest-internal equivalent of ACS eBPF process monitoring),
+  # all permission-denied file access attempts. Logs forwarded to Splunk via rsyslog.</span>
+
+  <span class="yc">  # ── Kernel hardening ────────────────────────────────────────────────</span>
+  <span class="yc">  - cat >> /etc/sysctl.d/99-cis-banking-vm.conf << 'EOF'</span>
+  <span class="yc">    net.ipv4.conf.all.accept_redirects = 0</span>
+  <span class="yc">    net.ipv4.conf.default.accept_redirects = 0</span>
+  <span class="yc">    net.ipv4.conf.all.log_martians = 1</span>
+  <span class="yc">    net.ipv4.conf.default.log_martians = 1</span>
+  <span class="yc">    net.ipv4.tcp_syncookies = 1</span>
+  <span class="yc">    kernel.randomize_va_space = 2</span>
+  <span class="yc">    EOF</span>
+  <span class="yc">  - sysctl -p /etc/sysctl.d/99-cis-banking-vm.conf</span>
+  <span class="yc">  # ASLR enabled (randomize_va_space: 2), ICMP redirect rejection, TCP SYN cookie protection.
+  # Martian packet logging — packets with impossible source addresses logged to /var/log/messages.</span>
+
+  <span class="yc">  # ── Firewalld — allow only known ports on VLAN 130 interface ────────</span>
+  <span class="yc">  - systemctl enable --now firewalld</span>
+  <span class="yc">  - firewall-cmd --permanent --zone=public --add-interface=eth1</span>
+  <span class="yc">  - firewall-cmd --permanent --zone=public --remove-service=dhcpv6-client</span>
+  <span class="yc">  - firewall-cmd --permanent --zone=public --add-port=8443/tcp</span>
+  <span class="yc">  # Port 8443: banking application HTTPS API — the only inbound port on VLAN 130.
+  # All other inbound ports on eth1 (VLAN 130) are blocked by firewalld.
+  # This is the guest-internal firewall that controls VLAN 130 traffic
+  # (which NetworkPolicy cannot control — Section 11).</span>
+  <span class="yc">  - firewall-cmd --reload</span>
+
+  <span class="yc">  # ── Forward audit logs to Splunk via rsyslog ────────────────────────</span>
+  <span class="yc">  - cat > /etc/rsyslog.d/99-splunk-hecfwd.conf << 'EOF'</span>
+  <span class="yc">    *.* @@splunk-hec.novacrestbank.local:514</span>
+  <span class="yc">    EOF</span>
+  <span class="yc">  - systemctl restart rsyslog</span>
+  <span class="yc">  # Forward all syslog and audit events to Splunk via syslog-over-TCP.
+  # This is the guest-internal log forwarding that provides the inside-VM visibility
+  # that ACS eBPF cannot provide (ACS sees the virt-launcher container, not guest processes).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 WINDOWS HARDENING ══ -->
+  <section id="windows-hardening">
+  <h2>14 — Windows Server 2022 guest hardening</h2>
+  <p>Windows Server 2022 VMs (migrated in VIRT-06) require separate hardening — the RHEL 9 cloud-init approach does not apply. Windows hardening uses Group Policy Objects (GPOs) applied from DC01 after the VM joins the NovaCrestBank Active Directory domain, supplemented by a PowerShell hardening script run on first boot.</p>
+
+  <h3>GPO-based controls applied from DC01</h3>
+  <p>The GPOs in the NovaCrestBank AD domain (configured in VIRT-02b) already include a subset of CIS Windows Server 2022 Benchmark Level 1 controls. After domain join, Windows VMs receive these controls automatically. Key controls relevant to the OCP Virt environment:</p>
+
+  <table>
+    <thead><tr><th>Control</th><th>GPO setting</th><th>Compliance</th></tr></thead>
+    <tbody>
+      <tr><td>Windows Firewall</td><td>Enable Windows Firewall on all profiles. Block all inbound connections except those explicitly permitted (RDP from bastion VLAN only, application port 443 from VLAN 130).</td><td><span class="reg reg-pci">PCI-DSS 1.3.1</span></td></tr>
+      <tr><td>Audit policy</td><td>Enable audit for logon events, object access, process creation, policy change, privilege use. Forward Windows Event Log to Splunk via Splunk Universal Forwarder.</td><td><span class="reg reg-pci">PCI-DSS 10.2.1</span></td></tr>
+      <tr><td>Password policy</td><td>Minimum 14 characters, complexity enabled, 90-day maximum age, 24-password history. Aligns with NovaCrestBank FGPP for OCP-Virt service accounts (VIRT-02b).</td><td><span class="reg reg-pci">PCI-DSS 8.3.6</span></td></tr>
+      <tr><td>Screen lock</td><td>Lock workstation after 15 minutes of inactivity.</td><td><span class="reg reg-nist">NIST AC-11</span></td></tr>
+      <tr><td>Windows Update</td><td>Configure WSUS server for controlled update deployment. Critical security patches applied within 72 hours.</td><td><span class="reg reg-pci">PCI-DSS 6.3.3</span></td></tr>
+      <tr><td>Remote Desktop</td><td>RDP permitted only from the bastion host VLAN (VLAN 40). NLA (Network Level Authentication) required. TLS 1.2 or higher only.</td><td><span class="reg reg-nist">NIST AC-17</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <span class="cl">Windows guest hardening inherits from VIRT-02b OU and FGPP configuration</span>
+    <p>The Windows Server 2022 VMs were domain-joined after migration (VIRT-06 post-migration DNS section). Domain join places them in <code>OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</code> — the OU created in VIRT-02b Section 16. The GPOs linked to this OU apply automatically on the next Group Policy refresh (90 minutes by default, or <code>gpupdate /force</code> to apply immediately). The FGPP (Fine-Grained Password Policy) for service accounts in this OU was also configured in VIRT-02b. No additional AD configuration is needed — the VIRT-02b groundwork is already in place.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 COMPLIANCE SCAN VIRT ══ -->
+  <section id="compliance-scan-virt">
+  <h2>15 — Running ACS compliance scans for the VIRT environment</h2>
+  <p>ACS compliance scans run against the cluster and its workloads. They evaluate the cluster configuration (node hardening, RBAC, network policies, audit logging) against benchmarks. For the VIRT environment, the relevant scans are PCI-DSS (primary), CIS Kubernetes Benchmark, and NIST SP 800-190 (containers and virtualisation).</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — run and export compliance scans for the VIRT environment</div></div>
+    <div class="term-body"><pre><span class="section">! ══ PCI-DSS compliance scan ════════════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl compliance results \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --ca ~/ocp-kit/certs/chain.pem \
+  --password "${ACS_PASS}" \
+  --standard PCI_DSS_3_2 \
+  --format table | head -20</span>
+<span class="tg">STANDARD      REQUIREMENT   DESCRIPTION                                       STATUS  EVIDENCE
+PCI_DSS_3_2   1.3.2         Restrict outbound traffic to necessary only       PASS    NetworkPolicy default-deny applied: virt-workloads
+PCI_DSS_3_2   2.1           Do not use vendor-supplied defaults               PASS    kubeadmin disabled, ACS admission: privileged=false
+PCI_DSS_3_2   5.2.2         Protect from malware — mechanisms actively run    PASS    ACS Collector eBPF active on all 15 nodes including bare-metal
+PCI_DSS_3_2   6.3.3         Patch management — protect against known CVEs     PASS    ACS scanner: 0 critical unpatched CVEs in running images
+PCI_DSS_3_2   10.1          Audit trail for all access to system components   PASS    OCP audit log → Splunk active; guest auditd → Splunk active
+PCI_DSS_3_2   11.2.1        Quarterly internal vulnerability scans            PASS    ACS continuous scanning: exceeds quarterly requirement
+PCI_DSS_3_2   11.4          IDS to detect intrusion attempts                  PASS    ACS runtime detection active; guest audit logs in Splunk</span>
+<span class="tok">✓ PCI-DSS scan complete. All scoped requirements PASS.
+  Export monthly for QSA audit evidence package.</span>
+
+<span class="section">! ══ CIS Kubernetes Benchmark ════════════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl compliance results \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --ca ~/ocp-kit/certs/chain.pem \
+  --password "${ACS_PASS}" \
+  --standard CIS_K8S \
+  --format table | grep -E "FAIL|WARN" | head -5</span>
+<span class="tg">CIS_K8S   5.2.5   Containers should not run as root       WARN    3 virt-launcher pods — review SCC configuration
+CIS_K8S   5.7.1   Namespace should have NetworkPolicy      PASS    virt-workloads: NetworkPolicy applied</span>
+<span class="td"># CIS 5.2.5 WARN: virt-launcher pods use non-root but the SCC check may flag
+# capability escalation. This is a known false positive for KubeVirt workloads.
+# Document as accepted risk in the ATO: virt-launcher requires specific capabilities
+# for KVM access — the kubevirt-controller SCC grants minimum necessary capabilities
+# without privileged: true. Evidence: oc get scc kubevirt-controller output.</span>
+<span class="tok">✓ CIS Kubernetes scan complete. 1 WARN requires accepted-risk documentation for ATO.
+  All other controls PASS.</span>
+
+<span class="section">! ══ Export PCI-DSS results for QSA evidence package ═════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl compliance results \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --ca ~/ocp-kit/certs/chain.pem \
+  --password "${ACS_PASS}" \
+  --standard PCI_DSS_3_2 \
+  --format csv > ~/ocp-kit/pci-dss-scan-$(date +%Y%m%d).csv
+echo "Exported: ~/ocp-kit/pci-dss-scan-$(date +%Y%m%d).csv"</span>
+<span class="tg">Exported: ~/ocp-kit/pci-dss-scan-20241115.csv</span>
+<span class="tok">✓ CSV archived. File to NovaCrestBank GRC system for QSA submission.
+  Monthly archive satisfies PCI-DSS continuous monitoring evidence requirement.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 PCI DSS MAPPING ══ -->
+  <section id="pci-dss-mapping">
+  <h2>16 — PCI-DSS controls satisfied by ACS for virtualised workloads</h2>
+  <p>This table maps PCI-DSS v4.0 requirements to the specific ACS capabilities and additional VM-specific controls that satisfy each requirement in the VIRT environment. This is the evidence package section for QSA assessments.</p>
+
+  <table>
+    <thead><tr><th>PCI-DSS Req</th><th>Requirement (abbreviated)</th><th>ACS + VIRT control</th><th>Evidence artefact</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>1.3.1</strong></td>
+        <td>Restrict inbound traffic to cardholder data environment</td>
+        <td>ACS network baseline → NetworkPolicy default-deny + explicit allow rules for virt-workloads. Guest OS firewalld on VLAN 130 restricts inbound ports.</td>
+        <td>Applied NetworkPolicy YAML in banking-config Git repo; guest firewalld config in cloud-init Secret; ACS network graph export showing baseline connections only</td>
+      </tr>
+      <tr>
+        <td><strong>1.3.2</strong></td>
+        <td>Restrict outbound traffic from cardholder data environment</td>
+        <td>ACS network baseline violation policy detects unexpected egress from virt-launcher pods (OVN overlay). NSX T0 gateway firewall controls VLAN 130/140 egress in Model A.</td>
+        <td>ACS policy configuration showing Network Baseline Violation in Enforce mode; Splunk dashboard showing zero unresolved network violations</td>
+      </tr>
+      <tr>
+        <td><strong>5.2.2</strong></td>
+        <td>Anti-malware mechanisms actively running on all components</td>
+        <td>ACS Collector eBPF on all 5 bare-metal nodes continuously monitors virt-launcher process activity. Crypto-mining and shell-spawn policies in Enforce mode.</td>
+        <td>ACS SecuredCluster showing 15 collectors (5 bare-metal + 10 other nodes); policy enforcement configuration export</td>
+      </tr>
+      <tr>
+        <td><strong>6.3.3</strong></td>
+        <td>Software protected from known vulnerabilities — patch within SLA</td>
+        <td>ACS continuous CVE scanning of virt-launcher images and all running container images. Critical CVEs remediated within 72 hours per NovaCrestBank SLA.</td>
+        <td>Monthly ACS CVE report showing 0 critical unpatched CVEs; JIRA SLA tracking for CVE remediation</td>
+      </tr>
+      <tr>
+        <td><strong>6.4.1</strong></td>
+        <td>Web-based and injection vulnerabilities detected and prevented</td>
+        <td>ACS admission controller blocks privileged containers. Runtime detection enforces that no unexpected process executions occur in virt-launcher pods.</td>
+        <td>ACS Shell Spawned by Application and Process Execution policies in Enforce mode; privileged container admission block test evidence</td>
+      </tr>
+      <tr>
+        <td><strong>10.2.1</strong></td>
+        <td>Audit logs capturing access to system components</td>
+        <td>ACS runtime alerts forwarded to Splunk (index ncb_acs_security). Guest OS auditd logs forwarded to Splunk (process executions, file access, privilege use inside VMs).</td>
+        <td>Splunk dashboard showing ACS event ingestion and guest auditd events; 12-month retention confirmation</td>
+      </tr>
+      <tr>
+        <td><strong>11.3.1</strong></td>
+        <td>Internal vulnerability scans conducted at least quarterly</td>
+        <td>ACS continuous scanning exceeds quarterly — scans all running images daily against updated CVE database. Monthly CSV export serves as formal scan record.</td>
+        <td>ACS CVE report CSVs filed quarterly in NovaCrestBank GRC; scan timestamps confirm continuous coverage</td>
+      </tr>
+      <tr>
+        <td><strong>11.5.1</strong></td>
+        <td>Intrusion detection techniques detect and alert on anomalous activity</td>
+        <td>ACS eBPF runtime detection on all bare-metal nodes. Network baseline violation alerts on unexpected VM outbound connections. Splunk correlation rules escalate CRITICAL alerts within 5 minutes.</td>
+        <td>ACS runtime detection policy configuration; Splunk correlation search definitions; incident response SLA evidence</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 NIST MAPPING ══ -->
+  <section id="nist-mapping">
+  <h2>17 — NIST SP 800-53 controls satisfied by ACS in the VIRT environment</h2>
+
+  <table>
+    <thead><tr><th>NIST Control</th><th>Control name</th><th>How ACS + VIRT satisfies it</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AC-3</strong></td><td>Access Enforcement</td><td>ACS admission controller enforces that only compliant pods (non-privileged, correct SCC, non-root) are admitted. virt-launcher pods admitted via kubevirt-controller SCC with minimum capabilities documented.</td></tr>
+      <tr><td><strong>AC-17</strong></td><td>Remote Access</td><td>SSH to RHEL VMs: key-only authentication, PermitRootLogin=no, ClientAliveInterval=300. RDP to Windows VMs: NLA required, restricted to bastion VLAN by GPO firewall rule.</td></tr>
+      <tr><td><strong>AU-2 / AU-12</strong></td><td>Audit Events / Audit Record Generation</td><td>ACS runtime alerts (host level) + guest auditd (guest OS level) + Windows Event Log → all forwarded to Splunk. Complete audit chain from host eBPF through guest OS events.</td></tr>
+      <tr><td><strong>CM-6</strong></td><td>Configuration Settings</td><td>VirtualMachine CRs in GitOps (VIRT-07) — all VM configurations are version-controlled. Cloud-init hardening applied consistently on first boot. Drift detection via Argo CD.</td></tr>
+      <tr><td><strong>CM-7</strong></td><td>Least Functionality</td><td>ACS runtime policy enforces minimum process execution in virt-launcher. Guest OS: minimal package set via cloud-init (remove telnet, rsh, tftp). Guest firewalld restricts to required ports only.</td></tr>
+      <tr><td><strong>RA-5</strong></td><td>Vulnerability Monitoring and Scanning</td><td>ACS continuous CVE scanning of all running images. Guest OS: RHEL subscription provides RHSA advisories; Windows: WSUS controlled patching. Monthly ACS CVE report exported as formal scan evidence.</td></tr>
+      <tr><td><strong>SC-7</strong></td><td>Boundary Protection</td><td>NetworkPolicy enforces OVN overlay boundary for virt-workloads. NSX T0 gateway firewall (Model A) / OVN ACLs (Model B) enforce VLAN 130/140 boundary. Guest OS firewalld enforces per-VM boundary.</td></tr>
+      <tr><td><strong>SC-28</strong></td><td>Protection of Information at Rest</td><td>ODF Ceph RBD with encryption at rest (ODF encryption configured in VIRT-03). VM disk PVCs encrypted at the Ceph block level. Physical NVMe disks on DL385 Gen11 use hardware encryption.</td></tr>
+      <tr><td><strong>SI-3 / SI-4</strong></td><td>Malicious Code Protection / System Monitoring</td><td>ACS eBPF runtime monitoring detects malware execution patterns (crypto-mining, reverse shells, unexpected process trees) in virt-launcher pods. Guest auditd detects process-level anomalies inside VMs. All events in Splunk.</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 SPLUNK INTEGRATION ══ -->
+  <section id="splunk-integration">
+  <h2>18 — ACS → Splunk — VM security event forwarding</h2>
+  <p>The ACS → Splunk HEC integration was configured in OCP-OPS-03 Section 18. For the VIRT environment, two additional event sources are added: the custom VM escape detection policy (Section 07), and the guest OS audit logs from the VMs themselves. Together these provide the complete security event picture that PCI-DSS Req 10 and NIST AU-2 require.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify VM security events reach Splunk</div></div>
+    <div class="term-body"><pre><span class="td"># Trigger a test event: cause a policy violation in virt-workloads
+# that will appear in Splunk within 30 seconds</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc run test-policy-virt \
+  --image=harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest \
+  --restart=Never \
+  --overrides='{"spec":{"containers":[{"name":"test","image":"harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest","securityContext":{"privileged":true}}]}}' \
+  -n virt-workloads 2>&1</span>
+<span class="te">Error from server: admission webhook "sensor.stackrox.svc" denied the request:
+Policy "Privileged Container" violated.
+Enforcement action: Fail on Deploy.
+A container in the pod is privileged.</span>
+<span class="tok">✓ ACS admission controller blocked the privileged pod.
+  This rejection event is now in Splunk at index=ncb_acs_security within 30 seconds.</span>
+
+<span class="td"># Verify in Splunk (SPL query run on Splunk search head):</span>
+<span class="td"># index=ncb_acs_security namespace=virt-workloads | head 5</span>
+<span class="tg"># Expected Splunk result (JSON event structure):
+{
+  "time": 1731643200,
+  "sourcetype": "stackrox-audit",
+  "index": "ncb_acs_security",
+  "event": {
+    "policyName": "Privileged Container",
+    "severity": "CRITICAL_SEVERITY",
+    "namespace": "virt-workloads",
+    "enforcementAction": "FAIL_DEPLOYMENT_CREATE",
+    "resourceType": "Pod",
+    "resourceName": "test-policy-virt"
+  }
+}</span>
+<span class="tok">✓ ACS event visible in Splunk index ncb_acs_security within 30 seconds.
+  All virt-workloads policy violations, runtime alerts, and compliance events
+  flow to Splunk and are searchable by the SOC team.</span>
+
+<span class="section">! ══ Splunk correlation searches for VM workloads ═══════════════════════</span>
+<span class="td"># Add these searches to the NovaCrestBank SOC Splunk dashboard:</span>
+<span class="td">#</span>
+<span class="td"># VM Escape Indicator:</span>
+<span class="td"># index=ncb_acs_security namespace=virt-workloads</span>
+<span class="td">#   policyName="VM Escape Indicator*" severity=CRITICAL_SEVERITY</span>
+<span class="td"># → trigger: immediate PagerDuty P0 — potential VM escape on bare-metal node</span>
+<span class="td">#</span>
+<span class="td"># VM Migration Anomaly:</span>
+<span class="td"># index=ncb_acs_security namespace=virt-workloads policyName="Network Baseline Violation"</span>
+<span class="td">#   | search NOT port=49152</span>
+<span class="td"># → trigger: HIGH alert — unexpected network connection from VM, not migration tunnel</span>
+<span class="td">#</span>
+<span class="td"># Guest OS Privilege Escalation (from guest auditd → Splunk):</span>
+<span class="td"># index=ncb_guest_audit type=SYSCALL key=sudoers-change</span>
+<span class="td"># → trigger: HIGH alert — sudoers file modified inside a VM</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 19 HANDOVER ══ -->
+  <section id="handover">
+  <h2>19 — Readiness checklist — gate to VIRT-09</h2>
+
+  <div class="gate">
+    <div class="gate-title">ACS extension to bare-metal nodes</div>
+    <div class="gate-item"><div class="gate-box"></div>ACS SecuredCluster patched with kubevirt.io/virt toleration in Collector DaemonSet</div>
+    <div class="gate-item"><div class="gate-box"></div>5 bare-metal Collector pods Running — one on each bm-virt-01 through bm-virt-05</div>
+    <div class="gate-item"><div class="gate-box"></div>collection: EBPF confirmed in SecuredCluster spec — kernel module collection not used on RHCOS</div>
+    <div class="gate-item"><div class="gate-box"></div>virt-launcher pods visible in ACS Central → Workloads → Deployments → virt-workloads</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">VM-specific policy checks</div>
+    <div class="gate-item"><div class="gate-box"></div>14-day baseline observation period completed — live migration traffic included in baseline</div>
+    <div class="gate-item"><div class="gate-box"></div>Privileged Container policy: scope excludes virt-workloads virt-launcher pods, Enforce on all other namespaces</div>
+    <div class="gate-item"><div class="gate-box"></div>Network Baseline Violation policy: switched to Enforce post-baseline — live migration not generating false positives</div>
+    <div class="gate-item"><div class="gate-box"></div>Custom policy "VM Escape Indicator" created with KILL_POD_ENFORCEMENT in virt-workloads scope</div>
+    <div class="gate-item"><div class="gate-box"></div>Iptables Execution policy: virt-workloads namespace excluded</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">NetworkPolicy checks</div>
+    <div class="gate-item"><div class="gate-box"></div>default-deny-ingress-virt applied to virt-workloads namespace</div>
+    <div class="gate-item"><div class="gate-box"></div>allow-migration-tunnel NetworkPolicy permits port 49152 between virt-launcher pods</div>
+    <div class="gate-item"><div class="gate-box"></div>allow-monitoring-scrape NetworkPolicy permits Prometheus scrape on port 9100</div>
+    <div class="gate-item"><div class="gate-box"></div>Live migration verified after NetworkPolicy applied — VMIM phase=Succeeded</div>
+    <div class="gate-item"><div class="gate-box"></div>NetworkPolicies committed to banking-config Git repo and synced via Argo CD</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Guest OS hardening checks</div>
+    <div class="gate-item"><div class="gate-box"></div>RHEL 9 VMs: PermitRootLogin=no, PasswordAuthentication=no, auditd enabled, firewalld restricting eth1 to port 8443</div>
+    <div class="gate-item"><div class="gate-box"></div>RHEL 9 VMs: auditd rules forwarding to Splunk via rsyslog — events visible in Splunk</div>
+    <div class="gate-item"><div class="gate-box"></div>Windows Server 2022 VMs: domain-joined, GPO applied, Windows Firewall restricting RDP to bastion VLAN</div>
+    <div class="gate-item"><div class="gate-box"></div>Windows VMs: Windows Event Log forwarding to Splunk via Universal Forwarder</div>
+    <div class="gate-item"><div class="gate-box"></div>Cloud-init hardening script committed to Git as a Kubernetes Secret in the banking-config repo</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Compliance and Splunk checks</div>
+    <div class="gate-item"><div class="gate-box"></div>ACS PCI-DSS compliance scan: all scoped requirements PASS — exported CSV filed in GRC</div>
+    <div class="gate-item"><div class="gate-box"></div>ACS CIS Kubernetes scan: one WARN (virt-launcher capabilities) documented as accepted risk with evidence</div>
+    <div class="gate-item"><div class="gate-box"></div>Splunk receiving ACS events from virt-workloads namespace: index=ncb_acs_security populated</div>
+    <div class="gate-item"><div class="gate-box"></div>Splunk VM correlation searches deployed: VM Escape Indicator, VM Migration Anomaly, Guest Privilege Escalation</div>
+    <div class="gate-item"><div class="gate-box"></div>NIST controls SC-28 (encryption at rest) verified: ODF Ceph block encryption active for VM PVCs</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-08 complete — security controls active for virtualised banking workloads</span>
+    <p>ACS Collectors run on all 5 bare-metal VM nodes with eBPF visibility into every virt-launcher pod. VM-specific policies detect VM escape indicators and enforce the process baseline built during the 14-day observation period. NetworkPolicy enforces least-privilege pod-network access including explicit permission for live migration tunnels. RHEL 9 and Windows Server 2022 guest OSes are hardened per CIS Benchmark Level 1. Guest OS audit logs reach Splunk alongside ACS runtime events. PCI-DSS compliance scan evidence is ready for QSA submission. NIST controls are implemented and documented. Proceed to VIRT-09 — Advanced Cluster Management — to extend visibility across multiple clusters.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

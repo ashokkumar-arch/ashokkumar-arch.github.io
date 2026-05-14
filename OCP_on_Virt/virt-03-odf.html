@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-03 — ODF on Bare-Metal · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --ceph:#ef5c55;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* ── MAIN ── */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+
+/* ── PROGRESS TRACKER ── */
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+
+/* ── CALLOUTS ── */
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+
+/* ── TERMINAL BLOCKS ── */
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}
+.tc{color:#61c5eb}
+.tg{color:#4ccd99}
+.td{color:#608b7a}
+.tw{color:#cca700}
+.te{color:#f85149}
+.tok{color:#3fb950;font-weight:600}
+
+/* ── YAML BLOCKS ── */
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── SPEC ROWS ── */
+.spec{border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden;margin:14px 0}
+.spec-row{display:grid;grid-template-columns:220px 1fr}
+.spec-row:not(:last-child){border-bottom:.5px solid var(--border)}
+.spec-row:hover .sk,.spec-row:hover .sv{background:var(--bg3)}
+.sk{padding:9px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text2)}
+.sv{padding:9px 14px;background:var(--bg2);font-size:13px;color:var(--text);line-height:1.5}
+
+/* ── COMPONENT CARDS ── */
+.ceph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.ceph-card{background:var(--bg2);padding:14px 16px}
+.ceph-daemon{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);margin-bottom:4px;font-weight:700}
+.ceph-name{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.ceph-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.ceph-ncb{font-size:12px;color:var(--text3);margin-top:5px;font-style:italic}
+
+/* ── DECISION BOX ── */
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* ── WRONG / VERIFY ── */
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+
+/* ── CHECKLIST ── */
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+
+/* ── REG BADGES ── */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+
+/* ── TOPOLOGY DIAGRAM ── */
+.topo{background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);padding:18px;margin:16px 0}
+.topo-row{display:flex;gap:8px;margin-bottom:8px;align-items:stretch}
+.topo-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:140px;flex-shrink:0;padding-top:6px;letter-spacing:.03em}
+.topo-boxes{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.topo-box{border:1px solid;border-radius:4px;padding:5px 10px;font-size:12.5px;font-family:'DM Mono',monospace;flex:1;text-align:center;min-width:100px}
+.tb-node{background:#e8f0fb;border-color:#93b4e8;color:#1a3a6f}
+.tb-osd{background:#fff0e8;border-color:#f0a070;color:#7a2800}
+.tb-mon{background:#e8f5e8;border-color:#70c070;color:#0a4a0a}
+.tb-fd{background:#f8e8ff;border-color:#c890e8;color:#4a006a}
+
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-03</div>
+    <div class="sb-title">ODF on Bare-Metal</div>
+    <div class="sb-sub">Ceph · LSO · StorageSystem · StorageClass · Topology</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Concepts</div>
+    <a class="sb-item active" href="#why-odf">01 — Why ODF on bare-metal — not vSAN</a>
+    <a class="sb-item" href="#what-odf-is">02 — What ODF is — Ceph inside OpenShift</a>
+    <a class="sb-item" href="#ceph-components">03 — Ceph components — every daemon explained</a>
+    <a class="sb-item" href="#storage-types">04 — Three storage types — block, file, object</a>
+    <a class="sb-item" href="#converged-topology">05 — Converged topology — why all 5 nodes run ODF</a>
+    <div class="sb-sec">Prerequisites</div>
+    <a class="sb-item" href="#disk-verification">06 — Disk verification — raw NVMe disks confirmed</a>
+    <a class="sb-item" href="#node-labelling">07 — Node labelling and tainting for ODF</a>
+    <div class="sb-sec">Local Storage Operator</div>
+    <a class="sb-item" href="#what-lso-is">08 — What the LSO is and why ODF needs it</a>
+    <a class="sb-item" href="#lso-install">09 — Install the Local Storage Operator</a>
+    <a class="sb-item" href="#lso-discovery">10 — LocalVolumeDiscovery — discover raw disks</a>
+    <a class="sb-item" href="#lso-volumeset">11 — LocalVolumeSet — claim disks as PVs</a>
+    <a class="sb-item" href="#lso-verify">12 — Verify LSO created PVs for all 20 disks</a>
+    <div class="sb-sec">ODF Installation</div>
+    <a class="sb-item" href="#odf-operator">13 — Install the ODF Operator via OLM</a>
+    <a class="sb-item" href="#storagecluster">14 — StorageCluster CR — every field explained</a>
+    <a class="sb-item" href="#topology-awareness">15 — Topology awareness and failure domains</a>
+    <a class="sb-item" href="#odf-verify">16 — ODF health verification — Ceph status</a>
+    <div class="sb-sec">StorageClasses</div>
+    <a class="sb-item" href="#storageclasses">17 — StorageClasses — ocs-storagecluster-* explained</a>
+    <a class="sb-item" href="#virt-storageclass">18 — ceph-rbd-virtualization — the VM StorageClass</a>
+    <a class="sb-item" href="#handover">19 — ODF readiness checklist — gate to VIRT-04</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-02b-windows-server.html">← VIRT-02b — Windows Server</a>
+    <a class="sb-item" href="virt-04-openshift-virtualization.html">VIRT-04 — OCP Virt →</a>
+  </div>
+  <div class="sb-foot">VIRT-03 · ODF on Bare-Metal · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-03 · ODF on Bare-Metal</div>
+  <div class="prereq-bar">VIRT-02b complete — Windows Server DNS, DHCP, OU, and PKI verified. All five bare-metal nodes are Ready and tainted.</div>
+  <h1>ODF on Bare-Metal</h1>
+  <div class="subtitle">Installing OpenShift Data Foundation on the five HP DL385 Gen11 nodes —<br>from raw NVMe disks to a healthy Ceph cluster serving VM boot disk storage</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-00<br>Foundation</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-01<br>Fabric</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-02<br>Provision</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-02b<br>Windows</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-03<br>ODF</div>
+    <div class="pt"><span class="pt-n">6</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt"><span class="pt-n">7</span>VIRT-05<br>Networking</div>
+  </div>
+
+  <!-- ══ 01 WHY ODF ══ -->
+  <section id="why-odf">
+  <h2>01 — Why ODF on bare-metal — not vSAN, not another approach</h2>
+  <p>Before installing anything, understand why ODF is the correct storage choice for the OpenShift Virtualization environment. This is not an automatic decision — it requires comparing the available options against the specific requirements of VM workloads on bare-metal nodes.</p>
+
+  <h3>The storage requirement that vSAN cannot meet</h3>
+  <p>vSAN — the storage system used by the existing VCF environment — provides excellent block storage for ESXi-hosted VMs. It is RAID-protected, performant, and well-integrated with vCenter. So why not use it for the bare-metal nodes too?</p>
+  <p>The answer is physical architecture. vSAN runs inside ESXi — it uses the VMDKs and vSphere storage policies to present PVCs to OCP pods and VMs. The five HP DL385 Gen11 bare-metal nodes do not run ESXi. They run RHCOS directly on metal. There is no vSphere CSI driver, no VMDK, no vCenter to manage storage. The vSphere storage stack simply does not exist on these nodes.</p>
+  <p>ODF is the Ceph-based storage system that runs natively inside OCP — as Kubernetes pods on the bare-metal RHCOS nodes. It uses the raw NVMe disks directly. It presents storage to VM workloads through Kubernetes StorageClasses and PersistentVolumeClaims — the same API that all OCP workloads already use. No vCenter, no ESXi, no VMDK.</p>
+
+  <h3>What ODF provides specifically for OpenShift Virtualization</h3>
+  <p>Two storage capabilities are specifically required for VM workloads on OCP Virt — and both are provided by ODF but not by vSAN on bare-metal:</p>
+  <p><strong>ReadWriteMany (RWX) for live migration:</strong> When a running VM is live-migrated from one bare-metal node to another, both the source and destination node must simultaneously access the VM's boot disk for a brief period during the migration. This requires a RWX-capable volume. ODF's CephFS provides RWX. Without it, live migration fails at the storage handoff step and the VM must be cold-migrated (stopped, moved, restarted) — not acceptable for banking workloads with availability SLOs.</p>
+  <p><strong>The <code>ocs-storagecluster-ceph-rbd-virtualization</code> StorageClass:</strong> ODF ships a StorageClass specifically tuned for VM boot disks. It configures optimal block sizes, pre-allocation behaviour, and image features (layering, deep-flatten, exclusive-lock, object-map) that match the I/O pattern of a running VM guest OS. Using the generic <code>ceph-rbd</code> StorageClass for VM boot disks works but does not apply these optimisations.</p>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 WHAT ODF IS ══ -->
+  <section id="what-odf-is">
+  <h2>02 — What ODF is — Ceph running as an OCP-native operator</h2>
+  <p>OpenShift Data Foundation is Red Hat's enterprise storage platform for OCP. Under the hood it is Ceph — the open-source distributed storage system — packaged, operated, and supported by Red Hat as an OCP Operator. Before installing anything, understand what Ceph is, because every configuration decision in this guide follows from Ceph's architecture.</p>
+
+  <h3>What Ceph is</h3>
+  <p>Ceph is a software-defined storage platform that pools raw disks across multiple nodes and presents them as a unified storage cluster. Data is distributed and replicated across disks and nodes — no single disk failure and no single node failure causes data loss. Ceph has no single point of failure: its metadata, monitor quorum, and data placement are all distributed. NovaCrestBank's ODF cluster pools the raw NVMe disks across all five bare-metal nodes and presents storage through three OCP-facing APIs simultaneously: block (for VM boot disks), file (for shared workloads), and object (S3-compatible, for backups).</p>
+
+  <h3>How ODF wraps Ceph</h3>
+  <p>The ODF Operator translates Ceph administration into Kubernetes reconciliation. A <code>StorageCluster</code> CR declares the desired Ceph cluster configuration — which nodes, which disks, how many replicas. The ODF Operator reads this CR and deploys all Ceph daemons as OCP pods. When a daemon pod crashes, the Operator reschedules it. When a new disk is added to a node, the Operator provisions a new OSD pod for it. Ceph operations that previously required the <code>ceph</code> CLI are now observable and manageable through <code>oc get</code> and <code>oc describe</code>.</p>
+
+  <div class="callout why">
+    <span class="cl">Why ODF over standalone Ceph</span>
+    <p>You could deploy Ceph directly on the bare-metal nodes without ODF, using the Rook operator directly. But ODF adds: Red Hat support, OLM-managed lifecycle, the NooBaa MCG layer for object storage, OADP integration for application-consistent backups, and the Ceph Dashboard integrated into the OCP console. For a production banking environment, the support lifecycle and integration with the rest of the OCP platform make ODF the correct choice over standalone Rook-Ceph.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 CEPH COMPONENTS ══ -->
+  <section id="ceph-components">
+  <h2>03 — Ceph components — every daemon explained before we deploy them</h2>
+  <p>ODF deploys six distinct types of Ceph daemon, each running as one or more OCP pods on the bare-metal nodes. Understanding what each daemon does is essential — because when ODF is unhealthy, the error is always in a specific daemon, and knowing its role tells you exactly what has failed and what it means for storage availability.</p>
+
+  <div class="ceph-grid">
+    <div class="ceph-card">
+      <div class="ceph-daemon">MON</div>
+      <div class="ceph-name">Monitor</div>
+      <div class="ceph-desc">Maintains the cluster map — the authoritative record of which OSDs exist, which are up, and where every piece of data lives. Runs in quorum: a majority vote is required for any cluster state change. Losing 2 of 3 MONs loses quorum — the cluster stops accepting writes (goes read-only) to prevent data corruption. MONs must be distributed across different physical nodes — two MONs on the same node means a single node failure can break quorum.</div>
+      <div class="ceph-ncb">NovaCrestBank: 3 MON pods — one on each of bm-virt-01, 02, 03. Quorum requires 2 of 3.</div>
+    </div>
+    <div class="ceph-card">
+      <div class="ceph-daemon">OSD</div>
+      <div class="ceph-name">Object Storage Daemon</div>
+      <div class="ceph-desc">One OSD per disk. Stores the actual data. When data is written to one OSD (the primary), it replicates to two replica OSDs on two different nodes (with replication factor 3). Handles recovery when a peer OSD fails — detects the failure, contacts MON, and begins re-replicating the affected data to healthy OSDs. OSDs use BlueStore as their internal storage format: direct access to raw block device, no filesystem overhead, write-ahead log for durability.</div>
+      <div class="ceph-ncb">NovaCrestBank: 20 OSD pods — 4 per node × 5 nodes. Each OSD manages one 3.84 TB NVMe disk.</div>
+    </div>
+    <div class="ceph-card">
+      <div class="ceph-daemon">MGR</div>
+      <div class="ceph-name">Manager</div>
+      <div class="ceph-desc">Runs cluster management modules: the Ceph Dashboard (web UI accessible from OCP console), Prometheus metrics export (the source of all ODF metrics that appear in OBS-01 dashboards), the balancer module (periodically rebalances data across OSDs to equalise disk usage), and the orchestrator (coordinates OSD provisioning with the ODF Operator). One active + one standby for HA. If the active MGR pod crashes, the standby takes over — cluster operations continue.</div>
+      <div class="ceph-ncb">NovaCrestBank: 2 MGR pods — active on one node, standby on another.</div>
+    </div>
+    <div class="ceph-card">
+      <div class="ceph-daemon">MDS</div>
+      <div class="ceph-name">Metadata Server</div>
+      <div class="ceph-desc">Required only for CephFS (the shared filesystem). Manages filesystem metadata — directory trees, file attributes, inode-to-object mapping. Applications do not interact with MDS directly; the CephFS kernel client or FUSE client talks to MDS transparently. One active + one standby per filesystem. If the active MDS fails, the standby takes over within seconds. Not needed if only block (CephRBD) storage is used — but ODF deploys MDS by default when CephFS is enabled.</div>
+      <div class="ceph-ncb">NovaCrestBank: 2 MDS pods for the default CephFS filesystem. Required for RWX PVCs used by VM live migration.</div>
+    </div>
+    <div class="ceph-card">
+      <div class="ceph-daemon">RGW</div>
+      <div class="ceph-name">RADOS Gateway</div>
+      <div class="ceph-desc">An HTTP gateway in front of the Ceph RADOS layer that exposes an S3-compatible and Swift-compatible object storage API. RGW is Ceph's native object storage — data stored through RGW is protected by Ceph's replication just like block and file data. Used when you need S3-compatible object storage with Ceph-managed redundancy. Alternative to MCG (NooBaa) for simpler S3 use cases without multi-cloud federation needs.</div>
+      <div class="ceph-ncb">NovaCrestBank: RGW deployed for OADP backup buckets. MCG (NooBaa) used for ObjectBucketClaims.</div>
+    </div>
+    <div class="ceph-card">
+      <div class="ceph-daemon">MCG</div>
+      <div class="ceph-name">Multi-Cloud Gateway</div>
+      <div class="ceph-desc">NooBaa-based S3 gateway that abstracts multiple backing stores (Ceph RGW, AWS S3, Azure Blob) behind a unified S3 API. Provides namespace buckets, data federation across cloud and on-premises, and lifecycle policies. Used when you need ObjectBucketClaims (dynamically provisioned S3 buckets via the Kubernetes API) or multi-cloud storage spanning on-premises and cloud providers. MCG is what OADP uses for its backup store in the NovaCrestBank configuration.</div>
+      <div class="ceph-ncb">NovaCrestBank: MCG deployed — backs OADP backup ObjectBucketClaims. NooBaa database on ceph-rbd PVC.</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">The quorum rule — why 3 nodes is the minimum for any converged ODF deployment</span>
+    <p>Ceph MON quorum requires a majority — more than half the MON daemons must be reachable for the cluster to accept writes. With 3 MONs (one per node), losing 1 node leaves 2 MONs running — quorum is maintained. With 2 MONs, losing 1 leaves 1 MON — quorum is broken and the cluster stops accepting writes. This is why ODF requires a minimum of 3 nodes. NovaCrestBank uses 5 nodes — losing any 2 nodes simultaneously still leaves 3 MONs in quorum. <span class="reg reg-nist">NIST SP 800-53 CP-7</span></p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 STORAGE TYPES ══ -->
+  <section id="storage-types">
+  <h2>04 — Three storage types — block, file, and object</h2>
+  <p>ODF provides all three fundamental storage types simultaneously from the same Ceph cluster. The type you choose for each workload depends on its access pattern — not its size or importance. The wrong type causes either a functional failure (pod stuck in Pending because PVC cannot be mounted) or a performance problem.</p>
+
+  <table>
+    <thead><tr><th>Type</th><th>Ceph technology</th><th>Access mode</th><th>When to use</th><th>NovaCrestBank use cases</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Block (RBD)</strong></td>
+        <td>Ceph RADOS Block Device</td>
+        <td><code>ReadWriteOnce</code></td>
+        <td>One pod or VM reads/writes a device-like volume. Databases, application state. Highest performance — direct block I/O via kernel RBD driver.</td>
+        <td>VM boot disks (via ceph-rbd-virtualization StorageClass), PostgreSQL data, Prometheus TSDB</td>
+      </tr>
+      <tr>
+        <td><strong>File (CephFS)</strong></td>
+        <td>Ceph Filesystem via MDS</td>
+        <td><code>ReadWriteMany</code></td>
+        <td>Multiple pods or VMs must simultaneously mount the same volume. Shared workspaces, live migration staging. Lower performance than RBD — metadata overhead of a filesystem.</td>
+        <td>VM live migration staging disk (source and destination node both mount the volume during migration). Required by OpenShift Virtualization live migration.</td>
+      </tr>
+      <tr>
+        <td><strong>Object (S3)</strong></td>
+        <td>Ceph RGW or MCG (NooBaa)</td>
+        <td><code>ObjectBucketClaim</code><br>(not a PVC)</td>
+        <td>Unstructured data accessed via HTTP S3 API. Not mounted as a filesystem. Logs, backups, images, large binary data.</td>
+        <td>OADP backup store, OpenShift image registry backing store (migration from MinIO)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="cl">The most common ODF mistake for VM workloads</span>
+    <p>Using <code>ReadWriteOnce</code> (RBD block) for a VM's boot disk when that VM will be live-migrated. During live migration, OCP Virt needs both the source and destination node to access the disk simultaneously — which requires <code>ReadWriteMany</code>. The correct StorageClass is <code>ocs-storagecluster-ceph-rbd-virtualization</code>, which is configured for <code>ReadWriteMany</code>. VMs created with <code>ReadWriteOnce</code> PVCs can only be cold-migrated (stopped first). Section 18 covers this StorageClass in full.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 CONVERGED TOPOLOGY ══ -->
+  <section id="converged-topology">
+  <h2>05 — Converged topology — why all 5 nodes run ODF</h2>
+  <p>NovaCrestBank's ODF deployment uses a converged topology: all five DL385 Gen11 nodes run both VM workloads (via OpenShift Virtualization) and ODF storage daemons (OSD, MON, MGR, MDS). This is different from the VCF series ODF deployment (STORAGE-01) which uses dedicated storage nodes.</p>
+
+  <div class="decision">
+    <div class="dq">Converged vs dedicated storage nodes for the VIRT environment</div>
+    <div class="db">
+      <p><strong>Rejected: dedicated storage nodes.</strong> Adding 3 dedicated storage nodes to the bare-metal environment would require 3 additional HP DL385 Gen11 servers, additional switch ports, iLO cabling, and OS provisioning. The bare-metal environment already has 5 nodes — adding 3 more for storage-only work doubles the hardware scope and cost. For a platform consolidation project whose business case includes TCO reduction, this is difficult to justify.</p>
+      <p><strong>Decision: converged topology, 5 nodes.</strong> All 5 DL385 nodes contribute 4 NVMe disks each to ODF (20 OSDs total) while also running VM workloads. ODF resource limits (CPU and memory requests/limits on OSD and MON pods) ensure storage daemons do not starve VM workloads. With 64 CPU cores and 512 GiB RAM per node, each node has substantial headroom for both OSD daemons (~4 GiB RAM per OSD × 4 = 16 GiB) and VM workloads (remaining ~490 GiB). The 5-node converged topology tolerates 2 simultaneous node failures — stronger resilience than a 3-node dedicated configuration.</p>
+    </div>
+  </div>
+
+  <div class="topo">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:12px">NovaCrestBank ODF topology — 5-node converged</div>
+    <div class="topo-row">
+      <div class="topo-label">Failure domain</div>
+      <div class="topo-boxes">
+        <div class="topo-box tb-fd">Zone A<br>bm-virt-01</div>
+        <div class="topo-box tb-fd">Zone B<br>bm-virt-02</div>
+        <div class="topo-box tb-fd">Zone C<br>bm-virt-03</div>
+        <div class="topo-box tb-fd">Zone D<br>bm-virt-04</div>
+        <div class="topo-box tb-fd">Zone E<br>bm-virt-05</div>
+      </div>
+    </div>
+    <div class="topo-row">
+      <div class="topo-label">Ceph daemons</div>
+      <div class="topo-boxes">
+        <div class="topo-box tb-mon">MON-a<br>MGR(active)</div>
+        <div class="topo-box tb-mon">MON-b<br>MDS(active)</div>
+        <div class="topo-box tb-mon">MON-c<br>MGR(standby)</div>
+        <div class="topo-box tb-node">MDS(standby)<br>RGW</div>
+        <div class="topo-box tb-node">MCG<br>NooBaa</div>
+      </div>
+    </div>
+    <div class="topo-row">
+      <div class="topo-label">OSD disks (NVMe)</div>
+      <div class="topo-boxes">
+        <div class="topo-box tb-osd">osd.0 osd.1<br>osd.2 osd.3</div>
+        <div class="topo-box tb-osd">osd.4 osd.5<br>osd.6 osd.7</div>
+        <div class="topo-box tb-osd">osd.8 osd.9<br>osd.10 osd.11</div>
+        <div class="topo-box tb-osd">osd.12 osd.13<br>osd.14 osd.15</div>
+        <div class="topo-box tb-osd">osd.16 osd.17<br>osd.18 osd.19</div>
+      </div>
+    </div>
+    <div style="font-size:12.5px;color:var(--text3);margin-top:10px">20 OSDs total · 5 failure domains · Replication factor 3 · Can lose any 2 nodes without data loss</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 DISK VERIFICATION ══ -->
+  <section id="disk-verification">
+  <h2>06 — Disk verification — raw NVMe disks confirmed on all nodes</h2>
+  <p>Before installing the Local Storage Operator, verify that the raw NVMe disks are visible as unformatted block devices on every bare-metal node. The LSO discovers and claims raw block devices — it cannot use a disk that already has a filesystem, a partition table, or an existing Ceph OSD on it. This verification runs from the jump host using <code>oc debug</code> to open a shell on each node.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify raw NVMe disks on all 5 nodes</div></div>
+    <div class="term-body"><pre><span class="td"># Check each bare-metal node for raw NVMe disks</span>
+<span class="td"># Expected: 4 x NVMe disks per node, TYPE=disk, FSTYPE empty (no filesystem)</span>
+<span class="td"># The 2 x 480GB SSD (OS disks) will show FSTYPE because RHCOS is installed on them</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
+  echo "=== ${node} ==="
+  oc debug node/${node}.novacrestbank.local -- \
+    chroot /host lsblk -d -o NAME,SIZE,TYPE,FSTYPE,ROTA 2>/dev/null | \
+    grep -E "NAME|nvme|sda|sdb"
+  echo ""
+done</span>
+<span class="tg">=== bm-virt-01 ===
+NAME      SIZE  TYPE  FSTYPE   ROTA
+sda       480G  disk  vfat     0    ← OS SSD (RHCOS installed — has filesystem)
+sdb       480G  disk           0    ← OS SSD mirror (RAID-1 via HPE Smart Array)
+nvme0n1   3.8T  disk           0    ← ODF OSD disk 1 — no filesystem ✓
+nvme1n1   3.8T  disk           0    ← ODF OSD disk 2 — no filesystem ✓
+nvme2n1   3.8T  disk           0    ← ODF OSD disk 3 — no filesystem ✓
+nvme3n1   3.8T  disk           0    ← ODF OSD disk 4 — no filesystem ✓
+
+=== bm-virt-02 ===
+NAME      SIZE  TYPE  FSTYPE   ROTA
+sda       480G  disk  vfat     0
+sdb       480G  disk           0
+nvme0n1   3.8T  disk           0    ← ODF OSD disk 1 ✓
+nvme1n1   3.8T  disk           0    ← ODF OSD disk 2 ✓
+nvme2n1   3.8T  disk           0    ← ODF OSD disk 3 ✓
+nvme3n1   3.8T  disk           0    ← ODF OSD disk 4 ✓</span>
+<span class="td"># [bm-virt-03, 04, 05 show identical output — 4 raw NVMe disks each]</span>
+<span class="tok">✓ All 5 nodes have 4 raw NVMe disks. FSTYPE is empty — no filesystem, no partition table.
+✓ ROTA=0 confirms these are SSDs (Non-Rotational). LSO deviceMechanicalProperties filter will match.
+✓ OS disks (sda/sdb) are correctly excluded — they have a filesystem and will not be claimed by LSO.</span></pre>
+    </div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">If an NVMe disk shows a FSTYPE — root causes and fixes</div>
+    <div class="wrong-item"><strong>Disk shows FSTYPE=xfs or ext4:</strong> A previous OSD or filesystem was created on this disk. The LSO will not claim a disk with an existing filesystem. Wipe the disk: <code>oc debug node/&lt;node&gt; -- chroot /host wipefs -a /dev/nvme0n1</code>. Verify FSTYPE is empty before proceeding.</div>
+    <div class="wrong-item"><strong>Disk shows FSTYPE=ceph_bluestore:</strong> A previous Ceph OSD exists on this disk from an earlier ODF installation attempt. Run <code>ceph-volume lvm zap /dev/nvme0n1</code> from inside a debug pod with ceph tools available, or <code>wipefs -a /dev/nvme0n1</code> followed by <code>dd if=/dev/zero of=/dev/nvme0n1 bs=4M count=10</code> to clear the BlueStore signature.</div>
+    <div class="wrong-item"><strong>NVMe disk count is fewer than 4:</strong> The HP SmartArray controller may have claimed a disk for RAID. Verify iLO → System Information → Storage → NVMe that all 4 NVMe drives are visible as individual devices, not as a RAID set. NVMe drives for ODF must be in passthrough/JBOD mode, not RAID.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 NODE LABELLING ══ -->
+  <section id="node-labelling">
+  <h2>07 — Node labelling and tainting for ODF</h2>
+  <p>ODF uses a specific label to identify which nodes should run storage daemons (OSDs, MONs, MGRs). Without this label, the LSO and ODF Operator do not know which nodes to target. The taint ensures that non-ODF pods do not land on storage nodes and compete with OSD I/O — but in a converged topology, we do not use the full storage taint. Here is why.</p>
+
+  <div class="decision">
+    <div class="dq">Why converged nodes are NOT fully tainted for ODF</div>
+    <div class="db">
+      <p>In a dedicated storage node deployment (like the VCF series STORAGE-01), the taint <code>node.ocs.openshift.io/storage=true:NoSchedule</code> is applied to storage nodes to prevent application pods from landing on them. This is correct when the nodes run <em>only</em> ODF — they should not run anything else.</p>
+      <p>In NovaCrestBank's converged topology, the same nodes run both ODF daemons and VM workloads (via OCP Virt virt-launcher pods). Applying the ODF storage taint would prevent virt-launcher pods from scheduling here — unless those pods also tolerate the storage taint, which requires a change to the HyperConverged Operator configuration that adds complexity.</p>
+      <p>The converged nodes already carry the <code>kubevirt.io/virt=true:NoSchedule</code> taint from VIRT-02. ODF pods must tolerate this taint to schedule on these nodes. This is configured in the StorageCluster CR's placement section (Section 14). The ODF label is still required — it is what tells LSO and ODF which nodes have the OSD disks.</p>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — label nodes for ODF</div></div>
+    <div class="term-body"><pre><span class="td"># Add the ODF node selector label to all 5 bare-metal nodes</span>
+<span class="td"># This label is what LSO uses to discover disks and what ODF uses to place daemon pods</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
+  oc label node ${node}.novacrestbank.local \
+    cluster.ocs.openshift.io/openshift-storage="" \
+    --overwrite
+  echo "Labelled: ${node}"
+done</span>
+<span class="tg">Labelled: bm-virt-01
+Labelled: bm-virt-02
+Labelled: bm-virt-03
+Labelled: bm-virt-04
+Labelled: bm-virt-05</span>
+
+<span class="td"># Verify: all 5 nodes carry the ODF label</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -l cluster.ocs.openshift.io/openshift-storage \
+  -o custom-columns="NAME:.metadata.name,ODF:.metadata.labels.cluster\.ocs\.openshift\.io/openshift-storage"</span>
+<span class="tg">NAME                             ODF
+bm-virt-01.novacrestbank.local   (empty string)
+bm-virt-02.novacrestbank.local   (empty string)
+bm-virt-03.novacrestbank.local   (empty string)
+bm-virt-04.novacrestbank.local   (empty string)
+bm-virt-05.novacrestbank.local   (empty string)</span>
+<span class="tok">✓ All 5 nodes carry cluster.ocs.openshift.io/openshift-storage="" label.
+✓ The empty string value is correct — ODF uses the label key's presence, not its value.
+✓ The existing kubevirt.io/virt=true:NoSchedule taint remains — ODF pods will tolerate it via the StorageCluster CR placement section.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 WHAT LSO IS ══ -->
+  <section id="what-lso-is">
+  <h2>08 — What the Local Storage Operator is — and why ODF needs it</h2>
+  <p>ODF cannot use raw disk devices directly off the node. It needs PersistentVolumes (PVs) — the Kubernetes abstraction for storage that has been provisioned and is available to be claimed. Raw block devices on RHCOS nodes are not automatically PVs. The Local Storage Operator (LSO) bridges this gap: it discovers raw block devices on labelled nodes and creates PVs from them. Without LSO, ODF has no storage to claim.</p>
+
+  <h3>The three LSO objects</h3>
+  <p><strong>LocalVolumeDiscovery:</strong> A DaemonSet-backed object that runs a discovery agent on each labelled storage node. The agent scans the node's block devices and reports what it finds — device name, size, vendor, model, filesystem presence, and whether the device is currently in use. Results appear as <code>LocalVolumeDiscoveryResult</code> objects. This is read-only — discovery does not change anything on the disk.</p>
+  <p><strong>LocalVolumeSet:</strong> Tells LSO which discovered devices to claim and what StorageClass to create PVs for. Uses selectors to filter devices — you specify that you want NonRotational disks larger than 100 GiB with no filesystem. LSO claims matching devices and creates one PV per device. Once a device is claimed, it will not be claimed again — LSO tracks ownership.</p>
+  <p><strong>LocalVolume (not used here):</strong> An older LSO object that claims specific named devices (e.g., <code>/dev/nvme0n1</code>). Requires manually specifying each device path on each node. LocalVolumeSet is the correct modern approach — it uses selectors and scales automatically as new nodes and disks are added.</p>
+
+  <div class="callout blue">
+    <span class="cl">Why volumeMode: Block and not Filesystem</span>
+    <p>LSO creates PVs in <code>volumeMode: Block</code> for ODF — not <code>Filesystem</code>. Ceph OSD daemons use BlueStore as their internal storage format. BlueStore requires raw block device access — it manages its own internal structures directly on the block device. If the PV were in Filesystem mode, the OS would place a filesystem on the device first, and Ceph's BlueStore would be written on top of that filesystem — adding an unnecessary translation layer and reducing performance. <code>volumeMode: Block</code> gives OSD pods direct access to the raw NVMe block device, which is what BlueStore requires.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 LSO INSTALL ══ -->
+  <section id="lso-install">
+  <h2>09 — Install the Local Storage Operator</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">lso-subscription.yaml — Local Storage Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Create the openshift-local-storage namespace first</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Namespace</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-local-storage</span>
+<span class="yc">  # The dedicated namespace for all LSO objects and pods.
+  # LSO discovery agents run as DaemonSet pods here.</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">OperatorGroup</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">local-operator-group</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-local-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">targetNamespaces</span><span class="yc">:</span>
+    <span class="yc"># targetNamespaces must match the namespace — LSO is a single-namespace operator.
+    # Omitting this causes OLM to create an all-namespaces OperatorGroup which conflicts
+    # with LSO's expected scope and produces an InstallPlan error.</span>
+    <span class="yc">-</span> <span class="yv">openshift-local-storage</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">local-storage-operator</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-local-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">stable</span>
+  <span class="yc">  # channel: stable — LSO uses a single stable channel, unlike ODF which uses
+  # version-pinned channels (stable-4.16). LSO's stable channel always tracks
+  # the version compatible with the installed OCP version.</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">local-storage-operator</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yc">  # redhat-operators: LSO is a Red Hat certified operator — not community-operators.</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span>
+  <span class="yc">  # Manual: require explicit approval before installing. This prevents automatic
+  # upgrades from changing the LSO version without a change management review.
+  # In a banking environment, every operator upgrade is a change.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install LSO and verify</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f lso-subscription.yaml</span>
+<span class="tg">namespace/openshift-local-storage created
+operatorgroup.operators.coreos.com/local-operator-group created
+subscription.operators.coreos.com/local-storage-operator created</span>
+
+<span class="td"># Approve the InstallPlan (required because installPlanApproval: Manual)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get installplan -n openshift-local-storage</span>
+<span class="tg">NAME            CSV                                    APPROVAL   APPROVED
+install-abc12   local-storage-operator.v4.16.x        Manual     false</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc patch installplan install-abc12 \
+  -n openshift-local-storage \
+  --type merge \
+  -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-abc12 patched</span>
+
+<span class="td"># Wait ~2 minutes, then verify CSV is Succeeded</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csv -n openshift-local-storage</span>
+<span class="tg">NAME                            DISPLAY               VERSION   PHASE
+local-storage-operator.v4.16.x Local Storage          4.16.x    Succeeded</span>
+<span class="tok">✓ LSO installed and CSV Succeeded. LocalVolumeDiscovery, LocalVolumeSet CRDs are registered.
+✓ LSO operator pod is running in openshift-local-storage namespace.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 LSO DISCOVERY ══ -->
+  <section id="lso-discovery">
+  <h2>10 — LocalVolumeDiscovery — run discovery on all 5 nodes</h2>
+  <p>The LocalVolumeDiscovery object deploys a DaemonSet that runs a discovery agent on each node matching the node selector. The agent scans block devices and reports results as <code>LocalVolumeDiscoveryResult</code> objects — one per node. Discovery is read-only. It does not claim or modify any disk. It is the reconnaissance step that tells LSO what is available before anything is claimed.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="term-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">lso-discovery.yaml — LocalVolumeDiscovery</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">local.storage.openshift.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">LocalVolumeDiscovery</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">auto-discover-devices</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-local-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">nodeSelector</span><span class="yc">:</span>
+    <span class="yk">nodeSelectorTerms</span><span class="yc">:</span>
+      <span class="yc">- matchExpressions</span><span class="yc">:</span>
+        <span class="yc">  - key</span><span class="yc">:</span> <span class="yv">cluster.ocs.openshift.io/openshift-storage</span>
+          <span class="yc">    operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+          <span class="yc">    # Exists operator: any node that has this label key (regardless of value)
+          # is included. We labelled all 5 bare-metal nodes with this key in Section 07.
+          # This discovery runs only on bare-metal nodes — not on the ESXi-hosted
+          # OCP workers from the VCF environment, which do not have this label.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply discovery and check results</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f lso-discovery.yaml</span>
+<span class="tg">localvolumediscovery.local.storage.openshift.io/auto-discover-devices created</span>
+
+<span class="td"># Wait ~60 seconds for the DaemonSet to run on all 5 nodes</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get localvolumediscoveryresult -n openshift-local-storage</span>
+<span class="tg">NAME                              AGE
+discovery-result-bm-virt-01       63s
+discovery-result-bm-virt-02       61s
+discovery-result-bm-virt-03       59s
+discovery-result-bm-virt-04       57s
+discovery-result-bm-virt-05       55s</span>
+
+<span class="td"># Check the discovery result for bm-virt-01 — verify 4 NVMe disks are found</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get localvolumediscoveryresult discovery-result-bm-virt-01 \
+  -n openshift-local-storage \
+  -o json | python3 -c "
+import json, sys
+r = json.load(sys.stdin)
+for d in r['status']['discoveredDevices']:
+    print(f\"{d['deviceID']}: {d['size']['capacity']} | {d['type']} | fstype: {d.get('fstype','none')} | status: {d.get('status',{}).get('state','')}\")
+"</span>
+<span class="tg">/dev/sda:     480Gi   | disk | fstype: vfat          | Available
+/dev/sdb:     480Gi   | disk | fstype: none          | Available
+/dev/nvme0n1: 3756Gi  | disk | fstype: none          | Available
+/dev/nvme1n1: 3756Gi  | disk | fstype: none          | Available
+/dev/nvme2n1: 3756Gi  | disk | fstype: none          | Available
+/dev/nvme3n1: 3756Gi  | disk | fstype: none          | Available</span>
+<span class="tok">✓ Discovery found all 4 NVMe disks on bm-virt-01. fstype: none = raw, unformatted, claimable.
+✓ /dev/sda (OS disk) shows fstype: vfat — LSO device filters will correctly exclude it.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 LSO VOLUMESET ══ -->
+  <section id="lso-volumeset">
+  <h2>11 — LocalVolumeSet — claim NVMe disks as PersistentVolumes</h2>
+  <p>The LocalVolumeSet is where LSO actually claims the discovered disks and creates PersistentVolumes from them. Every field has a specific purpose — the wrong value causes either the wrong disks to be claimed or the correct disks to be missed.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">lso-volumeset.yaml — LocalVolumeSet — every field explained</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">local.storage.openshift.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">LocalVolumeSet</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">local-block</span>
+  <span class="yc">  # local-block: the conventional name for the ODF LSO LocalVolumeSet.
+  # ODF documentation and the StorageCluster CR reference this name implicitly
+  # through the StorageClass it creates (localblock).</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-local-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">nodeSelector</span><span class="yc">:</span>
+    <span class="yk">nodeSelectorTerms</span><span class="yc">:</span>
+      <span class="yc">- matchExpressions</span><span class="yc">:</span>
+        <span class="yc">  - key</span><span class="yc">:</span> <span class="yv">cluster.ocs.openshift.io/openshift-storage</span>
+          <span class="yc">    operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+          <span class="yc">    # Same node selector as the discovery — target only the 5 bare-metal nodes.</span>
+  <span class="yk">storageClassName</span><span class="yc">:</span> <span class="yv">localblock</span>
+  <span class="yc">  # localblock: the StorageClass LSO creates for the PVs it provisions.
+  # The ODF StorageCluster CR references this StorageClass to claim PVs for OSDs.
+  # Do not change this name — the StorageCluster CR expects "localblock" by convention.</span>
+  <span class="yk">volumeMode</span><span class="yc">:</span> <span class="yv">Block</span>
+  <span class="yc">  # Block mode (not Filesystem): OSD devices must be raw block devices.
+  # Ceph BlueStore manages its own internal format directly on the raw block device.
+  # Filesystem mode would add a kernel filesystem between BlueStore and the disk —
+  # unnecessary overhead, reduced performance, and not supported for ODF OSDs.</span>
+  <span class="yk">deviceInclusionSpec</span><span class="yc">:</span>
+    <span class="yk">deviceTypes</span><span class="yc">:</span>
+      <span class="yc">- disk</span>
+      <span class="yc">  # disk only: include physical disk devices. Exclude:
+      # "part" (partitions — would incorrectly claim individual partitions),
+      # "loop" (loop devices used for container images),
+      # "rom" (optical drives).
+      # The OS disks (sda/sdb) are type "disk" but will be excluded by the
+      # filesystem check — sda has FSTYPE=vfat (RHCOS boot partition).</span>
+    <span class="yk">minSize</span><span class="yc">:</span> <span class="yv">1Ti</span>
+    <span class="yc">  # 1 TiB minimum size: the NVMe OSD disks are 3.84 TB — well above this threshold.
+    # The OS SSDs (480 GiB) are below 1 TiB and would be excluded here even if they
+    # had no filesystem. Double protection: size filter AND filesystem check both
+    # prevent OS disks from being claimed as OSD devices.</span>
+    <span class="yk">deviceMechanicalProperties</span><span class="yc">:</span>
+      <span class="yc">- NonRotational</span>
+      <span class="yc">  # NonRotational: NVMe and SATA SSD only. Excludes spinning HDDs (Rotational).
+      # ODF performance on HDDs is significantly worse than on SSDs — write amplification,
+      # OSD journal I/O, and recovery rebalancing all perform poorly on spinning media.
+      # Explicitly requiring NonRotational prevents accidental claiming of an HDD
+      # if one is ever installed on these nodes.</span>
+    <span class="yk">fsType</span><span class="yc">:</span> <span class="yv">&quot;&quot;</span>
+    <span class="yc">  # Empty string: only claim devices with NO filesystem.
+    # A device with an existing filesystem (vfat, xfs, ext4) would be claimed
+    # only if fsType is not specified. Setting it to "" explicitly excludes
+    # all formatted devices — another layer of protection against claiming the OS disk.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply LocalVolumeSet</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f lso-volumeset.yaml</span>
+<span class="tg">localvolumeset.local.storage.openshift.io/local-block created</span>
+
+<span class="td"># LSO begins claiming disks immediately — watch the status</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get localvolumeset local-block \
+  -n openshift-local-storage \
+  -o jsonpath='{.status.observedGeneration} {.status.totalProvisionedDeviceCount}'</span>
+<span class="tg">1 20</span>
+<span class="tok">✓ totalProvisionedDeviceCount=20: all 20 NVMe disks claimed (4 per node × 5 nodes).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 LSO VERIFY ══ -->
+  <section id="lso-verify">
+  <h2>12 — Verify LSO created PVs for all 20 disks</h2>
+  <p>After LSO claims the disks, it creates one PersistentVolume per disk. Each PV must show STATUS=Available — meaning it has been provisioned and is waiting to be claimed. ODF will claim these PVs when the StorageCluster is deployed. If any PV shows STATUS=Released or Failed, investigate before proceeding to ODF installation.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify 20 PVs created and Available</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pv \
+  -l storage.openshift.com/owner-name=local-block \
+  -o custom-columns=\
+"NAME:.metadata.name,\
+CAPACITY:.spec.capacity.storage,\
+STATUS:.status.phase,\
+NODE:.metadata.annotations.storage\.openshift\.com/device-id" \
+  | sort -k4</span>
+<span class="tg">NAME              CAPACITY  STATUS     NODE
+local-pv-a1b001   3756Gi    Available  bm-virt-01.novacrestbank.local
+local-pv-a1b002   3756Gi    Available  bm-virt-01.novacrestbank.local
+local-pv-a1b003   3756Gi    Available  bm-virt-01.novacrestbank.local
+local-pv-a1b004   3756Gi    Available  bm-virt-01.novacrestbank.local
+local-pv-c2d005   3756Gi    Available  bm-virt-02.novacrestbank.local
+local-pv-c2d006   3756Gi    Available  bm-virt-02.novacrestbank.local
+local-pv-c2d007   3756Gi    Available  bm-virt-02.novacrestbank.local
+local-pv-c2d008   3756Gi    Available  bm-virt-02.novacrestbank.local
+local-pv-e3f009   3756Gi    Available  bm-virt-03.novacrestbank.local
+local-pv-e3f010   3756Gi    Available  bm-virt-03.novacrestbank.local
+local-pv-e3f011   3756Gi    Available  bm-virt-03.novacrestbank.local
+local-pv-e3f012   3756Gi    Available  bm-virt-03.novacrestbank.local
+local-pv-g4h013   3756Gi    Available  bm-virt-04.novacrestbank.local
+local-pv-g4h014   3756Gi    Available  bm-virt-04.novacrestbank.local
+local-pv-g4h015   3756Gi    Available  bm-virt-04.novacrestbank.local
+local-pv-g4h016   3756Gi    Available  bm-virt-04.novacrestbank.local
+local-pv-i5j017   3756Gi    Available  bm-virt-05.novacrestbank.local
+local-pv-i5j018   3756Gi    Available  bm-virt-05.novacrestbank.local
+local-pv-i5j019   3756Gi    Available  bm-virt-05.novacrestbank.local
+local-pv-i5j020   3756Gi    Available  bm-virt-05.novacrestbank.local</span>
+<span class="tok">✓ 20 PVs created — 4 per node across 5 nodes.
+✓ All STATUS=Available — ready to be claimed by ODF OSD pods.
+✓ All 3756Gi (3.84 TB NVMe — displayed in GiB by Kubernetes).
+✓ Evenly distributed: 4 PVs per node as expected. LSO ready.</span>
+
+<span class="td"># Confirm the localblock StorageClass was created by LSO</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get storageclass localblock</span>
+<span class="tg">NAME         PROVISIONER                                    RECLAIMPOLICY  VOLUMEBINDINGMODE
+localblock   kubernetes.io/no-provisioner                  Delete         WaitForFirstConsumer</span>
+<span class="tok">✓ localblock StorageClass exists. Provisioner: no-provisioner means LSO manages PVs statically
+✓ (not dynamically). WaitForFirstConsumer: PVs bind when a Pod claims them, not immediately.
+✓ This is correct — ODF claims these PVs when OSD pods start on each node.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 ODF OPERATOR ══ -->
+  <section id="odf-operator">
+  <h2>13 — Install the ODF Operator via OLM</h2>
+  <p>ODF is installed as an OLM Subscription, just like any other OCP operator. The Subscription triggers the installation of five component operators — each with a specific role. All five must reach <code>Succeeded</code> phase before the StorageCluster can be deployed.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">odf-subscription.yaml — ODF Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Namespace</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-storage</span>
+  <span class="yc">  # openshift-storage: the dedicated ODF namespace.
+  # All ODF component pods (MON, OSD, MGR, MDS, RGW, MCG) run here.
+  # This namespace is created explicitly — OLM does not create it automatically
+  # when the Subscription is in a different namespace than the operator's target.</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">OperatorGroup</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-storage-operatorgroup</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">targetNamespaces</span><span class="yc">:</span>
+    <span class="yc">-</span> <span class="yv">openshift-storage</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">odf-operator</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">stable-4.16</span>
+  <span class="yc">  # ODF channel must match the OCP minor version.
+  # OCP 4.16 → ODF stable-4.16. This is a hard requirement — ODF 4.16 is certified
+  # against OCP 4.16. A mismatched channel (e.g., stable-4.15 on OCP 4.16) is
+  # unsupported and may cause CSI driver incompatibilities that are difficult to diagnose.</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">odf-operator</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yc">  # redhat-operators: ODF is a Red Hat product. It is in the certified catalog,
+  # not community-operators. This is the supported source for production deployments.</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install ODF and verify all 5 component CSVs Succeeded</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f odf-subscription.yaml</span>
+<span class="tg">namespace/openshift-storage created
+operatorgroup.operators.coreos.com/openshift-storage-operatorgroup created
+subscription.operators.coreos.com/odf-operator created</span>
+
+<span class="td"># Approve the InstallPlan</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">INSTALL_PLAN=$(oc get installplan -n openshift-storage \
+  -o jsonpath='{.items[0].metadata.name}')
+oc patch installplan ${INSTALL_PLAN} \
+  -n openshift-storage \
+  --type merge \
+  -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-xyz99 patched</span>
+
+<span class="td"># ODF installs 5 component operators — watch until all are Succeeded (~5 minutes)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get csv -n openshift-storage \
+  -o custom-columns="NAME:.metadata.name,PHASE:.status.phase"'</span>
+<span class="tg">NAME                                 PHASE
+odf-operator.v4.16.x                 Succeeded
+ocs-operator.v4.16.x                 Succeeded
+rook-ceph-operator.v4.16.x           Succeeded
+noobaa-operator.v5.16.x              Succeeded
+odf-csi-addons-operator.v4.16.x      Succeeded</span>
+<span class="tok">✓ All 5 component CSVs Succeeded.
+  odf-operator: top-level ODF orchestration and console integration
+  ocs-operator: manages the StorageCluster CRD — this is what we interact with
+  rook-ceph-operator: deploys and manages all Ceph daemon pods (MON, OSD, MGR, MDS, RGW)
+  noobaa-operator: deploys and manages MCG (Multi-Cloud Gateway / NooBaa)
+  odf-csi-addons-operator: manages VolumeReplication and other CSI add-on capabilities
+✓ StorageCluster CRD is now registered. Ready to deploy the Ceph cluster.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 STORAGECLUSTER CR ══ -->
+  <section id="storagecluster">
+  <h2>14 — StorageCluster CR — every field explained</h2>
+  <p>The StorageCluster Custom Resource is the single object that declares NovaCrestBank's complete Ceph cluster configuration. The ODF Operator reads it and deploys all Ceph daemons to match. Every field is annotated — do not apply this YAML without understanding what each field does and why it is set the way it is.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">storagecluster.yaml — NovaCrestBank ODF — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">ocs.openshift.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">StorageCluster</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ocs-storagecluster</span>
+  <span class="yc">  # ocs-storagecluster: the expected default name. ODF tooling (the ODF console plugin,
+  # oc adm must-gather for ODF, and many troubleshooting scripts) look for this name.
+  # Changing it requires additional annotations and is not recommended.</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-storage</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">storageDeviceSets</span><span class="yc">:</span>
+  <span class="yc">  - name</span><span class="yc">:</span> <span class="yv">ocs-deviceset-localblock</span>
+    <span class="yk">count</span><span class="yc">:</span> <span class="yv">1</span>
+    <span class="yc">    # count: how many OSD pods to create per PV in the device set.
+    # count: 1 = one OSD pod per localblock PV.
+    # With 20 PVs and count=1: 20 OSD pods are created — one per NVMe disk.
+    # Each OSD pod manages one raw block device (one NVMe disk).
+    # count: 2 would create 2 OSD pods per PV — not useful for raw block devices.</span>
+    <span class="yk">replica</span><span class="yc">:</span> <span class="yv">3</span>
+    <span class="yc">    # replica: 3 = every piece of data is written to 3 OSDs on 3 different nodes.
+    # With 5 nodes and replica: 3, Ceph can lose any 2 nodes and all data remains
+    # accessible from the remaining 3 nodes.
+    # replica: 2 would halve storage overhead but reduce tolerance to 0 node failures
+    # (losing 1 node with replica: 2 causes Ceph to go read-only until recovered).
+    # replica: 3 is the production-correct setting for a banking environment.
+    # Do not use replica: 2 in production. Ever.</span>
+    <span class="yk">dataPVCTemplate</span><span class="yc">:</span>
+      <span class="yk">spec</span><span class="yc">:</span>
+        <span class="yk">storageClassName</span><span class="yc">:</span> <span class="yv">localblock</span>
+        <span class="yc">        # localblock: the StorageClass created by LSO's LocalVolumeSet.
+        # ODF claims PVs from this class to back each OSD pod.
+        # If the StorageClass name here does not match what LSO created,
+        # OSD pods stay in Pending — no PVs are found to claim.</span>
+        <span class="yk">accessModes</span><span class="yc">:</span>
+          <span class="yc">-</span> <span class="yv">ReadWriteOnce</span>
+        <span class="yk">volumeMode</span><span class="yc">:</span> <span class="yv">Block</span>
+        <span class="yc">        # Block mode required — raw block device for Ceph BlueStore OSD.
+        # Must match the volumeMode in the LocalVolumeSet (also Block).
+        # Mismatch causes PVC to remain unbound — OSD pod stays Pending.</span>
+        <span class="yk">resources</span><span class="yc">:</span>
+          <span class="yk">requests</span><span class="yc">:</span>
+            <span class="yk">storage</span><span class="yc">:</span> <span class="yv">&quot;1&quot;</span>
+            <span class="yc">            # storage: "1" — this is not 1 byte or 1 GiB.
+            # This is a special ODF convention: "1" tells ODF to claim the
+            # entire PV regardless of its size. ODF does not partial-claim a PV.
+            # The actual PV is 3756 GiB — ODF uses the full capacity for the OSD.
+            # Using "1" avoids hardcoding the disk size — it works regardless
+            # of whether the NVMe disks are 1 TB, 3.84 TB, or 8 TB.</span>
+    <span class="yk">placement</span><span class="yc">:</span>
+      <span class="yk">nodeAffinity</span><span class="yc">:</span>
+        <span class="yk">requiredDuringSchedulingIgnoredDuringExecution</span><span class="yc">:</span>
+          <span class="yk">nodeSelectorTerms</span><span class="yc">:</span>
+          <span class="yc">  - matchExpressions</span><span class="yc">:</span>
+            <span class="yc">    - key</span><span class="yc">:</span> <span class="yv">cluster.ocs.openshift.io/openshift-storage</span>
+              <span class="yc">      operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+              <span class="yc">      # OSD pods schedule ONLY on nodes labelled for ODF storage.
+              # This prevents OSD pods from landing on the ESXi-hosted VCF workers
+              # which do not have OSD disks and would cause OSD pod to crash on start.</span>
+      <span class="yk">tolerations</span><span class="yc">:</span>
+      <span class="yc">  -</span> <span class="yk">key</span><span class="yc">:</span> <span class="yv">kubevirt.io/virt</span>
+        <span class="yk">effect</span><span class="yc">:</span> <span class="yv">NoSchedule</span>
+        <span class="yk">operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+        <span class="yc">        # This toleration is specific to NovaCrestBank's converged topology.
+        # The bare-metal nodes carry the kubevirt.io/virt=true:NoSchedule taint
+        # (applied in VIRT-02 to reserve them for VM workloads).
+        # Without this toleration, ODF daemon pods cannot schedule on tainted nodes.
+        # They would be rejected by the scheduler and stay Pending indefinitely.
+        # This is the key difference between dedicated ODF nodes (no taint) and
+        # NovaCrestBank's converged nodes (carry the kubevirt taint).</span>
+  <span class="yk">monDataDirHostPath</span><span class="yc">:</span> <span class="yv">/var/lib/rook</span>
+  <span class="yc">  # MON daemons persist their cluster map data to this path on the host node.
+  # /var/lib/rook is the conventional path. MON data is small (<100 MiB) but must
+  # persist across MON pod restarts — storing it on the host ensures MON can restart
+  # quickly without rebuilding its state from peers.
+  # This path is on the RHCOS root filesystem — it is preserved across node reboots
+  # because RHCOS mounts /var as a writable overlay.</span>
+  <span class="yk">multiCloudGateway</span><span class="yc">:</span>
+    <span class="yk">dbStorageClassName</span><span class="yc">:</span> <span class="yv">ocs-storagecluster-ceph-rbd</span>
+    <span class="yc">    # MCG (NooBaa) requires persistent storage for its internal database.
+    # ocs-storagecluster-ceph-rbd is the Ceph RBD StorageClass created by ODF.
+    # MCG bootstraps itself after ODF reaches Ready — it claims a PVC from this class.
+    # The StorageClass must exist before MCG starts, which means the StorageCluster
+    # must be at least partially healthy before MCG can initialise.
+    # This creates a natural ordering: StorageCluster healthy → MCG starts → MCG healthy.</span>
+  <span class="yk">managedResources</span><span class="yc">:</span>
+    <span class="yk">cephBlockPools</span><span class="yc">:</span>
+      <span class="yk">reconcileStrategy</span><span class="yc">:</span> <span class="yv">manage</span>
+    <span class="yk">cephFilesystems</span><span class="yc">:</span>
+      <span class="yk">reconcileStrategy</span><span class="yc">:</span> <span class="yv">manage</span>
+    <span class="yk">cephObjectStores</span><span class="yc">:</span>
+      <span class="yk">reconcileStrategy</span><span class="yc">:</span> <span class="yv">manage</span>
+    <span class="yc">    # reconcileStrategy: manage = ODF Operator owns these Ceph resources.
+    # ODF creates CephBlockPool, CephFilesystem, CephObjectStore CR objects and
+    # enforces their configuration. If you manually edit these objects, ODF reverts
+    # your changes on the next reconciliation loop. Do not directly edit these objects —
+    # change the StorageCluster CR if pool settings need to change.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply StorageCluster and monitor deployment</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f storagecluster.yaml</span>
+<span class="tg">storagecluster.ocs.openshift.io/ocs-storagecluster created</span>
+
+<span class="td"># ODF deployment takes 15-25 minutes. The sequence is:
+# 1. Rook-Ceph deploys MON pods (3) → waits for MON quorum
+# 2. MGR pods deploy after quorum
+# 3. OSD pods deploy — one per NVMe disk (20 total)
+# 4. MDS pods deploy for CephFS
+# 5. RGW pods deploy for object storage
+# 6. MCG (NooBaa) deploys after ODF StorageClasses exist
+# Watch the pod count grow in openshift-storage namespace</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 20 'echo "=== StorageCluster ===" && \
+  oc get storagecluster ocs-storagecluster -n openshift-storage \
+    -o jsonpath="{.status.phase}" && echo "" && \
+  echo "=== Pods ===" && \
+  oc get pods -n openshift-storage --no-headers | \
+    awk "{print \$3}" | sort | uniq -c | sort -rn'</span>
+<span class="tg">=== StorageCluster ===
+Progressing
+=== Pods ===
+     20 Running      ← OSD pods all running
+      3 Running      ← MON pods
+      2 Running      ← MGR pods
+      2 Running      ← MDS pods
+      1 Running      ← RGW pod
+      1 Running      ← rook-ceph-tools</span>
+<span class="td"># After 20-25 minutes:</span>
+<span class="tg">=== StorageCluster ===
+Ready</span>
+<span class="tok">✓ StorageCluster phase=Ready. All Ceph daemon pods Running. ODF is healthy.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 TOPOLOGY AWARENESS ══ -->
+  <section id="topology-awareness">
+  <h2>15 — Topology awareness and failure domains</h2>
+  <p>Ceph's replication model distributes data across failure domains to ensure that no single hardware failure causes data loss. In NovaCrestBank's 5-node converged deployment, each node is its own failure domain. Understanding how Ceph uses topology is essential — it determines what failures you can survive and what hardware failure sequence would cause a cluster outage.</p>
+
+  <h3>What a failure domain is</h3>
+  <p>A failure domain is a unit of hardware failure that is treated as correlated — if one component in the domain fails, all components in the same domain may fail together. In a bare-metal server deployment with no rack-level redundancy configuration, each physical server is a separate failure domain. If bm-virt-01 loses power, all 4 of its OSD disks go offline simultaneously — but the disks on bm-virt-02 through bm-virt-05 are unaffected.</p>
+
+  <h3>Ceph's CRUSH map — how topology is expressed</h3>
+  <p>Ceph uses a data structure called the CRUSH map (Controlled Replication Under Scalable Hashing) to model the physical topology of the storage cluster. The CRUSH map organises OSDs into a tree of containers: <strong>OSDs → hosts → racks → data centres → regions</strong>. ODF builds this tree automatically from the Kubernetes node labels during StorageCluster deployment — each bare-metal node becomes a "host" bucket in the CRUSH tree.</p>
+
+  <p>When Ceph writes 3 replicas of a data chunk, the CRUSH algorithm places each replica in a different "host" bucket — meaning on a different physical node. This guarantees that losing one entire bare-metal node (and all its 4 OSD disks) still leaves 2 replicas intact on other nodes.</p>
+
+  <h3>NovaCrestBank's failure domain analysis</h3>
+
+  <table>
+    <thead><tr><th>Failure scenario</th><th>OSDs affected</th><th>Result</th><th>Recovery</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1 NVMe disk fails on bm-virt-01</td>
+        <td>1 of 20 OSDs</td>
+        <td>HEALTH_WARN — degraded PGs. Data still fully accessible. 2 replicas remain.</td>
+        <td>Ceph automatically rebalances data from the failed OSD to surviving OSDs. New PV can be created when disk is replaced and LSO reclaims it.</td>
+      </tr>
+      <tr>
+        <td>1 complete node fails (bm-virt-01)</td>
+        <td>4 of 20 OSDs</td>
+        <td>HEALTH_WARN — 4 OSDs down. All PGs degrade but remain accessible. MON quorum still holds (4 of 5 MONs remain, but only 3 are deployed — still 2 of 3 MONs alive).</td>
+        <td>Ceph begins recovery automatically. VM workloads on bm-virt-01 are migrated to surviving nodes by OCP scheduler. After 600 seconds (configurable), Ceph begins rebalancing.</td>
+      </tr>
+      <tr>
+        <td>2 nodes fail simultaneously (bm-virt-01, bm-virt-02)</td>
+        <td>8 of 20 OSDs</td>
+        <td>HEALTH_WARN — degraded PGs. Data accessible (3rd replica exists). MON quorum: 1 of 3 MONs lost (bm-virt-01 or 02 ran a MON) — 2 of 3 MONs alive, quorum holds.</td>
+        <td>Cluster remains fully operational. Degraded but accessible. Immediate action required to restore hardware.</td>
+      </tr>
+      <tr>
+        <td>3 or more nodes fail</td>
+        <td>12+ of 20 OSDs</td>
+        <td>HEALTH_ERROR — MON quorum lost (fewer than 2 of 3 MONs). Cluster goes read-only to prevent data corruption. VMs continue running from memory but cannot perform new disk I/O.</td>
+        <td>Restore failed nodes immediately. Ceph does not self-recover from quorum loss — manual MON recovery required.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <span class="cl">The 5-node advantage over a 3-node minimum</span>
+    <p>A 3-node ODF cluster meets the minimum requirement (3 MONs, 3 failure domains for replica: 3) but has no tolerance for simultaneous multi-node failures. NovaCrestBank's 5-node cluster can lose any 2 nodes simultaneously and remain fully operational. For a banking environment where storage availability directly impacts payment processing, this additional resilience justifies the larger hardware footprint. <span class="reg reg-nist">NIST SP 800-53 CP-7</span></p>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify CRUSH tree reflects 5 failure domains</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n openshift-storage \
+  $(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name | head -1) \
+  -- ceph osd tree</span>
+<span class="tg">ID  CLASS  WEIGHT   TYPE NAME                              STATUS  REWEIGHT
+-1         76.4TiB  root default
+-3         15.3TiB      host bm-virt-01
+ 0   ssd   3.8TiB           osd.0                           up     1.00000
+ 1   ssd   3.8TiB           osd.1                           up     1.00000
+ 2   ssd   3.8TiB           osd.2                           up     1.00000
+ 3   ssd   3.8TiB           osd.3                           up     1.00000
+-5         15.3TiB      host bm-virt-02
+ 4   ssd   3.8TiB           osd.4                           up     1.00000
+ 5   ssd   3.8TiB           osd.5                           up     1.00000
+ 6   ssd   3.8TiB           osd.6                           up     1.00000
+ 7   ssd   3.8TiB           osd.7                           up     1.00000
+-7         15.3TiB      host bm-virt-03
+ 8   ssd   3.8TiB           osd.8                           up     1.00000
+ 9   ssd   3.8TiB           osd.9                           up     1.00000
+10   ssd   3.8TiB           osd.10                          up     1.00000
+11   ssd   3.8TiB           osd.11                          up     1.00000
+-9         15.3TiB      host bm-virt-04
+12   ssd   3.8TiB           osd.12                          up     1.00000
+13   ssd   3.8TiB           osd.13                          up     1.00000
+14   ssd   3.8TiB           osd.14                          up     1.00000
+15   ssd   3.8TiB           osd.15                          up     1.00000
+-11        15.3TiB      host bm-virt-05
+16   ssd   3.8TiB           osd.16                          up     1.00000
+17   ssd   3.8TiB           osd.17                          up     1.00000
+18   ssd   3.8TiB           osd.18                          up     1.00000
+19   ssd   3.8TiB           osd.19                          up     1.00000</span>
+<span class="tok">✓ CRUSH tree correct: 5 hosts (failure domains), 4 OSDs per host, all 20 OSDs up.
+✓ Total raw: 76.4 TiB. With replica: 3, usable ≈ 25.5 TiB.
+✓ Data will never be placed with 2 replicas on the same host — Ceph enforces this via CRUSH.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 ODF VERIFY ══ -->
+  <section id="odf-verify">
+  <h2>16 — ODF health verification — complete Ceph status</h2>
+  <p>ODF is ready when every check below passes. Do not proceed to VIRT-04 until all checks are green. A partially healthy ODF cluster is not suitable for VM boot disk storage — a degraded Ceph cluster during OCP Virt installation adds unnecessary complexity and may cause VM boot failures.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — complete ODF health verification</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: StorageCluster phase ══════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get storagecluster ocs-storagecluster \
+  -n openshift-storage \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Ready</span>
+<span class="tok">✓ Check 1 passed. phase=Ready — ODF considers the cluster fully operational.</span>
+
+<span class="section">! ══ CHECK 2: No ODF pod not Running or Completed ═══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-storage \
+  --no-headers | grep -v "Running\|Completed" | wc -l</span>
+<span class="tg">0</span>
+<span class="tok">✓ Check 2 passed. 0 pods in non-Running/Completed state. All ~45 ODF pods healthy.</span>
+
+<span class="section">! ══ CHECK 3: Ceph cluster health ════════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n openshift-storage \
+  $(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name | head -1) \
+  -- ceph status</span>
+<span class="tg">  cluster:
+    id:     f4a2b3c4-d5e6-7890-abcd-ef1234567890
+    health: HEALTH_OK
+
+  services:
+    mon: 3 daemons, quorum a,b,c (age 22m)
+    mgr: a(active, since 20m), standbys: b
+    mds: 1/1 daemons up, 1 hot standby
+    osd: 20 osds: 20 up, 20 in
+
+  data:
+    volumes:   1/1 healthy
+    pools:     4 pools, 129 pgs
+    objects:   14 objects, 450 KiB
+    usage:     1.2 GiB used, 76 TiB / 76 TiB avail
+    pgs:       129 active+clean</span>
+<span class="tok">✓ Check 3 passed. HEALTH_OK.
+  MON: 3 daemons in quorum ✓
+  MGR: active + standby ✓
+  MDS: 1 active + 1 hot standby ✓
+  OSD: 20 up, 20 in ✓ — all 20 NVMe disk OSDs operational
+  PGs: 129 active+clean ✓ — all placement groups healthy, no degraded data
+  Usable: ~25 TiB (76 TiB raw / 3 replicas)</span>
+
+<span class="section">! ══ CHECK 4: All 4 StorageCluster conditions True ═══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get storagecluster ocs-storagecluster \
+  -n openshift-storage \
+  -o json | python3 -c "
+import json, sys
+sc = json.load(sys.stdin)
+for c in sc.get('status', {}).get('conditions', []):
+    status = '✓' if c['status'] == 'True' else '✗ PROBLEM'
+    print(f\"{status} {c['type']}: {c['status']}\")
+"</span>
+<span class="tg">✓ Available: True
+✓ Progressing: False
+✓ Degraded: False
+✓ Upgradeable: True</span>
+<span class="tok">✓ Check 4 passed. Available=True, Progressing=False, Degraded=False, Upgradeable=True.
+  This matches the pattern of a healthy cluster operator — same format as oc get clusteroperators.</span>
+
+<span class="section">! ══ CHECK 5: StorageClasses created ════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get storageclass | grep ocs</span>
+<span class="tg">ocs-storagecluster-ceph-rbd                 openshift-storage.rbd.csi.ceph.com     Delete   Immediate
+ocs-storagecluster-ceph-rbd-virtualization  openshift-storage.rbd.csi.ceph.com     Delete   Immediate
+ocs-storagecluster-cephfs                   openshift-storage.cephfs.csi.ceph.com  Delete   Immediate
+ocs-storagecluster-ceph-rgw                 openshift-storage.ceph.rook.io/bucket  Delete   Immediate
+openshift-storage.noobaa.io                 openshift-storage.noobaa.io/obc        Delete   Immediate</span>
+<span class="tok">✓ Check 5 passed. All 5 ODF StorageClasses created. ceph-rbd-virtualization is present —
+  required for VM boot disk storage in VIRT-04. Section 18 covers it in detail.</span>
+
+<span class="section">! ══ CHECK 6: OSD placement — 4 per node ════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-storage -l app=rook-ceph-osd \
+  -o custom-columns="POD:.metadata.name,NODE:.spec.nodeName" | \
+  awk '{print $2}' | sort | uniq -c</span>
+<span class="tg">      4 bm-virt-01.novacrestbank.local
+      4 bm-virt-02.novacrestbank.local
+      4 bm-virt-03.novacrestbank.local
+      4 bm-virt-04.novacrestbank.local
+      4 bm-virt-05.novacrestbank.local</span>
+<span class="tok">✓ Check 6 passed. Exactly 4 OSD pods per node — balanced distribution.
+  If any node shows more than 4 or fewer than 4: check the CRUSH tree (Section 15).</span>
+
+<span class="section">! ══ CHECK 7: ODF replication — MTU 9000 test on VLAN 120 ═══════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n openshift-storage \
+  $(oc get pods -n openshift-storage -l app=rook-ceph-osd -o name | head -1) \
+  -- ping -c 3 -M do -s 8972 10.120.0.12 2>/dev/null | tail -3</span>
+<span class="tg">3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 0.388/0.412/0.436/0.024 ms</span>
+<span class="tok">✓ Check 7 passed. MTU 9000 reachable between OSD pods on VLAN 120.
+  0% packet loss at 9000-byte frame size — Ceph OSD replication will use full MTU.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 STORAGECLASSES ══ -->
+  <section id="storageclasses">
+  <h2>17 — StorageClasses created by ODF — every class explained</h2>
+  <p>ODF creates five StorageClasses automatically when the StorageCluster reaches Ready. Each class serves a specific purpose. Choosing the wrong StorageClass causes either a functional failure (wrong access mode) or a performance problem (wrong tuning for the workload type).</p>
+
+  <table>
+    <thead><tr><th>StorageClass</th><th>Technology</th><th>Access mode</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>ocs-storagecluster-ceph-rbd</code></td>
+        <td>Ceph RADOS Block Device</td>
+        <td>ReadWriteOnce</td>
+        <td>General-purpose block storage. Databases, stateful applications, single-pod workloads. The default block StorageClass for OCP workloads. Do NOT use for VM boot disks — use <code>ceph-rbd-virtualization</code> instead.</td>
+      </tr>
+      <tr>
+        <td><code>ocs-storagecluster-ceph-rbd-virtualization</code></td>
+        <td>Ceph RBD with VM-tuned parameters</td>
+        <td>ReadWriteMany</td>
+        <td>VM boot disks in OpenShift Virtualization. Configured for live migration (RWX), optimal block sizes for guest OS I/O, and correct RBD image features. Section 18 covers this class in full.</td>
+      </tr>
+      <tr>
+        <td><code>ocs-storagecluster-cephfs</code></td>
+        <td>CephFS via MDS</td>
+        <td>ReadWriteMany</td>
+        <td>Shared filesystems. Multiple pods or VMs mounting the same volume simultaneously. Required for VM live migration staging and any workload that scales horizontally with shared state.</td>
+      </tr>
+      <tr>
+        <td><code>ocs-storagecluster-ceph-rgw</code></td>
+        <td>Ceph RGW S3 gateway</td>
+        <td>ObjectBucketClaim</td>
+        <td>S3-compatible object storage backed by Ceph RGW. Used via ObjectBucketClaim (OBC) — not PVC. For OADP backup buckets and the OCP image registry.</td>
+      </tr>
+      <tr>
+        <td><code>openshift-storage.noobaa.io</code></td>
+        <td>MCG (NooBaa)</td>
+        <td>ObjectBucketClaim</td>
+        <td>Multi-cloud object storage via NooBaa. Used via OBC. For workloads that need namespace buckets or cross-cloud data federation in addition to on-premises Ceph storage.</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 VIRT STORAGECLASS ══ -->
+  <section id="virt-storageclass">
+  <h2>18 — ceph-rbd-virtualization — the VM StorageClass</h2>
+  <p>The <code>ocs-storagecluster-ceph-rbd-virtualization</code> StorageClass is the most important StorageClass for the VIRT series. It is used for every VM boot disk in VIRT-04 and every DataVolume in VIRT-06 (MTV migration). Understanding why it exists as a separate class from <code>ceph-rbd</code> is essential.</p>
+
+  <h3>What makes it different from ceph-rbd</h3>
+  <p>The <code>ceph-rbd-virtualization</code> StorageClass has three differences from the generic <code>ceph-rbd</code> class:</p>
+  <p><strong>Access mode: ReadWriteMany.</strong> The generic <code>ceph-rbd</code> StorageClass creates PVCs with <code>ReadWriteOnce</code> access mode — only one node can mount the PVC at a time. The <code>ceph-rbd-virtualization</code> class uses <code>ReadWriteMany</code> — multiple nodes can mount the PVC simultaneously. This is required for live migration: during migration, the source node and destination node both need access to the VM's boot disk for a brief window. Without RWX access, live migration fails.</p>
+  <p><strong>RBD image features: VM-optimised set.</strong> Ceph RBD volumes have configurable features (layering, deep-flatten, exclusive-lock, object-map, fast-diff). The VM StorageClass enables the specific combination of features that OpenShift Virtualization requires for snapshots, cloning (DataVolume clones), and correct locking behaviour when two nodes access the same volume during live migration.</p>
+  <p><strong>Disk pre-allocation: thick provisioning.</strong> The VM StorageClass pre-allocates the full disk capacity on creation. This is different from thin provisioning (the default for <code>ceph-rbd</code>) where space is allocated as data is written. For VM boot disks, pre-allocation ensures the VM never encounters a "no space" error mid-operation because the allocated space was already full on the Ceph cluster.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — inspect the ceph-rbd-virtualization StorageClass parameters</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get storageclass ocs-storagecluster-ceph-rbd-virtualization \
+  -o yaml | grep -A 30 "parameters:"</span>
+<span class="tg">parameters:
+  clusterID: f4a2b3c4-d5e6-7890-abcd-ef1234567890
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  imageFeatures: layering,deep-flatten,exclusive-lock,object-map,fast-diff
+  imageFormat: "2"
+  mounter: rbd
+  pool: ocs-storagecluster-cephblockpool
+  thickProvision: "true"          ← pre-allocate full disk capacity</span>
+<span class="tok">✓ imageFeatures: the VM-required set (layering,deep-flatten,exclusive-lock,object-map,fast-diff).
+✓ thickProvision: "true" — full capacity pre-allocated on PVC creation.
+✓ This StorageClass is used for ALL VM boot disks in VIRT-04 and MTV DataVolumes in VIRT-06.</span>
+
+<span class="td"># Create a test PVC to verify the StorageClass provisions correctly</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-vm-disk
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Block
+EOF</span>
+<span class="tg">persistentvolumeclaim/test-vm-disk created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pvc test-vm-disk -n default</span>
+<span class="tg">NAME           STATUS   VOLUME           CAPACITY  ACCESSMODES   STORAGECLASS                              AGE
+test-vm-disk   Bound    pvc-a1b2c3d4e5   10Gi      RWX           ocs-storagecluster-ceph-rbd-virtualization  8s</span>
+<span class="tok">✓ PVC Bound in 8 seconds. ACCESS MODES=RWX (ReadWriteMany) — live migration ready.
+✓ StorageClass ocs-storagecluster-ceph-rbd-virtualization provisions correctly.</span>
+
+<span class="td"># Clean up test PVC</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc delete pvc test-vm-disk -n default</span>
+<span class="tg">persistentvolumeclaim "test-vm-disk" deleted</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 19 HANDOVER ══ -->
+  <section id="handover">
+  <h2>19 — ODF readiness checklist — gate to VIRT-04</h2>
+  <p>Complete all checks before proceeding to VIRT-04 (OpenShift Virtualization installation). VIRT-04 installs the HyperConverged Operator and creates the first VMs — both operations require ODF to be fully healthy. A partially healthy Ceph cluster during VIRT-04 installation can cause VM boot disk provisioning failures that are difficult to diagnose because the symptoms appear in VIRT-04, not in ODF.</p>
+
+  <div class="gate">
+    <div class="gate-title">LSO checks</div>
+    <div class="gate-item"><div class="gate-box"></div>LSO CSV is in Succeeded phase: <code>oc get csv -n openshift-local-storage</code></div>
+    <div class="gate-item"><div class="gate-box"></div>LocalVolumeDiscovery results exist for all 5 nodes: <code>oc get localvolumediscoveryresult -n openshift-local-storage</code> shows 5 results</div>
+    <div class="gate-item"><div class="gate-box"></div>20 PVs in Available state: <code>oc get pv -l storage.openshift.com/owner-name=local-block</code> shows 20 Available PVs — 4 per node</div>
+    <div class="gate-item"><div class="gate-box"></div>localblock StorageClass exists with provisioner: kubernetes.io/no-provisioner</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">ODF operator checks</div>
+    <div class="gate-item"><div class="gate-box"></div>All 5 ODF component CSVs in Succeeded phase: odf-operator, ocs-operator, rook-ceph-operator, noobaa-operator, odf-csi-addons-operator</div>
+    <div class="gate-item"><div class="gate-box"></div>StorageCluster phase=Ready: <code>oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].status.phase}'</code></div>
+    <div class="gate-item"><div class="gate-box"></div>StorageCluster conditions: Available=True, Progressing=False, Degraded=False</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Ceph health checks</div>
+    <div class="gate-item"><div class="gate-box"></div>Ceph health: HEALTH_OK (no HEALTH_WARN or HEALTH_ERR)</div>
+    <div class="gate-item"><div class="gate-box"></div>MON: 3 daemons in quorum</div>
+    <div class="gate-item"><div class="gate-box"></div>OSD: 20 up, 20 in</div>
+    <div class="gate-item"><div class="gate-box"></div>MDS: 1 active + 1 hot standby</div>
+    <div class="gate-item"><div class="gate-box"></div>PGs: all active+clean (0 degraded, 0 misplaced)</div>
+    <div class="gate-item"><div class="gate-box"></div>CRUSH tree: 5 hosts, 4 OSDs per host, all up</div>
+    <div class="gate-item"><div class="gate-box"></div>MTU 9000 ping passes between OSD pods on VLAN 120</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">StorageClass checks</div>
+    <div class="gate-item"><div class="gate-box"></div>5 ODF StorageClasses present: ceph-rbd, ceph-rbd-virtualization, cephfs, ceph-rgw, noobaa.io</div>
+    <div class="gate-item"><div class="gate-box"></div>Test PVC on ceph-rbd-virtualization bound with RWX access mode within 30 seconds</div>
+    <div class="gate-item"><div class="gate-box"></div>Test PVC deleted cleanly (PV returns to Available state)</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-03 complete — ODF is ready for VM workloads</span>
+    <p>All checks passed. ODF StorageCluster is healthy. Ceph HEALTH_OK. 20 OSDs across 5 failure domains. The <code>ocs-storagecluster-ceph-rbd-virtualization</code> StorageClass is verified and ready to serve VM boot disk PVCs with ReadWriteMany access mode for live migration. Proceed to VIRT-04 — OpenShift Virtualization installation.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

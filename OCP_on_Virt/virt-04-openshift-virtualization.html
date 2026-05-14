@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-04 — OpenShift Virtualization Install · NovaCrestBank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* ── MAIN ── */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+
+/* ── PROGRESS ── */
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+
+/* ── CALLOUTS ── */
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+
+/* ── TERMINAL ── */
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}
+.tc{color:#61c5eb}
+.tg{color:#4ccd99}
+.td{color:#608b7a}
+.tw{color:#cca700}
+.te{color:#f85149}
+.tok{color:#3fb950;font-weight:600}
+
+/* ── YAML ── */
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── SPEC ROWS ── */
+.spec{border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden;margin:14px 0}
+.spec-row{display:grid;grid-template-columns:220px 1fr}
+.spec-row:not(:last-child){border-bottom:.5px solid var(--border)}
+.spec-row:hover .sk,.spec-row:hover .sv{background:var(--bg3)}
+.sk{padding:9px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text2)}
+.sv{padding:9px 14px;background:var(--bg2);font-size:13px;color:var(--text);line-height:1.5}
+
+/* ── COMPONENT CARDS ── */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.comp-card{background:var(--bg2);padding:14px 16px}
+.comp-tag{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);margin-bottom:4px;font-weight:700}
+.comp-name{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.comp-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.comp-ncb{font-size:12px;color:var(--text3);margin-top:6px;font-style:italic}
+
+/* ── DECISION ── */
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* ── WRONG / OK ── */
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+
+/* ── GATE / CHECKLIST ── */
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+
+/* ── REG BADGES ── */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+
+/* ── ARCH DIAGRAM ── */
+.arch{background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);padding:18px;margin:16px 0}
+.arch-row{display:flex;gap:8px;margin-bottom:8px;align-items:stretch}
+.arch-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:150px;flex-shrink:0;padding-top:6px;letter-spacing:.03em}
+.arch-boxes{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.arch-box{border:1px solid;border-radius:4px;padding:6px 10px;font-size:12.5px;font-family:'DM Mono',monospace;flex:1;text-align:center;min-width:100px;line-height:1.4}
+.ab-red{background:#fff0f0;border-color:#fca5a5;color:#7a0000}
+.ab-blue{background:var(--blue-bg);border-color:#93b4e8;color:#1a3a6f}
+.ab-green{background:var(--green-bg);border-color:var(--green-border);color:#074a2e}
+.ab-purple{background:var(--purple-bg);border-color:#c8b0e8;color:#2d1a6a}
+.ab-gray{background:var(--bg3);border-color:var(--border2);color:var(--text2)}
+
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-04</div>
+    <div class="sb-title">OpenShift Virtualization Install</div>
+    <div class="sb-sub">KubeVirt · HyperConverged · PerformanceProfile · First VM</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Architecture — first principles</div>
+    <a class="sb-item active" href="#what-kubevirt-is">01 — What KubeVirt is — VMs as Kubernetes objects</a>
+    <a class="sb-item" href="#kubevirt-components">02 — KubeVirt components — every process explained</a>
+    <a class="sb-item" href="#kubevirt-crds">03 — KubeVirt CRDs — every object type explained</a>
+    <a class="sb-item" href="#vm-lifecycle">04 — VM lifecycle — from YAML to running guest OS</a>
+    <div class="sb-sec">HyperConverged Operator</div>
+    <a class="sb-item" href="#hco-what-is">05 — What the HyperConverged Operator is</a>
+    <a class="sb-item" href="#hco-install">06 — Install HCO via OLM</a>
+    <a class="sb-item" href="#hco-cr">07 — HyperConverged CR — every field explained</a>
+    <a class="sb-item" href="#hco-verify">08 — Verify HCO and KubeVirt are healthy</a>
+    <div class="sb-sec">Node configuration</div>
+    <a class="sb-item" href="#machineset">09 — MachineSet — bare-metal worker labels and taints</a>
+    <a class="sb-item" href="#performanceprofile">10 — PerformanceProfile — latency-sensitive VMs</a>
+    <a class="sb-item" href="#hugepages">11 — Hugepages — what they are and why VMs need them</a>
+    <a class="sb-item" href="#cpu-pinning">12 — CPU pinning — NUMA-aware VM placement</a>
+    <div class="sb-sec">First test VM</div>
+    <a class="sb-item" href="#first-vm-concept">13 — Before the YAML — understanding VirtualMachine CR</a>
+    <a class="sb-item" href="#datavolume">14 — DataVolume — importing a guest OS image</a>
+    <a class="sb-item" href="#vm-yaml">15 — VirtualMachine CR — every field explained</a>
+    <a class="sb-item" href="#start-vm">16 — Start the VM and connect to the console</a>
+    <a class="sb-item" href="#vm-verify">17 — VM verification — 8 things to check</a>
+    <a class="sb-item" href="#handover">18 — Readiness checklist — gate to VIRT-05</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-03-odf.html">← VIRT-03 — ODF</a>
+    <a class="sb-item" href="virt-05-vm-networking.html">VIRT-05 — VM Networking →</a>
+  </div>
+  <div class="sb-foot">VIRT-04 · OpenShift Virtualization · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-04 · OpenShift Virtualization Install</div>
+  <div class="prereq-bar">VIRT-03 complete — ODF StorageCluster Ready, Ceph HEALTH_OK, 20 OSDs, ceph-rbd-virtualization StorageClass verified</div>
+  <h1>OpenShift Virtualization Install</h1>
+  <div class="subtitle">From first principles through HyperConverged Operator installation,<br>PerformanceProfile tuning, and a fully running banking application test VM</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-00<br>Foundation</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-01<br>Fabric</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-02<br>Provision</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-03<br>ODF</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt"><span class="pt-n">6</span>VIRT-05<br>Networking</div>
+    <div class="pt"><span class="pt-n">7</span>VIRT-06<br>MTV</div>
+  </div>
+
+  <!-- ══ 01 WHAT KUBEVIRT IS ══ -->
+  <section id="what-kubevirt-is">
+  <h2>01 — What KubeVirt is — VMs as Kubernetes objects</h2>
+  <p>Before installing anything, understand what KubeVirt is at a conceptual level. This understanding is what makes every configuration decision that follows logical rather than mechanical.</p>
+
+  <h3>The problem KubeVirt solves</h3>
+  <p>Kubernetes is designed for containerised workloads. A container is a process — it starts, runs, and exits. Kubernetes excels at scheduling, scaling, and healing processes. But banks and enterprises have thousands of virtual machines running workloads that cannot be containerised: legacy Windows applications with kernel-level dependencies, commercial off-the-shelf software licensed per physical host, stateful applications with complex network identity requirements, and guest operating systems that must be maintained as full VMs for compliance auditing reasons.</p>
+  <p>The traditional answer was to run two separate platforms: a hypervisor for VMs, and Kubernetes for containers. Two operational stacks, two monitoring systems, two upgrade cycles, two sets of expertise. KubeVirt eliminates this duplication by making the Kubernetes API itself the management plane for virtual machines.</p>
+
+  <h3>How KubeVirt works — the core mechanism</h3>
+  <p>KubeVirt introduces three things to a Kubernetes cluster:</p>
+  <p><strong>Custom Resource Definitions (CRDs):</strong> New object types — <code>VirtualMachine</code>, <code>VirtualMachineInstance</code>, <code>DataVolume</code>, and others — that extend the Kubernetes API vocabulary. A <code>VirtualMachine</code> CR is to a VM what a <code>Deployment</code> CR is to a containerised application: a declarative description of the desired state.</p>
+  <p><strong>Controllers:</strong> Kubernetes controllers that watch these CRDs and reconcile the cluster state to match. When a <code>VirtualMachine</code> CR is created with <code>running: true</code>, the VM controller creates a <code>VirtualMachineInstance</code> (VMI), which the VMI controller schedules onto a node. When a VM is stopped, the controller deletes the VMI but preserves the <code>VirtualMachine</code> CR — just as deleting a Pod does not delete its Deployment.</p>
+  <p><strong>The virt-launcher pod:</strong> The actual mechanism that runs a VM on a node. For each running VM, KubeVirt creates a <code>virt-launcher</code> Pod on the selected node. Inside this pod runs a QEMU/KVM process — the standard Linux virtualisation stack. The virt-launcher pod is what the Kubernetes scheduler sees. The VM's guest OS runs inside the QEMU process inside the pod. From the cluster's perspective, a running VM is a pod with specific resource requests and a specific node affinity.</p>
+
+  <div class="callout why">
+    <span class="cl">Why this architecture matters for NovaCrestBank</span>
+    <p>Because VMs are Kubernetes objects, every existing OCP platform capability applies to them automatically. Argo CD can manage VM configuration as GitOps. cert-manager can issue certificates for VMs. Prometheus scrapes VM metrics. NetworkPolicy controls VM network traffic. ACS enforces security policy on VM workloads. AAP automates guest OS operations via the Kubernetes API. The bank's platform team does not need to learn a separate hypervisor management system — they use the same tools they already use for containers.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 KUBEVIRT COMPONENTS ══ -->
+  <section id="kubevirt-components">
+  <h2>02 — KubeVirt components — every process explained</h2>
+  <p>KubeVirt deploys five distinct components on the cluster. Each runs as one or more pods in the <code>openshift-cnv</code> namespace (the namespace used by OpenShift Virtualization, which is Red Hat's productised distribution of KubeVirt). Understanding what each component does tells you exactly what is broken when a VM fails to start.</p>
+
+  <div class="comp-grid">
+    <div class="comp-card">
+      <div class="comp-tag">virt-operator</div>
+      <div class="comp-name">KubeVirt Operator</div>
+      <div class="comp-desc">The lifecycle manager for all other KubeVirt components. Reads the <code>HyperConverged</code> CR and deploys virt-api, virt-controller, virt-handler, and virt-launcher to match the desired configuration. Handles KubeVirt upgrades — when the HCO is updated, virt-operator orchestrates a rolling update of all components. If virt-operator is unhealthy, no other KubeVirt component can be updated — but running VMs continue because they are QEMU processes, not operator-managed.</div>
+      <div class="comp-ncb">Runs as: Deployment, 2 replicas. If both replicas are down, running VMs keep running but cannot be created, stopped, or migrated.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag">virt-api</div>
+      <div class="comp-name">KubeVirt API Server</div>
+      <div class="comp-desc">Extends the Kubernetes API server with VM-specific endpoints. When you run <code>virtctl console vm-name</code> or <code>virtctl migrate vm-name</code>, the <code>virtctl</code> command talks to virt-api — not to the standard Kubernetes API. virt-api handles VM console proxying, VNC access, and live migration triggering. It is not in the critical path for VM I/O — a running VM does not need virt-api to continue running.</div>
+      <div class="comp-ncb">Runs as: Deployment, 2 replicas. Loss of virt-api breaks console access and migration triggers but does not stop running VMs.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag">virt-controller</div>
+      <div class="comp-name">VM and VMI Controller</div>
+      <div class="comp-desc">Watches <code>VirtualMachine</code> and <code>VirtualMachineInstance</code> CRs and reconciles their state. When a VM is set to <code>running: true</code>, virt-controller creates a VMI and a virt-launcher Pod. When a VMI is in <code>Succeeded</code> phase (crashed and not set to restart), virt-controller evaluates the VM's <code>runStrategy</code> to decide whether to restart it. Also manages the VM lifecycle events: start, stop, pause, restart, and migration coordination.</div>
+      <div class="comp-ncb">Runs as: Deployment, 2 replicas (active/standby leader election). Loss of virt-controller stops new VMs from starting but does not affect running VMs.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag">virt-handler</div>
+      <div class="comp-name">Node Agent (DaemonSet)</div>
+      <div class="comp-desc">Runs on every node that hosts VMs — one pod per node, deployed as a DaemonSet. virt-handler is the node-level agent: it talks to the local QEMU process inside each virt-launcher pod on the same node, applies network configuration changes to running VMs, triggers in-memory snapshots, and coordinates live migration at the source and destination node level. virt-handler on the source node negotiates with virt-handler on the destination node during a live migration.</div>
+      <div class="comp-ncb">Runs on: all bare-metal nodes (bm-virt-01 through 05). Loss of virt-handler on one node means VMs on that node cannot be migrated — but they continue running.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-tag">virt-launcher</div>
+      <div class="comp-name">VM Pod (one per running VM)</div>
+      <div class="comp-desc">Not a deployment — a Pod created for each running VM. Contains the QEMU/KVM process that runs the guest OS. The virt-launcher pod has privileged access to the node's KVM device (<code>/dev/kvm</code>), the VM's disk PVC (mounted as a block device), and the VM's network interfaces (created by Multus and the CNI plugins). When a VM stops, its virt-launcher pod is deleted. When a VM is live-migrated, a new virt-launcher pod starts on the destination node before the source pod exits.</div>
+      <div class="comp-ncb">One per running VM. If a virt-launcher pod is killed (not the VM stopped gracefully), KubeVirt treats it as a VM crash and applies the runStrategy to decide whether to restart.</div>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 KUBEVIRT CRDS ══ -->
+  <section id="kubevirt-crds">
+  <h2>03 — KubeVirt CRDs — every object type explained</h2>
+  <p>KubeVirt extends Kubernetes with several new object types. Before creating any VM, understand what each object is, what creates it, and what its lifecycle is. Confusing a <code>VirtualMachine</code> with a <code>VirtualMachineInstance</code> is the most common cause of unexpected VM behaviour.</p>
+
+  <table>
+    <thead><tr><th>CRD kind</th><th>Short name</th><th>Created by</th><th>Lifecycle</th><th>What it represents</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>VirtualMachine</strong></td>
+        <td><code>vm</code></td>
+        <td>Platform engineer (GitOps / kubectl apply)</td>
+        <td>Persistent — survives VM stop/start. Deleted manually.</td>
+        <td>The VM definition. Equivalent to a Deployment — it describes what the VM should be (CPU, memory, disks, network, runStrategy) and manages its desired running state. A stopped VM still has a VirtualMachine CR.</td>
+      </tr>
+      <tr>
+        <td><strong>VirtualMachineInstance</strong></td>
+        <td><code>vmi</code></td>
+        <td>virt-controller (when VM is started)</td>
+        <td>Ephemeral — exists only while the VM is running. Deleted when VM stops.</td>
+        <td>A running VM instance. Equivalent to a Pod — it tracks the specific node, IP, phase, and real-time state of one running VM. One VMI per running VM. <code>oc get vmi</code> shows all running VMs.</td>
+      </tr>
+      <tr>
+        <td><strong>DataVolume</strong></td>
+        <td><code>dv</code></td>
+        <td>Platform engineer, or created by VirtualMachine CR</td>
+        <td>Persistent — survives VM stop/start. Holds the VM's disk data.</td>
+        <td>A PVC with an import process. Combines PVC creation with data import (from URL, container image, or another PVC) in one object. Used for VM boot disks. The DataVolume imports the OS image into the PVC once, then the VM uses the PVC.</td>
+      </tr>
+      <tr>
+        <td><strong>VirtualMachineInstanceMigration</strong></td>
+        <td><code>vmim</code></td>
+        <td>Platform engineer (virtctl migrate) or virt-controller (automated)</td>
+        <td>Ephemeral — deleted after migration completes or fails.</td>
+        <td>A live migration request. Creating a VMIM object triggers the migration from source to destination node. The VMIM tracks migration progress (Pending → Scheduling → Preparing → Transferring → Final → Succeeded).</td>
+      </tr>
+      <tr>
+        <td><strong>VirtualMachineSnapshot</strong></td>
+        <td><code>vmsnapshot</code></td>
+        <td>Platform engineer</td>
+        <td>Persistent until deleted. Captures VM state at a point in time.</td>
+        <td>A point-in-time snapshot of a VM and all its disks. Uses the CSI VolumeSnapshot API under the hood — Ceph RBD creates a snapshot of the PVC. Can be used to restore a VM to its snapshot state via VirtualMachineRestore.</td>
+      </tr>
+      <tr>
+        <td><strong>HyperConverged</strong></td>
+        <td><code>hco</code></td>
+        <td>Platform engineer (one per cluster)</td>
+        <td>Persistent — the top-level configuration object for all of OCP Virt.</td>
+        <td>The single CR that configures the entire OpenShift Virtualization stack. Setting fields here propagates configuration to KubeVirt, CDI (Containerized Data Importer), SSP (Scheduling, Scale, and Performance), and all other sub-operators. Do not edit KubeVirt, CDI, or SSP CRs directly — edit HyperConverged.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout blue">
+    <span class="cl">VirtualMachine vs VirtualMachineInstance — the distinction you must know</span>
+    <p>When you run <code>oc get vm</code> and see a VM listed, that VM may or may not be running. The VM CR persists regardless. When you run <code>oc get vmi</code> and see a VMI listed, that VM is running right now on a specific node. If <code>oc get vmi</code> returns nothing for a VM that shows in <code>oc get vm</code>, the VM is stopped. This is intentional — the VM definition is preserved while the VM is off, exactly as a Deployment CR persists when all its Pods are scaled to zero.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 VM LIFECYCLE ══ -->
+  <section id="vm-lifecycle">
+  <h2>04 — VM lifecycle — from YAML to running guest OS</h2>
+  <p>Trace the complete path from <code>oc apply -f vm.yaml</code> to a running guest OS — every step, every component involved, every object created. This understanding is what allows you to diagnose exactly where a VM start failure occurred.</p>
+
+  <div class="arch">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:14px">VM start sequence — every step and component</div>
+    <div class="arch-row">
+      <div class="arch-label">Step 1</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-blue" style="flex:3">oc apply -f vm.yaml → kube-apiserver creates VirtualMachine CR in etcd</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Step 2</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-red" style="flex:2">virt-controller watches VirtualMachine CR → sees running: true → creates VirtualMachineInstance CR</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Step 3</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-red" style="flex:2">virt-controller creates virt-launcher Pod with specific resource requests (CPU cores, memory, hugepages) and node affinity for bare-metal nodes</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Step 4</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-blue" style="flex:2">kube-scheduler selects target node (bm-virt-0X) — respects VM node affinity, CPU pinning, hugepage availability, and existing VM placement</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Step 5</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-green" style="flex:2">virt-handler on bm-virt-0X receives the VMI assignment → prepares the node: mounts ODF PVC as block device, creates network interfaces via Multus</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Step 6</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-purple" style="flex:2">virt-launcher pod starts QEMU/KVM process → guest OS boots from the PVC block device → VM enters Running phase</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Step 7</div>
+      <div class="arch-boxes">
+        <div class="arch-box ab-green" style="flex:2">VMI phase transitions: Pending → Scheduling → Scheduled → Running → visible in oc get vmi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">Where VM start failures occur — and what to check</span>
+    <p><strong>Stuck at Pending:</strong> The scheduler cannot find a node that satisfies the VM's resource requests. Check: are bare-metal nodes ready? Do they have enough free hugepages? Is the node tainted and does the VM have the correct toleration?</p>
+    <p><strong>Stuck at Scheduling:</strong> virt-handler on the target node is unhealthy. Check: <code>oc get pods -n openshift-cnv -l kubevirt.io=virt-handler</code> — all virt-handler pods must be Running.</p>
+    <p><strong>Stuck at Scheduled / CrashLoopBackOff on virt-launcher:</strong> QEMU failed to start. The most common causes: the PVC is not bound (DataVolume import failed), the hugepage allocation failed (node does not have enough free 1Gi hugepages), or the KVM device is unavailable (<code>/dev/kvm</code> not present — check BIOS VT-x setting from VIRT-02).</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 HCO WHAT IS ══ -->
+  <section id="hco-what-is">
+  <h2>05 — What the HyperConverged Operator is</h2>
+  <p>OpenShift Virtualization is not a single operator — it is a family of operators, each managing a different aspect of the virtualisation stack. The HyperConverged Operator (HCO) is the meta-operator: it installs and manages all the other operators through a single <code>HyperConverged</code> CR.</p>
+
+  <table>
+    <thead><tr><th>Sub-operator</th><th>What it manages</th><th>How HCO configures it</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>KubeVirt operator</strong></td>
+        <td>Core VM runtime (virt-controller, virt-handler, virt-launcher, QEMU)</td>
+        <td>HCO writes a <code>KubeVirt</code> CR with the configuration from HyperConverged spec</td>
+      </tr>
+      <tr>
+        <td><strong>CDI (Containerized Data Importer)</strong></td>
+        <td>DataVolume imports — downloading OS images from URLs or container registries into PVCs</td>
+        <td>HCO writes a <code>CDI</code> CR. CDI is what makes <code>DataVolume</code> objects work.</td>
+      </tr>
+      <tr>
+        <td><strong>SSP (Scheduling, Scale and Performance)</strong></td>
+        <td>VM templates, node labelling for VM placement, golden image management</td>
+        <td>HCO writes an <code>SSP</code> CR. SSP manages the common VM templates in OCP console.</td>
+      </tr>
+      <tr>
+        <td><strong>MTQ (ManagedTenant Quota)</strong></td>
+        <td>Resource quota management for VM workloads across namespaces</td>
+        <td>HCO writes an <code>MTQ</code> CR when quota management is enabled.</td>
+      </tr>
+      <tr>
+        <td><strong>NetworkAddonsOperator</strong></td>
+        <td>Additional network plugins: Multus, bridge CNI, SR-IOV, OVN-Kubernetes integration for VMs</td>
+        <td>HCO writes a <code>NetworkAddonsConfig</code> CR. This is what deploys Multus to bare-metal nodes.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout blue">
+    <span class="cl">The single configuration principle — only edit HyperConverged, never the sub-operators</span>
+    <p>All sub-operator CRs (KubeVirt, CDI, SSP, NetworkAddonsConfig) are owned by HCO. If you edit them directly, HCO reconciles them back to the configuration specified in the HyperConverged CR on the next reconciliation loop — typically within 30 seconds. Any direct sub-operator edit is overwritten. The only supported way to change the virtualisation configuration is to change the HyperConverged CR.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 HCO INSTALL ══ -->
+  <section id="hco-install">
+  <h2>06 — Install the HyperConverged Operator via OLM</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">hco-subscription.yaml — HyperConverged Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Create the dedicated namespace for OpenShift Virtualization</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Namespace</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-cnv</span>
+  <span class="yc">  # openshift-cnv: the conventional namespace for OpenShift Virtualization.
+  # CNV = Container-Native Virtualization, the original name.
+  # All KubeVirt component pods run here. Do not change this namespace name —
+  # the HCO Subscription expects to be installed in openshift-cnv.</span>
+  <span class="yk">labels</span><span class="yc">:</span>
+    <span class="yk">openshift.io/cluster-monitoring</span><span class="yc">:</span> <span class="yv">"true"</span>
+    <span class="yc">    # cluster-monitoring: "true" — enables the cluster monitoring stack to
+    # scrape metrics from pods in this namespace. Required for OCP Virt
+    # metrics (VM CPU usage, memory, disk I/O) to appear in Prometheus.</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">OperatorGroup</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">kubevirt-hyperconverged-group</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-cnv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">targetNamespaces</span><span class="yc">:</span>
+    <span class="yc">-</span> <span class="yv">openshift-cnv</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">hco-operatorhub</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-cnv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">kubevirt-hyperconverged</span>
+  <span class="yc">  # kubevirt-hyperconverged: the operator name in the Red Hat catalog.
+  # Not "openshift-virtualization" — that is the display name in the console.
+  # The subscription name is kubevirt-hyperconverged.</span>
+  <span class="yk">startingCSV</span><span class="yc">:</span> <span class="yv">kubevirt-hyperconverged-operator.v4.16.0</span>
+  <span class="yc">  # startingCSV: pin to a specific version. This is the OCP 4.16-compatible
+  # version of HCO. Do not omit this — without it, OLM picks the latest CSV
+  # in the channel, which may not be compatible with OCP 4.16.
+  # Verify the correct version for your OCP version at:
+  # https://access.redhat.com/articles/6954985</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">stable</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install HCO and verify CSVs</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f hco-subscription.yaml</span>
+<span class="tg">namespace/openshift-cnv created
+operatorgroup.operators.coreos.com/kubevirt-hyperconverged-group created
+subscription.operators.coreos.com/hco-operatorhub created</span>
+
+<span class="td"># Approve the InstallPlan</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">INSTALL_PLAN=$(oc get installplan -n openshift-cnv \
+  -o jsonpath='{.items[0].metadata.name}')
+oc patch installplan ${INSTALL_PLAN} \
+  -n openshift-cnv --type merge \
+  -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-abc12 patched</span>
+
+<span class="td"># Wait ~3 minutes for all HCO component CSVs to reach Succeeded</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get csv -n openshift-cnv \
+  -o custom-columns="NAME:.metadata.name,PHASE:.status.phase"'</span>
+<span class="tg">NAME                                          PHASE
+kubevirt-hyperconverged-operator.v4.16.0      Succeeded
+hostpath-provisioner-operator.v0.19.x         Succeeded
+ssp-operator.v0.19.x                          Succeeded
+cdi-operator.v1.60.x                          Succeeded
+cluster-network-addons-operator.v0.91.x       Succeeded
+mtq-operator.v1.3.x                           Succeeded</span>
+<span class="tok">✓ All HCO component CSVs Succeeded. HyperConverged CRD is registered.
+✓ Ready to create the HyperConverged CR — the single object that deploys the entire stack.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 HCO CR ══ -->
+  <section id="hco-cr">
+  <h2>07 — HyperConverged CR — every field explained</h2>
+  <p>The HyperConverged CR is the master configuration object for the entire OpenShift Virtualization stack. Creating it triggers the deployment of all KubeVirt, CDI, SSP, NetworkAddonsOperator, and MTQ components. Every field is annotated — applying this CR without understanding each field is not acceptable for a production banking environment.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">hyperconverged.yaml — NovaCrestBank HyperConverged CR — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">hco.kubevirt.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">HyperConverged</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">kubevirt-hyperconverged</span>
+  <span class="yc">  # kubevirt-hyperconverged: the required name. Only one HyperConverged object
+  # is allowed per cluster. Attempting to create a second causes an error.
+  # This is the cluster-wide singleton that configures all of OCP Virt.</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-cnv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+
+  <span class="yc">  # ── Feature Gates — capabilities to enable ──────────────────────────</span>
+  <span class="yk">featureGates</span><span class="yc">:</span>
+    <span class="yk">enableCommonBootImageImport</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # enableCommonBootImageImport: true — pre-imports Red Hat common VM boot images
+    # (RHEL 9, Windows Server 2022, CentOS Stream) into the cluster as DataSources.
+    # These become available as base images for new VMs via the OCP console template
+    # gallery. Required for the VM creation templates in the console to work.
+    # Requires internet access from the cluster to pull images from quay.io.
+    # In an air-gapped environment: set to false and manually import images.</span>
+
+    <span class="yk">deployKubeSecondaryDNS</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # deployKubeSecondaryDNS: false — KubeSecondaryDNS provides DNS names for
+    # VM interfaces on secondary networks. Set to false here because VM networking
+    # (Multus, OVN localnet, NetworkAttachmentDefinitions) is configured in VIRT-05.
+    # Enable in VIRT-05 when secondary networks are configured.</span>
+
+    <span class="yk">deployVmConsoleProxy</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # deployVmConsoleProxy: true — deploys the VM console proxy that allows
+    # the OCP web console to provide in-browser VNC/serial console access to VMs.
+    # Required for the "Open console" button in the OCP Virt UI to work.
+    # Without this, console access requires the virtctl CLI only.</span>
+
+    <span class="yk">nonRoot</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # nonRoot: true — runs virt-launcher pods as non-root user.
+    # This is a security hardening feature. virt-launcher used to require root
+    # to access /dev/kvm and manage network interfaces. With nonRoot: true,
+    # KubeVirt uses Linux capabilities (CAP_NET_ADMIN, CAP_SYS_PTRACE) instead
+    # of root access. This reduces the blast radius of a virt-launcher compromise.
+    # Required by PCI-DSS Req 6.3.3 (run processes with minimum necessary privileges).</span>
+
+  <span class="yc">  # ── LiveMigration — live migration behaviour ────────────────────────</span>
+  <span class="yk">liveMigrationConfig</span><span class="yc">:</span>
+    <span class="yk">parallelMigrationsPerCluster</span><span class="yc">:</span> <span class="yv">5</span>
+    <span class="yc">    # Maximum number of concurrent live migrations cluster-wide.
+    # 5 is the default. During maintenance drains, this limits how many VMs
+    # migrate simultaneously to avoid overwhelming the CephFS RWX storage
+    # and the ODF replication network (VLAN 120).</span>
+
+    <span class="yk">parallelOutboundMigrationsPerNode</span><span class="yc">:</span> <span class="yv">2</span>
+    <span class="yc">    # Maximum concurrent migrations FROM a single node.
+    # 2 allows two VMs to migrate off a draining node simultaneously.
+    # Higher values migrate faster during maintenance but stress the source
+    # node's network bandwidth and ODF storage more.</span>
+
+    <span class="yk">bandwidthPerMigration</span><span class="yc">:</span> <span class="yv">64Mi</span>
+    <span class="yc">    # Maximum network bandwidth per migration, in bytes/second.
+    # 64Mi = 64 MiB/s per migration. With parallelMigrationsPerCluster: 5,
+    # worst case = 5 × 64 MiB/s = 320 MiB/s on VLAN 120 (ODF replication).
+    # VLAN 120 is 25 Gbps per node = ~3 GiB/s capacity.
+    # 320 MiB/s leaves ample headroom for ODF replication traffic.</span>
+
+    <span class="yk">completionTimeoutPerGiB</span><span class="yc">:</span> <span class="yv">800</span>
+    <span class="yc">    # Seconds allowed per GiB of VM memory during migration.
+    # 800 seconds per GiB. A 32 GiB VM has 32 × 800 = 25,600 seconds (~7 hours)
+    # to complete migration before KubeVirt declares it failed.
+    # Increase for VMs with high memory write rates (they dirty pages faster
+    # than they can be transferred, requiring more iterations).</span>
+
+    <span class="yk">progressTimeout</span><span class="yc">:</span> <span class="yv">150</span>
+    <span class="yc">    # If migration makes no progress for 150 seconds, it is aborted.
+    # Progress = memory pages being transferred to the destination.
+    # If the source VM is dirtying pages faster than migration can transfer them
+    # AND no progress is made for 150s, the migration fails gracefully —
+    # the VM keeps running on the source node unchanged.</span>
+
+  <span class="yc">  # ── ResourceRequirements — virt-launcher resource tuning ────────────</span>
+  <span class="yk">resourceRequirements</span><span class="yc">:</span>
+    <span class="yk">vmiCPUAllocationRatio</span><span class="yc">:</span> <span class="yv">10</span>
+    <span class="yc">    # CPU overcommit ratio for VMs that do NOT use CPU pinning.
+    # 10 means 10 vCPUs can be allocated for every 1 physical CPU core.
+    # For NovaCrestBank's banking application VMs with CPU pinning (configured
+    # in the PerformanceProfile), this ratio does not apply — pinned VMs get
+    # dedicated physical cores regardless of this setting.
+    # This ratio applies to dev/test VMs without CPU pinning requirements.</span>
+
+  <span class="yc">  # ── StorageImport — default StorageClass for DataVolume imports ──────</span>
+  <span class="yk">storageImport</span><span class="yc">:</span>
+    <span class="yk">insecureRegistries</span><span class="yc">:</span>
+      <span class="yc">-</span> <span class="yv">harbor.apps.ocp.novacrestbank.local</span>
+      <span class="yc">  # harbor.apps.ocp.novacrestbank.local: NovaCrestBank's internal Harbor registry.
+      # CDI (DataVolume importer) treats this registry as trusted even though it
+      # uses an internal CA certificate (NovaCrestBank-Issuing-CA).
+      # Without this entry, DataVolume imports from Harbor fail with TLS errors
+      # because CDI cannot verify the internal CA that signed Harbor's certificate.
+      # The cert-manager certificate for Harbor is issued by IssuingCA — correct.
+      # But CDI's internal trust store does not include IssuingCA.
+      # Listing Harbor here tells CDI to skip TLS verification for this registry only.</span>
+
+  <span class="yc">  # ── CertConfig — certificate rotation for internal KubeVirt PKI ─────</span>
+  <span class="yk">certConfig</span><span class="yc">:</span>
+    <span class="yk">ca</span><span class="yc">:</span>
+      <span class="yk">duration</span><span class="yc">:</span> <span class="yv">48h0m0s</span>
+      <span class="yk">renewBefore</span><span class="yc">:</span> <span class="yv">24h0m0s</span>
+    <span class="yk">server</span><span class="yc">:</span>
+      <span class="yk">duration</span><span class="yc">:</span> <span class="yv">24h0m0s</span>
+      <span class="yk">renewBefore</span><span class="yc">:</span> <span class="yv">12h0m0s</span>
+      <span class="yc">      # KubeVirt uses its own internal PKI for component-to-component communication
+      # (virt-api ↔ virt-handler, migration tunnels between virt-launcher pods).
+      # These are internal certificates — not visible to the guest OS or to external
+      # clients. The defaults (48h CA, 24h server) are appropriate for production.
+      # Shorter durations increase rotation frequency (better security) but add
+      # more certificate rotation events to the audit log.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply HyperConverged CR and watch deployment</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f hyperconverged.yaml</span>
+<span class="tg">hyperconverged.hco.kubevirt.io/kubevirt-hyperconverged created</span>
+
+<span class="td"># HCO deploys all sub-operators and components — takes 5-10 minutes
+# Watch pod count grow in openshift-cnv</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 20 'echo "=== HCO Status ===" && \
+  oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+    -o jsonpath="{.status.conditions[?(@.type==\"Available\")].status}" && \
+  echo "" && echo "=== Pod count ===" && \
+  oc get pods -n openshift-cnv --no-headers | wc -l'</span>
+<span class="tg">=== HCO Status ===
+True
+=== Pod count ===
+42</span>
+<span class="tok">✓ HyperConverged Available=True. ~42 pods running in openshift-cnv.
+✓ All KubeVirt, CDI, SSP, NetworkAddonsOperator components deployed.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 HCO VERIFY ══ -->
+  <section id="hco-verify">
+  <h2>08 — Verify HCO and KubeVirt are healthy</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — complete HCO health verification</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: HyperConverged conditions ═════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get hyperconverged kubevirt-hyperconverged \
+  -n openshift-cnv \
+  -o json | python3 -c "
+import json, sys
+hco = json.load(sys.stdin)
+for c in hco['status']['conditions']:
+    ok = (c['type'] == 'Degraded' and c['status'] == 'False') or \
+         (c['type'] != 'Degraded' and c['status'] == 'True')
+    sym = '✓' if ok else '✗ PROBLEM'
+    print(f\"{sym} {c['type']}: {c['status']}\")
+"</span>
+<span class="tg">✓ Available: True
+✓ Progressing: False
+✓ Degraded: False
+✓ Upgradeable: True
+✓ ReconcileComplete: True</span>
+<span class="tok">✓ Check 1 passed. HyperConverged is fully healthy.</span>
+
+<span class="section">! ══ CHECK 2: KubeVirt CR phase ═════════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get kubevirt kubevirt -n openshift-cnv \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Deployed</span>
+<span class="tok">✓ Check 2 passed. KubeVirt phase=Deployed.
+  Deployed = all KubeVirt components are running and the API is serving requests.</span>
+
+<span class="section">! ══ CHECK 3: virt-handler DaemonSet running on all bare-metal nodes ════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get daemonset virt-handler -n openshift-cnv \
+  -o custom-columns="DESIRED:.status.desiredNumberScheduled,\
+READY:.status.numberReady,\
+AVAILABLE:.status.numberAvailable"</span>
+<span class="tg">DESIRED   READY   AVAILABLE
+5         5       5</span>
+<span class="tok">✓ Check 3 passed. virt-handler is running on all 5 bare-metal nodes.
+  DESIRED=5 matches the number of bare-metal nodes that tolerate the kubevirt.io/virt taint.
+  If DESIRED=0: the HyperConverged CR's virt-handler node selector is not matching
+  the bare-metal node labels. Verify bm-virt nodes have kubevirt.io/schedulable=true label.</span>
+
+<span class="section">! ══ CHECK 4: No pod not Running in openshift-cnv ═══════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-cnv \
+  --no-headers | grep -v "Running\|Completed" | wc -l</span>
+<span class="tg">0</span>
+<span class="tok">✓ Check 4 passed. All OCP Virt component pods are Running.</span>
+
+<span class="section">! ══ CHECK 5: Cluster operator virtualization is available ═══════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get clusteroperator cnv \
+  -o jsonpath='{.status.conditions[?(@.type=="Available")].status}'</span>
+<span class="tg">True</span>
+<span class="tok">✓ Check 5 passed. cnv cluster operator Available=True.
+  OpenShift Virtualization is now registered as a cluster operator and participates
+  in the cluster upgrade lifecycle — it will be upgraded when the cluster upgrades.</span>
+
+<span class="section">! ══ CHECK 6: /dev/kvm available on bare-metal nodes ════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03; do
+  result=$(oc debug node/${node}.novacrestbank.local \
+    -- chroot /host ls -la /dev/kvm 2>/dev/null)
+  echo "${node}: ${result}"
+done</span>
+<span class="tg">bm-virt-01: crw-rw-rw-. 1 root kvm 10, 232 Nov 04 14:22 /dev/kvm
+bm-virt-02: crw-rw-rw-. 1 root kvm 10, 232 Nov 04 14:22 /dev/kvm
+bm-virt-03: crw-rw-rw-. 1 root kvm 10, 232 Nov 04 14:22 /dev/kvm</span>
+<span class="tok">✓ Check 6 passed. /dev/kvm exists on all bare-metal nodes.
+  /dev/kvm is the Linux KVM character device — QEMU uses it to access
+  hardware virtualisation (VT-x on Intel, SVM on AMD EPYC).
+  If /dev/kvm is absent: the node's BIOS VT-x setting is disabled. Return to
+  VIRT-02 Section 02e (BIOS gate) and re-enable VT-x via Redfish PATCH.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 MACHINESET ══ -->
+  <section id="machineset">
+  <h2>09 — MachineSet — verifying bare-metal worker configuration</h2>
+  <p>The bare-metal nodes were labelled and tainted in VIRT-02 Section 15. This section verifies those labels and taints are still in place and adds the remaining labels that OCP Virt needs to correctly schedule VM workloads. This is not a new MachineSet — the bare-metal nodes are already in the cluster. This section is a verification and label-addition step.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify and complete bare-metal node labels for OCP Virt</div></div>
+    <div class="term-body"><pre><span class="td"># Verify the labels from VIRT-02 are still in place</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -l kubevirt.io/schedulable=true \
+  -o custom-columns=\
+"NAME:.metadata.name,\
+SCHEDULABLE:.metadata.labels.kubevirt\.io/schedulable,\
+ODF:.metadata.labels.cluster\.ocs\.openshift\.io/openshift-storage,\
+TAINT:.spec.taints[0].key"</span>
+<span class="tg">NAME                             SCHEDULABLE  ODF   TAINT
+bm-virt-01.novacrestbank.local   true         (empty string)  kubevirt.io/virt
+bm-virt-02.novacrestbank.local   true         (empty string)  kubevirt.io/virt
+bm-virt-03.novacrestbank.local   true         (empty string)  kubevirt.io/virt
+bm-virt-04.novacrestbank.local   true         (empty string)  kubevirt.io/virt
+bm-virt-05.novacrestbank.local   true         (empty string)  kubevirt.io/virt</span>
+<span class="tok">✓ All 5 bare-metal nodes carry kubevirt.io/schedulable=true and the kubevirt.io/virt taint.
+✓ ODF label (cluster.ocs.openshift.io/openshift-storage) is also present on all nodes.</span>
+
+<span class="td"># Add the workload-type label for scheduling policy clarity</span>
+<span class="td"># This label is used by VM node affinity rules to target the bare-metal tier</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
+  oc label node ${node}.novacrestbank.local \
+    workload-type=virtualization \
+    node-role.kubernetes.io/bm-worker="" \
+    --overwrite
+done</span>
+<span class="tg">node/bm-virt-01.novacrestbank.local labeled
+node/bm-virt-02.novacrestbank.local labeled
+node/bm-virt-03.novacrestbank.local labeled
+node/bm-virt-04.novacrestbank.local labeled
+node/bm-virt-05.novacrestbank.local labeled</span>
+
+<span class="td"># Verify virt-handler is running on all 5 nodes (confirms HCO recognises them)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-cnv -l kubevirt.io=virt-handler \
+  -o custom-columns="NAME:.metadata.name,NODE:.spec.nodeName,STATUS:.status.phase"</span>
+<span class="tg">NAME                   NODE                            STATUS
+virt-handler-abc01     bm-virt-01.novacrestbank.local  Running
+virt-handler-def02     bm-virt-02.novacrestbank.local  Running
+virt-handler-ghi03     bm-virt-03.novacrestbank.local  Running
+virt-handler-jkl04     bm-virt-04.novacrestbank.local  Running
+virt-handler-mno05     bm-virt-05.novacrestbank.local  Running</span>
+<span class="tok">✓ virt-handler running on all 5 bare-metal nodes.
+  One virt-handler per node is the correct configuration.
+  virt-handler absence on a node means VMs cannot run on that node —
+  they will stay in Pending state if scheduled there.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 PERFORMANCEPROFILE ══ -->
+  <section id="performanceprofile">
+  <h2>10 — PerformanceProfile — latency-sensitive VM tuning</h2>
+  <p>NovaCrestBank's bare-metal nodes host latency-sensitive banking application VMs — payment processing, real-time fraud detection, core banking API. These VMs have strict P99 latency requirements. Without kernel tuning, the Linux scheduler, CPU power management, and memory management subsystems introduce latency spikes that violate those SLOs.</p>
+  <p>The PerformanceProfile CR (from the Node Tuning Operator) applies a complete set of kernel-level optimisations to the bare-metal nodes: real-time kernel configuration, CPU isolation, hugepage pre-allocation, interrupt affinity, and C-state/P-state management. It is applied as a MachineConfig — the MCO applies it to the nodes and reboots them to take effect.</p>
+
+  <h3>What PerformanceProfile configures — and why</h3>
+  <table>
+    <thead><tr><th>Setting</th><th>What it does</th><th>Why it matters for banking VMs</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>CPU isolation</strong></td>
+        <td>Reserves specific CPU cores exclusively for VM vCPUs. The Linux scheduler, kernel threads, and system processes are restricted to the remaining "housekeeping" cores.</td>
+        <td>Without isolation, the kernel scheduler can preempt a VM's vCPU thread for a kernel task — introducing latency spikes of 100μs–10ms. Payment processing systems with sub-millisecond SLOs cannot tolerate this.</td>
+      </tr>
+      <tr>
+        <td><strong>Hugepages (1 GiB)</strong></td>
+        <td>Pre-allocates 1 GiB memory pages instead of 4 KiB pages. VM guest RAM is backed by hugepages.</td>
+        <td>The standard Linux TLB (Translation Lookaside Buffer) covers 4 KiB pages. A 32 GiB VM with 4 KiB pages requires 8 million TLB entries — causing constant TLB misses and latency spikes. With 1 GiB hugepages, a 32 GiB VM needs only 32 TLB entries — essentially zero TLB pressure.</td>
+      </tr>
+      <tr>
+        <td><strong>IRQ affinity</strong></td>
+        <td>Routes hardware interrupts (NIC, disk, timer) to housekeeping cores only — not to the isolated VM cores.</td>
+        <td>An NIC interrupt on a core running a payment-service VM thread preempts that thread for interrupt handling — adding unpredictable latency. Pinning interrupts to housekeeping cores eliminates this.</td>
+      </tr>
+      <tr>
+        <td><strong>CPU power management</strong></td>
+        <td>Disables C-states deeper than C1 and P-state frequency scaling on isolated cores.</td>
+        <td>When a CPU core enters a deep sleep state (C6, C7) to save power, waking it takes 100μs–1ms. A VM vCPU on a core that was sleeping cannot execute guest instructions until the core wakes up. For latency-sensitive VMs, the core must stay in C1 (shallow sleep) or C0 (active) at all times.</td>
+      </tr>
+      <tr>
+        <td><strong>NUMA topology</strong></td>
+        <td>Ensures VM vCPUs and their memory are allocated from the same NUMA domain.</td>
+        <td>AMD EPYC 9004 (Genoa) has two NUMA domains per socket. Accessing memory in the remote NUMA domain adds ~100ns latency per access compared to local NUMA. For a VM performing millions of memory operations per second, this adds up to measurable P99 latency increases.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">performanceprofile.yaml — NovaCrestBank bare-metal VM nodes</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">performance.openshift.io/v2</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">PerformanceProfile</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">novacrestbank-virt-performance</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">cpu</span><span class="yc">:</span>
+    <span class="yk">isolated</span><span class="yc">:</span> <span class="yv">"4-63"</span>
+    <span class="yc">    # isolated: CPU cores reserved exclusively for VM vCPUs.
+    # Cores 4–63 = 60 cores (out of 64 total on the DL385 Gen11 with 2×EPYC 9354P).
+    # These cores run only VM guest code — no kernel threads, no system processes.
+    # The Linux scheduler does not schedule any other workload on these cores.
+    # VMs with CPU pinning request vCPUs from this isolated pool.</span>
+    <span class="yk">reserved</span><span class="yc">:</span> <span class="yv">"0-3"</span>
+    <span class="yc">    # reserved: CPU cores for the OS, kernel threads, system daemons,
+    # hardware interrupts, and ODF OSD processes.
+    # Cores 0–3 = 4 cores. Sufficient for: RHCOS kernel threads, ODF OSD
+    # daemon overhead (~0.5 core per OSD × 4 OSDs = ~2 cores), virt-handler,
+    # monitoring agents (node-exporter, kubelet). Leave at least 2 reserved cores
+    # for any node — fewer causes kernel scheduling contention.</span>
+
+  <span class="yk">hugepages</span><span class="yc">:</span>
+    <span class="yk">defaultHugepagesSize</span><span class="yc">:</span> <span class="yv">"1Gi"</span>
+    <span class="yc">    # defaultHugepagesSize: 1 GiB hugepages (not 2 MiB).
+    # 1 GiB hugepages are optimal for VM guest RAM because each GiB of guest RAM
+    # uses one hugepage — mapping a 32 GiB VM requires only 32 hugepages.
+    # With 2 MiB hugepages, the same VM requires 16,384 hugepages — more TLB entries.</span>
+    <span class="yk">pages</span><span class="yc">:</span>
+      <span class="yc">- size</span><span class="yc">:</span> <span class="yv">"1Gi"</span>
+        <span class="yk">count</span><span class="yc">:</span> <span class="yv">400</span>
+        <span class="yc">        # count: 400 × 1 GiB hugepages = 400 GiB pre-allocated.
+        # The DL385 Gen11 has 512 GiB RAM total.
+        # 400 GiB reserved for VM guest RAM (hugepage-backed).
+        # 112 GiB remaining for: RHCOS kernel (8 GiB), ODF OSD daemons (16 GiB),
+        # platform pods (virt-handler, node-exporter, kubelet) (~8 GiB),
+        # and buffer (80 GiB).
+        # 400 GiB supports: up to 10 × 32 GiB VMs, or 50 × 8 GiB VMs per node,
+        # or any combination up to 400 GiB total guest RAM.</span>
+
+  <span class="yk">numa</span><span class="yc">:</span>
+    <span class="yk">topologyPolicy</span><span class="yc">:</span> <span class="yv">single-numa-node</span>
+    <span class="yc">    # single-numa-node: the scheduler ensures VM vCPUs and their hugepages
+    # are allocated from the SAME NUMA domain on the physical node.
+    # AMD EPYC 9354P (Genoa) has 2 NUMA domains (socket 0: cores 0-31, socket 1: cores 32-63).
+    # With this policy, a VM requesting 16 vCPUs gets them all from one NUMA domain
+    # (e.g., all from cores 4-31 on NUMA 0) — not split across both domains.
+    # Cross-NUMA memory access on EPYC Genoa adds ~100ns latency per access.
+    # For payment processing VMs: this policy is mandatory.</span>
+
+  <span class="yk">realTimeKernel</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # realTimeKernel: false — the real-time (PREEMPT_RT) kernel is NOT used.
+    # Real-time kernel provides deterministic latency (<100μs) required for
+    # telecommunications and industrial control systems. Banking payment processing
+    # does not require this level of determinism — the standard RHCOS kernel with
+    # CPU isolation and hugepages achieves sub-millisecond P99 latency sufficient
+    # for NovaCrestBank's SLOs. Real-time kernel also has higher operational cost
+    # (separate kernel package, limited hardware support for EPYC Genoa).</span>
+
+  <span class="yk">nodeSelector</span><span class="yc">:</span>
+    <span class="yk">node-role.kubernetes.io/bm-worker</span><span class="yc">:</span> <span class="yv">""</span>
+    <span class="yc">    # Apply this PerformanceProfile only to nodes with the bm-worker role.
+    # This label was applied to all 5 bare-metal nodes in Section 09.
+    # The MCO renders a MachineConfig from this PerformanceProfile and applies it
+    # only to nodes matching this node selector — not to the ESXi-hosted OCP workers.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply PerformanceProfile and monitor node reboot</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f performanceprofile.yaml</span>
+<span class="tg">performanceprofile.performance.openshift.io/novacrestbank-virt-performance created</span>
+
+<span class="td"># The MCO generates a MachineConfig from the PerformanceProfile
+# and applies it to the bm-worker MachineConfigPool.
+# Each bare-metal node reboots in sequence to apply the kernel configuration.
+# Watch the MachineConfigPool — UPDATING=True means a node is rebooting.</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 30 'oc get mcp bm-worker \
+  -o custom-columns=\
+"NAME:.metadata.name,\
+UPDATED:.status.conditions[?(@.type==\"Updated\")].status,\
+UPDATING:.status.conditions[?(@.type==\"Updating\")].status,\
+DEGRADED:.status.conditions[?(@.type==\"Degraded\")].status,\
+READY:.status.readyMachineCount,\
+TOTAL:.status.machineCount"'</span>
+<span class="tg">NAME        UPDATED  UPDATING  DEGRADED  READY  TOTAL
+bm-worker   False    True      False     3      5</span>
+<span class="td"># 3 nodes have rebooted and are ready, 2 are still rebooting</span>
+<span class="td"># Wait for all 5 nodes to complete (~15 minutes total for 5 nodes in rolling reboot)</span>
+<span class="tg">NAME        UPDATED  UPDATING  DEGRADED  READY  TOTAL
+bm-worker   True     False     False     5      5</span>
+<span class="tok">✓ PerformanceProfile applied. All 5 bare-metal nodes rebooted and Updated.
+  UPDATED=True, UPDATING=False, DEGRADED=False, READY=5 of 5.
+
+  Verify hugepages are allocated on a node:</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01.novacrestbank.local -- \
+  chroot /host grep -i hugepage /proc/meminfo</span>
+<span class="tg">AnonHugePages:         0 kB
+ShmemHugePages:        0 kB
+FileHugePages:         0 kB
+HugePages_Total:     400
+HugePages_Free:      400
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:    1048576 kB
+Hugetlb:       419430400 kB</span>
+<span class="tok">✓ HugePages_Total=400 (400 × 1 GiB = 400 GiB reserved).
+✓ HugePages_Free=400 — all available, no VMs running yet.
+✓ Hugepagesize=1048576 kB = 1 GiB pages. Correct.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 HUGEPAGES ══ -->
+  <section id="hugepages">
+  <h2>11 — Hugepages — what they are and why VMs require them</h2>
+  <p>Hugepages were configured in Section 10. This section explains exactly what hugepages are and why VMs — specifically — require them. This explanation belongs before the first VM is created, because every VM YAML in this series explicitly requests hugepages, and you must understand why before writing the request.</p>
+
+  <h3>What standard memory pages are — the baseline</h3>
+  <p>Linux manages physical memory in pages — fixed-size chunks. The standard page size on x86-64 is 4 KiB (4,096 bytes). The CPU's Memory Management Unit (MMU) translates virtual addresses (what the process sees) to physical addresses (where data actually lives in RAM) using page tables. To avoid consulting the page table on every memory access — which would be extremely slow — the CPU caches recent translations in the TLB (Translation Lookaside Buffer).</p>
+  <p>The TLB has a fixed number of entries — typically 64 to 1,024 entries depending on the CPU model. With 4 KiB pages, a TLB with 1,024 entries can cache translations for 1,024 × 4 KiB = 4 MiB of memory. When a process accesses memory outside those 4 MiB, the TLB misses — the CPU must walk the page table, which takes 10–100 nanoseconds. This is called a TLB miss penalty.</p>
+
+  <h3>Why VMs are different from containers</h3>
+  <p>A container typically uses tens to hundreds of megabytes of RAM. Its memory access patterns are concentrated — the active working set fits comfortably within what the TLB can cache. TLB pressure is manageable.</p>
+  <p>A virtual machine has a completely different profile. A 32 GiB banking application VM contains an entire operating system, JVM, application libraries, and active data — all accessing memory across the full 32 GiB address space. With 4 KiB pages, the 32 GiB guest address space requires 8,388,608 page table entries. The TLB can cache maybe 1,024 of them. TLB miss rate is extremely high, and each miss adds 10–100 ns to every memory operation the guest performs.</p>
+
+  <h3>How hugepages solve this</h3>
+  <p>With 1 GiB hugepages, the same 32 GiB VM requires only 32 page table entries — all 32 fit comfortably in the TLB simultaneously. TLB miss rate drops to near zero. The guest's memory operations run at full speed without the TLB miss penalty.</p>
+  <p>The practical impact for NovaCrestBank: a payment-processing VM with high transaction throughput running on a node with 1 GiB hugepages processes transactions at 15–30% higher throughput than the same VM on a node with standard 4 KiB pages — because more CPU cycles are spent on actual computation and fewer on TLB miss handling.</p>
+
+  <div class="callout warn">
+    <span class="cl">Hugepage allocation is at boot time — it cannot be done on demand</span>
+    <p>Hugepages must be pre-allocated when the node boots — before the Linux memory allocator fragments physical RAM into thousands of small allocations. Trying to allocate 1 GiB hugepages after the system has been running for hours fails because contiguous 1 GiB physical memory regions are no longer available. This is why the PerformanceProfile (applied via MCO) allocates hugepages at boot time. The count: 400 in Section 10 reserves 400 × 1 GiB = 400 GiB of contiguous physical memory at boot. If a VM requests more hugepage-backed RAM than is available on the node, the VM stays in Pending state — it does not fall back to standard pages.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 CPU PINNING ══ -->
+  <section id="cpu-pinning">
+  <h2>12 — CPU pinning — NUMA-aware VM placement</h2>
+  <p>CPU pinning means a VM's vCPUs are mapped to specific physical CPU cores that are exclusively dedicated to that VM. The Linux scheduler does not schedule any other thread on those cores while the VM is running. Combined with the NUMA topology policy from the PerformanceProfile, CPU-pinned VMs on NovaCrestBank's DL385 Gen11 nodes achieve consistent sub-millisecond processing latency.</p>
+
+  <h3>How CPU pinning works in KubeVirt</h3>
+  <p>CPU pinning is requested in the VirtualMachine CR using the <code>dedicatedCpuPlacement: true</code> field under the VM's CPU configuration. When this is set, KubeVirt communicates with the Kubernetes CPU Manager (which must be in <code>static</code> policy — configured automatically by the PerformanceProfile) to allocate dedicated physical cores for the VM's vCPUs.</p>
+  <p>The CPU Manager then uses the NUMA topology policy (<code>single-numa-node</code> from the PerformanceProfile) to ensure the allocated cores all come from the same NUMA domain as the VM's hugepage memory allocation. The result: a VM's vCPUs and its memory are co-located on the same NUMA domain — no cross-NUMA latency.</p>
+
+  <h3>When to use CPU pinning and when not to</h3>
+  <table>
+    <thead><tr><th>VM type</th><th>Use CPU pinning?</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>Payment processing service</td><td><strong>Yes</strong></td><td>Sub-millisecond P99 latency SLO requires dedicated cores with no scheduler preemption</td></tr>
+      <tr><td>Real-time fraud detection</td><td><strong>Yes</strong></td><td>Same — real-time decision pipeline cannot tolerate CPU preemption spikes</td></tr>
+      <tr><td>Core banking API VM</td><td><strong>Yes</strong></td><td>High-frequency transaction processing benefits from dedicated cores</td></tr>
+      <tr><td>Reporting batch processor</td><td><strong>No</strong></td><td>Batch processing has no real-time SLO — shared CPU access is acceptable</td></tr>
+      <tr><td>Development/test VM</td><td><strong>No</strong></td><td>No production SLO — sharing cores improves node VM density</td></tr>
+      <tr><td>Windows Server migration target</td><td><strong>Depends</strong></td><td>Use CPU pinning if the migrated application has latency SLOs; shared otherwise</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout why">
+    <span class="cl">CPU pinning reduces VM density — understand the trade-off</span>
+    <p>Each CPU-pinned VM exclusively holds its vCPUs — those cores cannot be used by any other VM or workload while the pinned VM is running. A node with 60 isolated cores running three 16-vCPU pinned VMs (3 × 16 = 48 cores used) has only 12 isolated cores remaining for additional pinned VMs. With the CPU overcommit ratio (vmiCPUAllocationRatio: 10), 60 isolated cores support 600 shared vCPUs of non-pinned VMs. CPU pinning is correct for latency-sensitive banking VMs — but applying it universally to all VMs wastes the overcommit capability of the platform.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 FIRST VM CONCEPT ══ -->
+  <section id="first-vm-concept">
+  <h2>13 — Before the YAML — understanding VirtualMachine CR</h2>
+  <p>The <code>VirtualMachine</code> CR is the most complex object created in the VIRT series. Before showing the YAML, every structural element must be understood — because a mistake in VM YAML does not produce an error immediately. The VM CR is accepted by the API, the VMI is created, and the virt-launcher pod starts — and then fails in QEMU with an error that points back to a field in the original YAML.</p>
+
+  <h3>The three sections of a VirtualMachine CR</h3>
+  <p><strong><code>spec.running</code> / <code>spec.runStrategy</code>:</strong> Controls the VM's power state. <code>runStrategy: Always</code> means the VM should always be running — if it crashes, KubeVirt restarts it. <code>runStrategy: Manual</code> means the VM starts and stops only on explicit request. Use <code>Always</code> for production banking VMs (treat them like Kubernetes Deployments with high availability). Use <code>Manual</code> for development VMs that should not auto-restart.</p>
+  <p><strong><code>spec.template.spec</code>:</strong> The VM instance specification — CPU, memory, hugepages, disks, networks, and the guest OS configuration. This is the richest section and where most configuration happens. It maps to the VMI spec when the VM starts.</p>
+  <p><strong><code>spec.dataVolumeTemplates</code>:</strong> Inline DataVolume definitions that are created when the VM is first created. Used to import the OS disk image automatically. If the DataVolume import fails, the VM will not start — the VM waits for the DataVolume to be in <code>Succeeded</code> phase before creating the VMI.</p>
+
+  <div class="callout blue">
+    <span class="cl">NodeNetworkConfigurationPolicy — mentioned in previous guides, used for VMs here</span>
+    <p>In VIRT-05 (VM Networking), the <code>NodeNetworkConfigurationPolicy</code> (NNCP) CR is used to configure bond and VLAN sub-interfaces on bare-metal nodes for VM secondary networks. An NNCP is a declarative description of the desired NMState configuration for a set of nodes — exactly as the NMState YAML applied in VIRT-02 Section 10, but managed as a Kubernetes CR rather than a one-time apply. Every NNCP field has the same semantics as the NMState fields annotated in VIRT-02 Section 09. When VIRT-05 introduces NNCPs, each field references the NMState annotation from VIRT-02. Nothing is assumed — every directive is explained when it first appears.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 DATAVOLUME ══ -->
+  <section id="datavolume">
+  <h2>14 — DataVolume — importing a guest OS image</h2>
+  <p>A DataVolume is a PVC with an import process attached. When a DataVolume is created, CDI (Containerized Data Importer) starts an importer pod that downloads the OS image from the specified source, writes it into the PVC, and then terminates. The VM uses the PVC as its boot disk after the DataVolume reaches <code>Succeeded</code> phase. Understanding DataVolume is essential before creating any VM.</p>
+
+  <h3>Where NovaCrestBank sources VM images</h3>
+  <p>Red Hat provides QCOW2 format images for RHEL and Windows guest VMs through the Red Hat Customer Portal. These images are downloaded once, uploaded to Harbor (NovaCrestBank's internal container registry), and then referenced by DataVolumes. No VM import ever pulls directly from the internet — all image sources are internal.</p>
+  <p>For the first test VM, a RHEL 9 QCOW2 image is used. The image is stored in Harbor as a container image wrapping the QCOW2 file (using the <code>virtctl image-upload</code> command, covered below).</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — upload RHEL 9 QCOW2 image to Harbor</div></div>
+    <div class="term-body"><pre><span class="td"># The RHEL 9 QCOW2 image has been downloaded from Red Hat Customer Portal
+# and stored at /opt/novacrest/images/rhel-9.3-x86_64-kvm.qcow2</span>
+
+<span class="td"># Upload to Harbor as a container image that CDI can import</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl image-upload dv rhel9-base-image \
+  --size=40Gi \
+  --image-path=/opt/novacrest/images/rhel-9.3-x86_64-kvm.qcow2 \
+  --storage-class=ocs-storagecluster-ceph-rbd-virtualization \
+  --namespace=openshift-virtualization-os-images \
+  --insecure</span>
+<span class="tg">PVC openshift-virtualization-os-images/rhel9-base-image created
+Waiting for PVC rhel9-base-image to be ready...
+Uploading data to https://cdi-uploadproxy.apps.ocp.novacrestbank.local
+
+ 40.00 GiB / 40.00 GiB [======================] 100.00% 56s
+
+Uploading data completed successfully, waiting for processing to complete
+Processing completed successfully
+Uploading /opt/novacrest/images/rhel-9.3-x86_64-kvm.qcow2 completed successfully</span>
+<span class="tok">✓ RHEL 9 base image uploaded to ODF PVC in openshift-virtualization-os-images namespace.
+✓ This PVC becomes a DataSource — VMs can clone from it without re-importing each time.</span>
+
+<span class="td"># Verify the DataVolume / PVC is in Succeeded phase</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get dv rhel9-base-image \
+  -n openshift-virtualization-os-images \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Succeeded</span>
+<span class="tok">✓ DataVolume phase=Succeeded. The RHEL 9 image is ready for VM disk cloning.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 VM YAML ══ -->
+  <section id="vm-yaml">
+  <h2>15 — VirtualMachine CR — every field explained</h2>
+  <p>The first test VM is a RHEL 9 VM with CPU pinning, hugepages, and placement on the bare-metal nodes. It uses a DataVolume cloned from the base image uploaded in Section 14. Every field is annotated.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">vm-rhel9-test.yaml — first test VM — every field explained</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">kubevirt.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-rhel9-test-01</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yc">  # VMs run in application namespaces — not in openshift-cnv.
+  # openshift-cnv is reserved for OCP Virt infrastructure components.
+  # Create a dedicated namespace for VM workloads: oc new-project virt-workloads</span>
+  <span class="yk">labels</span><span class="yc">:</span>
+    <span class="yk">app</span><span class="yc">:</span> <span class="yv">rhel9-test</span>
+    <span class="yk">environment</span><span class="yc">:</span> <span class="yv">test</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">runStrategy</span><span class="yc">:</span> <span class="yv">Always</span>
+  <span class="yc">  # Always: KubeVirt keeps this VM running at all times.
+  # If the guest OS crashes or the virt-launcher pod is killed, KubeVirt restarts it.
+  # Equivalent to spec.restartPolicy: Always on a Pod, or replicas: 1 on a Deployment.
+  # Other options:
+  # Manual: start/stop only via virtctl start/stop commands
+  # RerunOnFailure: restart only on failure, not on graceful shutdown
+  # Halted: VM is defined but stopped (runStrategy equivalent of running: false)</span>
+
+  <span class="yk">dataVolumeTemplates</span><span class="yc">:</span>
+    <span class="yc">- metadata:</span>
+        <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-rhel9-test-01-disk</span>
+      <span class="yk">spec</span><span class="yc">:</span>
+        <span class="yk">sourceRef</span><span class="yc">:</span>
+          <span class="yk">kind</span><span class="yc">:</span> <span class="yv">DataSource</span>
+          <span class="yk">name</span><span class="yc">:</span> <span class="yv">rhel9</span>
+          <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-virtualization-os-images</span>
+          <span class="yc">          # sourceRef points to the DataSource created from our RHEL 9 upload.
+          # CDI clones the base image PVC into a new PVC for this VM.
+          # The clone is fast — Ceph RBD snapshot-based clone, not a full data copy.
+          # This VM gets its own independent 40 GiB disk, separate from the base image.</span>
+        <span class="yk">storage</span><span class="yc">:</span>
+          <span class="yk">storageClassName</span><span class="yc">:</span> <span class="yv">ocs-storagecluster-ceph-rbd-virtualization</span>
+          <span class="yc">          # The VM-tuned StorageClass from VIRT-03 Section 18.
+          # ReadWriteMany access mode — required for live migration.
+          # 1 GiB hugepage-backed, thick provisioned.</span>
+          <span class="yk">accessModes</span><span class="yc">:</span>
+            <span class="yc">-</span> <span class="yv">ReadWriteMany</span>
+          <span class="yk">resources</span><span class="yc">:</span>
+            <span class="yk">requests</span><span class="yc">:</span>
+              <span class="yk">storage</span><span class="yc">:</span> <span class="yv">40Gi</span>
+
+  <span class="yk">template</span><span class="yc">:</span>
+    <span class="yc">    # template: the VMI spec that is created when the VM starts.
+    # This is NOT a Pod template — it is a VirtualMachineInstance template.
+    # The schema is kubevirt.io/v1 VirtualMachineInstance, not Pod.</span>
+    <span class="yk">metadata</span><span class="yc">:</span>
+      <span class="yk">labels</span><span class="yc">:</span>
+        <span class="yk">kubevirt.io/vm</span><span class="yc">:</span> <span class="yv">vm-rhel9-test-01</span>
+    <span class="yk">spec</span><span class="yc">:</span>
+
+      <span class="yc">      # ── Domain — the VM hardware specification ─────────────────</span>
+      <span class="yk">domain</span><span class="yc">:</span>
+        <span class="yk">cpu</span><span class="yc">:</span>
+          <span class="yk">cores</span><span class="yc">:</span> <span class="yv">4</span>
+          <span class="yc">          # 4 vCPU cores for this test VM.
+          # With dedicatedCpuPlacement: true, 4 physical cores from the
+          # isolated pool (cores 4–63) are reserved exclusively for this VM.</span>
+          <span class="yk">threads</span><span class="yc">:</span> <span class="yv">1</span>
+          <span class="yc">          # threads: 1 = no hyperthreading per vCPU.
+          # For latency-sensitive VMs, using one thread per core (not two)
+          # ensures the VM vCPU has the full core's resources — no sharing
+          # with a sibling hyperthread. For test VMs, threads: 2 is acceptable.</span>
+          <span class="yk">dedicatedCpuPlacement</span><span class="yc">:</span> <span class="yv">true</span>
+          <span class="yc">          # dedicatedCpuPlacement: true — CPU pinning enabled.
+          # Requires: CPU Manager static policy (set by PerformanceProfile ✓),
+          # NUMA topology policy (set by PerformanceProfile ✓),
+          # hugepages (set below ✓).
+          # All three must be satisfied or the VMI stays Pending.</span>
+          <span class="yk">model</span><span class="yc">:</span> <span class="yv">host-passthrough</span>
+          <span class="yc">          # host-passthrough: expose the full physical CPU instruction set to the VM.
+          # The guest sees the actual EPYC 9354P CPU including all extensions
+          # (AVX-512, SHA-NI, CRC32, etc.). Required for applications that use
+          # CPU-specific acceleration (e.g., AES-NI for encryption-heavy banking apps).
+          # Alternative: host-model (compatible, portable) or a named model (deterministic).
+          # Use host-passthrough for production performance, host-model for live migration
+          # across heterogeneous hardware (not needed here — all 5 nodes are identical).</span>
+
+        <span class="yk">memory</span><span class="yc">:</span>
+          <span class="yk">guest</span><span class="yc">:</span> <span class="yv">8Gi</span>
+          <span class="yc">          # Guest memory: 8 GiB visible to the guest OS.
+          # With 1 GiB hugepages: 8 GiB = 8 hugepages from the node's pool.
+          # The node has 400 hugepages available — this VM uses 8 of them.</span>
+          <span class="yk">hugepages</span><span class="yc">:</span>
+            <span class="yk">pageSize</span><span class="yc">:</span> <span class="yv">"1Gi"</span>
+            <span class="yc">            # pageSize: 1Gi — the VM's guest RAM is backed by 1 GiB hugepages.
+            # Must match the defaultHugepagesSize in the PerformanceProfile (1Gi ✓).
+            # If the node does not have enough free 1Gi hugepages to satisfy this
+            # request, the VMI stays Pending — no fallback to standard pages.</span>
+
+        <span class="yk">devices</span><span class="yc">:</span>
+          <span class="yk">disks</span><span class="yc">:</span>
+            <span class="yc">- disk:</span>
+                <span class="yk">bus</span><span class="yc">:</span> <span class="yv">virtio</span>
+                <span class="yc">                # virtio: the paravirtualised disk bus. The guest OS must have
+                # the virtio-blk driver (included in RHEL 9 and modern Windows via
+                # VirtIO drivers ISO). Virtio provides near-native disk I/O performance
+                # by eliminating the hardware emulation overhead of IDE or SATA.
+                # Alternative: sata (slower, for guest OSes without virtio drivers)</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">rootdisk</span>
+            <span class="yc">- disk:</span>
+                <span class="yk">bus</span><span class="yc">:</span> <span class="yv">virtio</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">cloudinitdisk</span>
+              <span class="yc">              # cloudinitdisk: a special disk containing the cloud-init configuration.
+              # cloud-init is the industry-standard mechanism for configuring a guest OS
+              # on first boot: setting hostname, creating users, installing SSH keys,
+              # running scripts. RHEL 9 cloud images include cloud-init pre-installed.</span>
+
+          <span class="yk">interfaces</span><span class="yc">:</span>
+            <span class="yc">- masquerade: {}</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">default</span>
+              <span class="yc">              # masquerade: the default network interface using NAT.
+              # The VM gets a private IP from the pod network overlay.
+              # Traffic to/from the VM is NATted through the virt-launcher pod IP.
+              # This interface provides internet access (for package installation)
+              # and cluster access via the OVN-Kubernetes overlay.
+              # For production banking VMs with routable IPs on VLAN 130/140,
+              # use a secondary interface with OVN localnet (configured in VIRT-05).
+              # This masquerade interface is for testing only — the first VM only.</span>
+
+        <span class="yk">resources</span><span class="yc">:</span>
+          <span class="yk">requests</span><span class="yc">:</span>
+            <span class="yk">memory</span><span class="yc">:</span> <span class="yv">8Gi</span>
+            <span class="yc">            # Must match domain.memory.guest. The virt-launcher Pod's
+            # resource request tells the Kubernetes scheduler how much memory
+            # the Pod needs. The scheduler uses this to find a node with
+            # enough free hugepage capacity to satisfy the 8 Gi request.</span>
+
+      <span class="yc">      # ── Volumes — connect disk names to actual storage ──────────</span>
+      <span class="yk">volumes</span><span class="yc">:</span>
+        <span class="yc">- name: rootdisk</span>
+          <span class="yk">dataVolume</span><span class="yc">:</span>
+            <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-rhel9-test-01-disk</span>
+            <span class="yc">            # Connects the "rootdisk" device (defined in devices.disks above)
+            # to the DataVolume created from the dataVolumeTemplates section.
+            # The name here must match the DataVolume name exactly.
+            # When the DataVolume reaches Succeeded phase, the VMI can start.</span>
+        <span class="yc">- name: cloudinitdisk</span>
+          <span class="yk">cloudInitNoCloud</span><span class="yc">:</span>
+            <span class="yk">userData</span><span class="yc">:</span> <span class="ys">|
+              #cloud-config
+              hostname: vm-rhel9-test-01
+              fqdn: vm-rhel9-test-01.novacrestbank.local
+              users:
+                - name: admin
+                  groups: wheel
+                  ssh_authorized_keys:
+                    - ssh-ed25519 AAAAC3NzaC1...  ocp-novacrestbank
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+              runcmd:
+                - dnf install -y qemu-guest-agent
+                - systemctl enable --now qemu-guest-agent</span>
+            <span class="yc">            # cloud-init userData: runs when the VM first boots.
+            # Sets hostname, creates admin user with SSH key.
+            # Installs qemu-guest-agent — the agent process that allows
+            # virtctl to freeze the filesystem for consistent snapshots,
+            # report the guest OS IP to the VMI status, and execute
+            # commands in the guest without SSH access.</span>
+
+      <span class="yc">      # ── Node placement — schedule VM on bare-metal nodes only ───</span>
+      <span class="yk">nodeSelector</span><span class="yc">:</span>
+        <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+        <span class="yc">        # Restricts scheduling to nodes with workload-type=virtualization label.
+        # Set on all 5 bare-metal nodes in Section 09.
+        # Without this selector, the Kubernetes scheduler may attempt to schedule
+        # the VM on an ESXi-hosted OCP worker — which has no /dev/kvm, no hugepages,
+        # and does not tolerate the kubevirt taint. The VMI would fail to start.</span>
+
+      <span class="yk">tolerations</span><span class="yc">:</span>
+        <span class="yc">- key: kubevirt.io/virt</span>
+          <span class="yk">operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+          <span class="yk">effect</span><span class="yc">:</span> <span class="yv">NoSchedule</span>
+          <span class="yc">          # This toleration allows the virt-launcher Pod to schedule on nodes
+          # carrying the kubevirt.io/virt=true:NoSchedule taint.
+          # Without this toleration, the scheduler rejects all bare-metal nodes
+          # and the VM stays Pending indefinitely.
+          # HyperConverged Operator adds this toleration automatically to virt-launcher pods
+          # when the VM's nodeSelector targets tainted bare-metal nodes.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 START VM ══ -->
+  <section id="start-vm">
+  <h2>16 — Start the VM and connect to the console</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — create namespace, apply VM, watch start sequence</div></div>
+    <div class="term-body"><pre><span class="td"># Create the virt-workloads namespace</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc new-project virt-workloads</span>
+<span class="tg">Now using project "virt-workloads" on server "https://api.ocp.novacrestbank.local:6443".</span>
+
+<span class="td"># Apply the VirtualMachine CR</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f vm-rhel9-test.yaml</span>
+<span class="tg">virtualmachine.kubevirt.io/vm-rhel9-test-01 created
+datavolume.cdi.kubevirt.io/vm-rhel9-test-01-disk created</span>
+
+<span class="td"># Watch the DataVolume import progress first — the VM waits for the disk</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 10 'oc get dv vm-rhel9-test-01-disk \
+  -n virt-workloads \
+  -o custom-columns=\
+"NAME:.metadata.name,PHASE:.status.phase,PROGRESS:.status.progress"'</span>
+<span class="tg">NAME                     PHASE       PROGRESS
+vm-rhel9-test-01-disk    Succeeded   100.0%</span>
+<span class="tok">✓ DataVolume clone completed. The RHEL 9 disk is ready.</span>
+
+<span class="td"># Watch VMI phase progression — from Pending through to Running</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 5 'oc get vmi vm-rhel9-test-01 \
+  -n virt-workloads \
+  -o custom-columns=\
+"NAME:.metadata.name,PHASE:.status.phase,\
+NODE:.status.nodeName,IP:.status.interfaces[0].ipAddress"'</span>
+<span class="tg">NAME               PHASE      NODE                          IP
+vm-rhel9-test-01   Pending    --                            --</span>
+<span class="td"># Scheduler selects a bare-metal node with available hugepages...</span>
+<span class="tg">vm-rhel9-test-01   Scheduling bm-virt-02.novacrestbank.local  --</span>
+<span class="td"># virt-handler prepares the node, virt-launcher pod starts...</span>
+<span class="tg">vm-rhel9-test-01   Running    bm-virt-02.novacrestbank.local  10.0.2.2</span>
+<span class="tok">✓ VM is Running on bm-virt-02.
+  10.0.2.2 is the masquerade network IP (pod network internal — not the VLAN 130 IP).
+  For the production routable IP, see VIRT-05 (VM Networking with OVN localnet).</span>
+
+<span class="td"># Connect to the VM serial console (virtctl proxies through virt-api)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl console vm-rhel9-test-01 -n virt-workloads</span>
+<span class="tg">Successfully connected to vm-rhel9-test-01 console. The escape sequence is ^]
+
+Red Hat Enterprise Linux 9.3 (Plow)
+Kernel 5.14.0-362.8.1.el9_3.x86_64 on an x86_64
+
+vm-rhel9-test-01 login:</span>
+<span class="tok">✓ Console connected. RHEL 9.3 is booted and awaiting login.
+  Use Ctrl+] to exit the console session.
+  Login: admin / (SSH key authentication — use SSH for remote access)</span>
+
+<span class="td"># Alternatively, SSH to the VM via the masquerade IP through the jump host</span>
+<span class="td"># First get the actual pod IP (masquerade NATted from 10.0.2.2)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-rhel9-test-01 -n virt-workloads</span>
+<span class="tg">Warning: Permanently added 'vmi/vm-rhel9-test-01.virt-workloads' to known hosts.
+Last login: Mon Nov  4 14:35:22 2024
+[admin@vm-rhel9-test-01 ~]$</span>
+<span class="tok">✓ SSH via virtctl proxy connected. Inside the RHEL 9 guest OS.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 VM VERIFY ══ -->
+  <section id="vm-verify">
+  <h2>17 — VM verification — 8 things to check</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — 8-point VM verification</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: VMI phase is Running ══════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-rhel9-test-01 -n virt-workloads \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Running</span>
+<span class="tok">✓ Check 1 passed. VMI phase=Running.</span>
+
+<span class="section">! ══ CHECK 2: VM scheduled on bare-metal node ════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-rhel9-test-01 -n virt-workloads \
+  -o jsonpath='{.status.nodeName}'</span>
+<span class="tg">bm-virt-02.novacrestbank.local</span>
+<span class="tok">✓ Check 2 passed. VM is running on a bare-metal node (not an ESXi-hosted worker).</span>
+
+<span class="section">! ══ CHECK 3: virt-launcher pod is Running ══════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n virt-workloads \
+  -l vm.kubevirt.io=vm-rhel9-test-01</span>
+<span class="tg">NAME                                  READY   STATUS    RESTARTS   AGE
+virt-launcher-vm-rhel9-test-01-abc1   2/2     Running   0          8m</span>
+<span class="tok">✓ Check 3 passed. virt-launcher pod Running. 2/2 containers (compute + guest-console-log).</span>
+
+<span class="section">! ══ CHECK 4: CPU pinning — dedicated cores confirmed ════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n virt-workloads \
+  $(oc get pod -n virt-workloads -l vm.kubevirt.io=vm-rhel9-test-01 -o name) \
+  -c compute -- cat /sys/fs/cgroup/cpuset/cpuset.cpus</span>
+<span class="tg">8-11</span>
+<span class="tok">✓ Check 4 passed. Physical cores 8, 9, 10, 11 are exclusively assigned to this VM.
+  These cores are from the isolated pool (4–63) — not from the reserved range (0–3).
+  No other pod or process can use cores 8–11 while this VM is running.</span>
+
+<span class="section">! ══ CHECK 5: Hugepages — VM is using 1Gi hugepages ═════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-02.novacrestbank.local -- \
+  chroot /host grep -i hugepage /proc/meminfo | grep Free</span>
+<span class="tg">HugePages_Free:      392</span>
+<span class="tok">✓ Check 5 passed. HugePages_Free dropped from 400 to 392.
+  400 - 392 = 8 hugepages consumed = 8 × 1 GiB = 8 GiB — matches the VM's memory request.</span>
+
+<span class="section">! ══ CHECK 6: ODF PVC bound and in use ══════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pvc vm-rhel9-test-01-disk -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,STATUS:.status.phase,\
+ACCESS:.status.accessModes[0],SC:.spec.storageClassName"</span>
+<span class="tg">NAME                     STATUS  ACCESS          SC
+vm-rhel9-test-01-disk    Bound   ReadWriteMany   ocs-storagecluster-ceph-rbd-virtualization</span>
+<span class="tok">✓ Check 6 passed. PVC Bound. ACCESS=ReadWriteMany — live migration is possible.
+  StorageClass=ceph-rbd-virtualization — VM-tuned Ceph RBD with correct image features.</span>
+
+<span class="section">! ══ CHECK 7: qemu-guest-agent is running in the VM ═════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-rhel9-test-01 -n virt-workloads \
+  -o jsonpath='{.status.guestOSInfo.name}'</span>
+<span class="tg">Red Hat Enterprise Linux</span>
+<span class="tok">✓ Check 7 passed. qemu-guest-agent is running and reporting guest OS info.
+  If this field is empty: qemu-guest-agent is not running in the guest.
+  SSH into the VM and run: systemctl status qemu-guest-agent</span>
+
+<span class="section">! ══ CHECK 8: Live migration test ═══════════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl migrate vm-rhel9-test-01 -n virt-workloads</span>
+<span class="tg">VM vm-rhel9-test-01.virt-workloads was scheduled to migrate</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 3 'oc get vmim -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,PHASE:.status.phase"'</span>
+<span class="tg">NAME                                    PHASE
+kubevirt-migrate-vm-rhel9-test-01-xxx   Succeeded</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-rhel9-test-01 -n virt-workloads \
+  -o jsonpath='{.status.nodeName}'</span>
+<span class="tg">bm-virt-04.novacrestbank.local</span>
+<span class="tok">✓ Check 8 passed. Live migration SUCCEEDED.
+  VM moved from bm-virt-02 to bm-virt-04 without downtime.
+  The VM's guest OS continued running throughout — no reboot, no connection drop.
+  This confirms: ODF ceph-rbd-virtualization StorageClass RWX ✓,
+  hugepages on both source and destination node ✓, VLAN 120 MTU 9000 ✓.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 HANDOVER ══ -->
+  <section id="handover">
+  <h2>18 — Readiness checklist — gate to VIRT-05</h2>
+
+  <div class="gate">
+    <div class="gate-title">HyperConverged Operator checks</div>
+    <div class="gate-item"><div class="gate-box"></div>All HCO component CSVs in Succeeded phase in openshift-cnv namespace</div>
+    <div class="gate-item"><div class="gate-box"></div>HyperConverged CR: Available=True, Progressing=False, Degraded=False</div>
+    <div class="gate-item"><div class="gate-box"></div>KubeVirt CR phase=Deployed</div>
+    <div class="gate-item"><div class="gate-box"></div>cnv cluster operator Available=True</div>
+    <div class="gate-item"><div class="gate-box"></div>virt-handler DaemonSet: DESIRED=5, READY=5 (one per bare-metal node)</div>
+    <div class="gate-item"><div class="gate-box"></div>All pods in openshift-cnv namespace Running or Completed</div>
+    <div class="gate-item"><div class="gate-box"></div>/dev/kvm present on all bare-metal nodes</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">PerformanceProfile checks</div>
+    <div class="gate-item"><div class="gate-box"></div>bm-worker MachineConfigPool: Updated=True, Updating=False, Degraded=False, READY=5/5</div>
+    <div class="gate-item"><div class="gate-box"></div>HugePages_Total=400 on all 5 bare-metal nodes (oc debug node / grep HugePages /proc/meminfo)</div>
+    <div class="gate-item"><div class="gate-box"></div>CPU Manager policy=static on all bare-metal nodes (oc debug node / cat /etc/kubernetes/kubelet.conf | grep cpuManagerPolicy)</div>
+    <div class="gate-item"><div class="gate-box"></div>NUMA topology policy=single-numa-node (visible in kubelet config)</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">First VM checks</div>
+    <div class="gate-item"><div class="gate-box"></div>vm-rhel9-test-01 VMI phase=Running on a bare-metal node</div>
+    <div class="gate-item"><div class="gate-box"></div>CPU pinning verified: cpuset.cpus shows cores from isolated range (4–63)</div>
+    <div class="gate-item"><div class="gate-box"></div>Hugepages consumed: HugePages_Free decreased by 8 on the VM's node</div>
+    <div class="gate-item"><div class="gate-box"></div>PVC vm-rhel9-test-01-disk Bound with AccessMode=ReadWriteMany</div>
+    <div class="gate-item"><div class="gate-box"></div>qemu-guest-agent running (VMI status.guestOSInfo.name populated)</div>
+    <div class="gate-item"><div class="gate-box"></div>Live migration succeeded: VM moved to a different node, VMIM phase=Succeeded</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-04 complete — OpenShift Virtualization is running</span>
+    <p>The HyperConverged Operator is installed and all sub-operators are healthy. PerformanceProfile is applied — bare-metal nodes have hugepages and CPU isolation configured for latency-sensitive VM workloads. The first RHEL 9 test VM is running with CPU pinning and hugepage-backed memory, and live migration succeeded between nodes. Proceed to VIRT-05 — VM Networking — to configure VLAN 130 and VLAN 140 secondary networks so VMs get routable IPs on the NovaCrestBank fabric.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-07 — VM Lifecycle &amp; GitOps · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --argo:#ef5c55;--argo-bg:#fff5f5;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* ── MAIN ── */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+
+/* ── PROGRESS ── */
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+
+/* ── CALLOUTS ── */
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.argo{border-left-color:var(--argo)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.argo .cl{color:var(--argo)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+
+/* ── TERMINAL ── */
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}
+.tc{color:#61c5eb}
+.tg{color:#4ccd99}
+.td{color:#608b7a}
+.tw{color:#cca700}
+.te{color:#f85149}
+.tok{color:#3fb950;font-weight:600}
+
+/* ── YAML ── */
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── DECISION ── */
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* ── WRONG / OK ── */
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+
+/* ── GATE ── */
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+
+/* ── REG BADGES ── */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+
+/* ── REPO TREE ── */
+.tree{background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);padding:16px 20px;margin:16px 0;font-family:'DM Mono',monospace;font-size:13px;line-height:1.9;color:var(--text2)}
+.tree-dir{color:var(--blue);font-weight:600}
+.tree-file{color:var(--text2)}
+.tree-ann{color:var(--text3);font-style:italic;font-size:12px}
+
+/* ── ENV CARDS ── */
+.env-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+.env-card{border-radius:var(--r);padding:14px 16px;border:.5px solid var(--border2)}
+.env-dev{background:var(--purple-bg);border-top:3px solid var(--purple)}
+.env-staging{background:var(--blue-bg);border-top:3px solid var(--blue)}
+.env-prod{background:var(--odf-bg);border-top:3px solid var(--odf)}
+.env-label{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:8px}
+.env-dev .env-label{color:var(--purple)}
+.env-staging .env-label{color:var(--blue)}
+.env-prod .env-label{color:var(--odf)}
+.env-body{font-size:12.5px;color:var(--text2);line-height:1.65}
+.env-body li{font-size:12.5px;margin-bottom:3px}
+
+/* ── HOTPLUG TABLE ── */
+.hotplug-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.hg-cell{background:var(--bg2);padding:12px 14px}
+.hg-head{background:var(--bg3);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:8px 14px}
+
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}.env-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-07</div>
+    <div class="sb-title">VM Lifecycle &amp; GitOps</div>
+    <div class="sb-sub">Argo CD · Kustomize · Snapshot · OADP · Hot-plug</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">GitOps for VMs — first principles</div>
+    <a class="sb-item active" href="#why-gitops-vms">01 — Why manage VMs as GitOps objects</a>
+    <a class="sb-item" href="#two-repo-pattern">02 — The two-repository pattern for VM configuration</a>
+    <a class="sb-item" href="#argo-install">03 — OpenShift GitOps installation</a>
+    <a class="sb-item" href="#argo-cr">04 — ArgoCD CR — NovaCrestBank configuration</a>
+    <a class="sb-item" href="#appproject">05 — AppProject — scoping what Argo CD may deploy</a>
+    <div class="sb-sec">Kustomize VM overlays</div>
+    <a class="sb-item" href="#kustomize-structure">06 — Config repo structure for VM workloads</a>
+    <a class="sb-item" href="#base-vm">07 — Base VirtualMachine CR — the shared specification</a>
+    <a class="sb-item" href="#dev-overlay">08 — Dev overlay — shared CPU, no hugepages, smaller memory</a>
+    <a class="sb-item" href="#prod-overlay">09 — Production overlay — CPU pinning, hugepages, VLAN 130</a>
+    <a class="sb-item" href="#applicationset">10 — ApplicationSet — deploying VMs to dev and production</a>
+    <div class="sb-sec">VM lifecycle operations</div>
+    <a class="sb-item" href="#eviction-strategy">11 — evictionStrategy — live migration during node drain</a>
+    <a class="sb-item" href="#snapshot">12 — VirtualMachineSnapshot — point-in-time disk capture</a>
+    <a class="sb-item" href="#snapshot-restore">13 — VirtualMachineRestore — recovering from a snapshot</a>
+    <div class="sb-sec">OADP backup</div>
+    <a class="sb-item" href="#oadp-concept">14 — OADP — what it is and how it backs up VMs</a>
+    <a class="sb-item" href="#oadp-install">15 — Install OADP and configure the backup store</a>
+    <a class="sb-item" href="#backup-schedule">16 — BackupSchedule — nightly VM disk backup</a>
+    <a class="sb-item" href="#oadp-restore">17 — OADP restore — recovering a VM from backup</a>
+    <div class="sb-sec">CPU and memory hot-plug</div>
+    <a class="sb-item" href="#hotplug-concept">18 — CPU and memory hot-plug — what it is and when to use it</a>
+    <a class="sb-item" href="#hotplug-apply">19 — Applying CPU and memory hot-plug to a running VM</a>
+    <a class="sb-item" href="#handover">20 — Readiness checklist — gate to VIRT-08</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-06-mtv-migration.html">← VIRT-06 — MTV Migration</a>
+    <a class="sb-item" href="virt-08-security-acs.html">VIRT-08 — Security →</a>
+  </div>
+  <div class="sb-foot">VIRT-07 · VM Lifecycle &amp; GitOps · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-07 · VM Lifecycle &amp; GitOps</div>
+  <div class="prereq-bar">VIRT-06 complete — wave 1 cold migration and wave 2 warm migration validated, all VMs running on bare-metal nodes</div>
+  <h1>VM Lifecycle &amp; GitOps</h1>
+  <div class="subtitle">Managing banking application VMs declaratively through Argo CD —<br>Kustomize overlays for dev and production, VirtualMachineSnapshot, OADP backup, and CPU/memory hot-plug</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-05<br>Networking</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-06<br>MTV</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-07<br>Lifecycle</div>
+    <div class="pt"><span class="pt-n">9</span>VIRT-08<br>Security</div>
+    <div class="pt"><span class="pt-n">10</span>VIRT-09<br>ACM</div>
+    <div class="pt"><span class="pt-n">11</span>VIRT-11<br>NSX Exit</div>
+  </div>
+
+  <!-- ══ 01 WHY GITOPS VMS ══ -->
+  <section id="why-gitops-vms">
+  <h2>01 — Why manage VMs as GitOps objects</h2>
+  <p>After VIRT-06, banking application VMs are running on OCP Virt bare-metal nodes. They were created by MTV — each VM has a VirtualMachine CR in the <code>virt-workloads</code> namespace. At this point, those CRs exist only in the cluster — they are not tracked in any Git repository. If a VM's configuration needs to change (more memory, a different network interface, an updated cloud-init script), an engineer applies the change directly with <code>oc apply</code>. That change is not reviewed, not versioned, and not reproducible. If the cluster needs to be rebuilt, the VM configuration is lost.</p>
+  <p>Applying GitOps to VMs changes this: VirtualMachine CRs live in a Git repository. Every configuration change is a reviewed commit. Argo CD continuously reconciles the cluster to match Git. A VM's desired state is always readable from Git — not just inferable from the cluster.</p>
+
+  <h3>What GitOps adds for VM workloads specifically</h3>
+  <p><strong>Reproducibility:</strong> The Git repository is the complete specification for every VM. Recreating a VM after cluster failure or disaster recovery is an Argo CD sync — not a manual kubectl recreation exercise from memory or from an out-of-date runbook.</p>
+  <p><strong>Environment parity:</strong> Dev VMs and production VMs share the same base VirtualMachine specification. The differences — CPU pinning, hugepages, explicit MAC addresses, larger memory — are isolated in Kustomize overlays. When the base VM specification changes (a new cloud-init script, a different network policy annotation), the change applies to both environments through a single base commit.</p>
+  <p><strong>Change audit trail:</strong> Every VM configuration change is a Git commit with an author, timestamp, and diff. PCI-DSS Req 6.4 requires that all changes to production systems are documented, reviewed, and traceable. A Git commit satisfies this — an ad-hoc <code>oc apply</code> does not. <span class="reg reg-pci">PCI-DSS v4.0 Req 6.4</span></p>
+  <p><strong>Drift detection:</strong> If a VM's configuration in the cluster diverges from Git (an engineer edited the VirtualMachine CR directly to test something and forgot to revert), Argo CD detects the drift and alerts. With self-heal enabled for dev and disabled for production, the correct behaviour applies in each environment.</p>
+
+  <div class="callout argo">
+    <span class="cl">What Argo CD can and cannot manage for VMs</span>
+    <p><strong>Can manage:</strong> The VirtualMachine CR (the definition — CPU, memory, disk references, network interfaces, runStrategy, evictionStrategy). The cloud-init Secret (userData for hostname, SSH keys, static IP). NetworkAttachmentDefinitions and NodeNetworkConfigurationPolicies. Any ConfigMap or annotation the VM depends on.</p>
+    <p><strong>Cannot manage:</strong> The VM's PVC data content (the disk data itself — this is managed by ODF and backed up by OADP, not by Argo CD). The running VMI (VirtualMachineInstance) — this is a live runtime object. The snapshot objects (these are point-in-time captures, not desired-state declarations).</p>
+    <p>Argo CD manages the VM definition — not the VM's disk data or its running state. This is the same relationship as Argo CD managing a Deployment (the definition) but not the Pods (the runtime instances).</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 TWO REPO PATTERN ══ -->
+  <section id="two-repo-pattern">
+  <h2>02 — The two-repository pattern for VM configuration</h2>
+  <p>NovaCrestBank's GitOps architecture uses two Git repositories — inherited from the OCP-OPS-05 GitOps guide that established this pattern for containerised banking applications. The same pattern applies to VM workloads.</p>
+
+  <h3>Why source code and VM configuration live in separate repositories</h3>
+  <p>For containerised applications, the reason for separation is clear: the application source code repo triggers builds; the config repo holds the deployment YAML updated by the pipeline. For VMs, there is no build pipeline — but the separation still serves two critical purposes.</p>
+  <p><strong>Access control:</strong> Application teams should be able to propose VM configuration changes (requesting more memory, a different cloud-init script) through a pull request. But they should not have direct write access to the production VM configuration. The two-repo pattern enforces this — developers PR against the config repo, senior engineers and platform admins approve changes that affect production VMs.</p>
+  <p><strong>History clarity:</strong> The VM config repo's git log is the complete operational history of every VM — every resize, every network change, every cloud-init update. This history must be clean and purposeful. Mixing it with application source code commits would make the audit trail difficult to read.</p>
+
+  <div class="decision">
+    <div class="dq">Config repo structure for NovaCrestBank VMs</div>
+    <div class="db">
+      <p><strong>Repository:</strong> <code>gitlab.novacrestbank.local/gitops/banking-config</code> — the same config repo used for containerised banking application deployment (OCP-OPS-05). VMs are new top-level directories alongside the existing <code>apps/</code> directory tree.</p>
+      <p><strong>Structure:</strong> <code>vms/banking-app-vm/</code> with <code>base/</code> (shared VirtualMachine CR) and <code>overlays/dev/</code>, <code>overlays/production/</code>. Mirrors the Kustomize overlay structure already established for containerised applications. Engineers familiar with the existing config repo structure immediately understand the VM overlay layout.</p>
+    </div>
+  </div>
+
+  <div class="tree">
+<span class="tree-dir">banking-config/</span>
+├── <span class="tree-dir">apps/</span>                          <span class="tree-ann">← existing containerised app overlays (OCP-OPS-05)</span>
+│   └── <span class="tree-dir">payment-service/</span>
+│       ├── <span class="tree-dir">base/</span>
+│       └── <span class="tree-dir">overlays/</span> dev/ staging/ production/
+└── <span class="tree-dir">vms/</span>                           <span class="tree-ann">← VM workload overlays — new in VIRT-07</span>
+    └── <span class="tree-dir">banking-app-vm/</span>
+        ├── <span class="tree-dir">base/</span>
+        │   ├── <span class="tree-file">kustomization.yaml</span>     <span class="tree-ann">← lists VirtualMachine, Secret, NAD ref</span>
+        │   ├── <span class="tree-file">virtualmachine.yaml</span>    <span class="tree-ann">← shared VM spec (no env-specific fields)</span>
+        │   └── <span class="tree-file">cloudinit-secret.yaml</span>  <span class="tree-ann">← base cloud-init userData</span>
+        └── <span class="tree-dir">overlays/</span>
+            ├── <span class="tree-dir">dev/</span>
+            │   ├── <span class="tree-file">kustomization.yaml</span>     <span class="tree-ann">← shared CPU, 8GiB RAM, no hugepages</span>
+            │   └── <span class="tree-file">vm-patch.yaml</span>          <span class="tree-ann">← patches for dev resource profile</span>
+            └── <span class="tree-dir">production/</span>
+                ├── <span class="tree-file">kustomization.yaml</span>     <span class="tree-ann">← CPU pinning, 32GiB hugepages, VLAN 130</span>
+                └── <span class="tree-file">vm-patch.yaml</span>          <span class="tree-ann">← patches for production resource profile</span>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 ARGO INSTALL ══ -->
+  <section id="argo-install">
+  <h2>03 — OpenShift GitOps installation</h2>
+  <p>OpenShift GitOps is installed via OLM — the same pattern used for HCO, ODF, and MTV. The key difference from other operators: the default Argo CD instance created by the operator is disabled, and NovaCrestBank's own ArgoCD CR is applied instead. The default instance has cluster-admin privileges and deploys into <code>openshift-gitops</code> — too broad for a banking environment.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">gitops-subscription.yaml — OpenShift GitOps Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-gitops-operator</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-operators</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">latest</span>
+  <span class="yc">  # latest is the only stable production channel for OpenShift GitOps.</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-gitops-operator</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span>
+  <span class="yk">config</span><span class="yc">:</span>
+    <span class="yk">env</span><span class="yc">:</span>
+      <span class="yc">- name</span><span class="yc">:</span> <span class="yv">DISABLE_DEFAULT_ARGOCD_INSTANCE</span>
+        <span class="yk">value</span><span class="yc">:</span> <span class="yv">"true"</span>
+        <span class="yc">        # true: do not create the default openshift-gitops ArgoCD instance.
+        # The default instance deploys with cluster-admin ServiceAccount — too broad
+        # for NovaCrestBank. Section 04 creates a scoped instance in the gitops namespace.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install OpenShift GitOps operator</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f gitops-subscription.yaml</span>
+<span class="tg">subscription.operators.coreos.com/openshift-gitops-operator created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">PLAN=$(oc get installplan -n openshift-operators \
+  -o jsonpath='{.items[?(@.spec.approved==false)].metadata.name}' | awk '{print $1}')
+oc patch installplan ${PLAN} -n openshift-operators \
+  --type merge -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-git12 patched</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csv -n openshift-operators | grep gitops</span>
+<span class="tg">openshift-gitops-operator.v1.12.x   Red Hat OpenShift GitOps   1.12.x   Succeeded</span>
+<span class="tok">✓ OpenShift GitOps operator installed. CSV Succeeded.
+  ArgoCD, Application, AppProject, ApplicationSet CRDs registered.
+  No default ArgoCD instance created — DISABLE_DEFAULT_ARGOCD_INSTANCE=true.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 ARGO CR ══ -->
+  <section id="argo-cr">
+  <h2>04 — ArgoCD CR — NovaCrestBank configuration</h2>
+  <p>The ArgoCD CR tells the GitOps operator how to deploy the Argo CD instance. Every field is annotated with its purpose and the NovaCrestBank-specific reasoning. This instance deploys into the <code>gitops</code> namespace — a dedicated namespace separate from <code>openshift-gitops</code>.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">argocd-ncb.yaml — ArgoCD CR — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">argoproj.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">ArgoCD</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-argocd</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">gitops</span>
+  <span class="yc">  # gitops: dedicated namespace — not openshift-gitops.
+  # Tighter NetworkPolicy, custom RBAC, scoped ServiceAccount.
+  # All Argo CD pods, Secrets, and ServiceAccounts live here.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">server</span><span class="yc">:</span>
+    <span class="yk">route</span><span class="yc">:</span>
+      <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+      <span class="yk">tls</span><span class="yc">:</span>
+        <span class="yk">termination</span><span class="yc">:</span> <span class="yv">reencrypt</span>
+        <span class="yc">        # reencrypt: TLS from client to OCP router, then a new TLS connection
+        # from the router to the Argo CD server pod. Argo CD's own certificate
+        # (issued by cert-manager from NovaCrestBank-IssuingCA) is validated
+        # end-to-end — not just at the router edge.</span>
+    <span class="yk">insecure</span><span class="yc">:</span> <span class="yv">false</span>
+  <span class="yk">applicationSet</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # Enable the ApplicationSet controller — required for Section 10.</span>
+  <span class="yk">dex</span><span class="yc">:</span>
+    <span class="yk">openShiftOAuth</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # false: use AD LDAP directly via Dex (configured below).
+    # Not OCP OAuth — AD group-to-Argo CD role mapping requires LDAP groups
+    # which OCP OAuth does not expose at the group granularity needed.</span>
+  <span class="yk">rbac</span><span class="yc">:</span>
+    <span class="yk">defaultPolicy</span><span class="yc">:</span> <span class="yv">role:readonly</span>
+    <span class="yc">    # Any authenticated user who does not match a specific policy gets read-only.
+    # Platform engineers, developers, and auditors can all VIEW application status
+    # and sync history without being able to modify anything.</span>
+    <span class="yk">policy</span><span class="yc">:</span> <span class="ys">|
+      g, NovaCrestBank-GitOps-Admins, role:admin
+      g, NovaCrestBank-GitOps-Operators, role:readonly</span>
+    <span class="yc">    # NovaCrestBank-GitOps-Admins → Argo CD admin (platform engineering leads only).
+    # NovaCrestBank-GitOps-Operators → read-only + manual sync trigger on approved apps.</span>
+    <span class="yk">scopes</span><span class="yc">:</span> <span class="yv">'[groups]'</span>
+    <span class="yc">    # Argo CD reads AD group memberships from the Dex LDAP token for RBAC matching.</span>
+  <span class="yk">redis</span><span class="yc">:</span>
+    <span class="yk">autotls</span><span class="yc">:</span> <span class="yv">openshift</span>
+  <span class="yk">repo</span><span class="yc">:</span>
+    <span class="yk">autotls</span><span class="yc">:</span> <span class="yv">openshift</span>
+  <span class="yk">ha</span><span class="yc">:</span>
+    <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # Single-instance Argo CD. Running applications continue working even if
+    # Argo CD is temporarily down — it is not in the critical path for running VMs.</span>
+  <span class="yk">resourceExclusions</span><span class="yc">:</span> <span class="ys">|
+      - apiGroups:
+        - kubevirt.io
+        kinds:
+        - VirtualMachineInstance
+        - VirtualMachineInstanceMigration
+        clusters:
+        - "*"</span>
+  <span class="yc">  # Exclude VMI and VMIM objects from Argo CD's resource tracking.
+  # VMIs are runtime objects — they are created and destroyed by KubeVirt
+  # as VMs start and stop. They are not in the Git config repo.
+  # If Argo CD tracked them, every VM start/stop would show as OutOfSync.
+  # Argo CD manages the VirtualMachine CR (the definition), not the VMI (the instance).
+  # VMIM (live migration) objects are ephemeral — also excluded.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — deploy ArgoCD instance and verify all components running</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc new-project gitops && oc apply -f argocd-ncb.yaml</span>
+<span class="tg">namespace/gitops created
+argocd.argoproj.io/ncb-argocd created</span>
+
+<span class="td"># Wait ~3 minutes for all 6 Argo CD components to start</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n gitops</span>
+<span class="tg">NAME                                      READY   STATUS    AGE
+ncb-argocd-application-controller-0      1/1     Running   3m
+ncb-argocd-applicationset-controller     1/1     Running   3m
+ncb-argocd-dex-server                    1/1     Running   3m
+ncb-argocd-redis                         1/1     Running   3m
+ncb-argocd-repo-server                   1/1     Running   3m
+ncb-argocd-server                        1/1     Running   3m</span>
+<span class="tok">✓ All 6 Argo CD components Running.
+  UI: ncb-argocd-server-gitops.apps.ocp.novacrestbank.local
+  defaultPolicy: role:readonly — all AD users can view, none can modify without group membership.
+  resourceExclusions: VMI and VMIM excluded — VM start/stop does not trigger OutOfSync.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 APPPROJECT ══ -->
+  <section id="appproject">
+  <h2>05 — AppProject — scoping what Argo CD may deploy for VM workloads</h2>
+  <p>The AppProject is the security boundary for Argo CD Applications. Without it, an Application could deploy to any namespace and create any resource type — including ClusterRoles that elevate privilege. The <code>virt-workloads</code> AppProject restricts VM Applications to exactly the namespaces and resource types they need.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">appproject-virt-workloads.yaml — AppProject for VM workloads</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">argoproj.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">AppProject</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">gitops</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">description</span><span class="yc">:</span> <span class="yv">NovaCrestBank VM workloads — dev and production VirtualMachine CRs</span>
+  <span class="yk">sourceRepos</span><span class="yc">:</span>
+    <span class="yc">-</span> <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+    <span class="yc">    # Only this repository. Applications in this project cannot sync from
+    # any other source — not GitHub, not an external Helm chart repository.</span>
+  <span class="yk">destinations</span><span class="yc">:</span>
+    <span class="yc">- namespace</span><span class="yc">:</span> <span class="yv">virt-workloads-dev</span>
+      <span class="yk">server</span><span class="yc">:</span> <span class="yv">https://kubernetes.default.svc</span>
+    <span class="yc">- namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+      <span class="yk">server</span><span class="yc">:</span> <span class="yv">https://kubernetes.default.svc</span>
+      <span class="yc">      # Two namespaces: dev (smaller VMs, shared CPU) and production (the VIRT-05/06 namespace).
+      # Applications in this project cannot deploy to kube-system, openshift-cnv,
+      # or openshift-storage — only to these two namespaces.</span>
+  <span class="yk">clusterResourceWhitelist</span><span class="yc">:</span> <span class="yv">[]</span>
+  <span class="yc">  # Empty: no cluster-scoped resources allowed.
+  # VM Applications cannot create ClusterRoles, ClusterRoleBindings, or CRDs.</span>
+  <span class="yk">namespaceResourceWhitelist</span><span class="yc">:</span>
+    <span class="yc">- group</span><span class="yc">:</span> <span class="yv">kubevirt.io</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+      <span class="yc">      # The core resource: VirtualMachine CRs are the primary GitOps object here.</span>
+    <span class="yc">- group</span><span class="yc">:</span> <span class="yv">"*"</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">Secret</span>
+      <span class="yc">      # cloud-init Secrets (userData for hostname, SSH keys, network config).</span>
+    <span class="yc">- group</span><span class="yc">:</span> <span class="yv">"*"</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">ConfigMap</span>
+    <span class="yc">- group</span><span class="yc">:</span> <span class="yv">k8s.cni.cncf.io</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkAttachmentDefinition</span>
+      <span class="yc">      # NADs for VM secondary interfaces (VLAN 130/140) — managed alongside VMs.</span>
+    <span class="yc">- group</span><span class="yc">:</span> <span class="yv">networking.k8s.io</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+      <span class="yc">      # NetworkPolicy for intra-namespace VM traffic control (Model B, VIRT-11).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 KUSTOMIZE STRUCTURE ══ -->
+  <section id="kustomize-structure">
+  <h2>06 — Config repo structure for VM workloads</h2>
+  <p>Before showing the YAML, understand what Kustomize does for VM CRs and why the base/overlay split is the correct structure. Kustomize takes a base VirtualMachine CR that is correct for all environments and applies environment-specific patches on top. The base VM has conservative resources. Each overlay patches exactly the fields that differ for that environment — nothing more.</p>
+
+  <div class="env-grid">
+    <div class="env-card env-dev">
+      <div class="env-label">Dev overlay</div>
+      <div class="env-body">
+        <ul>
+          <li>No CPU pinning — shared CPU pool</li>
+          <li>No hugepages — standard 4 KiB pages</li>
+          <li>4 vCPU, 8 GiB RAM</li>
+          <li>masquerade primary interface only</li>
+          <li>runStrategy: Manual (start/stop on demand)</li>
+          <li>No explicit macAddress (random — no live migration needed)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="env-card env-staging">
+      <div class="env-label">Staging (future)</div>
+      <div class="env-body">
+        <ul>
+          <li>CPU pinning enabled</li>
+          <li>1 GiB hugepages, 16 GiB</li>
+          <li>VLAN 130 secondary interface</li>
+          <li>Static IP on staging VLAN subnet</li>
+          <li>runStrategy: Always</li>
+          <li>Mirror of production resources at 50%</li>
+        </ul>
+      </div>
+    </div>
+    <div class="env-card env-prod">
+      <div class="env-label">Production overlay</div>
+      <div class="env-body">
+        <ul>
+          <li>dedicatedCpuPlacement: true</li>
+          <li>1 GiB hugepages, 32 GiB RAM</li>
+          <li>VLAN 130 secondary, explicit MAC</li>
+          <li>Static IP 10.130.0.50, gateway .3</li>
+          <li>runStrategy: Always</li>
+          <li>evictionStrategy: LiveMigrate</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 BASE VM ══ -->
+  <section id="base-vm">
+  <h2>07 — Base VirtualMachine CR — the shared specification</h2>
+  <p>The base VirtualMachine CR contains everything that is identical across all environments: the guest OS type, the disk interface bus, the primary masquerade network interface, the cloud-init volume reference, and the node selector that restricts scheduling to bare-metal nodes. Fields that differ between environments are absent from the base — they are added or patched by each overlay.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">vms/banking-app-vm/base/virtualmachine.yaml — base VM specification</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">kubevirt.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-app-vm</span>
+  <span class="yc">  # Base name. Each overlay patches the name to match the environment:
+  # dev overlay → banking-app-vm-dev
+  # production overlay → vm-banking-app-01 (matches DNS and MAC convention)</span>
+  <span class="yk">labels</span><span class="yc">:</span>
+    <span class="yk">app</span><span class="yc">:</span> <span class="yv">banking-app</span>
+    <span class="yk">managed-by</span><span class="yc">:</span> <span class="yv">argocd</span>
+    <span class="yc">    # managed-by: argocd label allows Argo CD to track this resource.
+    # Argo CD uses this label when computing diff and health status.
+    # Without this label, Argo CD may not correctly associate the resource
+    # with the Application that manages it.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">runStrategy</span><span class="yc">:</span> <span class="yv">Manual</span>
+  <span class="yc">  # Base default: Manual. Each overlay patches to the correct runStrategy.
+  # Manual is the safe base default — the VM does not auto-start when the CR
+  # is first applied. Production overlay patches to Always.</span>
+
+  <span class="yk">template</span><span class="yc">:</span>
+    <span class="yk">spec</span><span class="yc">:</span>
+      <span class="yk">domain</span><span class="yc">:</span>
+        <span class="yk">cpu</span><span class="yc">:</span>
+          <span class="yk">cores</span><span class="yc">:</span> <span class="yv">4</span>
+          <span class="yk">threads</span><span class="yc">:</span> <span class="yv">1</span>
+          <span class="yk">model</span><span class="yc">:</span> <span class="yv">host-passthrough</span>
+          <span class="yc">          # host-passthrough in the base — all environments use the bare-metal EPYC CPU.
+          # dedicatedCpuPlacement is absent from the base. Production overlay adds it.</span>
+        <span class="yk">memory</span><span class="yc">:</span>
+          <span class="yk">guest</span><span class="yc">:</span> <span class="yv">8Gi</span>
+          <span class="yc">          # Conservative base: 8 GiB. Production overlay patches to 32 GiB.
+          # hugepages absent from base — dev does not use hugepages.
+          # Production overlay adds hugepages.pageSize: "1Gi".</span>
+        <span class="yk">devices</span><span class="yc">:</span>
+          <span class="yk">disks</span><span class="yc">:</span>
+            <span class="yc">- disk</span><span class="yc">:</span>
+                <span class="yk">bus</span><span class="yc">:</span> <span class="yv">virtio</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">rootdisk</span>
+            <span class="yc">- disk</span><span class="yc">:</span>
+                <span class="yk">bus</span><span class="yc">:</span> <span class="yv">virtio</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">cloudinitdisk</span>
+          <span class="yk">interfaces</span><span class="yc">:</span>
+            <span class="yc">- masquerade: {}</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">default</span>
+              <span class="yc">              # Primary interface: masquerade (OVN overlay). Present in ALL environments.
+              # Provides cluster-internal access: OCP API, monitoring, cert-manager.
+              # Production overlay adds a secondary VLAN 130 bridge interface.</span>
+        <span class="yk">resources</span><span class="yc">:</span>
+          <span class="yk">requests</span><span class="yc">:</span>
+            <span class="yk">memory</span><span class="yc">:</span> <span class="yv">8Gi</span>
+
+      <span class="yk">networks</span><span class="yc">:</span>
+        <span class="yc">- name</span><span class="yc">:</span> <span class="yv">default</span>
+          <span class="yk">pod</span><span class="yc">:</span> <span class="yv">{}</span>
+
+      <span class="yk">volumes</span><span class="yc">:</span>
+        <span class="yc">- name: rootdisk</span>
+          <span class="yk">dataVolume</span><span class="yc">:</span>
+            <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-app-vm-disk</span>
+        <span class="yc">- name: cloudinitdisk</span>
+          <span class="yk">cloudInitNoCloud</span><span class="yc">:</span>
+            <span class="yk">secretRef</span><span class="yc">:</span>
+              <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-app-vm-cloudinit</span>
+            <span class="yc">            # Reference a Secret for cloud-init rather than inline userData.
+            # The Secret contains the userData (hostname, SSH keys, network config).
+            # Using a Secret allows the cloud-init data to be managed separately
+            # from the VirtualMachine CR — the Secret can be rotated without
+            # changing the VM definition, and it is not visible in git blame
+            # for the VM YAML (separation of concerns: VM spec vs cloud-init config).</span>
+
+      <span class="yk">nodeSelector</span><span class="yc">:</span>
+        <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+        <span class="yc">        # Present in ALL environments — VMs always schedule on bare-metal nodes.</span>
+
+      <span class="yk">tolerations</span><span class="yc">:</span>
+        <span class="yc">- key: kubevirt.io/virt</span>
+          <span class="yk">operator</span><span class="yc">:</span> <span class="yv">Exists</span>
+          <span class="yk">effect</span><span class="yc">:</span> <span class="yv">NoSchedule</span>
+          <span class="yc">          # Required in all environments — bare-metal nodes carry this taint.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 DEV OVERLAY ══ -->
+  <section id="dev-overlay">
+  <h2>08 — Dev overlay — shared CPU, standard pages, smaller memory</h2>
+  <p>The dev overlay patches the base VM to a resource profile appropriate for development and functional testing. No CPU pinning — the VM shares physical cores with other workloads. No hugepages — standard 4 KiB pages. Smaller memory. <code>runStrategy: Manual</code> — dev VMs are started and stopped on demand, not kept running continuously. No secondary VLAN interface — the dev VM uses only the masquerade primary interface for OCP cluster access.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">vms/banking-app-vm/overlays/dev/kustomization.yaml</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">kustomize.config.k8s.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Kustomization</span>
+<span class="yk">resources</span><span class="yc">:</span>
+  <span class="yc">-</span> <span class="yv">../../base</span>
+  <span class="yc">  # Inherit the complete base VirtualMachine spec.
+  # Only the patches below change anything. Everything else is identical to base.</span>
+<span class="yk">namePrefix</span><span class="yc">:</span> <span class="yv">dev-</span>
+<span class="yc">  # dev-: adds "dev-" prefix to all resource names.
+  # banking-app-vm → dev-banking-app-vm
+  # Ensures dev and production VMs can coexist in the cluster without name collision.</span>
+<span class="yk">patches</span><span class="yc">:</span>
+  <span class="yc">- target</span><span class="yc">:</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-app-vm</span>
+    <span class="yk">patch</span><span class="yc">:</span> <span class="ys">|
+      - op: replace
+        path: /spec/runStrategy
+        value: Manual
+      - op: replace
+        path: /spec/template/spec/domain/cpu/cores
+        value: 4
+      - op: replace
+        path: /spec/template/spec/domain/memory/guest
+        value: "8Gi"
+      - op: replace
+        path: /spec/template/spec/domain/resources/requests/memory
+        value: "8Gi"
+      - op: add
+        path: /spec/template/spec/domain/cpu/dedicatedCpuPlacement
+        value: false</span>
+      <span class="yc">      # dedicatedCpuPlacement: false — dev VM uses shared CPU pool.
+      # The base does not have this field — adding it explicitly here ensures
+      # the dev overlay is unambiguous and will not inherit a production overlay
+      # if base ever gains a default value for this field.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 PROD OVERLAY ══ -->
+  <section id="prod-overlay">
+  <h2>09 — Production overlay — CPU pinning, hugepages, VLAN 130 secondary interface</h2>
+  <p>The production overlay patches the base VM with the full performance and networking configuration required for banking application workloads. Every field added or changed from the base is annotated.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">vms/banking-app-vm/overlays/production/kustomization.yaml</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">kustomize.config.k8s.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Kustomization</span>
+<span class="yk">resources</span><span class="yc">:</span>
+  <span class="yc">-</span> <span class="yv">../../base</span>
+<span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yc">  # Production VMs go into the virt-workloads namespace (the VIRT-05/06 namespace).
+  # Dev VMs go into virt-workloads-dev (separate namespace, separate NetworkPolicy).</span>
+<span class="yk">patches</span><span class="yc">:</span>
+  <span class="yc">- target</span><span class="yc">:</span>
+      <span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-app-vm</span>
+    <span class="yk">patch</span><span class="yc">:</span> <span class="ys">|
+      - op: replace
+        path: /metadata/name
+        value: vm-banking-app-01</span>
+      <span class="yc">      # Rename to match the existing DNS record and MAC convention from VIRT-05.
+      # vm-banking-app-01.novacrestbank.local → 10.130.0.50 (DNS pre-created in VIRT-02b).
+      # This overlay manages the SAME VM that MTV migrated in VIRT-06 —
+      # it brings the migrated VM under GitOps control.</span>
+      <span class="ys">- op: replace
+        path: /spec/runStrategy
+        value: Always</span>
+      <span class="yc">      # Always: production banking VMs must stay running.
+      # KubeVirt restarts the VM if it crashes or the guest OS shuts down unexpectedly.</span>
+      <span class="ys">- op: add
+        path: /spec/template/spec/domain/cpu/dedicatedCpuPlacement
+        value: true</span>
+      <span class="yc">      # CPU pinning — dedicated physical cores from the isolated pool (4–63).
+      # Required for sub-millisecond P99 latency SLO on payment processing workload.</span>
+      <span class="ys">- op: replace
+        path: /spec/template/spec/domain/cpu/cores
+        value: 8</span>
+      <span class="yc">      # 8 dedicated cores for the payment processing VM.
+      # Production needs more parallelism than dev (4 cores).</span>
+      <span class="ys">- op: replace
+        path: /spec/template/spec/domain/memory/guest
+        value: "32Gi"
+      - op: add
+        path: /spec/template/spec/domain/memory/hugepages
+        value:
+          pageSize: "1Gi"</span>
+      <span class="yc">      # 32 GiB backed by 1 GiB hugepages — TLB pressure eliminated for
+      # the payment processing VM's full address space (VIRT-04 Section 11).</span>
+      <span class="ys">- op: replace
+        path: /spec/template/spec/domain/resources/requests/memory
+        value: "32Gi"
+      - op: add
+        path: /spec/template/spec/domain/devices/interfaces/1
+        value:
+          bridge: {}
+          name: vlan130-nic
+          macAddress: "02:00:00:0a:82:32"</span>
+      <span class="yc">      # Secondary VLAN 130 interface — the production IP interface.
+      # macAddress: explicit — required for live migration MAC mobility (VIRT-05 Section 16).
+      # 02:00:00:0a:82:32 = 02:00:00 prefix + 10.130.0.50 in hex.
+      # This MAC was already assigned to this VM during VIRT-05/06 — the GitOps CR
+      # records it explicitly so the MAC is committed to Git and auditable.</span>
+      <span class="ys">- op: add
+        path: /spec/template/spec/networks/1
+        value:
+          name: vlan130-nic
+          multus:
+            networkName: vlan130-primary</span>
+      <span class="ys">- op: add
+        path: /spec/template/spec/evictionStrategy
+        value: LiveMigrate</span>
+      <span class="yc">      # evictionStrategy: LiveMigrate — during node drain, this VM is live-migrated
+      # to another node rather than being stopped. Required for zero-downtime
+      # node maintenance on production banking VMs.
+      # Without this, a node drain STOPS the VM (brief downtime for payment processing).
+      # Requires: RWX PVC (ocs-storagecluster-ceph-rbd-virtualization ✓),
+      # secondary interface with explicit MAC ✓, no SR-IOV ✓.
+      # Section 11 covers evictionStrategy in full.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 APPLICATIONSET ══ -->
+  <section id="applicationset">
+  <h2>10 — ApplicationSet — deploying VMs to dev and production</h2>
+  <p>One ApplicationSet generates two Application objects — dev and production. The sync policy differs between environments by design: dev auto-syncs so VM configuration changes are tested immediately, production requires a manual sync so an engineer reviews the Argo CD diff before the running VM's definition is updated.</p>
+
+  <div class="callout warn">
+    <span class="cl">Argo CD syncing a VirtualMachine CR does not restart the VM</span>
+    <p>This is the most important behaviour to understand before enabling Argo CD on VMs. When Argo CD syncs a changed VirtualMachine CR, it applies the new CR to Kubernetes — but KubeVirt only restarts the VM if the change requires it. Most VirtualMachine CR changes (runStrategy, labels, annotations) take effect without a VM restart. Changes to the VM hardware spec (CPU, memory, disk) take effect on the next VMI start — not immediately. If you want the change to take effect while the VM is running, use hot-plug (Sections 18–19) or VirtualMachine live restart. Argo CD syncing the VM CR is a configuration update, not a power cycle.</p>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">applicationset-banking-vms.yaml — ApplicationSet for VM workloads</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">argoproj.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">ApplicationSet</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-vms</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">gitops</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">generators</span><span class="yc">:</span>
+    <span class="yc">- list</span><span class="yc">:</span>
+        <span class="yk">elements</span><span class="yc">:</span>
+          <span class="yc">- env</span><span class="yc">:</span> <span class="yv">dev</span>
+            <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads-dev</span>
+            <span class="yk">syncPolicy</span><span class="yc">:</span> <span class="yv">automated</span>
+            <span class="yk">selfHeal</span><span class="yc">:</span> <span class="yv">"true"</span>
+            <span class="yc">            # dev: auto-sync + self-heal.
+            # A developer editing dev-banking-app-vm directly is reverted by Argo CD
+            # within 3 minutes. Git is the source of truth even for dev VMs.</span>
+          <span class="yc">- env</span><span class="yc">:</span> <span class="yv">production</span>
+            <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+            <span class="yk">syncPolicy</span><span class="yc">:</span> <span class="yv">none</span>
+            <span class="yk">selfHeal</span><span class="yc">:</span> <span class="yv">"false"</span>
+            <span class="yc">            # production: manual sync only. No self-heal.
+            # An engineer editing vm-banking-app-01 directly during an incident
+            # (increasing memory for an OOM issue) is NOT reverted by Argo CD.
+            # The manual change survives until properly committed to Git
+            # and the Application is synced. This is the correct production behaviour.</span>
+  <span class="yk">template</span><span class="yc">:</span>
+    <span class="yk">metadata</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">banking-vms-{{env}}</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">gitops</span>
+    <span class="yk">spec</span><span class="yc">:</span>
+      <span class="yk">project</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+      <span class="yk">source</span><span class="yc">:</span>
+        <span class="yk">repoURL</span><span class="yc">:</span> <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+        <span class="yk">targetRevision</span><span class="yc">:</span> <span class="yv">HEAD</span>
+        <span class="yk">path</span><span class="yc">:</span> <span class="yv">vms/banking-app-vm/overlays/{{env}}</span>
+        <span class="yc">        # Each environment points at its own Kustomize overlay directory.
+        # dev     → vms/banking-app-vm/overlays/dev
+        # production → vms/banking-app-vm/overlays/production</span>
+      <span class="yk">destination</span><span class="yc">:</span>
+        <span class="yk">server</span><span class="yc">:</span> <span class="yv">https://kubernetes.default.svc</span>
+        <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">{{namespace}}</span>
+      <span class="yk">syncPolicy</span><span class="yc">:</span>
+        <span class="yk">automated</span><span class="yc">:</span>
+          <span class="yk">prune</span><span class="yc">:</span> <span class="yv">false</span>
+          <span class="yc">          # prune: false for both environments.
+          # Deleting a VirtualMachine CR via Git prune would STOP the VM.
+          # VM deletion from Git should always be a deliberate, manual operation —
+          # not an automatic prune triggered by removing a YAML file.
+          # To decommission a VM: stop it first, then remove from Git, then manually sync.</span>
+          <span class="yk">selfHeal</span><span class="yc">:</span> <span class="yv">{{selfHeal}}</span>
+        <span class="yk">syncOptions</span><span class="yc">:</span>
+          <span class="yc">-</span> <span class="yv">ServerSideApply=true</span>
+          <span class="yc">  # Server-side apply: correct handling of VirtualMachine CR fields managed
+          # by KubeVirt controllers (status, VMI references). Prevents field ownership
+          # conflicts between Argo CD and the KubeVirt operator.</span>
+          <span class="yc">-</span> <span class="yv">CreateNamespace=false</span>
+          <span class="yc">  # Namespaces are pre-created by the platform team with proper labels,
+          # NetworkPolicy, and resource quotas — not auto-created by Argo CD.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply ApplicationSet and verify Applications generated</div></div>
+    <div class="term-body"><pre><span class="td"># Register the banking-config repo first (SSH deploy key)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f banking-config-repo-secret.yaml -n gitops</span>
+<span class="tg">secret/banking-config-repo created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f appproject-virt-workloads.yaml -n gitops
+oc apply -f applicationset-banking-vms.yaml -n gitops</span>
+<span class="tg">appproject.argoproj.io/virt-workloads created
+applicationset.argoproj.io/banking-vms created</span>
+
+<span class="td"># Verify two Applications were generated</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">argocd app list -p virt-workloads</span>
+<span class="tg">NAME                  CLUSTER      NAMESPACE          PROJECT         STATUS     HEALTH
+banking-vms-dev       in-cluster   virt-workloads-dev virt-workloads  Synced     Healthy
+banking-vms-prod      in-cluster   virt-workloads     virt-workloads  OutOfSync  Healthy</span>
+<span class="tok">✓ Two Applications generated. dev auto-synced immediately — dev-banking-app-vm created.
+  production shows OutOfSync — the VM exists (migrated in VIRT-06) but Argo CD has not
+  yet synced its definition from Git. Review the diff and sync manually:</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">argocd app diff banking-vms-prod</span>
+<span class="tg">===== kubevirt.io/VirtualMachine virt-workloads/vm-banking-app-01 =====
+  labels:
++   managed-by: argocd
+  spec:
++   evictionStrategy: LiveMigrate</span>
+<span class="tok">✓ Diff shows: Argo CD wants to add the managed-by label and evictionStrategy.
+  Both changes are additive — no impact on the running VM.
+  Safe to sync. The diff is the expected result of bringing a migrated VM under GitOps.</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">argocd app sync banking-vms-prod --revision HEAD --prune=false</span>
+<span class="tg">TIMESTAMP  GROUP       KIND            NAMESPACE       NAME               STATUS  HEALTH
+11:42:01   kubevirt.io VirtualMachine  virt-workloads  vm-banking-app-01  Synced  Healthy</span>
+<span class="tok">✓ Production VM now managed by Argo CD. Status: Synced, Health: Healthy.
+  Any future change to the VM goes through Git → PR → review → merge → manual sync.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 EVICTION STRATEGY ══ -->
+  <section id="eviction-strategy">
+  <h2>11 — evictionStrategy — live migration during node drain</h2>
+  <p>When a bare-metal node is drained — for a firmware update, an OCP upgrade, or a hardware replacement — Kubernetes evicts the pods on the node. For regular pods, eviction means deletion: the pod is deleted and rescheduled on another node. For VMs, deletion means stopping the guest OS — a brief but real outage for payment-processing workloads.</p>
+  <p><code>evictionStrategy: LiveMigrate</code> changes this behaviour. When the KubeVirt virt-handler on the node receives a drain signal, instead of stopping the VM, it triggers a live migration to another available bare-metal node. The VM's guest OS continues running throughout the migration. The node drain completes only after all VMs with <code>evictionStrategy: LiveMigrate</code> have successfully migrated off. The result: maintenance drains cause zero downtime for production banking VMs.</p>
+
+  <h3>What evictionStrategy requires</h3>
+  <p>Three conditions must all be true for <code>LiveMigrate</code> to work during a drain:</p>
+  <ul>
+    <li><strong>RWX PVC:</strong> The VM's boot disk must be on a ReadWriteMany PVC. During live migration, both the source and destination virt-launcher pods must access the disk simultaneously. <code>ocs-storagecluster-ceph-rbd-virtualization</code> provides RWX — confirmed in VIRT-03 and VIRT-04.</li>
+    <li><strong>Explicit macAddress:</strong> The VM must have an explicit MAC address on its secondary VLAN 130 interface. Without it, the destination VMI gets a new random MAC, and the gratuitous ARP mechanism cannot correctly update the leaf switch's MAC table. Configured in the production Kustomize overlay — Section 09.</li>
+    <li><strong>No SR-IOV:</strong> SR-IOV VFs are bound to a specific physical NIC on a specific node. SR-IOV VMs cannot be live-migrated. <code>evictionStrategy: LiveMigrate</code> on an SR-IOV VM causes the drain to fail — KubeVirt cannot migrate and cannot stop (because evictionStrategy says LiveMigrate). Use <code>evictionStrategy: None</code> for SR-IOV VMs and plan cold migration for their maintenance.</li>
+  </ul>
+
+  <table>
+    <thead><tr><th>evictionStrategy value</th><th>What happens during node drain</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>None</code></td><td>VM is stopped (guest OS gracefully shut down via VMware Tools equivalent). Rescheduled as a new VMI on another node after drain. Brief downtime.</td><td>SR-IOV VMs, batch processors, dev VMs</td></tr>
+      <tr><td><code>LiveMigrate</code></td><td>VM is live-migrated to another node. Guest OS keeps running. Zero downtime during the migration window.</td><td>Production banking VMs with strict uptime SLOs</td></tr>
+      <tr><td><code>LiveMigrateIfPossible</code></td><td>Live migration attempted. Falls back to stop-and-reschedule if migration fails or is not possible (e.g., RWX PVC not available).</td><td>VMs where best-effort live migration is acceptable but downtime is tolerable if migration fails</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 SNAPSHOT ══ -->
+  <section id="snapshot">
+  <h2>12 — VirtualMachineSnapshot — point-in-time disk capture</h2>
+  <p>A <code>VirtualMachineSnapshot</code> captures the state of a VM and all its disks at a specific point in time. It uses the CSI VolumeSnapshot API under the hood — Ceph RBD creates a snapshot of the VM's PVC at the storage level. The snapshot is nearly instantaneous (Ceph RBD snapshots are copy-on-write) and does not require the VM to be powered off.</p>
+
+  <h3>What a snapshot captures</h3>
+  <p>A VirtualMachineSnapshot captures the VirtualMachine CR (the definition) and a CSI VolumeSnapshot of each disk PVC. The CSI snapshot is a point-in-time copy-on-write clone of the PVC at the block level. After the snapshot, the VM continues running and writing to its disk — the snapshot data is preserved separately by Ceph's copy-on-write mechanism. The snapshot does not include RAM state — it is a disk snapshot, not a full VM checkpoint.</p>
+
+  <div class="callout blue">
+    <span class="cl">Online snapshots and qemu-guest-agent quiescing</span>
+    <p>A snapshot taken while the VM is running may capture a disk in an inconsistent state if the guest OS has buffered writes that have not been flushed to disk. <code>qemu-guest-agent</code> solves this: KubeVirt sends a filesystem freeze command through the agent before triggering the CSI snapshot, and a thaw command after. The freeze flushes all pending writes and prevents new ones during the brief snapshot window. The result is a crash-consistent (if qemu-guest-agent is not installed) or application-consistent (if it is installed and the application supports freeze hooks) snapshot. All NovaCrestBank VMs have qemu-guest-agent installed — confirmed in VIRT-04 Section 17.</p>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">vmsnapshot-pre-upgrade.yaml — pre-upgrade snapshot of a production VM</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">snapshot.kubevirt.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachineSnapshot</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-banking-app-01-pre-upgrade-20241115</span>
+  <span class="yc">  # Include a date or reason in the snapshot name.
+  # Snapshots accumulate — a descriptive name is essential for identifying
+  # which snapshot to restore from after an incident.</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">source</span><span class="yc">:</span>
+    <span class="yk">apiGroup</span><span class="yc">:</span> <span class="yv">kubevirt.io</span>
+    <span class="yk">kind</span><span class="yc">:</span> <span class="yv">VirtualMachine</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-banking-app-01</span>
+    <span class="yc">    # The VM to snapshot. The VM can be running or stopped.
+    # If running and qemu-guest-agent is installed: KubeVirt freezes the
+    # filesystem before the CSI snapshot and thaws it after.
+    # If running and no qemu-guest-agent: crash-consistent snapshot (disk-level only).</span>
+  <span class="yk">failureDeadline</span><span class="yc">:</span> <span class="yv">5m</span>
+  <span class="yc">  # If the snapshot does not complete within 5 minutes, KubeVirt marks it Failed.
+  # The VM resumes normal operation regardless. A failed snapshot leaves no partial data.
+  # Causes of failure: ODF under high load (slow CSI snapshot), qemu-guest-agent
+  # freeze timeout (application holding a lock during freeze).</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — take snapshot and verify</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f vmsnapshot-pre-upgrade.yaml</span>
+<span class="tg">virtualmachinesnapshot.snapshot.kubevirt.io/vm-banking-app-01-pre-upgrade-20241115 created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 5 'oc get vmsnapshot vm-banking-app-01-pre-upgrade-20241115 \
+  -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,READY:.status.readyToUse,PHASE:.status.phase"'</span>
+<span class="tg">NAME                                      READY   PHASE
+vm-banking-app-01-pre-upgrade-20241115    true    Succeeded</span>
+<span class="tok">✓ Snapshot Succeeded. readyToUse=true — can be used for restore.
+  The VM continued running throughout — zero downtime for snapshot creation.
+  The CSI snapshot is stored in ODF as a Ceph RBD snapshot (copy-on-write, near-zero size at creation).</span>
+
+<span class="td"># Verify the underlying VolumeSnapshot was created by Ceph</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get volumesnapshot -n virt-workloads | grep banking-app-01</span>
+<span class="tg">vmsnapshot-vm-banking-app-01-pre-upgrade-20241115-rootdisk   true   ocs-storagecluster-rbdplugin-snapclass   vm-banking-app-01-disk   40Gi   38s</span>
+<span class="tok">✓ VolumeSnapshot exists and readyToUse=true. 40 GiB snapshot created in Ceph RBD.
+  Initial size: near-zero (copy-on-write — only changed blocks consume additional space).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 SNAPSHOT RESTORE ══ -->
+  <section id="snapshot-restore">
+  <h2>13 — VirtualMachineRestore — recovering from a snapshot</h2>
+  <p>A <code>VirtualMachineRestore</code> reverts a VM to the state captured in a VirtualMachineSnapshot. The restore replaces the VM's current disk data with the snapshot data. The VM must be stopped before restoring — restoring a running VM is not supported, as the guest OS is actively writing to the disk that would be replaced.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — restore a VM from a pre-upgrade snapshot</div></div>
+    <div class="term-body"><pre><span class="td"># Scenario: the payment-service application upgrade introduced a regression.
+# Need to revert vm-banking-app-01 to the pre-upgrade snapshot taken above.</span>
+
+<span class="td"># Step 1: Stop the VM gracefully (application team has already drained connections)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl stop vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to stop</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi -n virt-workloads | grep banking-app-01</span>
+<span class="tg">(no output — VMI is gone, VM is stopped)</span>
+<span class="tok">✓ VM stopped. Safe to restore.</span>
+
+<span class="td"># Step 2: Create the VirtualMachineRestore object</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat << 'EOF' | oc apply -f -
+apiVersion: snapshot.kubevirt.io/v1alpha1
+kind: VirtualMachineRestore
+metadata:
+  name: restore-banking-app-01-from-pre-upgrade
+  namespace: virt-workloads
+spec:
+  target:
+    apiGroup: kubevirt.io
+    kind: VirtualMachine
+    name: vm-banking-app-01
+  virtualMachineSnapshotName: vm-banking-app-01-pre-upgrade-20241115
+EOF</span>
+<span class="tg">virtualmachinerestore.snapshot.kubevirt.io/restore-banking-app-01-from-pre-upgrade created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 5 'oc get vmrestore \
+  restore-banking-app-01-from-pre-upgrade \
+  -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,COMPLETE:.status.complete,PHASE:.status.restoreTime"'</span>
+<span class="tg">NAME                                          COMPLETE   PHASE
+restore-banking-app-01-from-pre-upgrade       true       2024-11-15T11:52:34Z</span>
+<span class="tok">✓ Restore complete. VM disk reverted to pre-upgrade snapshot state.
+  The disk now contains the file system state from before the problematic upgrade.</span>
+
+<span class="td"># Step 3: Start the VM — it boots with the pre-upgrade disk</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl start vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to start</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Running</span>
+<span class="tok">✓ VM Running again with pre-upgrade disk state. Total restore time: ~90 seconds.
+  Application team verifies: curl https://vm-banking-app-01.novacrestbank.local:8443/health
+  → {"status":"UP"} — payment processing restored to pre-upgrade state.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 OADP CONCEPT ══ -->
+  <section id="oadp-concept">
+  <h2>14 — OADP — what it is and how it backs up VMs</h2>
+  <p>OADP (OpenShift API for Data Protection) is the Red Hat operator that provides application-consistent backup and restore for Kubernetes workloads — including VMs. Where VirtualMachineSnapshot (Sections 12–13) provides a fast, in-cluster point-in-time snapshot using Ceph RBD copy-on-write, OADP provides durable, scheduled backups that are stored externally — in ODF's S3-compatible object storage (MCG) — and can survive complete ODF cluster failure.</p>
+
+  <h3>OADP vs VirtualMachineSnapshot — when to use each</h3>
+  <table>
+    <thead><tr><th>Capability</th><th>VirtualMachineSnapshot</th><th>OADP</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Storage location</strong></td><td>Inside ODF (Ceph RBD snapshot) — same cluster</td><td>External S3 (MCG ObjectBucketClaim) — survives ODF failure</td></tr>
+      <tr><td><strong>Speed</strong></td><td>Near-instantaneous (copy-on-write)</td><td>Full backup: minutes to hours depending on disk size</td></tr>
+      <tr><td><strong>Scheduling</strong></td><td>Manual only</td><td>Automatic via BackupSchedule CR (cron expression)</td></tr>
+      <tr><td><strong>VM state requirement</strong></td><td>Running or stopped</td><td>Running (with quiesce hook) or stopped</td></tr>
+      <tr><td><strong>Recovery from</strong></td><td>Accidental file deletion, bad software update (in-cluster)</td><td>ODF failure, cluster disaster, ransomware, off-site DR</td></tr>
+      <tr><td><strong>Retention</strong></td><td>Manual — must be explicitly deleted</td><td>Configured TTL — automatically expired by OADP</td></tr>
+      <tr><td><strong>Use for</strong></td><td>Pre-upgrade safeguard, rapid rollback, test environment cloning</td><td>Nightly production backup, disaster recovery, compliance retention</td></tr>
+    </tbody>
+  </table>
+
+  <h3>How OADP backs up a running VM</h3>
+  <p>OADP uses Velero under the hood. For VM disk backup, the process is: OADP instructs qemu-guest-agent to freeze the VM's filesystem (same mechanism as VirtualMachineSnapshot), triggers a CSI VolumeSnapshot of the VM's PVC via the Kubernetes VolumeSnapshot API, thaws the filesystem, and then uploads the VolumeSnapshot data to the configured S3 backup store (MCG ObjectBucketClaim backed by Ceph RGW). The upload happens asynchronously after the freeze/thaw — the VM's freeze window is only a few seconds. The data in S3 is the complete disk image at the point the snapshot was taken. <span class="reg reg-pci">PCI-DSS v4.0 Req 12.3.1</span></p>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 OADP INSTALL ══ -->
+  <section id="oadp-install">
+  <h2>15 — Install OADP and configure the backup store</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">oadp-subscription.yaml — OADP Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">redhat-oadp-operator</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-adp</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">stable-1.4</span>
+  <span class="yc">  # stable-1.4 is compatible with OCP 4.16 and Velero 1.14.</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">redhat-oadp-operator</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span></pre>
+    </div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">dpa-ncb.yaml — DataProtectionApplication CR — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">oadp.openshift.io/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">DataProtectionApplication</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-dpa</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-adp</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">configuration</span><span class="yc">:</span>
+    <span class="yk">velero</span><span class="yc">:</span>
+      <span class="yk">defaultPlugins</span><span class="yc">:</span>
+        <span class="yc">-</span> <span class="yv">openshift</span>
+        <span class="yc">  # openshift plugin: handles OCP-specific resources (Routes, BuildConfigs,
+        # DeploymentConfigs, ImageStreams) during backup and restore.</span>
+        <span class="yc">-</span> <span class="yv">csi</span>
+        <span class="yc">  # csi plugin: enables CSI VolumeSnapshot-based backup for PVCs.
+        # This is what makes VM disk backup work — OADP uses the ODF CSI driver
+        # to take a VolumeSnapshot of the VM's PVC, then uploads it to S3.
+        # Without the csi plugin, OADP can only back up PVC metadata, not disk data.</span>
+        <span class="yc">-</span> <span class="yv">aws</span>
+        <span class="yc">  # aws plugin: provides the S3-compatible storage interface for backup uploads.
+        # Even though the backup store is MCG (not AWS), the MCG S3-compatible API
+        # uses the same interface — the aws plugin handles it.</span>
+      <span class="yk">resourceTimeout</span><span class="yc">:</span> <span class="yv">10m</span>
+    <span class="yk">nodeAgent</span><span class="yc">:</span>
+      <span class="yk">enable</span><span class="yc">:</span> <span class="yv">true</span>
+      <span class="yk">uploaderType</span><span class="yc">:</span> <span class="yv">kopia</span>
+      <span class="yc">      # kopia: the modern file-level backup engine (replaces restic).
+      # Used for file-system-level backup of PVCs that do not support CSI snapshots.
+      # For VM disk PVCs (Block mode, Ceph RBD), CSI snapshots are used instead —
+      # kopia is for non-Block-mode PVCs or additional file-level backup.</span>
+  <span class="yk">backupLocations</span><span class="yc">:</span>
+    <span class="yc">- name</span><span class="yc">:</span> <span class="yv">default</span>
+      <span class="yk">velero</span><span class="yc">:</span>
+        <span class="yk">provider</span><span class="yc">:</span> <span class="yv">aws</span>
+        <span class="yk">default</span><span class="yc">:</span> <span class="yv">true</span>
+        <span class="yk">objectStorage</span><span class="yc">:</span>
+          <span class="yk">bucket</span><span class="yc">:</span> <span class="yv">ncb-vm-backups</span>
+          <span class="yc">          # S3 bucket name in MCG. Created via ObjectBucketClaim before this CR.
+          # MCG creates the bucket in Ceph RGW — backed by the same ODF cluster.
+          # For disaster recovery: also configure a secondary backup location pointing
+          # to an off-cluster S3 target (AWS S3, Minio) for true off-site protection.</span>
+          <span class="yk">prefix</span><span class="yc">:</span> <span class="yv">velero</span>
+        <span class="yk">config</span><span class="yc">:</span>
+          <span class="yk">region</span><span class="yc">:</span> <span class="yv">minio</span>
+          <span class="yc">          # region: minio is the conventional region value for S3-compatible
+          # stores that do not use AWS regions. MCG ignores the region value.</span>
+          <span class="yk">s3ForcePathStyle</span><span class="yc">:</span> <span class="yv">"true"</span>
+          <span class="yc">          # Path-style S3 URLs: https://endpoint/bucket/object.
+          # Required for MCG — virtual-hosted-style URLs are not supported.</span>
+          <span class="yk">s3Url</span><span class="yc">:</span> <span class="yv">https://s3.openshift-storage.svc:443</span>
+          <span class="yc">          # MCG S3 endpoint: the in-cluster NooBaa S3 service.
+          # Uses the cluster-internal service DNS — no external network path needed.</span>
+        <span class="yk">credential</span><span class="yc">:</span>
+          <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-oadp-s3-creds</span>
+          <span class="yk">key</span><span class="yc">:</span> <span class="yv">cloud</span>
+          <span class="yc">          # Secret containing the MCG access key and secret key.
+          # Retrieved from the ObjectBucketClaim after bucket creation:
+          # oc get secret ncb-vm-backups -n openshift-storage -o yaml</span>
+  <span class="yk">snapshotLocations</span><span class="yc">:</span>
+    <span class="yc">- name</span><span class="yc">:</span> <span class="yv">default</span>
+      <span class="yk">velero</span><span class="yc">:</span>
+        <span class="yk">provider</span><span class="yc">:</span> <span class="yv">csi</span>
+        <span class="yc">        # csi: use the cluster's CSI VolumeSnapshot infrastructure for disk snapshots.
+        # OADP creates VolumeSnapshot objects, the Ceph RBD CSI driver handles them,
+        # and then OADP uploads the snapshot data to the S3 backup location.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install OADP and create MCG bucket</div></div>
+    <div class="term-body"><pre><span class="td"># Create the MCG ObjectBucketClaim for backup storage</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat << 'EOF' | oc apply -f -
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: ncb-vm-backups
+  namespace: openshift-storage
+spec:
+  bucketName: ncb-vm-backups
+  storageClassName: openshift-storage.noobaa.io
+EOF</span>
+<span class="tg">objectbucketclaim.objectbucket.io/ncb-vm-backups created</span>
+
+<span class="td"># Wait for MCG to provision the bucket (~30 seconds)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get obc ncb-vm-backups -n openshift-storage \
+  -o jsonpath='{.status.phase}'</span>
+<span class="tg">Bound</span>
+
+<span class="td"># Extract credentials and create the OADP S3 credential Secret</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ACCESS_KEY=$(oc get secret ncb-vm-backups \
+  -n openshift-storage -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+SECRET_KEY=$(oc get secret ncb-vm-backups \
+  -n openshift-storage -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+
+oc create secret generic ncb-oadp-s3-creds \
+  --from-literal=cloud="[default]
+aws_access_key_id=${ACCESS_KEY}
+aws_secret_access_key=${SECRET_KEY}" \
+  -n openshift-adp</span>
+<span class="tg">secret/ncb-oadp-s3-creds created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f oadp-subscription.yaml && \
+  sleep 60 && oc apply -f dpa-ncb.yaml</span>
+<span class="tg">dataprotectionapplication.oadp.openshift.io/ncb-dpa created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get backupstoragelocations -n openshift-adp</span>
+<span class="tg">NAME      PHASE       LAST VALIDATED   AGE
+default   Available   10s              45s</span>
+<span class="tok">✓ BackupStorageLocation Available. OADP can reach the MCG S3 endpoint.
+  VM backups can now be scheduled.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 BACKUP SCHEDULE ══ -->
+  <section id="backup-schedule">
+  <h2>16 — BackupSchedule — nightly VM disk backup</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">backup-schedule-vms.yaml — nightly VM backup schedule</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">velero.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Schedule</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-vm-nightly-backup</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-adp</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">schedule</span><span class="yc">:</span> <span class="yv">"0 2 * * *"</span>
+  <span class="yc">  # 02:00 UTC daily. Runs during the low-traffic window for NovaCrestBank
+  # (02:00 UTC = 12:00 AEST — overnight for Australian banking operations).
+  # Cron: minute hour day-of-month month day-of-week</span>
+  <span class="yk">template</span><span class="yc">:</span>
+    <span class="yk">includedNamespaces</span><span class="yc">:</span>
+      <span class="yc">-</span> <span class="yv">virt-workloads</span>
+      <span class="yc">  # Back up only the production VM namespace.
+      # Dev VMs (virt-workloads-dev) are excluded — dev disk data is not
+      # worth the backup storage cost. Dev VMs can be recreated from the
+      # base Kustomize overlay and the RHEL 9 base image.</span>
+    <span class="yk">includedResources</span><span class="yc">:</span>
+      <span class="yc">-</span> <span class="yv">virtualmachines</span>
+      <span class="yc">-</span> <span class="yv">persistentvolumeclaims</span>
+      <span class="yc">-</span> <span class="yv">persistentvolumes</span>
+      <span class="yc">-</span> <span class="yv">secrets</span>
+      <span class="yc">  # secrets: includes cloud-init Secrets alongside the VM definition.
+      # The VM cannot boot correctly without the cloud-init Secret (hostname, SSH keys).
+      # Including it in the backup ensures a complete, bootable restore.</span>
+    <span class="yk">labelSelector</span><span class="yc">:</span>
+      <span class="yk">matchLabels</span><span class="yc">:</span>
+        <span class="yk">app</span><span class="yc">:</span> <span class="yv">banking-app</span>
+      <span class="yc">      # Back up only VMs with the banking-app label.
+      # Excludes utility VMs or any non-banking VM that may be in the namespace.
+      # The app: banking-app label is set in the base VirtualMachine CR (Section 07).</span>
+    <span class="yk">snapshotVolumes</span><span class="yc">:</span> <span class="yv">true</span>
+    <span class="yc">    # true: include PVC disk data in the backup using CSI VolumeSnapshots.
+    # Without this: OADP backs up PVC metadata only — not the actual disk data.
+    # A restore from a backup with snapshotVolumes: false would create empty PVCs.
+    # The VM would boot to an empty disk. Always set true for VM backups.</span>
+    <span class="yk">defaultVolumesToFsBackup</span><span class="yc">:</span> <span class="yv">false</span>
+    <span class="yc">    # false: do not use filesystem-level backup (kopia) for VM PVCs.
+    # VM PVCs are Block-mode volumes — kopia cannot perform filesystem backup
+    # on raw block devices. CSI VolumeSnapshot (controlled by snapshotVolumes: true)
+    # is the correct mechanism for Block-mode VM disk PVCs.</span>
+    <span class="yk">hooks</span><span class="yc">:</span>
+      <span class="yk">resources</span><span class="yc">:</span>
+        <span class="yc">- name</span><span class="yc">:</span> <span class="yv">vm-quiesce-hook</span>
+          <span class="yk">includedNamespaces</span><span class="yc">:</span>
+            <span class="yc">-</span> <span class="yv">virt-workloads</span>
+          <span class="yk">labelSelector</span><span class="yc">:</span>
+            <span class="yk">matchLabels</span><span class="yc">:</span>
+              <span class="yk">app</span><span class="yc">:</span> <span class="yv">banking-app</span>
+          <span class="yk">pre</span><span class="yc">:</span>
+            <span class="yc">- exec</span><span class="yc">:</span>
+                <span class="yk">container</span><span class="yc">:</span> <span class="yv">compute</span>
+                <span class="yk">command</span><span class="yc">:</span>
+                  <span class="yc">-</span> <span class="yv">/usr/bin/bash</span>
+                  <span class="yc">-</span> <span class="yv">-c</span>
+                  <span class="yc">-</span> <span class="yv">virsh qemu-agent-command 1 '{"execute":"guest-fsfreeze-freeze"}'</span>
+                <span class="yk">timeout</span><span class="yc">:</span> <span class="yv">30s</span>
+                <span class="yc">                # Pre-backup hook: freeze the VM's filesystem via qemu-guest-agent.
+                # Flushes all pending writes and prevents new ones during the snapshot window.
+                # The snapshot window (freeze to thaw) is typically 1–3 seconds.
+                # timeout: 30s — if the freeze does not complete in 30 seconds (application
+                # is holding a lock), the backup fails rather than taking an inconsistent snapshot.</span>
+          <span class="yk">post</span><span class="yc">:</span>
+            <span class="yc">- exec</span><span class="yc">:</span>
+                <span class="yk">container</span><span class="yc">:</span> <span class="yv">compute</span>
+                <span class="yk">command</span><span class="yc">:</span>
+                  <span class="yc">-</span> <span class="yv">/usr/bin/bash</span>
+                  <span class="yc">-</span> <span class="yv">-c</span>
+                  <span class="yc">-</span> <span class="yv">virsh qemu-agent-command 1 '{"execute":"guest-fsfreeze-thaw"}'</span>
+                <span class="yk">timeout</span><span class="yc">:</span> <span class="yv">30s</span>
+    <span class="yk">ttl</span><span class="yc">:</span> <span class="yv">720h0m0s</span>
+    <span class="yc">    # 720 hours = 30 days. Backups older than 30 days are automatically deleted.
+    # NovaCrestBank's backup retention policy: 30 days for production VM backups.
+    # PCI-DSS Req 12.3.1 requires documented data retention — this CR is the documentation.
+    # For longer retention: increase ttl, or configure OADP to copy to a
+    # long-term S3 storage tier (Glacier equivalent) before the 30-day expiry.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply schedule and trigger a manual test backup</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f backup-schedule-vms.yaml</span>
+<span class="tg">schedule.velero.io/ncb-vm-nightly-backup created</span>
+
+<span class="td"># Trigger an immediate backup to verify the configuration is correct</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat << 'EOF' | oc apply -f -
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: ncb-vm-backup-test-20241115
+  namespace: openshift-adp
+spec:
+  includedNamespaces: [virt-workloads]
+  labelSelector:
+    matchLabels: {app: banking-app}
+  snapshotVolumes: true
+  defaultVolumesToFsBackup: false
+  ttl: 24h0m0s
+EOF</span>
+<span class="tg">backup.velero.io/ncb-vm-backup-test-20241115 created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get backup ncb-vm-backup-test-20241115 \
+  -n openshift-adp \
+  -o custom-columns="NAME:.metadata.name,STATUS:.status.phase,ITEMS:.status.totalItems"'</span>
+<span class="tg">NAME                          STATUS      ITEMS
+ncb-vm-backup-test-20241115   InProgress  0
+ncb-vm-backup-test-20241115   Completed   12</span>
+<span class="tok">✓ Backup Completed. 12 items backed up (VirtualMachine CRs, PVCs, Secrets, PVs).
+  Backup data stored in MCG bucket ncb-vm-backups.
+  Nightly schedule is active — next run at 02:00 UTC.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 OADP RESTORE ══ -->
+  <section id="oadp-restore">
+  <h2>17 — OADP restore — recovering a VM from backup</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — restore a production VM from OADP backup</div></div>
+    <div class="term-body"><pre><span class="td"># Scenario: vm-banking-app-01 disk is corrupted (accidental dd or filesystem error).
+# VirtualMachineSnapshot restore is not possible (snapshot was too old).
+# Restore from last night's OADP nightly backup.</span>
+
+<span class="td"># List available backups to find the most recent successful one</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get backups -n openshift-adp \
+  -o custom-columns="NAME:.metadata.name,STATUS:.status.phase,CREATED:.metadata.creationTimestamp" \
+  | sort -k3 | tail -5</span>
+<span class="tg">ncb-vm-nightly-backup-20241115020000   Completed   2024-11-15T02:00:00Z
+ncb-vm-nightly-backup-20241116020000   Completed   2024-11-16T02:00:00Z
+ncb-vm-nightly-backup-20241117020000   Completed   2024-11-17T02:00:00Z</span>
+
+<span class="td"># Stop the VM before restore</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl stop vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to stop</span>
+
+<span class="td"># Delete the corrupted VM and PVC (the restore will recreate them from backup)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc delete vm vm-banking-app-01 -n virt-workloads
+oc delete pvc vm-banking-app-01-disk -n virt-workloads</span>
+<span class="tg">virtualmachine.kubevirt.io "vm-banking-app-01" deleted
+persistentvolumeclaim "vm-banking-app-01-disk" deleted</span>
+
+<span class="td"># Create the Restore object from the most recent nightly backup</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat << 'EOF' | oc apply -f -
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: restore-vm-banking-app-01-20241117
+  namespace: openshift-adp
+spec:
+  backupName: ncb-vm-nightly-backup-20241117020000
+  includedNamespaces: [virt-workloads]
+  labelSelector:
+    matchLabels: {app: banking-app}
+  restorePVs: true
+EOF</span>
+<span class="tg">restore.velero.io/restore-vm-banking-app-01-20241117 created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get restore restore-vm-banking-app-01-20241117 \
+  -n openshift-adp \
+  -o jsonpath="{.status.phase}"'</span>
+<span class="tg">InProgress
+...
+Completed</span>
+<span class="tok">✓ Restore Completed. VirtualMachine CR and PVC recreated from backup.
+  The disk PVC contains the data from the 02:00 UTC backup.
+  Any data written between 02:00 UTC and the incident is lost — this is the RPO.
+  For tighter RPO: increase backup frequency or use VolumeReplication to a secondary site.</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl start vm-banking-app-01 -n virt-workloads && \
+  oc get vmi vm-banking-app-01 -n virt-workloads -w</span>
+<span class="tg">NAME                PHASE      NODE                          IP
+vm-banking-app-01   Running    bm-virt-03.novacrestbank.local  10.0.2.2</span>
+<span class="tok">✓ VM restored and running from last night's backup. Secondary VLAN 130 interface
+  reconfigures via cloud-init on first boot — 10.130.0.50 active within 60 seconds.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 HOTPLUG CONCEPT ══ -->
+  <section id="hotplug-concept">
+  <h2>18 — CPU and memory hot-plug — what it is and when to use it</h2>
+  <p>CPU and memory hot-plug is the ability to add vCPU cores or memory to a running VM without rebooting the guest OS. KubeVirt supports hot-plug for both CPU and memory since KubeVirt 1.0 (included in OCP Virt 4.14+). Hot-plug allows capacity increases on production banking VMs during periods of elevated load without a maintenance window.</p>
+
+  <h3>How hot-plug works in KubeVirt</h3>
+  <p>When a hot-plug request is issued (by patching the VirtualMachine CR or using <code>virtctl addvolume</code>-equivalent commands), KubeVirt sends a request to the running QEMU process via virt-handler. QEMU adds the CPU or memory device to the virtual hardware. The guest OS receives a hardware change event and decides how to handle it — modern Linux kernels (RHEL 9 uses Linux 5.14+) automatically online new CPUs and memory blocks without requiring a reboot. Windows Server 2022 also supports hot-plug CPU and memory for the Standard and Datacenter editions.</p>
+  <p>Hot-plug does not change the VM's permanent specification — it is a runtime adjustment. After a VM reboot, the VM starts with the original specification from the VirtualMachine CR. To make a hot-plug change permanent, update the VirtualMachine CR (via Git commit → Argo CD sync) and perform a VM restart.</p>
+
+  <div class="hotplug-grid">
+    <div class="hg-head">Hot-plug CPU</div>
+    <div class="hg-head">Hot-plug memory</div>
+    <div class="hg-cell">
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px"><strong>When to use:</strong> Payment processing VM experiencing high CPU utilisation during end-of-month batch processing. Need to increase vCPU count from 8 to 12 without stopping the VM and without a maintenance window.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px"><strong>Requirement:</strong> CPU hot-plug requires <code>maxSockets</code> to be set in the VirtualMachine CR to define the maximum possible CPU count. KubeVirt pre-allocates physical CPU pinning slots up to this maximum. If maxSockets is not set, hot-plug CPU is not available on the VM.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6"><strong>Limitation:</strong> Can only add CPUs — cannot remove (hot-unplug CPU is not supported by Linux guests). To decrease vCPUs, a VM reboot is required.</p>
+    </div>
+    <div class="hg-cell">
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px"><strong>When to use:</strong> Core banking API VM has OOMKilled pods due to insufficient JVM heap space during peak transaction load. Need to increase memory from 32 GiB to 48 GiB immediately without stopping the service.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px"><strong>Requirement:</strong> <code>maxGuest</code> must be set in the VirtualMachine CR to define the maximum possible memory. KubeVirt pre-allocates hugepage slots up to this maximum. If hugepages are used (as in production), hugepage allocation for hot-plug memory must be available on the node.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6"><strong>Limitation:</strong> Memory hot-unplug is also not supported by most guest OSes. Increasing memory is non-disruptive. Decreasing requires a reboot.</p>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 19 HOTPLUG APPLY ══ -->
+  <section id="hotplug-apply">
+  <h2>19 — Applying CPU and memory hot-plug to a running VM</h2>
+  <p>First, the VirtualMachine CR must declare the maximum hot-plug capacity via <code>maxSockets</code> and <code>maxGuest</code>. These fields must be set before the VM is running — they cannot be hot-plugged themselves. Set them in the production Kustomize overlay so they are committed to Git and applied on the next VM restart or Argo CD sync.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">Add maxSockets and maxGuest to production overlay patch</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Add to the production overlay patch (vms/banking-app-vm/overlays/production/vm-patch.yaml)</span>
+<span class="yc"># These fields enable hot-plug headroom at VM start</span>
+
+<span class="ys">- op: add
+  path: /spec/template/spec/domain/cpu/maxSockets
+  value: 4</span>
+<span class="yc">  # maxSockets: 4 — allows scaling from 8 cores (current) up to 4×2 = 8 sockets × 2 threads...
+  # KubeVirt CPU topology: maxSockets × cores × threads = maximum vCPU count.
+  # With cores: 8 and maxSockets: 4 the maximum is 8 × 4 = 32 vCPUs hot-plugged.
+  # Physical pinning slots for up to 32 cores are reserved from the isolated pool at VM start.
+  # Only 8 are active initially — the rest are available for hot-plug without restart.</span>
+
+<span class="ys">- op: add
+  path: /spec/template/spec/domain/memory/maxGuest
+  value: "64Gi"</span>
+<span class="yc">  # maxGuest: 64Gi — allows memory hot-plug up to 64 GiB.
+  # The VM starts with guest: 32Gi.
+  # Hugepage slots for up to 64 GiB (64 × 1 GiB hugepages) are reserved from
+  # the node's hugepage pool at VM start.
+  # The node has 400 × 1 GiB hugepages total — 64 reserved for this VM's max.
+  # Remaining hugepages are available for other VMs on the same node.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply CPU and memory hot-plug to a running VM</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CPU HOT-PLUG: add 4 more vCPUs to vm-banking-app-01 ════════════════</span>
+<span class="td"># Patch the running VM to add CPU sockets (each socket = cores count of additional vCPUs)</span>
+<span class="td"># Current: cores=8. Hot-plug adds 1 more socket = 8 more vCPUs → total 16 vCPUs</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc patch vm vm-banking-app-01 -n virt-workloads \
+  --type merge \
+  -p '{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets":2}}}}}}'</span>
+<span class="tg">virtualmachine.kubevirt.io/vm-banking-app-01 patched</span>
+
+<span class="td"># KubeVirt sends the CPU hot-plug to the running QEMU process (~10 seconds)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads \
+  -- nproc</span>
+<span class="tg">16</span>
+<span class="tok">✓ Guest OS now sees 16 vCPUs. No reboot. Payment processing VM kept running.
+  Linux automatically onlined the additional CPUs via cpu hotplug subsystem.</span>
+
+<span class="td"># Verify CPU pinning — the hot-plugged cores are also pinned to the isolated pool</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n virt-workloads \
+  $(oc get pod -n virt-workloads -l vm.kubevirt.io=vm-banking-app-01 -o name) \
+  -c compute -- cat /sys/fs/cgroup/cpuset/cpuset.cpus</span>
+<span class="tg">8-23</span>
+<span class="tok">✓ Physical cores 8–23 assigned (16 cores, all from isolated pool 4–63).
+  The original 8 cores (8–15) plus 8 hot-plugged (16–23).</span>
+
+<span class="section">! ══ MEMORY HOT-PLUG: add 16 GiB to vm-banking-app-01 ════════════════════</span>
+<span class="td"># Increase guest memory from 32 GiB to 48 GiB hot</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc patch vm vm-banking-app-01 -n virt-workloads \
+  --type merge \
+  -p '{"spec":{"template":{"spec":{"domain":{"memory":{"guest":"48Gi"}}}}}}'</span>
+<span class="tg">virtualmachine.kubevirt.io/vm-banking-app-01 patched</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads \
+  -- free -g | grep Mem</span>
+<span class="tg">Mem:      47    23    24     0     0    23</span>
+<span class="tok">✓ Guest OS now sees 48 GiB RAM (47 GiB available in free output — kernel overhead).
+  Linux automatically onlined new memory via memory hotplug subsystem.
+  JVM can now expand its heap into the additional 16 GiB.</span>
+
+<span class="td"># Verify hugepage consumption on the node</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-03.novacrestbank.local -- \
+  chroot /host grep HugePages_Free /proc/meminfo</span>
+<span class="tg">HugePages_Free: 336</span>
+<span class="tok">✓ HugePages_Free: 400 - 48 (this VM) - 16 (other VMs) = 336 remaining.
+  Hot-plug consumed an additional 16 hugepages from the node's pool.</span>
+
+<span class="section">! ══ COMMIT HOT-PLUG TO GIT (make it permanent) ═══════════════════════════</span>
+<span class="td"># Hot-plug changes are runtime-only — they revert on VM restart.
+# To make permanent: update the production overlay in Git and sync via Argo CD.</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cd banking-config && \
+git checkout -b feat/vm-banking-app-01-resize
+# Edit vms/banking-app-vm/overlays/production/vm-patch.yaml:
+#   - cpu.cores: 8 → 16 (or cpu.sockets: 2)
+#   - memory.guest: "32Gi" → "48Gi"
+#   - resources.requests.memory: "32Gi" → "48Gi"
+git add vms/ && git commit -m "feat: resize vm-banking-app-01 to 16 vCPU / 48Gi RAM
+# Hot-plugged during peak load 2024-11-17 at 14:30 UTC.
+# Committing to make permanent for next VM restart.
+# Refs: INC-4892"
+git push origin feat/vm-banking-app-01-resize</span>
+<span class="td"># Open MR in GitLab → get approval → merge → Argo CD sync confirms Synced/Healthy</span>
+<span class="tok">✓ Hot-plug change committed to Git. After MR approval and Argo CD sync:
+  VirtualMachine CR in Git matches the running VM specification.
+  Next VM restart will use the new CPU/memory specification from Git.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 20 HANDOVER ══ -->
+  <section id="handover">
+  <h2>20 — Readiness checklist — gate to VIRT-08</h2>
+
+  <div class="gate">
+    <div class="gate-title">OpenShift GitOps checks</div>
+    <div class="gate-item"><div class="gate-box"></div>OpenShift GitOps operator CSV Succeeded: openshift-gitops-operator.v1.12.x</div>
+    <div class="gate-item"><div class="gate-box"></div>ArgoCD ncb-argocd in gitops namespace: all 6 components Running</div>
+    <div class="gate-item"><div class="gate-box"></div>ArgoCD server route accessible at ncb-argocd-server-gitops.apps.ocp.novacrestbank.local</div>
+    <div class="gate-item"><div class="gate-box"></div>resourceExclusions configured: VirtualMachineInstance and VirtualMachineInstanceMigration excluded</div>
+    <div class="gate-item"><div class="gate-box"></div>banking-config repo registered and status: Successful</div>
+    <div class="gate-item"><div class="gate-box"></div>AppProject virt-workloads created: source restricted to banking-config, destinations virt-workloads + virt-workloads-dev only</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Kustomize VM overlay checks</div>
+    <div class="gate-item"><div class="gate-box"></div>banking-config repo contains vms/banking-app-vm/base/ and overlays/dev/ and overlays/production/</div>
+    <div class="gate-item"><div class="gate-box"></div>ApplicationSet banking-vms generates two Applications: banking-vms-dev and banking-vms-production</div>
+    <div class="gate-item"><div class="gate-box"></div>banking-vms-dev: Status=Synced, Health=Healthy, dev-banking-app-vm running in virt-workloads-dev</div>
+    <div class="gate-item"><div class="gate-box"></div>banking-vms-production: Status=Synced, Health=Healthy, vm-banking-app-01 in virt-workloads</div>
+    <div class="gate-item"><div class="gate-box"></div>Production VM has evictionStrategy: LiveMigrate confirmed in the VirtualMachine CR</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">VM lifecycle operation checks</div>
+    <div class="gate-item"><div class="gate-box"></div>VirtualMachineSnapshot taken for vm-banking-app-01: readyToUse=true, phase=Succeeded</div>
+    <div class="gate-item"><div class="gate-box"></div>Snapshot restore tested: VM reverted to snapshot state, restarted successfully</div>
+    <div class="gate-item"><div class="gate-box"></div>Node drain test: vm-banking-app-01 live-migrated off a drained node — evictionStrategy=LiveMigrate working</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">OADP backup checks</div>
+    <div class="gate-item"><div class="gate-box"></div>OADP operator CSV Succeeded, DataProtectionApplication ncb-dpa created</div>
+    <div class="gate-item"><div class="gate-box"></div>BackupStorageLocation default phase=Available — MCG S3 endpoint reachable</div>
+    <div class="gate-item"><div class="gate-box"></div>Manual test backup ncb-vm-backup-test-* phase=Completed, totalItems &gt; 0</div>
+    <div class="gate-item"><div class="gate-box"></div>Nightly schedule ncb-vm-nightly-backup active — next run at 02:00 UTC</div>
+    <div class="gate-item"><div class="gate-box"></div>OADP restore tested: VM and PVC recreated from backup, VM booted successfully</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Hot-plug checks</div>
+    <div class="gate-item"><div class="gate-box"></div>maxSockets and maxGuest set in production overlay — committed to Git via MR</div>
+    <div class="gate-item"><div class="gate-box"></div>CPU hot-plug tested: sockets increased, guest OS onlined new CPUs without reboot</div>
+    <div class="gate-item"><div class="gate-box"></div>Memory hot-plug tested: guest memory increased, guest OS onlined new memory blocks</div>
+    <div class="gate-item"><div class="gate-box"></div>Hot-plug change committed to Git and synced via Argo CD — VirtualMachine CR matches running spec</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-07 complete — VM lifecycle is fully managed</span>
+    <p>Banking application VMs are managed as GitOps objects in Argo CD. All VM configuration changes go through Git — reviewed, versioned, auditable. Kustomize overlays enforce environment parity between dev and production. evictionStrategy: LiveMigrate ensures zero downtime during node maintenance. VirtualMachineSnapshot provides rapid point-in-time rollback. OADP provides nightly scheduled backup to durable S3 storage with qemu-guest-agent quiescing. CPU and memory hot-plug enables capacity increases without VM downtime. Proceed to VIRT-08 — Security — to bring ACS (Advanced Cluster Security) and VM-level hardening into the platform.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

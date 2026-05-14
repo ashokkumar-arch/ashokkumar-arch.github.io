@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-00 — Foundation & Prerequisites · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --virt:#7c2d12;--virt-bg:#fff7ed;--virt-border:#fed7aa;
+  --ocp:#cc0000;--ocp-bg:#fff0f0;
+  --hw:#1e3a5f;--hw-bg:#eff6ff;
+  --green:#0e6b45;--green-bg:#ecfdf5;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --nsx:#6e2b8c;--nsx-bg:#faf5ff;
+  --cisco:#1d6fa4;--cisco-bg:#eff9ff;
+  --pci:#7c3d12;--pci-bg:#fff7ed;
+  --nist:#1e3a5f;--nist-bg:#eff6ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.72;-webkit-font-smoothing:antialiased;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:268px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border2);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.sb-header{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--virt);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-group{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--virt-bg);color:var(--virt);border-left-color:var(--virt);font-weight:500}
+.sb-item.foundation{font-weight:600;color:var(--virt)}
+.sb-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* MAIN */
+.main{flex:1;min-width:0;padding:44px 56px;max-width:900px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--virt);background:var(--virt-bg);border:1px solid var(--virt-border);padding:4px 10px;border-radius:3px;margin-bottom:18px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;margin:40px 0 12px;color:var(--text);letter-spacing:-.01em}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+h4{font-size:13px;font-weight:600;margin:16px 0 6px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;font-family:'DM Mono',monospace}
+p{margin-bottom:13px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--text);border:1px solid var(--border2)}
+pre{background:#18171a;color:#e8e4dc;padding:18px 22px;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.8;overflow-x:auto;margin:14px 0}
+pre .cmd{color:#86efac}
+pre .out{color:#a8a29e}
+pre .comment{color:#57534e;font-style:italic}
+pre .ok{color:#4ade80}
+pre .warn{color:#fbbf24}
+pre .err{color:#f87171}
+pre .hl{color:#fcd34d}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+
+/* CALLOUTS */
+.callout{border-radius:5px;padding:14px 18px;margin:18px 0;font-size:13.5px;line-height:1.68}
+.callout strong{display:block;margin-bottom:5px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em}
+.callout-virt{background:var(--virt-bg);border-left:3px solid var(--virt);}
+.callout-virt strong{color:var(--virt)}
+.callout-green{background:var(--green-bg);border-left:3px solid var(--green)}
+.callout-green strong{color:var(--green)}
+.callout-hw{background:var(--hw-bg);border-left:3px solid var(--hw)}
+.callout-hw strong{color:var(--hw)}
+.callout-warn{background:var(--warn-bg);border-left:3px solid var(--warn)}
+.callout-warn strong{color:var(--warn)}
+.callout-amber{background:var(--amber-bg);border-left:3px solid var(--amber)}
+.callout-amber strong{color:var(--amber)}
+.callout-nsx{background:var(--nsx-bg);border-left:3px solid var(--nsx)}
+.callout-nsx strong{color:var(--nsx)}
+.callout p{margin-bottom:6px;font-size:13.5px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+th{text-align:left;padding:9px 13px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:9px 13px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* REGULATORY */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:var(--pci-bg);color:var(--pci);border:1px solid var(--virt-border)}
+.reg-nist{background:var(--nist-bg);color:var(--nist);border:1px solid #bfdbfe}
+
+/* SPEC GRID */
+.spec-grid{border:.5px solid var(--border2);border-radius:6px;overflow:hidden;margin:16px 0}
+.spec-row{display:grid;grid-template-columns:200px 1fr}
+.spec-row:not(:last-child){border-bottom:.5px solid var(--border)}
+.spec-row:hover .sk,.spec-row:hover .sv{background:var(--bg3)}
+.sk{padding:10px 14px;background:var(--bg3);font-family:'DM Mono',monospace;font-size:11.5px;color:var(--text2)}
+.sv{padding:10px 14px;background:var(--bg2);font-size:13px;color:var(--text);line-height:1.5}
+
+/* VLAN BANDS */
+.vlan-new{border-left:3px solid var(--virt)}
+.vlan-locked{border-left:3px solid var(--text3);opacity:.7}
+
+/* STEP LIST */
+.steps{counter-reset:step;margin:16px 0}
+.step{counter-increment:step;display:flex;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:.5px solid var(--border)}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--bg3);line-height:1;flex-shrink:0;width:52px;text-align:right;padding-top:2px}
+.step-body h3{margin-top:0;margin-bottom:6px}
+.step-body p{font-size:13.5px}
+
+/* GUIDE SEQ */
+.guide-seq{display:grid;gap:2px;margin:16px 0}
+.gs{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:10px 14px;border-radius:5px;background:var(--bg2);border:.5px solid var(--border);align-items:start}
+.gs.current{background:var(--virt-bg);border-color:var(--virt)}
+.gs-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-align:center;padding-top:2px}
+.gs-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.gs-desc{font-size:12px;color:var(--text2);line-height:1.55}
+.gs.current .gs-name{color:var(--virt)}
+.gs.done{opacity:.6}
+
+/* PREREQ CHECKLIST */
+.checklist{margin:16px 0}
+.chk{display:flex;gap:12px;padding:10px 14px;border-bottom:.5px solid var(--border);font-size:13.5px;color:var(--text2)}
+.chk:last-child{border-bottom:none}
+.chk-box{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:1px}
+.chk-body{flex:1}
+.chk-title{font-weight:600;color:var(--text);margin-bottom:2px}
+.chk-sub{font-size:12.5px;color:var(--text3)}
+
+@media(max-width:900px){
+  body{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static}
+  .main{padding:24px 20px;max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization Series</div>
+    <div class="sb-title">VIRT-00 — Foundation &amp; Prerequisites</div>
+    <div class="sb-sub">Read this before any other VIRT guide</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group">This guide</div>
+    <a class="sb-item foundation active" href="#why-this-guide">00 — Why this guide exists</a>
+    <a class="sb-item" href="#existing-environment">01 — Existing environment — what is already running</a>
+    <a class="sb-item" href="#why-openshift-virt">02 — Why OpenShift Virtualization — the business case</a>
+    <a class="sb-item" href="#architecture-decisions">03 — Architecture decisions (ADRs)</a>
+    <a class="sb-item" href="#hardware">04 — New hardware — HP DL385 Gen11 selection rationale</a>
+    <a class="sb-item" href="#vlan-ip-plan">05 — VLAN &amp; IP extension plan</a>
+    <a class="sb-item" href="#dns-plan">06 — DNS additions</a>
+    <a class="sb-item" href="#prerequisites">07 — Prerequisites — what must be in place first</a>
+    <a class="sb-item" href="#prereq-pull-secret">07a — Pull secret retrieval</a>
+    <a class="sb-item" href="#prereq-http-server">07b — Internal HTTP server setup</a>
+    <a class="sb-item" href="#prereq-iso-download">07c — Agent ISO download and verification</a>
+    <a class="sb-item" href="#prereq-dns-dhcp">07d — DNS and DHCP additions</a>
+    <a class="sb-item" href="#prereq-leaf-switch">07e — Leaf switch preparation</a>
+    <a class="sb-item" href="#prereq-ilo">07f — iLO initial configuration</a>
+    <a class="sb-item" href="#readiness-checklist">08 — Pre-implementation readiness checklist</a>
+    <a class="sb-item" href="#guide-sequence">09 — Guide sequence</a>
+    <div class="sb-group">Series continues</div>
+    <a class="sb-item" href="virt-01-architecture-provisioning-installation.html">VIRT-01 — Architecture &amp; Installation</a>
+    <a class="sb-item" href="virt-02-vm-networking-multus-ovn-nsx.html">VIRT-02 — VM Networking</a>
+    <a class="sb-item" href="virt-03-mtv-migration.html">VIRT-03 — MTV Migration</a>
+    <a class="sb-item" href="virt-04-lifecycle-gitops.html">VIRT-04 — VM Lifecycle &amp; GitOps</a>
+    <a class="sb-item" href="virt-05-nsx-decommission.html">VIRT-05 — NSX Decommission</a>
+  </div>
+  <div class="sb-footer">VIRT Series · NovaCrestBank · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">Foundation Guide · VIRT-00</div>
+  <h1>Foundation &amp; Prerequisites</h1>
+  <div class="subtitle">What exists, what is being added, why, and everything that must be in place<br>before a single server is racked or a single command is run</div>
+
+  <!-- 00 -->
+  <section id="why-this-guide">
+  <h2>00 — Why this guide exists</h2>
+  <p>Every guide in the OpenShift Virtualization series references decisions, IP addresses, VLANs, and infrastructure that are established here. Before reading VIRT-01, this document must be understood in full. The most common reason complex deployments fail — or produce untraceable problems — is that the planning phase was skipped or compressed. This guide is that planning phase, made explicit.</p>
+  <p>This guide also establishes all prerequisites — not just lists them. Each prerequisite is either verified to already exist, or built here step by step, before the guide that depends on it references it. No VIRT guide will tell you to run a command against infrastructure that has not already been built and verified in this guide or a prior one.</p>
+  <div class="callout callout-virt">
+    <strong>How to use this guide</strong>
+    <p>Read it fully, in order, before starting VIRT-01. Use it as a reference document throughout the series — every IP address, every VLAN ID, every FQDN used in VIRT-01 through VIRT-05 is defined here. When something does not work in a later guide, the first check is always: does the baseline documented here match the actual environment state?</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- 01 -->
+  <section id="existing-environment">
+  <h2>01 — Existing environment — what is already running</h2>
+  <p>The OpenShift Virtualization series builds on top of a fully operational environment that was established in the OpenShift on VCF + NSX series. Before adding anything, the architect must document what is already in place — not from memory, but by verifying each component against its known-good state.</p>
+
+  <h3>The OpenShift on VCF + NSX environment (Series II) — baseline</h3>
+  <p>The following infrastructure is running and verified before this series begins. All of it continues to operate without modification throughout the VIRT series. Nothing in the existing environment is changed, reconfigured, or removed until VIRT-05 (NSX decommission).</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>FQDN</th><th>IP</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>SDDC Manager</td><td><code>sddc-manager.novacrestbank.local</code></td><td>10.10.0.50</td><td>Running — VCF orchestrator</td></tr>
+      <tr><td>Management vCenter</td><td><code>vcenter-mgmt.novacrestbank.local</code></td><td>10.10.0.51</td><td>Running — manages ESXi management hosts</td></tr>
+      <tr><td>OCP Workload vCenter</td><td><code>vcenter-ocp.novacrestbank.local</code></td><td>10.10.0.52</td><td>Running — manages ESXi OCP hosts</td></tr>
+      <tr><td>NSX Manager VIP</td><td><code>nsx-mgr.novacrestbank.local</code></td><td>10.10.0.63</td><td>Running — shared NSX instance</td></tr>
+      <tr><td>NSX Edge Node 1</td><td><code>edge-01.novacrestbank.local</code></td><td>10.10.0.31</td><td>Running — T0 gateway Active-Active</td></tr>
+      <tr><td>NSX Edge Node 2</td><td><code>edge-02.novacrestbank.local</code></td><td>10.10.0.32</td><td>Running — T0 gateway Active-Active</td></tr>
+      <tr><td>DC01 (Primary AD/DNS)</td><td><code>dc01.novacrestbank.local</code></td><td>10.70.0.10</td><td>Running — DNS and AD for the entire environment</td></tr>
+      <tr><td>DC02 (Secondary AD/DNS)</td><td><code>dc02.novacrestbank.local</code></td><td>10.70.0.11</td><td>Running — DNS failover</td></tr>
+      <tr><td>Issuing CA</td><td><code>issuingca.novacrestbank.local</code></td><td>10.70.0.21</td><td>Running — issues all PKI certificates</td></tr>
+      <tr><td>OCP API VIP</td><td><code>api.ocp.novacrestbank.local</code></td><td>10.50.0.200</td><td>Active — NSX LB virtual server</td></tr>
+      <tr><td>OCP Ingress VIP</td><td><code>*.apps.ocp.novacrestbank.local</code></td><td>10.50.0.201</td><td>Active — NSX LB virtual server</td></tr>
+    </tbody>
+  </table>
+
+  <h3>OCP cluster — current node inventory</h3>
+  <p>The following command, run from the jump host, shows the cluster's current node state. This output is the baseline. After VIRT-01, five additional nodes will appear here.</p>
+
+  <pre><span class="comment"># jumphost — verify cluster state before starting</span>
+<span class="cmd">oc get nodes -o wide</span>
+<span class="out">NAME       STATUS  ROLES                  AGE   VERSION    INTERNAL-IP   OS-IMAGE
+master-0   Ready   control-plane,master   90d   v1.29.x   10.50.0.11    Red Hat CoreOS 4.16
+master-1   Ready   control-plane,master   90d   v1.29.x   10.50.0.12    Red Hat CoreOS 4.16
+master-2   Ready   control-plane,master   90d   v1.29.x   10.50.0.13    Red Hat CoreOS 4.16
+worker-0   Ready   worker                 90d   v1.29.x   10.50.0.31    Red Hat CoreOS 4.16</span>
+
+<span class="comment"># Verify cluster is healthy before adding nodes — all operators must be Available</span>
+<span class="cmd">oc get clusteroperators | grep -v "True.*False.*False"</span>
+<span class="out">NAME                                       AVAILABLE   PROGRESSING   DEGRADED
+&lt;no output — all operators are Available, not Progressing, not Degraded&gt;</span>
+<span class="ok">✓ Cluster is healthy. Safe to proceed.</span></pre>
+
+  <div class="callout callout-warn">
+    <strong>Do not proceed if the cluster is degraded</strong>
+    <p>If any cluster operator shows <code>DEGRADED=True</code> or <code>AVAILABLE=False</code>, stop here. Adding nodes to a degraded cluster will compound the problem, not fix it. Resolve the existing degraded state first, then return to this guide. The operator name in the output tells you which component to investigate with <code>oc describe clusteroperator &lt;name&gt;</code>.</p>
+  </div>
+
+  <h3>OCP cluster version — record this before proceeding</h3>
+  <pre><span class="cmd">oc get clusterversion version -o jsonpath='{.status.desired.version}'</span>
+<span class="out">4.16.14</span>
+<span class="comment"># Record this version. The agent ISO downloaded in Section 07c must match this exact version.
+# A version mismatch between the ISO and the cluster causes node join failures at CSR approval.</span></pre>
+
+  </section>
+
+  <hr>
+
+  <!-- 02 -->
+  <section id="why-openshift-virt">
+  <h2>02 — Why OpenShift Virtualization — the business case</h2>
+  <p>Every architectural decision has a business rationale. Understanding the rationale ensures that the technical choices made in VIRT-01 through VIRT-05 serve the actual business objective — not just a technology preference.</p>
+
+  <h3>The platform consolidation argument</h3>
+  <p>NovaCrestBank currently operates two distinct compute platforms: a hypervisor platform running virtualised workloads, and OpenShift running containerised applications. Each platform has its own operational tooling, its own licensing costs, its own upgrade cycles, and its own team expertise requirements. Running two platforms in parallel means duplicating effort and cost across both dimensions.</p>
+  <p>OpenShift Virtualization introduces the ability to run virtual machines as native Kubernetes objects on the same OCP cluster that already runs containerised workloads. A VM in OpenShift Virtualization is not a second-class citizen — it is managed by the same Argo CD that manages application deployments, monitored by the same Prometheus stack, protected by the same cert-manager PKI, and governed by the same RBAC that controls access to everything else on the cluster.</p>
+  <p>The consolidation argument is straightforward: if virtual machines can be managed on the same platform as containers, the organisation operates one platform instead of two. One operational stack. One monitoring system. One GitOps workflow. One set of skills to develop and maintain.</p>
+
+  <h3>The cost and TCO dimension</h3>
+  <p>Hypervisor licensing is a significant line item in any enterprise IT budget. Organisations that rely on dedicated hypervisor platforms pay licensing costs that scale with the number of physical hosts, sockets, or virtual machines — depending on the vendor's model. As the virtualised workload footprint grows, so does the licensing cost.</p>
+  <p>OpenShift Virtualization runs on RHCOS (Red Hat CoreOS) bare-metal nodes. There is no separate hypervisor license. The KVM/QEMU stack that powers the virtualisation is part of the Linux kernel — it is not a separately licensed component. For organisations that already hold a Red Hat OpenShift subscription, adding OpenShift Virtualization does not add a new license category — it extends the existing subscription's capabilities.</p>
+  <p>The Total Cost of Ownership (TCO) reduction comes from two directions simultaneously: lower licensing cost for the virtualisation layer, and lower operational cost from consolidating two platforms into one. For NovaCrestBank's finance and technology leadership, this is a compelling argument that aligns technology decisions with budget objectives.</p>
+
+  <h3>The strategic exit path</h3>
+  <p>Platform consolidation is not a one-time event — it is a direction. NovaCrestBank's VIRT series is structured around a phased migration: existing VMs are migrated to OpenShift Virtualization over time (VIRT-03), the operational model converges on a single platform (VIRT-04), and the legacy hypervisor infrastructure is eventually decommissioned (VIRT-05). At the end of that journey, NovaCrestBank operates a single platform — OpenShift — for both containerised and virtualised workloads, on bare-metal RHCOS nodes that it owns and controls.</p>
+
+  <div class="callout callout-green">
+    <strong>What this means for the architect</strong>
+    <p>Every technical decision in the VIRT series must serve this business objective. When VIRT-02 documents two networking models side by side (Model A for the transition period, Model B for the post-consolidation state), it is because the architect must plan for both — the transition model cannot create technical debt that prevents the final state from being reached. When VIRT-05 documents the full decommission procedure, it is because the exit path must be planned from the beginning, not improvised at the end.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- 03 -->
+  <section id="architecture-decisions">
+  <h2>03 — Architecture decisions</h2>
+  <p>These decisions are recorded formally so that future engineers understand not just what was chosen but what was considered and explicitly rejected. An undocumented decision is a decision that will be relitigated — often at the worst possible time.</p>
+
+  <h3>ADR-VIRT-01 — Cluster topology: join existing vs new cluster</h3>
+  <p><strong>Decision:</strong> The new bare-metal nodes join the existing OCP cluster (from Series II) as additional worker nodes.</p>
+  <p><strong>Rejected:</strong> Forming a new, separate OCP cluster for OpenShift Virtualization workloads.</p>
+  <p><strong>Rationale:</strong> A separate cluster would require duplicating the entire platform layer — a second Argo CD, a second cert-manager, a second External Secrets integration with CyberArk, a second Prometheus/Loki/Tempo stack, a second Harbor, and a second set of operator subscriptions. It would also require Advanced Cluster Management (ACM) to federate the two clusters, which is a significantly more complex architecture. The isolation that a separate cluster provides — preventing container workloads from landing on VM nodes — is achieved more simply within a single cluster using taints and tolerations. The separate cluster approach is the correct architecture for a multi-region or multi-tenant strategy, but for NovaCrestBank's data centre consolidation objective, it introduces complexity without benefit.</p>
+
+  <h3>ADR-VIRT-02 — Bare-metal node OS: RHCOS vs RHEL</h3>
+  <p><strong>Decision:</strong> RHCOS (Red Hat CoreOS).</p>
+  <p><strong>Rejected:</strong> RHEL 9 worker nodes.</p>
+  <p><strong>Rationale:</strong> RHCOS is the only OS for which the KubeVirt stack (virt-handler, QEMU binaries, KVM module configuration) is tested and supported. The exact kernel version, KVM module parameters, and QEMU binary that ship with a given OCP version are validated together as a unit. RHEL workers require manual OS lifecycle management (upgrades, patches, configuration drift) — RHCOS nodes are managed declaratively through MachineConfig and upgraded automatically with the cluster. For a banking production environment, operational consistency and auditability are requirements, not preferences.</p>
+
+  <h3>ADR-VIRT-03 — Node addition method: Assisted Installer Add Hosts</h3>
+  <p><strong>Decision:</strong> Assisted Installer "Add Hosts" flow — generating a discovery agent ISO from the existing cluster and booting each bare-metal node from it.</p>
+  <p><strong>Rejected:</strong> Manual coreos-installer method (downloading RHCOS live ISO, booting, running coreos-installer with ignition config).</p>
+  <p><strong>Rationale:</strong> The Assisted Installer Add Hosts flow is the current recommended approach for adding bare-metal nodes to an existing OCP cluster. It automates hardware discovery, performs pre-installation validation (CPU, memory, disk, network — before a single byte is written to disk), and handles the join process including CSR approval coordination. The manual method requires the engineer to manage the ignition config retrieval, coreos-installer arguments, and CSR approval sequence independently — more steps with more opportunities for error. The Assisted Installer flow also produces installation logs that serve as an audit trail, which matters for BFSI change management requirements.</p>
+
+  <h3>ADR-VIRT-04 — ODF topology: converged vs dedicated storage nodes</h3>
+  <p><strong>Decision:</strong> Converged topology — all five bare-metal nodes run both VM workloads and ODF OSD (object storage daemon) processes.</p>
+  <p><strong>Rejected:</strong> Dedicated ODF storage nodes (separate from compute nodes).</p>
+  <p><strong>Rationale:</strong> Dedicated storage nodes provide stronger isolation between storage I/O and compute workloads, but require additional hardware. In the converged model, each node contributes NVMe disks to ODF while also running VM workloads. NovaCrestBank's ODF storage I/O profile (primarily sequential reads and writes from VM disks) does not create the kind of bursty, unpredictable I/O that makes converged topology problematic. ODF resource limits ensure that OSD processes do not starve VM workloads of CPU or memory. Converged topology with five nodes is also more resilient than dedicated storage with three nodes — ODF can tolerate two node failures instead of one. <span class="reg reg-nist">NIST SP 800-53 CP-7</span></p>
+
+  <h3>ADR-VIRT-05 — VM networking: OVN-Kubernetes localnet (dual-model)</h3>
+  <p><strong>Decision:</strong> OVN-Kubernetes localnet topology for VM secondary networks, with a documented dual-model approach: Model A while NSX-T is present, Model B after NSX-T decommission.</p>
+  <p><strong>Rejected:</strong> Linux bridge CNI for VM secondary networks.</p>
+  <p><strong>Rationale:</strong> OVN-Kubernetes localnet is the recommended CNI for VM secondary networks in current OCP releases. It provides better integration with the OVN control plane, supports live migration MAC mobility natively, and does not require per-node bridge configuration. Linux bridge CNI is simpler but requires manual bridge setup on each node via MachineConfig and does not integrate with OVN for traffic policy. The dual-model documentation ensures NovaCrestBank engineers have a reference for both the current state (NSX-T enforces inter-zone policy) and the target state (NetworkPolicy enforces it after NSX-T exits).</p>
+
+  <h3>ADR-VIRT-06 — ISO hosting: internal HTTP server</h3>
+  <p><strong>Decision:</strong> Agent ISO downloaded once from Red Hat CDN, SHA256-verified, and served internally from an HTTP server on the jump host. No bare-metal node contacts the internet during provisioning.</p>
+  <p><strong>Rejected:</strong> Direct internet download at provision time from each node or from the jump host per provisioning run.</p>
+  <p><strong>Rationale:</strong> PCI-DSS v4.0 Requirement 1.3.2 requires that inbound and outbound traffic be restricted to only what is necessary. An internet-facing download during provisioning opens a transient external access path that is not necessary — the ISO is a known, versioned artifact that can be downloaded once, verified, and reused. Internal hosting also eliminates dependency on Red Hat CDN availability during the provisioning window, which may be a change-controlled time slot. <span class="reg reg-pci">PCI-DSS v4.0 Req 1.3.2</span></p>
+  </section>
+
+  <hr>
+
+  <!-- 04 -->
+  <section id="hardware">
+  <h2>04 — New hardware — HP ProLiant DL385 Gen11</h2>
+
+  <h3>Why DL385 Gen11 and not DL380 Gen11</h3>
+  <p>The existing VCF environment uses HP ProLiant DL380 Gen11 — Intel Xeon-based servers. The new bare-metal nodes use HP ProLiant DL385 Gen11 — AMD EPYC 9004 series-based servers. The difference matters and the rationale must be documented.</p>
+  <p>The DL380 Gen11 is an excellent general-purpose server and is the correct choice for the VCF environment where ESXi hosts run management and OCP workload VMs. For the OpenShift Virtualization bare-metal nodes, three factors make the DL385 Gen11 the better choice.</p>
+
+  <h4>Factor 1 — Memory bandwidth</h4>
+  <p>Virtual machines are more memory-bandwidth-sensitive than containerised workloads. A container's memory access pattern is typically bursty — it needs memory in short bursts during request processing. A VM's memory access pattern is continuous — the guest OS and all its processes are constantly reading and writing VM RAM. AMD EPYC 9004 (Genoa) provides significantly higher memory bandwidth than Intel Xeon Scalable — EPYC Genoa supports 12 DDR5 memory channels per socket versus Intel's 8 channels. For VM-dense deployments where multiple VMs share a node, this bandwidth advantage reduces memory contention and improves VM-to-VM isolation.</p>
+
+  <h4>Factor 2 — PCIe lane count and GPU readiness</h4>
+  <p>The DL385 Gen11 with EPYC Genoa provides up to 160 PCIe 5.0 lanes per socket. The DL380 Gen11 provides fewer PCIe lanes. Why does this matter for OpenShift Virtualization? Two reasons.</p>
+  <p>First, each bare-metal node uses multiple PCIe slots simultaneously: NVMe drives for ODF OSDs (typically NVMe U.2 in PCIe slots), dual-port 25G NICs for the LACP bond, and potentially SR-IOV NICs for high-performance VM networking. With fewer PCIe lanes, the DL380 Gen11 can become lane-constrained when multiple high-bandwidth PCIe devices are installed simultaneously.</p>
+  <p>Second — and critically — the NovaCrestBank roadmap includes OpenShift AI (Series VI). AI inference and training workloads require GPU cards, and current generation NVIDIA and AMD data centre GPUs (H100, H200, MI300X) use 16 PCIe 5.0 lanes per GPU. A server with 160 PCIe lanes can host multiple GPUs alongside NVMe and NIC devices without contention. A server with fewer lanes cannot. Choosing the DL385 Gen11 now means the same physical servers that run OpenShift Virtualization workloads today can host GPU-accelerated AI inference workloads in the future — no hardware refresh required for the AI series.</p>
+
+  <h4>Factor 3 — NUMA topology for VM placement</h4>
+  <p>EPYC Genoa's NUMA architecture provides predictable memory locality for VM CPU pinning workloads. For NovaCrestBank's latency-sensitive financial application VMs (payment processing, real-time fraud detection), CPU pinning with NUMA awareness ensures a VM's vCPUs are always mapped to physical cores within the same NUMA domain as its memory — eliminating cross-NUMA memory latency spikes. This is documented in VIRT-01's PerformanceProfile section.</p>
+
+  <h3>DL385 Gen11 specification for NovaCrestBank</h3>
+  <div class="spec-grid">
+    <div class="spec-row"><div class="sk">Server model</div><div class="sv">HP ProLiant DL385 Gen11</div></div>
+    <div class="spec-row"><div class="sk">CPU</div><div class="sv">2 × AMD EPYC 9354P (32 cores / 64 threads per socket, 64 total cores, 3.25 GHz base)</div></div>
+    <div class="spec-row"><div class="sk">Memory</div><div class="sv">512 GiB DDR5-4800 (16 × 32 GiB DIMMs) — 12 channels per socket, 300 GB/s aggregate bandwidth</div></div>
+    <div class="spec-row"><div class="sk">Storage — OS</div><div class="sv">2 × 480 GiB SSD (RAID-1 via HPE Smart Array) — RHCOS OS disk</div></div>
+    <div class="spec-row"><div class="sk">Storage — ODF</div><div class="sv">4 × 3.84 TB NVMe U.2 (dedicated ODF OSD disks — not shared with OS)</div></div>
+    <div class="spec-row"><div class="sk">NIC (node network)</div><div class="sv">2 × Mellanox ConnectX-7 25G dual-port — LACP bond (VLAN 110, 130, 140)</div></div>
+    <div class="spec-row"><div class="sk">NIC (ODF replication)</div><div class="sv">1 × Mellanox ConnectX-7 25G dual-port — dedicated to VLAN 120 (ODF)</div></div>
+    <div class="spec-row"><div class="sk">OOB management</div><div class="sv">HPE iLO 6 — dedicated 1G port on VLAN 40 (OOB)</div></div>
+    <div class="spec-row"><div class="sk">PCIe slots (available)</div><div class="sv">6 × PCIe 5.0 × 16 available for future GPU expansion (OpenShift AI series)</div></div>
+    <div class="spec-row"><div class="sk">Quantity</div><div class="sv">5 nodes — all five use identical configuration (converged compute + ODF)</div></div>
+  </div>
+
+  <h3>Node naming and IP assignment</h3>
+  <table>
+    <thead><tr><th>Node</th><th>FQDN</th><th>Node IP (VLAN 110)</th><th>ODF IP (VLAN 120)</th><th>iLO IP (VLAN 40)</th></tr></thead>
+    <tbody>
+      <tr><td><code>bm-virt-01</code></td><td><code>bm-virt-01.novacrestbank.local</code></td><td>10.110.0.11</td><td>10.120.0.11</td><td>10.40.0.71</td></tr>
+      <tr><td><code>bm-virt-02</code></td><td><code>bm-virt-02.novacrestbank.local</code></td><td>10.110.0.12</td><td>10.120.0.12</td><td>10.40.0.72</td></tr>
+      <tr><td><code>bm-virt-03</code></td><td><code>bm-virt-03.novacrestbank.local</code></td><td>10.110.0.13</td><td>10.120.0.13</td><td>10.40.0.73</td></tr>
+      <tr><td><code>bm-virt-04</code></td><td><code>bm-virt-04.novacrestbank.local</code></td><td>10.110.0.14</td><td>10.120.0.14</td><td>10.40.0.74</td></tr>
+      <tr><td><code>bm-virt-05</code></td><td><code>bm-virt-05.novacrestbank.local</code></td><td>10.110.0.15</td><td>10.120.0.15</td><td>10.40.0.75</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-hw">
+    <strong>ODF on all five nodes — why this works</strong>
+    <p>All five nodes contribute ODF OSD disks (4 × 3.84 TB NVMe each = 19.2 TB raw per node, 96 TB total raw across 5 nodes). ODF uses Ceph replication factor 3, giving approximately 32 TB usable capacity. Ceph requires a minimum of 3 nodes to maintain quorum — with 5 nodes, ODF tolerates simultaneous failure of 2 nodes without data loss. No dedicated storage node is required. The OSD processes run within their resource limits and do not compete with VM workloads during normal operation. <span class="reg reg-nist">NIST SP 800-53 CP-9</span></p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- 05 -->
+  <section id="vlan-ip-plan">
+  <h2>05 — VLAN &amp; IP extension plan — delta from VCF environment</h2>
+
+  <h3>The delta principle — extend, never modify</h3>
+  <p>The existing VCF environment is running production workloads. The OpenShift Virtualization project adds new VLANs and IP subnets to the environment — it does not modify any existing ones. Every VLAN in the VCF environment (10, 20, 25, 40, 50, 70, 100, 101, 102, 103) is left exactly as it is. New VLANs use the 110–149 range, which is intentionally separated from the VCF VLAN range by a gap (104–109) reserved for potential future VCF additions.</p>
+
+  <h3>Existing VLANs — do not touch</h3>
+  <table>
+    <thead><tr><th>VLAN</th><th>Name</th><th>Subnet</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr class="vlan-locked"><td>10</td><td>ESXi Management</td><td>10.10.0.0/24</td><td>LOCKED — do not modify</td></tr>
+      <tr class="vlan-locked"><td>20</td><td>vMotion</td><td>10.20.0.0/24</td><td>LOCKED — do not modify</td></tr>
+      <tr class="vlan-locked"><td>25</td><td>vSAN</td><td>10.25.0.0/24</td><td>LOCKED — do not modify</td></tr>
+      <tr class="vlan-locked"><td>40</td><td>OOB Management</td><td>10.40.0.0/24</td><td>LOCKED — shared with new iLO IPs</td></tr>
+      <tr class="vlan-locked"><td>50</td><td>OCP Nodes (NSX overlay)</td><td>10.50.0.0/24</td><td>LOCKED — do not modify</td></tr>
+      <tr class="vlan-locked"><td>70</td><td>Windows Infrastructure</td><td>10.70.0.0/24</td><td>LOCKED — do not modify</td></tr>
+      <tr class="vlan-locked"><td>100–103</td><td>NSX TEP / Edge Uplinks</td><td>10.100–103.x.x</td><td>LOCKED — removed in VIRT-05</td></tr>
+    </tbody>
+  </table>
+
+  <h3>New VLANs — added for OpenShift Virtualization</h3>
+  <table>
+    <thead><tr><th>VLAN</th><th>Name</th><th>Subnet</th><th>MTU</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr class="vlan-new"><td><strong>110</strong></td><td>bm-node-network</td><td>10.110.0.0/24</td><td>1500</td><td>Bare-metal RHCOS node network — node management, OCP cluster communication, OVN GENEVE overlay between bare-metal nodes. The functional equivalent of the NSX seg-ocp-nodes segment, but implemented as a physical 802.1Q VLAN because bare-metal nodes cannot participate in the NSX GENEVE overlay. All 5 bare-metal node IPs (10.110.0.11–.15) are on this VLAN.</td></tr>
+      <tr class="vlan-new"><td><strong>120</strong></td><td>odf-replication</td><td>10.120.0.0/24</td><td>9000</td><td>Dedicated ODF/Ceph storage replication network. Isolated from node traffic for the same reason vSAN used VLAN 25 — Ceph OSD replication during a rebuild event can saturate a 25G link for minutes. Isolation ensures this never impacts VLAN 110 node traffic. Jumbo frames (MTU 9000) required — configure on leaf interface and RHCOS NIC sub-interface.</td></tr>
+      <tr class="vlan-new"><td><strong>130</strong></td><td>vm-workload-primary</td><td>10.130.0.0/24</td><td>1500</td><td>Primary VM workload network. VMs migrated from the hypervisor environment use IPs from this subnet. These VMs get real, routable IPs reachable from the rest of the data centre — not NAT'd overlay IPs. DC01 holds A and PTR records for every VM on this subnet. NSX gateway firewall enforces policy (Model A). Kubernetes NetworkPolicy replaces it after decommission (Model B).</td></tr>
+      <tr class="vlan-new"><td><strong>140</strong></td><td>vm-workload-dmz</td><td>10.140.0.0/24</td><td>1500</td><td>Secondary VM workload network for VMs requiring separation from VLAN 130 — for example, VMs that communicate with external partners, VMs in the pre-production compliance environment, or VMs that the security team designates as DMZ-adjacent. Separated at the VLAN level so NSX DFW (Model A) or NetworkPolicy (Model B) can enforce stricter inter-zone rules than would be possible if all VMs shared one subnet.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>New IP allocations</h3>
+  <table>
+    <thead><tr><th>IP / Range</th><th>Assignment</th><th>VLAN</th></tr></thead>
+    <tbody>
+      <tr><td>10.110.0.1</td><td>SVI Gateway — Leaf-01 (primary)</td><td>110</td></tr>
+      <tr><td>10.110.0.2</td><td>SVI Gateway — Leaf-02 (secondary vPC peer)</td><td>110</td></tr>
+      <tr><td>10.110.0.3</td><td>Anycast VIP — shared HSRP/vPC gateway</td><td>110</td></tr>
+      <tr><td>10.110.0.11–.15</td><td>bm-virt-01 through bm-virt-05 node IPs (static)</td><td>110</td></tr>
+      <tr><td>10.110.0.20–.250</td><td>DHCP pool — Assisted Installer discovery phase only</td><td>110</td></tr>
+      <tr><td>10.120.0.1</td><td>SVI Gateway — Leaf-01</td><td>120</td></tr>
+      <tr><td>10.120.0.2</td><td>SVI Gateway — Leaf-02</td><td>120</td></tr>
+      <tr><td>10.120.0.11–.15</td><td>bm-virt-01 through bm-virt-05 ODF replication IPs (static)</td><td>120</td></tr>
+      <tr><td>10.130.0.1</td><td>SVI Gateway — Leaf-01</td><td>130</td></tr>
+      <tr><td>10.130.0.2</td><td>SVI Gateway — Leaf-02</td><td>130</td></tr>
+      <tr><td>10.130.0.10–.200</td><td>VM workload IPs — assigned per VM via cloud-init or DHCP</td><td>130</td></tr>
+      <tr><td>10.140.0.1</td><td>SVI Gateway — Leaf-01</td><td>140</td></tr>
+      <tr><td>10.140.0.2</td><td>SVI Gateway — Leaf-02</td><td>140</td></tr>
+      <tr><td>10.140.0.10–.200</td><td>VM workload IPs — DMZ-adjacent VMs</td><td>140</td></tr>
+      <tr><td>10.40.0.71–.75</td><td>iLO management IPs — bm-virt-01 through bm-virt-05</td><td>40 (OOB — existing)</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- 06 -->
+  <section id="dns-plan">
+  <h2>06 — DNS additions</h2>
+  <p>DNS is served by DC01 and DC02 as Active Directory-integrated zones. The existing zone <code>novacrestbank.local</code> receives the following additions. No new zone is needed. These records must be created before VIRT-01 begins — the Assisted Installer performs a reverse DNS lookup during node discovery to verify that the node's hostname resolves correctly.</p>
+  <table>
+    <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Needed before</th></tr></thead>
+    <tbody>
+      <tr><td><code>bm-virt-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.110.0.11</td><td>VIRT-01 — Assisted Installer discovery</td></tr>
+      <tr><td><code>bm-virt-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.110.0.12</td><td>VIRT-01 — Assisted Installer discovery</td></tr>
+      <tr><td><code>bm-virt-03.novacrestbank.local</code></td><td>A + PTR</td><td>10.110.0.13</td><td>VIRT-01 — Assisted Installer discovery</td></tr>
+      <tr><td><code>bm-virt-04.novacrestbank.local</code></td><td>A + PTR</td><td>10.110.0.14</td><td>VIRT-01 — Assisted Installer discovery</td></tr>
+      <tr><td><code>bm-virt-05.novacrestbank.local</code></td><td>A + PTR</td><td>10.110.0.15</td><td>VIRT-01 — Assisted Installer discovery</td></tr>
+      <tr><td><code>bm-virt-01-ilo.novacrestbank.local</code></td><td>A</td><td>10.40.0.71</td><td>VIRT-00 Section 07f — iLO access from jump host</td></tr>
+      <tr><td><code>bm-virt-02-ilo.novacrestbank.local</code></td><td>A</td><td>10.40.0.72</td><td>VIRT-00 Section 07f — iLO access from jump host</td></tr>
+      <tr><td><code>bm-virt-03-ilo.novacrestbank.local</code></td><td>A</td><td>10.40.0.73</td><td>VIRT-00 Section 07f — iLO access from jump host</td></tr>
+      <tr><td><code>bm-virt-04-ilo.novacrestbank.local</code></td><td>A</td><td>10.40.0.74</td><td>VIRT-00 Section 07f — iLO access from jump host</td></tr>
+      <tr><td><code>bm-virt-05-ilo.novacrestbank.local</code></td><td>A</td><td>10.40.0.75</td><td>VIRT-00 Section 07f — iLO access from jump host</td></tr>
+    </tbody>
+  </table>
+  <p>Reverse zones required: <code>110.10.10.in-addr.arpa</code>, <code>120.10.10.in-addr.arpa</code>, <code>130.10.10.in-addr.arpa</code>, <code>140.10.10.in-addr.arpa</code>. These are created in DNS Manager on DC01 in Section 07d below.</p>
+  </section>
+
+  <hr>
+
+  <!-- 07 -->
+  <section id="prerequisites">
+  <h2>07 — Prerequisites — what must be in place before VIRT-01</h2>
+  <p>This section does not list prerequisites. It builds them. Each subsection either verifies that something already exists and is in the correct state, or builds it step by step. No prerequisite is assumed. By the end of Section 07, the environment is ready for VIRT-01 to begin without interruption.</p>
+
+  <div class="callout callout-amber">
+    <strong>Complete all prerequisite sections in order</strong>
+    <p>Each section below may depend on something established in the previous section. Do not skip ahead. The readiness checklist in Section 08 confirms all prerequisites are complete before VIRT-01 begins.</p>
+  </div>
+  </section>
+
+  <!-- 07a -->
+  <section id="prereq-pull-secret">
+  <h2>07a — Pull secret retrieval</h2>
+  <h3>What a pull secret is and why it is needed</h3>
+  <p>Red Hat container images — including the RHCOS image, the OpenShift operator images, and the Assisted Installer images — are hosted in Red Hat's container registries (<code>registry.redhat.io</code>, <code>quay.io</code>). These registries require authentication. A pull secret is a JSON file containing base64-encoded credentials that grant access to Red Hat's registries for a specific subscription.</p>
+  <p>The pull secret is needed in two places in the VIRT series: here, when downloading the agent ISO (Section 07c), and in VIRT-01 when the Assisted Installer generates the discovery ISO for node provisioning. Without a valid pull secret, both operations fail with an authentication error.</p>
+  <p>The pull secret is tied to the Red Hat account that holds the OpenShift subscription. It is not a password — it is a time-limited credential that can be rotated from the Red Hat Hybrid Cloud Console. Treat it as a secret: do not commit it to Git, do not embed it in scripts without protection, and do not share it across organisations.</p>
+
+  <h3>Retrieve the pull secret</h3>
+  <pre><span class="comment"># From the jump host — open a browser or use curl with your Red Hat account
+# URL: https://console.redhat.com/openshift/install/pull-secret
+# Log in with the Red Hat account that owns the NovaCrestBank OCP subscription
+# Click "Download pull secret" — save as pull-secret.json</span>
+
+<span class="comment"># Store it securely on the jump host — not in home directory, not world-readable</span>
+<span class="cmd">sudo mkdir -p /opt/novacrest/secrets
+sudo mv ~/Downloads/pull-secret.json /opt/novacrest/secrets/pull-secret.json
+sudo chmod 600 /opt/novacrest/secrets/pull-secret.json
+sudo chown root:root /opt/novacrest/secrets/pull-secret.json</span>
+
+<span class="comment"># Verify the file is valid JSON with the expected structure</span>
+<span class="cmd">python3 -c "import json; d=json.load(open('/opt/novacrest/secrets/pull-secret.json')); \
+  print('Registries:', list(d['auths'].keys()))"</span>
+<span class="out">Registries: ['cloud.openshift.com', 'quay.io', 'registry.connect.redhat.com', 'registry.redhat.io']</span>
+<span class="ok">✓ Pull secret is valid. All four Red Hat registries are present.</span></pre>
+
+  <div class="callout callout-warn">
+    <strong>If any registry is missing from the output</strong>
+    <p>The pull secret must include all four registries shown above. If <code>registry.redhat.io</code> is absent, the agent ISO download will fail. If <code>quay.io</code> is absent, operator image pulls during VIRT-01 will fail. Return to <code>console.redhat.com</code>, ensure you are logged into the correct Red Hat account, and re-download the pull secret.</p>
+  </div>
+  </section>
+
+  <!-- 07b -->
+  <section id="prereq-http-server">
+  <h2>07b — Internal HTTP server setup on the jump host</h2>
+  <h3>Why an internal HTTP server is needed</h3>
+  <p>During the Assisted Installer Add Hosts flow (VIRT-01), each bare-metal node must boot from an ISO image. The ISO is mounted via iLO virtual media, which supports two delivery methods: mount from a local file path on the iLO host, or mount from an HTTP/HTTPS URL. Mounting via HTTP is the correct approach for automated provisioning — it allows the same ISO to be mounted to all five nodes simultaneously without manually copying files, and the URL is a stable reference that can be embedded in automation scripts.</p>
+  <p>The HTTP server runs on the jump host, which is on VLAN 40 (OOB management, 10.40.0.0/24). Since iLO interfaces are also on VLAN 40, the iLO of each bare-metal node can reach the HTTP server directly over the OOB network — no routing through the production fabric is required. This is the correct security architecture: ISO serving and iLO communication both stay on the OOB network.</p>
+
+  <h3>What HTTP server to use and why</h3>
+  <p>Python's built-in <code>http.server</code> module is sufficient for this purpose. It requires no installation, no configuration files, and no service management — it is a single command. For a production-grade alternative, nginx is appropriate but not necessary for this use case. The ISO is a static file being served to five nodes during a one-time provisioning event — Python's HTTP server handles this correctly.</p>
+
+  <h3>Set up the directory structure and start the server</h3>
+  <pre><span class="comment"># Create the directory that will serve ISOs</span>
+<span class="cmd">sudo mkdir -p /opt/novacrest/isos
+sudo chown admin:admin /opt/novacrest/isos</span>
+
+<span class="comment"># Start the HTTP server as a background service — port 8080 on VLAN 40 interface
+# First, identify the jump host's VLAN 40 IP</span>
+<span class="cmd">ip addr show | grep "10.40."</span>
+<span class="out">inet 10.40.0.61/24 brd 10.40.0.255 scope global eth0</span>
+
+<span class="comment"># Start Python HTTP server — serves /opt/novacrest/isos on port 8080</span>
+<span class="cmd">cd /opt/novacrest/isos
+python3 -m http.server 8080 --bind 10.40.0.61 &amp;</span>
+<span class="out">Serving HTTP on 10.40.0.61 port 8080 (http://10.40.0.61:8080/) ...</span></pre>
+
+  <h3>Make the HTTP server persistent across jump host reboots</h3>
+  <p>A background process started with <code>&amp;</code> dies when the shell session ends or the jump host reboots. For a provisioning server that may be referenced over a multi-day provisioning window, it must survive reboots. Create a systemd unit for it.</p>
+  <pre><span class="comment"># Create the systemd unit file</span>
+<span class="cmd">sudo tee /etc/systemd/system/novacrest-isoserver.service &lt;&lt; 'EOF'
+[Unit]
+Description=NovaCrestBank ISO HTTP Server
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/opt/novacrest/isos
+ExecStart=/usr/bin/python3 -m http.server 8080 --bind 10.40.0.61
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF</span>
+
+<span class="cmd">sudo systemctl daemon-reload
+sudo systemctl enable novacrest-isoserver
+sudo systemctl start novacrest-isoserver
+sudo systemctl status novacrest-isoserver</span>
+<span class="out">● novacrest-isoserver.service - NovaCrestBank ISO HTTP Server
+     Loaded: loaded (/etc/systemd/system/novacrest-isoserver.service; enabled)
+     Active: active (running) since Mon 2024-11-04 09:12:33 UTC; 3s ago
+   Main PID: 12345 (python3)</span>
+<span class="ok">✓ ISO HTTP server is running and enabled for auto-start on reboot.</span>
+
+<span class="comment"># Verify from another terminal — confirm the server responds</span>
+<span class="cmd">curl -I http://10.40.0.61:8080/</span>
+<span class="out">HTTP/1.0 200 OK
+Content-type: text/html; charset=utf-8</span>
+<span class="ok">✓ HTTP server responds. Directory listing served at http://10.40.0.61:8080/</span></pre>
+  </section>
+
+  <!-- 07c -->
+  <section id="prereq-iso-download">
+  <h2>07c — Agent ISO download and SHA256 verification</h2>
+  <h3>What the agent ISO is — and why it is different from the RHCOS live ISO</h3>
+  <p>There are two different ISO types used in OpenShift bare-metal deployments. It is important to understand the difference before downloading anything.</p>
+  <p>The <strong>RHCOS live ISO</strong> is a general-purpose bootable image that launches a minimal RHCOS environment. It does not know anything about your OCP cluster. If you boot from it, you get a live shell — you then have to manually run <code>coreos-installer</code> with the correct ignition config arguments to install RHCOS to disk and configure the node. This is the manual provisioning method.</p>
+  <p>The <strong>agent ISO</strong> (also called the discovery ISO or the Assisted Installer ISO) is generated specifically for your cluster. It contains the Assisted Installer agent pre-configured with your cluster's API endpoint and pull secret. When a node boots from it, the agent automatically registers the node with the Assisted Installer, performs hardware discovery (CPU cores, memory, disk inventory, NIC detection), runs pre-installation validation, and waits for approval to proceed. This is the agent-based method — it is the correct method for NovaCrestBank's Add Hosts workflow.</p>
+  <p>The agent ISO is generated from the OCP API — it is not a generic Red Hat download. Section 07c downloads the <code>openshift-install</code> binary that generates it. The actual ISO generation happens in VIRT-01 once the Assisted Installer is configured with the cluster details.</p>
+
+  <h3>Step 1 — Determine the exact OCP version to match</h3>
+  <pre><span class="comment"># The openshift-install binary version must match the cluster version exactly</span>
+<span class="cmd">OCP_VERSION=$(oc get clusterversion version \
+  -o jsonpath='{.status.desired.version}')
+echo "OCP cluster version: $OCP_VERSION"</span>
+<span class="out">OCP cluster version: 4.16.14</span>
+<span class="comment"># Record this. Every download in this section uses this version string.</span></pre>
+
+  <h3>Step 2 — Download the openshift-install binary from Red Hat mirror</h3>
+  <p>The <code>openshift-install</code> binary generates the agent ISO in VIRT-01. It must be downloaded here, version-matched to the cluster, and placed on the jump host.</p>
+  <pre><span class="comment"># Download openshift-install for Linux (jump host OS)</span>
+<span class="cmd">cd /opt/novacrest/isos
+
+curl -L -o openshift-install-linux-${OCP_VERSION}.tar.gz \
+  "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz"</span>
+<span class="out">  % Total    % Received  Avg Speed   Time
+100  143M   100  143M   8.5M/s     0:00:17</span>
+
+<span class="comment"># Verify SHA256 checksum against the Red Hat published checksum</span>
+<span class="cmd">curl -L "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OCP_VERSION}/sha256sum.txt" \
+  | grep openshift-install-linux.tar.gz</span>
+<span class="out">a1b2c3d4e5f6...  openshift-install-linux.tar.gz</span>
+
+<span class="cmd">sha256sum openshift-install-linux-${OCP_VERSION}.tar.gz</span>
+<span class="out">a1b2c3d4e5f6...  openshift-install-linux-4.16.14.tar.gz</span>
+<span class="ok">✓ SHA256 matches. File is intact and unmodified.</span>
+
+<span class="comment"># Extract the binary and place it in /usr/local/bin</span>
+<span class="cmd">tar xzf openshift-install-linux-${OCP_VERSION}.tar.gz
+sudo mv openshift-install /usr/local/bin/openshift-install-${OCP_VERSION}
+sudo ln -sf /usr/local/bin/openshift-install-${OCP_VERSION} /usr/local/bin/openshift-install</span>
+
+<span class="cmd">openshift-install version</span>
+<span class="out">openshift-install 4.16.14
+built from commit abc123...
+release image quay.io/openshift-release-dev/ocp-release@sha256:...</span>
+<span class="ok">✓ openshift-install 4.16.14 is installed and reports the correct version.</span></pre>
+
+  <div class="callout callout-warn">
+    <strong>If the SHA256 checksum does not match</strong>
+    <p>Do not proceed. A mismatched checksum means the downloaded file was corrupted in transit or — in a security incident — substituted. Delete the file (<code>rm openshift-install-linux-${OCP_VERSION}.tar.gz</code>), check the jump host's outbound network path for any proxy or inspection device that might be modifying downloads, and retry the download. If checksums consistently fail, contact the network team to verify the integrity of the path to <code>mirror.openshift.com</code>.</p>
+  </div>
+
+  <h3>Step 3 — Download the oc CLI (if not already present)</h3>
+  <pre><span class="comment"># Verify oc is already installed from Series II</span>
+<span class="cmd">oc version --client</span>
+<span class="out">Client Version: 4.16.14</span>
+<span class="ok">✓ oc CLI is already installed and version-matched. No action needed.</span>
+
+<span class="comment"># If oc is not installed or version does not match the cluster:</span>
+<span class="cmd">curl -L -o oc-linux-${OCP_VERSION}.tar.gz \
+  "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OCP_VERSION}/openshift-client-linux.tar.gz"
+tar xzf oc-linux-${OCP_VERSION}.tar.gz
+sudo mv oc /usr/local/bin/oc
+oc version --client</span></pre>
+  </section>
+
+  <!-- 07d -->
+  <section id="prereq-dns-dhcp">
+  <h2>07d — DNS and DHCP additions on DC01</h2>
+  <h3>Why DNS must exist before node provisioning begins</h3>
+  <p>The Assisted Installer agent running on each bare-metal node performs a reverse DNS lookup of its own IP during the discovery phase. If the PTR record for <code>10.110.0.11</code> does not resolve to <code>bm-virt-01.novacrestbank.local</code>, the node fails discovery validation with a hostname mismatch error. DNS A and PTR records must exist before any node is powered on.</p>
+  <p>DHCP is required for the Assisted Installer's initial discovery phase. When a node first boots from the agent ISO, it does not yet have a static IP configured — it requests an IP via DHCP on VLAN 110. The Assisted Installer assigns the static IP (10.110.0.11–.15) during the installation phase. After the node joins the cluster, RHCOS configures the static IP from the NMState definition in the MachineSet. DHCP is only needed for the initial discovery boot.</p>
+
+  <h3>Create DNS reverse zones for new subnets</h3>
+  <p>Open DNS Manager on DC01 (<code>Start → Windows Administrative Tools → DNS</code>). Navigate to <code>Reverse Lookup Zones</code>. For each new subnet, right-click → <code>New Zone</code> → Primary Zone, AD-integrated, to all DNS servers in the domain.</p>
+  <table>
+    <thead><tr><th>Reverse zone name</th><th>Network ID</th><th>For VLAN</th></tr></thead>
+    <tbody>
+      <tr><td><code>110.10.10.in-addr.arpa</code></td><td>10.110.0.0/24</td><td>110 — bare-metal nodes</td></tr>
+      <tr><td><code>120.10.10.in-addr.arpa</code></td><td>10.120.0.0/24</td><td>120 — ODF replication</td></tr>
+      <tr><td><code>130.10.10.in-addr.arpa</code></td><td>10.130.0.0/24</td><td>130 — VM workload primary</td></tr>
+      <tr><td><code>140.10.10.in-addr.arpa</code></td><td>10.140.0.0/24</td><td>140 — VM workload DMZ</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Create A and PTR records for bare-metal nodes</h3>
+  <p>In DNS Manager, navigate to <code>Forward Lookup Zones → novacrestbank.local</code>. Right-click → <code>New Host (A or AAAA)</code>. For each node, enter the name and IP. Check <code>Create associated pointer (PTR) record</code> — this creates both the A record in the forward zone and the PTR record in the corresponding reverse zone automatically.</p>
+  <pre><span class="comment"># After creating all records — verify from jump host</span>
+<span class="cmd">for node in 01 02 03 04 05; do
+  fwd=$(nslookup bm-virt-${node}.novacrestbank.local 10.70.0.10 | grep "Address:" | tail -1)
+  rev=$(nslookup 10.110.0.1${node} 10.70.0.10 | grep "name =")
+  echo "bm-virt-${node}: forward=${fwd} reverse=${rev}"
+done</span>
+<span class="out">bm-virt-01: forward= Address: 10.110.0.11  reverse= name = bm-virt-01.novacrestbank.local.
+bm-virt-02: forward= Address: 10.110.0.12  reverse= name = bm-virt-02.novacrestbank.local.
+bm-virt-03: forward= Address: 10.110.0.13  reverse= name = bm-virt-03.novacrestbank.local.
+bm-virt-04: forward= Address: 10.110.0.14  reverse= name = bm-virt-04.novacrestbank.local.
+bm-virt-05: forward= Address: 10.110.0.15  reverse= name = bm-virt-05.novacrestbank.local.</span>
+<span class="ok">✓ All five nodes resolve forward and reverse correctly from DC01.</span></pre>
+
+  <h3>Create DHCP scope for VLAN 110 discovery phase</h3>
+  <p>Open DHCP Manager on DC01 (<code>Start → Windows Administrative Tools → DHCP</code>). Right-click <code>IPv4 → New Scope</code>. Configure as follows:</p>
+  <table>
+    <thead><tr><th>Field</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Scope name</td><td><code>VLAN110-BM-Discovery</code></td></tr>
+      <tr><td>Start IP</td><td><code>10.110.0.20</code></td></tr>
+      <tr><td>End IP</td><td><code>10.110.0.250</code></td></tr>
+      <tr><td>Subnet mask</td><td><code>255.255.255.0</code></td></tr>
+      <tr><td>Exclusion</td><td><code>10.110.0.1 – 10.110.0.19</code> (reserved for gateways and static node IPs)</td></tr>
+      <tr><td>Lease duration</td><td>2 hours (short — only needed during discovery boot)</td></tr>
+      <tr><td>Default gateway (option 3)</td><td><code>10.110.0.3</code> (anycast SVI)</td></tr>
+      <tr><td>DNS servers (option 6)</td><td><code>10.70.0.10, 10.70.0.11</code> (DC01, DC02)</td></tr>
+      <tr><td>DNS domain (option 15)</td><td><code>novacrestbank.local</code></td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-amber">
+    <strong>DHCP relay must be configured on the Leaf switch SVIs</strong>
+    <p>The DHCP server (DC01 at 10.70.0.10) is on VLAN 70 (NSX overlay segment). The DHCP clients during discovery are on VLAN 110. Because they are on different subnets, DHCP broadcast packets from VLAN 110 will not reach DC01 without a relay agent. The DHCP relay (<code>ip helper-address 10.70.0.10</code>) must be configured on the Leaf-01 and Leaf-02 VLAN 110 SVIs. This is part of the leaf switch configuration in Section 07e below.</p>
+  </div>
+  </section>
+
+  <!-- 07e -->
+  <section id="prereq-leaf-switch">
+  <h2>07e — Leaf switch preparation — new VLANs, SVIs, and port-channels</h2>
+  <h3>What must be configured on the Cisco Nexus leaf switches before nodes are cabled</h3>
+  <p>The leaf switch configuration for the new bare-metal nodes is purely additive — nothing in the existing configuration is modified. The following must be in place on both Leaf-01 and Leaf-02 before any bare-metal server is powered on.</p>
+
+  <h3>Step 1 — Add new VLANs to the VLAN database</h3>
+  <pre><span class="comment">leaf-01# conf t</span>
+<span class="cmd">vlan 110
+  name bm-node-network
+vlan 120
+  name odf-replication
+vlan 130
+  name vm-workload-primary
+vlan 140
+  name vm-workload-dmz</span>
+
+<span class="comment"># Verify</span>
+<span class="cmd">show vlan brief | grep "110\|120\|130\|140"</span>
+<span class="out">110  bm-node-network     active
+120  odf-replication     active
+130  vm-workload-primary active
+140  vm-workload-dmz     active</span>
+<span class="ok">✓ All four new VLANs are active on leaf-01. Repeat identically on leaf-02.</span></pre>
+
+  <h3>Step 2 — Create SVIs for routing and DHCP relay</h3>
+  <pre><span class="comment">leaf-01# conf t</span>
+<span class="cmd">interface Vlan110
+  description bm-node-network
+  no shutdown
+  ip address 10.110.0.1/24
+  ip helper-address 10.70.0.10
+  hsrp 110
+    ip 10.110.0.3
+    priority 110
+    preempt
+
+interface Vlan120
+  description odf-replication
+  no shutdown
+  ip address 10.120.0.1/24
+  mtu 9216
+
+interface Vlan130
+  description vm-workload-primary
+  no shutdown
+  ip address 10.130.0.1/24
+  ip helper-address 10.70.0.10
+  hsrp 130
+    ip 10.130.0.3
+    priority 110
+    preempt
+
+interface Vlan140
+  description vm-workload-dmz
+  no shutdown
+  ip address 10.140.0.1/24
+  ip helper-address 10.70.0.10
+  hsrp 140
+    ip 10.140.0.3
+    priority 110
+    preempt</span>
+
+<span class="comment"># On leaf-02, use .2 addresses and lower HSRP priority:
+# ip address 10.110.0.2/24 | hsrp priority 100 (leaf-01 is primary)</span></pre>
+
+  <h3>Step 3 — Add new VLANs to the BGP routing advertisements</h3>
+  <pre><span class="comment">leaf-01# conf t → router bgp 65001</span>
+<span class="cmd">  network 10.110.0.0/24
+  network 10.120.0.0/24
+  network 10.130.0.0/24
+  network 10.140.0.0/24</span>
+
+<span class="comment"># Verify NSX T0 receives the new prefixes</span>
+<span class="cmd">show ip bgp neighbors 10.102.0.2 advertised-routes | grep "10.11\|10.12\|10.13\|10.14"</span>
+<span class="out">*> 10.110.0.0/24   10.102.0.1   0   32768   i
+*> 10.120.0.0/24   10.102.0.1   0   32768   i
+*> 10.130.0.0/24   10.102.0.1   0   32768   i
+*> 10.140.0.0/24   10.102.0.1   0   32768   i</span>
+<span class="ok">✓ All four new subnets are being advertised to NSX T0 via BGP.</span></pre>
+
+  <h3>Step 4 — Add new VLANs to the vPC peer-link trunk</h3>
+  <pre><span class="comment">leaf-01# conf t</span>
+<span class="cmd">interface port-channel 1
+  switchport trunk allowed vlan add 110,120,130,140</span>
+
+<span class="cmd">show interfaces port-channel 1 trunk | grep "110\|120\|130\|140"</span>
+<span class="out">                                 Vlans allowed on trunk
+  Po1                            ...,110,120,130,140</span>
+<span class="ok">✓ New VLANs are allowed on the vPC peer-link. Repeat on leaf-02.</span></pre>
+
+  <h3>Step 5 — Configure port-channels for bare-metal servers (do after cabling)</h3>
+  <p>The port-channel configuration for each server is applied after the physical cables are connected. This template applies to all five nodes (adjust the port-channel number and interface numbers per actual port assignments):</p>
+  <pre><span class="comment">leaf-01# conf t  ← repeat for bm-virt-01 (Po211), port numbers per actual cabling</span>
+<span class="cmd">interface Ethernet1/31,Ethernet1/32
+  description bm-virt-01 NIC1-NIC2
+  switchport mode trunk
+  switchport trunk allowed vlan 110,120,130,140
+  channel-group 211 mode active
+  no shutdown
+
+interface port-channel 211
+  description bm-virt-01
+  switchport mode trunk
+  switchport trunk allowed vlan 110,120,130,140
+  vpc 211</span>
+
+<span class="comment"># Verify after server is powered — LACP must show both members up</span>
+<span class="cmd">show vpc 211</span>
+<span class="out">vPC status
+id    Port      Status  Consistency Active vlans
+211   Po211     up      success     110,120,130,140</span>
+<span class="ok">✓ vPC 211 is up. Both leaf-01 and leaf-02 agree on port-channel configuration.</span></pre>
+  </section>
+
+  <!-- 07f -->
+  <section id="prereq-ilo">
+  <h2>07f — iLO initial configuration on all five servers</h2>
+  <h3>What iLO is — and why it must be configured before anything else</h3>
+  <p>HPE iLO (Integrated Lights-Out) is the out-of-band management controller embedded in every HP ProLiant server. It is a separate, independent computer on a dedicated management chip — it has its own CPU, its own network port, and its own firmware. It is always powered on when the server is connected to power, even when the server's main OS is off.</p>
+  <p>iLO serves three functions in the VIRT series. First, it is the only way to interact with the server before an OS is installed — the BIOS configuration, virtual media mounting, and console access during RHCOS installation all go through iLO. Second, it provides out-of-band access to the server even when the OS is crashed or unreachable — critical for troubleshooting provisioning failures. Third, via the Redfish API, iLO can be automated — the prerequisite verification and ISO mounting steps in VIRT-01 use Redfish calls rather than manual GUI interaction.</p>
+
+  <h3>Step 1 — Set iLO static IP via BIOS on each server (physical access required once)</h3>
+  <p>The HP DL385 Gen11 ships with iLO in DHCP mode. The first step is to assign a static IP on VLAN 40 (OOB management network, 10.40.0.0/24). This requires brief physical console access during the server's first power-on.</p>
+  <pre><span class="comment"># Physical access procedure — repeat for each server
+# 1. Power on the server
+# 2. During POST, press F10 to enter System Utilities
+# 3. Navigate: System Configuration → HPE iLO 6 Configuration Utility → Network Settings
+# 4. Configure:
+#    Network Adapter: Dedicated (use the dedicated iLO port, not a shared NIC)
+#    IPv4 DHCP: Disabled
+#    IPv4 Address: 10.40.0.71   (bm-virt-01) | .72 | .73 | .74 | .75
+#    Subnet Mask: 255.255.255.0
+#    Gateway: 10.40.0.1
+#    DNS Servers: 10.70.0.10, 10.70.0.11
+#    Hostname: bm-virt-01-ilo   (or bm-virt-02-ilo, etc.)
+# 5. Apply and reboot iLO (server does not reboot — only iLO restarts)</span></pre>
+
+  <h3>Step 2 — Verify iLO reachability from jump host via Redfish API</h3>
+  <pre><span class="cmd">for ilo_ip in 10.40.0.71 10.40.0.72 10.40.0.73 10.40.0.74 10.40.0.75; do
+  result=$(curl -sk -o /dev/null -w "%{http_code}" \
+    https://${ilo_ip}/redfish/v1/Systems/1)
+  echo "${ilo_ip} → HTTP ${result}"
+done</span>
+<span class="out">10.40.0.71 → HTTP 200
+10.40.0.72 → HTTP 200
+10.40.0.73 → HTTP 200
+10.40.0.74 → HTTP 200
+10.40.0.75 → HTTP 200</span>
+<span class="ok">✓ All five iLO interfaces respond via Redfish. OOB access confirmed.</span></pre>
+
+  <div class="callout callout-warn">
+    <strong>If an iLO returns HTTP 401 (Unauthorized)</strong>
+    <p>HTTP 401 means the iLO is reachable but the credentials are wrong. The default iLO username is <code>Administrator</code> and the default password is printed on a pull-tab label on the server chassis. Use these defaults for the initial connection, then immediately change the password in Step 3. HTTP 000 or connection refused means the iLO IP is not reachable — verify the OOB switch port for that server is up (<code>show interface status</code> on the OOB Catalyst 9200) and the DNS A record was created in Section 07d.</p>
+  </div>
+
+  <h3>Step 3 — Set iLO admin password via Redfish (retrieve from CyberArk)</h3>
+  <pre><span class="comment"># Retrieve the iLO admin password from CyberArk (the same ESO integration from Series II)
+# The password is pre-staged in CyberArk under safe: NovaCrestBank-Infrastructure
+# Account: bm-virt-ilo-admin</span>
+
+<span class="cmd">ILO_PASS=$(kubectl get secret bm-virt-ilo-admin -n openshift-virtualization \
+  -o jsonpath='{.data.password}' | base64 -d)
+# This secret is populated by the External Secrets Operator from CyberArk — see VIRT-01 Section 02</span>
+
+<span class="comment"># Set password on all five iLO interfaces</span>
+<span class="cmd">for ilo_ip in 10.40.0.71 10.40.0.72 10.40.0.73 10.40.0.74 10.40.0.75; do
+  curl -sk -X PATCH https://${ilo_ip}/redfish/v1/AccountService/Accounts/1 \
+    -u Administrator:$(cat /opt/novacrest/secrets/ilo-default-pass) \
+    -H "Content-Type: application/json" \
+    -d "{\"Password\": \"${ILO_PASS}\"}" | python3 -c \
+    "import sys,json; r=json.load(sys.stdin); print('${ilo_ip}:', r.get('Messages',[{}])[0].get('MessageId','OK'))"
+done</span>
+<span class="out">10.40.0.71: iLO.2.14.SystemResetRequired
+10.40.0.72: iLO.2.14.SystemResetRequired
+10.40.0.73: iLO.2.14.SystemResetRequired
+10.40.0.74: iLO.2.14.SystemResetRequired
+10.40.0.75: iLO.2.14.SystemResetRequired</span>
+<span class="ok">✓ Password updated on all five iLO interfaces. SystemResetRequired means the iLO will
+✓ apply the password after its internal reset (30 seconds) — the server is not rebooted.</span></pre>
+  </section>
+
+  <hr>
+
+  <!-- 08 -->
+  <section id="readiness-checklist">
+  <h2>08 — Pre-implementation readiness checklist</h2>
+  <p>Complete this checklist before starting VIRT-01. Every item must be checked. If any item cannot be checked, do not proceed — resolve it first.</p>
+
+  <div class="checklist">
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">Existing OCP cluster is healthy</div><div class="chk-sub"><code>oc get clusteroperators</code> — no operator shows DEGRADED=True or AVAILABLE=False</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">OCP cluster version recorded</div><div class="chk-sub">Version string noted from <code>oc get clusterversion</code> — will be used to match openshift-install binary</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">Pull secret retrieved and validated</div><div class="chk-sub">File at <code>/opt/novacrest/secrets/pull-secret.json</code> — all four Red Hat registries present — permissions 600</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">Internal HTTP server running and persistent</div><div class="chk-sub">Systemd service <code>novacrest-isoserver</code> active and enabled — responds HTTP 200 at <code>http://10.40.0.61:8080/</code></div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">openshift-install binary version-matched and installed</div><div class="chk-sub"><code>openshift-install version</code> reports the same version as the cluster — SHA256 verified</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">DNS A and PTR records created for all 5 nodes</div><div class="chk-sub">Forward and reverse DNS resolves correctly for <code>bm-virt-01</code> through <code>bm-virt-05</code> from the jump host</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">DNS reverse zones created for new subnets</div><div class="chk-sub">110.10.10, 120.10.10, 130.10.10, 140.10.10 in-addr.arpa zones exist in DNS Manager on DC01</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">DHCP scope created for VLAN 110</div><div class="chk-sub">Scope VLAN110-BM-Discovery active on DC01 — range 10.110.0.20–.250 — gateway and DNS options set</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">Leaf switch VLANs 110/120/130/140 created</div><div class="chk-sub"><code>show vlan brief</code> on leaf-01 and leaf-02 shows all four VLANs active</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">Leaf switch SVIs configured with DHCP relay</div><div class="chk-sub">VLAN 110 SVI exists on both leafs — <code>ip helper-address 10.70.0.10</code> confirmed — HSRP VIP 10.110.0.3 active</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">New subnets advertised via BGP</div><div class="chk-sub">10.110.0.0/24, 10.120.0.0/24, 10.130.0.0/24, 10.140.0.0/24 appear in NSX T0 route table</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">Servers physically racked and cabled</div><div class="chk-sub">LLDP neighbours confirmed on leaf-01 and leaf-02 — <code>show lldp neighbors</code> shows each server on correct port</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">iLO reachable on all five servers</div><div class="chk-sub">Redfish GET to all five iLO IPs returns HTTP 200 with correct credentials</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">iLO passwords updated from default</div><div class="chk-sub">Default credentials replaced — iLO admin password stored in CyberArk and retrievable via ESO</div></div></div>
+    <div class="chk"><div class="chk-box"></div><div class="chk-body"><div class="chk-title">ODF capacity verified</div><div class="chk-sub">5 nodes × 4 NVMe disks × 3.84 TB = 76.8 TB raw — ODF with RF3 provides ~25 TB usable — meets project requirements</div></div></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- 09 -->
+  <section id="guide-sequence">
+  <h2>09 — Guide sequence</h2>
+  <p>The VIRT series follows NovaCrestBank's journey from "hypervisor and OpenShift running in parallel" to "OpenShift as the single platform." Read guides in order the first time. After that, use them as reference documents — each one is self-contained for its topic.</p>
+
+  <div class="guide-seq">
+    <div class="gs current">
+      <div class="gs-num">✓</div>
+      <div><div class="gs-name">VIRT-00 — Foundation &amp; Prerequisites (this guide)</div><div class="gs-desc">Business case, architecture decisions, hardware selection, VLAN/IP plan, and all prerequisites built and verified. Complete the readiness checklist before VIRT-01.</div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-num">1</div>
+      <div><div class="gs-name">VIRT-01 — Architecture &amp; Bare-Metal Node Installation</div><div class="gs-desc">KubeVirt architecture deep-dive. Assisted Installer Add Hosts flow — generating the discovery ISO, booting each DL385 node, approving CSRs. HyperConverged Operator installation. ODF storage configuration. First test VM created and verified.</div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-num">2</div>
+      <div><div class="gs-name">VIRT-02 — VM Networking: Multus, OVN localnet, NSX Transition</div><div class="gs-desc">Two models documented side by side. Model A (NSX present): NetworkAttachmentDefinition, OVN localnet, NSX gateway firewall. Model B (post-NSX): OVN as sole control plane, NetworkPolicy. Live migration MAC mobility. SR-IOV for latency-sensitive VMs.</div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-num">3</div>
+      <div><div class="gs-name">VIRT-03 — Migration Toolkit for Virtualization (MTV)</div><div class="gs-desc">MTV installation and provider configuration. Network and storage mapping. Cold and warm migration walkthroughs. Post-migration validation. DNS record updates for migrated VMs.</div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-num">4</div>
+      <div><div class="gs-name">VIRT-04 — VM Lifecycle, GitOps, and OADP Backup</div><div class="gs-desc">VirtualMachine CR in Argo CD. Kustomize overlays for dev vs production VMs. VirtualMachineSnapshot. Live migration with evictionStrategy. CPU/memory hot-plug. OADP backup for VM disks.</div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-num">5</div>
+      <div><div class="gs-name">VIRT-05 — NSX Decommission</div><div class="gs-desc">DFW rule to NetworkPolicy translation. BGP route migration from NSX T0 to OVN EgressGateway. NSX Edge node and Manager cluster decommission in correct order. Leaf switch TEP VLAN removal. License elimination verification.</div></div>
+    </div>
+  </div>
+
+  <div class="callout callout-virt">
+    <strong>VIRT-00 complete — prerequisites are built and verified</strong>
+    <p>The readiness checklist in Section 08 must be fully checked before proceeding. When every item is confirmed, open VIRT-01. Every IP address, every VLAN ID, and every FQDN referenced in VIRT-01 through VIRT-05 is defined in this document.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) { a.classList.add('active'); }
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

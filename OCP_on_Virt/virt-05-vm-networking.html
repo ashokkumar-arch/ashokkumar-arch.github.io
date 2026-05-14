@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-05 — VM Networking · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --nsx:#6e2b8c;--nsx-bg:#faf5ff;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* ── MAIN ── */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+
+/* ── PROGRESS ── */
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+
+/* ── CALLOUTS ── */
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.nsx{border-left-color:var(--nsx)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.nsx .cl{color:var(--nsx)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+
+/* ── TERMINAL ── */
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}
+.tc{color:#61c5eb}
+.tg{color:#4ccd99}
+.td{color:#608b7a}
+.tw{color:#cca700}
+.te{color:#f85149}
+.tok{color:#3fb950;font-weight:600}
+
+/* ── YAML ── */
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── DECISION ── */
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* ── WRONG / OK ── */
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+
+/* ── GATE ── */
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+
+/* ── REG BADGES ── */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+
+/* ── MODEL COMPARISON ── */
+.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+.model-card{border-radius:var(--r);padding:16px 18px;border:.5px solid var(--border2)}
+.model-a{background:var(--nsx-bg);border-color:#d4b0ee}
+.model-b{background:var(--blue-bg);border-color:#93b4e8}
+.model-title{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:700}
+.model-a .model-title{color:var(--nsx)}
+.model-b .model-title{color:var(--blue)}
+.model-body{font-size:13px;color:var(--text2);line-height:1.65}
+.model-body ul{margin:6px 0 0 16px}
+.model-body li{margin-bottom:4px;font-size:13px}
+
+/* ── PACKET WALK ── */
+.pkt{background:var(--bg3);border:.5px solid var(--border2);border-radius:var(--r);padding:16px;margin:16px 0;overflow-x:auto}
+.pkt-title{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:12px}
+.pkt-row{display:flex;align-items:center;gap:0;margin-bottom:6px;min-width:max-content}
+.pkt-box{padding:6px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11.5px;border:1px solid;text-align:center;min-width:110px;line-height:1.4}
+.pkt-arrow{padding:0 6px;color:var(--text3);font-size:14px;flex-shrink:0}
+.pb-vm{background:#fff0f0;border-color:#fca5a5;color:#7a0000}
+.pb-ovn{background:var(--blue-bg);border-color:#93b4e8;color:#1a3a6f}
+.pb-nsx{background:var(--nsx-bg);border-color:#d4b0ee;color:#4a006a}
+.pb-leaf{background:var(--bg3);border-color:var(--border2);color:var(--text2)}
+.pb-phys{background:#fff7ed;border-color:#fed7aa;color:#7c3d12}
+
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}.model-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-05</div>
+    <div class="sb-title">VM Networking</div>
+    <div class="sb-sub">Multus · OVN localnet · NAD · Model A/B · SR-IOV · MAC mobility · DNS</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Concepts — first principles</div>
+    <a class="sb-item active" href="#vm-networking-problem">01 — The VM networking problem</a>
+    <a class="sb-item" href="#multus-explained">02 — Multus — what it is and how it works</a>
+    <a class="sb-item" href="#ovn-localnet">03 — OVN-Kubernetes localnet — VMs on physical VLANs</a>
+    <a class="sb-item" href="#two-models">04 — Two models — Model A (NSX) and Model B (OVN-only)</a>
+    <div class="sb-sec">Model A — NSX transition period</div>
+    <a class="sb-item" href="#model-a-architecture">05 — Model A architecture — NSX gateway enforces policy</a>
+    <a class="sb-item" href="#nncp-vlan130">06 — NodeNetworkConfigurationPolicy — VLAN 130</a>
+    <a class="sb-item" href="#nad-vlan130">07 — NetworkAttachmentDefinition — VLAN 130 — every field annotated</a>
+    <a class="sb-item" href="#nad-vlan140">08 — NetworkAttachmentDefinition — VLAN 140</a>
+    <a class="sb-item" href="#vm-with-secondary">09 — Adding a secondary interface to a VM</a>
+    <a class="sb-item" href="#model-a-verify">10 — Model A verification — VM reachable on VLAN 130</a>
+    <div class="sb-sec">Model B — OVN-only (post-NSX)</div>
+    <a class="sb-item" href="#model-b-architecture">11 — Model B architecture — NetworkPolicy replaces NSX DFW</a>
+    <a class="sb-item" href="#networkpolicy-vms">12 — NetworkPolicy for VM workloads</a>
+    <a class="sb-item" href="#egressgateway">13 — EgressGateway — replacing NSX T0 BGP</a>
+    <div class="sb-sec">SR-IOV</div>
+    <a class="sb-item" href="#sriov-explained">14 — SR-IOV — what it is and when to use it</a>
+    <a class="sb-item" href="#sriov-config">15 — SR-IOV configuration</a>
+    <div class="sb-sec">Live migration networking</div>
+    <a class="sb-item" href="#mac-mobility">16 — MAC mobility — preserving VM identity across migrations</a>
+    <a class="sb-item" href="#migration-network">17 — Migration network — isolating migration traffic</a>
+    <div class="sb-sec">DNS for VMs</div>
+    <a class="sb-item" href="#vm-dns">18 — DNS for VMs — the four-element hostname chain</a>
+    <a class="sb-item" href="#handover">19 — Readiness checklist — gate to VIRT-06</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-04-openshift-virtualization.html">← VIRT-04 — OCP Virt Install</a>
+    <a class="sb-item" href="virt-06-mtv-migration.html">VIRT-06 — MTV Migration →</a>
+  </div>
+  <div class="sb-foot">VIRT-05 · VM Networking · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-05 · VM Networking</div>
+  <div class="prereq-bar">VIRT-04 complete — HyperConverged healthy, PerformanceProfile applied, first VM running, live migration verified</div>
+  <h1>VM Networking</h1>
+  <div class="subtitle">Connecting NovaCrestBank banking VMs to physical VLANs 130 and 140 —<br>from Multus first principles through dual-model architecture, SR-IOV, MAC mobility, and DNS</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-00<br>Foundation</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-01<br>Fabric</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-02<br>Provision</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-03<br>ODF</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-05<br>Networking</div>
+    <div class="pt"><span class="pt-n">7</span>VIRT-06<br>MTV</div>
+  </div>
+
+  <!-- ══ 01 VM NETWORKING PROBLEM ══ -->
+  <section id="vm-networking-problem">
+  <h2>01 — The VM networking problem — why masquerade is not enough</h2>
+  <p>The test VM created in VIRT-04 uses a masquerade interface for its primary network connection. Masquerade is NAT — the VM gets an IP inside the OVN pod overlay network, and traffic to and from it is translated through the virt-launcher pod's IP. The VM is not directly reachable from outside the OCP cluster. For a test VM used to verify that KubeVirt is working, this is sufficient. For banking application VMs, it is not acceptable.</p>
+
+  <h3>What banking application VMs need</h3>
+  <p>Consider a payment-processing VM that has been running in the existing hypervisor environment for years. It is reachable at IP 10.130.0.50 from the load balancer that distributes transactions to it, from the core banking system it calls for account data, from the monitoring system that polls it for health, and from the firewall rules that control its traffic. Its FQDN is <code>vm-banking-app-01.novacrestbank.local</code> and is hardcoded in configuration files across the data centre.</p>
+  <p>When this VM is migrated to OpenShift Virtualization, all of those integrations must continue working without reconfiguration. A masquerade interface on 10.0.2.2 does not satisfy this requirement. What is needed is a secondary network interface that connects the VM directly to VLAN 130 on the physical Cisco fabric — giving it a real, routable IP of 10.130.0.50 reachable from anywhere that has a route to 10.130.0.0/24.</p>
+
+  <div class="callout blue">
+    <span class="cl">The four-layer mental model — understand this before any YAML</span>
+    <p><strong>Layer 1 — Physical NIC:</strong> The bare-metal node's LACP bond has sub-interfaces bond0.130 and bond0.140 tagged to VLANs 130 and 140 on the Cisco leaf switches. Configured in VIRT-02 via NMState.</p>
+    <p><strong>Layer 2 — Node bridge (NNCP):</strong> A NodeNetworkConfigurationPolicy CR uses NMState to create Linux bridges (br-vlan130, br-vlan140) on every bare-metal node and connects the bond sub-interfaces to them. OVN-Kubernetes localnet taps into these bridges. Section 06 creates these.</p>
+    <p><strong>Layer 3 — Named network (NAD):</strong> A NetworkAttachmentDefinition CR declares a named secondary network that Multus can attach to pod or VM interfaces. The NAD references the bridge on the node. Section 07 creates these.</p>
+    <p><strong>Layer 4 — VM interface:</strong> The VirtualMachine CR references the NAD by name. Multus creates a secondary NIC inside the virt-launcher pod, connected through the bridge to the physical VLAN. Section 09 shows this in a complete VM YAML.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 MULTUS EXPLAINED ══ -->
+  <section id="multus-explained">
+  <h2>02 — Multus — what it is and how it works</h2>
+  <p>Multus is a CNI (Container Network Interface) meta-plugin. To understand what a meta-plugin is, you first need to understand what CNI is and what its limitation is for VM workloads.</p>
+
+  <h3>What CNI is — the standard</h3>
+  <p>CNI is the standard interface between a container runtime (cri-o on RHCOS) and a network plugin. When a pod is created, cri-o calls the configured CNI plugin with the pod's details. The CNI plugin creates a network interface inside the pod's network namespace, assigns an IP address, and sets up routing. When the pod is deleted, CNI tears down the interface. In a standard OCP cluster, OVN-Kubernetes is the sole CNI plugin — it creates one network interface (eth0) per pod and connects it to the OVN overlay.</p>
+  <p>The limitation: standard CNI allows exactly one network interface per pod. One plugin, one interface, one IP. For VMs that need a primary interface for OCP cluster communication and one or more secondary interfaces for production VLAN connectivity, this is insufficient.</p>
+
+  <h3>What Multus does</h3>
+  <p>Multus acts as a broker between cri-o and multiple CNI plugins. When a pod annotated with additional network references starts, Multus intercepts the CNI call, calls OVN-Kubernetes for the primary interface (eth0), then calls the appropriate secondary CNI plugin for each additional interface. The result for a VM pod:</p>
+  <ul>
+    <li><strong>eth0:</strong> Created by OVN-Kubernetes. Pod overlay IP. Cluster-internal communication — OCP API, DNS, service discovery.</li>
+    <li><strong>eth1:</strong> Created by the secondary CNI plugin called by Multus. Connected to VLAN 130 via the br-vlan130 bridge. VM's production IP on 10.130.0.0/24.</li>
+  </ul>
+  <p>In OpenShift Virtualization, virt-launcher pods are the pods that run VMs. Multus gives virt-launcher pods multi-interface capability — and the VM guest OS sees both interfaces through the QEMU virtual NIC emulation inside the virt-launcher.</p>
+
+  <div class="callout why">
+    <span class="cl">Why OVN localnet — not Linux bridge CNI — for NovaCrestBank</span>
+    <p>Two CNI plugins can serve VM secondary networks: Linux bridge CNI and OVN-Kubernetes localnet. Linux bridge CNI creates a kernel bridge per VLAN on each node via MachineConfig — it works but does not integrate with OVN. OVN localnet creates a logical switch in OVN that maps to the physical network — it integrates fully with OCP's network control plane, supports live migration MAC mobility natively (Section 16), and allows OVN ACL-based policy enforcement alongside NetworkPolicy. For NovaCrestBank's Model B (post-NSX) target state, OVN localnet is the correct choice because it provides the foundation for OVN-based policy enforcement without NSX.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 OVN LOCALNET ══ -->
+  <section id="ovn-localnet">
+  <h2>03 — OVN-Kubernetes localnet — connecting VMs to physical VLANs</h2>
+  <p>OVN-Kubernetes localnet is a topology mode where an OVN logical switch port is mapped directly to a physical network through a node's Linux bridge. Frames entering and leaving a localnet port bypass GENEVE tunnelling entirely — they are raw 802.1Q-tagged Ethernet frames on the physical VLAN.</p>
+
+  <h3>How localnet differs from the standard OVN overlay</h3>
+  <p>In the standard OVN overlay, traffic between pods on different nodes travels through GENEVE tunnels. The physical network carries only encapsulated tunnel frames — the pods' MAC addresses and IPs are invisible to the switch. In localnet, there is no tunnel. A VM with a localnet interface on VLAN 130 sends 802.1Q-tagged frames with VLAN 130 directly onto the bond sub-interface. The Cisco leaf switch sees the VM's MAC address as if the VM were a physical server plugged into the switch port.</p>
+
+  <div class="pkt">
+    <div class="pkt-title">Packet path — VM guest OS eth1 → VLAN 130 → upstream (Model A)</div>
+    <div class="pkt-row">
+      <div class="pkt-box pb-vm">VM guest<br>eth1: 10.130.0.50</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-vm">virt-launcher<br>tap interface</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-ovn">OVN localnet<br>logical switch</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-phys">br-vlan130<br>bond0.130</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-leaf">Cisco leaf<br>Po21X trunk</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-nsx">NSX T0<br>(Model A)</div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px">VLAN 130 frames exit OVN at the localnet bridge — no GENEVE encapsulation. Leaf switch sees VM MAC address directly on the trunk port.</div>
+  </div>
+
+  <div class="pkt">
+    <div class="pkt-title">Packet path — VM guest eth0 → OCP cluster services (primary, unchanged)</div>
+    <div class="pkt-row">
+      <div class="pkt-box pb-vm">VM guest<br>eth0: 10.0.2.2</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-vm">virt-launcher<br>masquerade NAT</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-ovn">OVN overlay<br>GENEVE tunnel</div>
+      <div class="pkt-arrow">→</div>
+      <div class="pkt-box pb-ovn">OCP cluster<br>ClusterIP svc</div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px">Primary interface stays inside the OVN overlay — unaffected by the secondary VLAN 130 interface. Both paths are active simultaneously.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 TWO MODELS ══ -->
+  <section id="two-models">
+  <h2>04 — Two models — Model A (NSX present) and Model B (OVN-only)</h2>
+  <p>NovaCrestBank's VIRT series spans a transition from a full NSX-T environment to a post-NSX OVN-Kubernetes-only architecture. VM networking must work correctly in both states. The critical design constraint: VM YAML does not change between Model A and Model B.</p>
+
+  <div class="model-grid">
+    <div class="model-card model-a">
+      <div class="model-title">Model A — NSX present (now through VIRT-11)</div>
+      <div class="model-body">
+        <p><strong>When active:</strong> All guides from VIRT-05 through VIRT-10. NSX remains operational.</p>
+        <ul>
+          <li>VM secondary interfaces on VLAN 130 / 140 via OVN localnet</li>
+          <li>NSX T0 gateway holds BGP sessions to leaf switches</li>
+          <li>NSX T0 advertises 10.130.0.0/24 and 10.140.0.0/24 to leaves</li>
+          <li>NSX gateway firewall enforces inter-zone policy (VLAN 130 ↔ 70, 130 ↔ 140)</li>
+          <li>OVN ACLs handle intra-VLAN traffic only</li>
+        </ul>
+        <p style="margin-top:8px"><strong>Advantage:</strong> Existing NSX DFW policy applies to migrated VMs immediately. No policy re-implementation at migration time.</p>
+      </div>
+    </div>
+    <div class="model-card model-b">
+      <div class="model-title">Model B — OVN-only (after VIRT-11 NSX decommission)</div>
+      <div class="model-body">
+        <p><strong>When active:</strong> After VIRT-11 completes. NSX is fully decommissioned.</p>
+        <ul>
+          <li>Same VM secondary interfaces — <strong>no VM reconfiguration</strong></li>
+          <li>OVN EgressGateway holds BGP sessions to leaf switches</li>
+          <li>Kubernetes NetworkPolicy enforces all inter-zone policy</li>
+          <li>Leaf switches route directly to 10.130.0.0/24 and 10.140.0.0/24</li>
+          <li>No NSX licensing cost</li>
+        </ul>
+        <p style="margin-top:8px"><strong>Advantage:</strong> Single control plane for all policy — containers and VMs. No NSX operational overhead.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">The key architectural decision — VM YAML is identical in both models</span>
+    <p>The VirtualMachine CR, NetworkAttachmentDefinition, and NodeNetworkConfigurationPolicy are identical in Model A and Model B. The VM's VLAN 130 secondary interface works the same way regardless of who enforces inter-zone policy. Transitioning from Model A to Model B is a control-plane-only operation: BGP sessions move from NSX Edge nodes to OVN EgressGateway nodes, and DFW rules are translated to NetworkPolicy objects. No VM is stopped, reconfigured, or migrated. This is the correct architecture for a phased platform transition in a banking environment.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 MODEL A ARCHITECTURE ══ -->
+  <section id="model-a-architecture">
+  <h2>05 — Model A architecture — traffic flow during the NSX transition period</h2>
+  <p>Trace exactly how a VM on VLAN 130 reaches DC01 on VLAN 70 during the Model A period. This trace is what confirms that no additional firewall rules need to be configured in OCP — NSX already handles the inter-zone policy.</p>
+  <ol>
+    <li><strong>VM sends packet:</strong> vm-banking-app-01 (10.130.0.50) sends LDAP request to DC01 (10.70.0.10). The packet exits eth1 (VLAN 130 secondary interface), tagged VLAN 130, through bond0.130 on the bare-metal node, out the Cisco leaf trunk port.</li>
+    <li><strong>Leaf routes the packet:</strong> Leaf-01 receives the frame on the bare-metal node's port-channel. Destination 10.70.0.10 is looked up in the routing table. The route to 10.70.0.0/24 is via the NSX T0 gateway (ASN 65010, learned via BGP on VLANs 102/103).</li>
+    <li><strong>NSX gateway firewall evaluates:</strong> The NSX T0 receives the packet at the uplink interface. The gateway firewall evaluates it against the configured rules. The existing rule permitting LDAP (TCP 389) and LDAPS (TCP 636) from the OCP network zone to the Infrastructure zone matches — the packet is permitted.</li>
+    <li><strong>NSX T1 delivers to DC01:</strong> NSX T1-Infra routes the packet to seg-infra-services and delivers it to DC01 at 10.70.0.10.</li>
+    <li><strong>Return path:</strong> DC01 replies to 10.130.0.50. NSX T0 has a BGP route to 10.130.0.0/24 (advertised by leaf-01 and leaf-02). NSX forwards to the correct leaf, which delivers to the bare-metal node, and OVN localnet delivers to the VM's eth1 interface.</li>
+  </ol>
+
+  <div class="callout nsx">
+    <span class="cl">NSX gateway firewall — not DFW microsegementation — for bare-metal VMs</span>
+    <p>NSX Distributed Firewall (DFW) microsegementation requires the NSX guest introspection agent running inside the hypervisor (ESXi) where the VM runs. OCP Virt VMs run on RHCOS bare-metal nodes — not ESXi. NSX cannot introspect into KubeVirt VMs. Therefore, Model A policy enforcement uses NSX gateway firewall rules at the T0/T1 boundary (applied to all traffic crossing between zones) rather than per-VM DFW rules. This provides zone-level segmentation (VLAN 130 ↔ VLAN 70) but not per-VM microsegementation. Per-VM policy enforcement in Model B uses Kubernetes NetworkPolicy, which does work with virt-launcher pods. <span class="reg reg-pci">PCI-DSS v4.0 Req 1.3.2</span></p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 NNCP VLAN130 ══ -->
+  <section id="nncp-vlan130">
+  <h2>06 — NodeNetworkConfigurationPolicy — VLAN 130 bridge on bare-metal nodes</h2>
+  <p>The <code>NodeNetworkConfigurationPolicy</code> (NNCP) is a Kubernetes CR that applies NMState configuration to a set of nodes declaratively. It is the operational successor to the one-time NMState apply in VIRT-02 — where VIRT-02 applied NMState once during provisioning to set static IPs, an NNCP is continuously reconciled. If a node's network configuration drifts, the NNCP controller re-applies the desired state automatically.</p>
+
+  <h3>What the NNCP creates — the Linux bridge</h3>
+  <p>The NNCP creates a Linux bridge named <code>br-vlan130</code> on every bare-metal node and makes <code>bond0.130</code> (the VLAN-tagged sub-interface) a port of that bridge. OVN-Kubernetes localnet connects its logical switch to this bridge. When OVN delivers a frame for a VM on VLAN 130, it goes into the bridge, out bond0.130, tagged VLAN 130, and onto the physical fabric. When the leaf switch sends a frame to the VM, it arrives tagged VLAN 130 on bond0.130, enters the bridge, and OVN delivers it to the correct VM tap interface.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">nncp-vlan130.yaml — NodeNetworkConfigurationPolicy — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">nmstate.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NodeNetworkConfigurationPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vlan130-bridge-policy</span>
+  <span class="yc">  # Cluster-scoped (no namespace). Name identifies the VLAN and purpose.</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">nodeSelector</span><span class="yc">:</span>
+    <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+    <span class="yc">    # Target only the 5 bare-metal nodes — not ESXi-hosted OCP workers.
+    # ESXi workers do not have bond0.130 — applying there would fail and
+    # the NNCP would report Degraded. The nodeSelector prevents this.</span>
+  <span class="yk">desiredState</span><span class="yc">:</span>
+    <span class="yk">interfaces</span><span class="yc">:</span>
+      <span class="yc">- name</span><span class="yc">:</span> <span class="yv">br-vlan130</span>
+        <span class="yk">type</span><span class="yc">:</span> <span class="yv">linux-bridge</span>
+        <span class="yc">        # linux-bridge: a standard Linux kernel bridge.
+        # Acts as a Layer 2 switch between OVN's localnet port and bond0.130.
+        # OVN injects VM frames into the bridge; the bridge forwards them
+        # to bond0.130 which tags them VLAN 130 and sends them to the leaf switch.
+        # The bridge name (br-vlan130) must match the NAD in Section 07.</span>
+        <span class="yk">state</span><span class="yc">:</span> <span class="yv">up</span>
+        <span class="yk">bridge</span><span class="yc">:</span>
+          <span class="yk">options</span><span class="yc">:</span>
+            <span class="yk">stp</span><span class="yc">:</span>
+              <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">false</span>
+              <span class="yc">              # STP MUST be disabled for VM secondary bridges.
+              # Spanning Tree Protocol places new bridge ports in blocking state
+              # for 30 seconds while it checks for loops. When live migration
+              # completes and the virt-launcher pod on the destination node attaches
+              # a new tap interface to this bridge, STP would block that tap for
+              # 30 seconds — the VM appears to lose VLAN 130 connectivity for 30s.
+              # This is unacceptable for payment-processing VMs with sub-second SLOs.
+              # There is no loop risk here: the bridge has one uplink (bond0.130)
+              # and multiple VM tap interfaces — no redundant paths.</span>
+          <span class="yk">port</span><span class="yc">:</span>
+            <span class="yc">- name</span><span class="yc">:</span> <span class="yv">bond0.130</span>
+            <span class="yc">  # bond0.130: the VLAN 130 sub-interface on the LACP bond.
+            # Created in VIRT-02 NMState configuration. Adding it here as a
+            # bridge port connects the bridge to the physical VLAN 130 segment.</span>
+        <span class="yk">ipv4</span><span class="yc">:</span>
+          <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">false</span>
+          <span class="yc">          # The bridge has no IP address. IPs belong to VMs connected to it.
+          # A bridge with an IP would cause the RHCOS node to respond to ARP
+          # requests on VLAN 130 — potentially intercepting VM traffic.
+          # Always disable IP on VM networking bridges.</span>
+        <span class="yk">ipv6</span><span class="yc">:</span>
+          <span class="yk">enabled</span><span class="yc">:</span> <span class="yv">false</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply NNCPs for VLAN 130 and 140, verify on all nodes</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f nncp-vlan130.yaml</span>
+<span class="tg">nodenetworkconfigurationpolicy.nmstate.io/vlan130-bridge-policy created</span>
+
+<span class="td"># nncp-vlan140.yaml is identical — change name to vlan140-bridge-policy,
+# bridge name to br-vlan140, and port to bond0.140</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f nncp-vlan140.yaml</span>
+<span class="tg">nodenetworkconfigurationpolicy.nmstate.io/vlan140-bridge-policy created</span>
+
+<span class="td"># Wait ~60 seconds for both NNCPs to apply to all 5 nodes</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nncp</span>
+<span class="tg">NAME                    STATUS      REASON
+vlan130-bridge-policy   Available   SuccessfullyConfigured
+vlan140-bridge-policy   Available   SuccessfullyConfigured</span>
+<span class="tok">✓ Both NNCPs Available. Bridges created on all 5 bare-metal nodes.</span>
+
+<span class="td"># Verify bridge on a node — bond0.130 in forwarding state (STP disabled)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01.novacrestbank.local -- \
+  chroot /host bridge link show br-vlan130</span>
+<span class="tg">3: bond0.130@bond0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 master br-vlan130 state forwarding priority 32 cost 100</span>
+<span class="tok">✓ bond0.130 is a member of br-vlan130 in "forwarding" state immediately.
+  No blocking period — STP correctly disabled. Ready for OVN localnet attachment.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 NAD VLAN130 ══ -->
+  <section id="nad-vlan130">
+  <h2>07 — NetworkAttachmentDefinition — VLAN 130 — every field annotated</h2>
+  <p>The NetworkAttachmentDefinition (NAD) is the Multus object that declares a named secondary network. A VirtualMachine CR references the NAD by name to request a secondary interface. Every field in the NAD controls how that interface behaves — get one wrong and the interface either does not attach, allows MAC spoofing, or breaks live migration.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">nad-vlan130.yaml — NetworkAttachmentDefinition — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">k8s.cni.cncf.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkAttachmentDefinition</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vlan130-primary</span>
+  <span class="yc">  # Namespace-scoped. VMs reference this NAD by name within the same namespace.
+  # Create one NAD per namespace that needs the VLAN 130 network.</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yk">annotations</span><span class="yc">:</span>
+    <span class="yk">k8s.v1.cni.cncf.io/resourceName</span><span class="yc">:</span> <span class="yv">bridge.network.kubevirt.io/br-vlan130</span>
+    <span class="yc">    # resourceName: tells OCP Virt's scheduler which bridge this NAD uses.
+    # The scheduler ensures VMs referencing this NAD are only placed on nodes
+    # where br-vlan130 exists — all 5 bare-metal nodes after the NNCP applied.
+    # Format: bridge.network.kubevirt.io/ + bridge name (must match NNCP bridge name).</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">config</span><span class="yc">:</span> <span class="ys">|
+    {
+      "cniVersion": "0.3.1",</span>
+      <span class="yc">      # CNI spec version 0.3.1 — current stable, compatible with all plugins used.</span>
+      <span class="ys">"name": "vlan130-primary",</span>
+      <span class="yc">      # Must match metadata.name. Used in Multus logs and in the VMI status annotation.</span>
+      <span class="ys">"type": "cnv-bridge",</span>
+      <span class="yc">      # type: "cnv-bridge" — OCP Virtualization bridge CNI plugin.
+      # cnv-bridge wraps the Linux bridge CNI with two critical additions:
+      # 1. Live migration MAC mobility: the VM's MAC address is preserved when
+      #    virt-launcher moves to a new node. The bridge CNI plugin knows to
+      #    send a gratuitous ARP on behalf of the VM after migration completes.
+      # 2. OCP Virt admission webhook integration for interface validation.
+      # Do NOT use type: "bridge" (raw Linux bridge CNI) for VM secondary networks.
+      # Raw bridge CNI does NOT support MAC mobility — live migration changes the
+      # VM's MAC address and causes 30-300 seconds of network disruption until
+      # the upstream ARP cache expires and the new MAC is learned.</span>
+      <span class="ys">"bridge": "br-vlan130",</span>
+      <span class="yc">      # Bridge name created by the NNCP in Section 06. Exact match required.
+      # The CNI plugin connects the VM's tap interface to this Linux bridge.
+      # The bridge then forwards frames to bond0.130 → VLAN 130 on the leaf switch.</span>
+      <span class="ys">"macspoofchk": true,</span>
+      <span class="yc">      # MAC spoofing protection — a compromised VM may attempt to send frames
+      # with a source MAC address that is not its own (to impersonate another VM
+      # or host on VLAN 130). macspoofchk: true configures the Linux bridge to
+      # drop any frame from the VM's tap interface whose source MAC does not match
+      # the MAC assigned to that tap by KubeVirt.
+      # PCI-DSS v4.0 Req 1.3.3 requires preventing unauthorised source address use.
+      # Only disable macspoofchk for interfaces that legitimately use multiple MACs
+      # (e.g., SR-IOV bonded VFs or nested virtualisation — neither applies here).</span>
+      <span class="ys">"ipam": {}</span>
+      <span class="yc">      # ipam: {} — empty. The guest OS manages its own IP on this interface.
+      # cloud-init assigns the static IP (10.130.0.50/24) to eth1 at boot (Section 09).
+      # If ipam were populated (e.g., host-local IPAM with a CIDR), Multus would try
+      # to assign an IP to the tap interface on the host side — conflicting with
+      # cloud-init's IP assignment in the guest and causing duplicate IP errors.
+      # Always use ipam: {} for VM secondary networks where the guest owns its IP.</span>
+    <span class="ys">}</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply NADs and verify</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f nad-vlan130.yaml -f nad-vlan140.yaml</span>
+<span class="tg">networkattachmentdefinition.k8s.cni.cncf.io/vlan130-primary created
+networkattachmentdefinition.k8s.cni.cncf.io/vlan140-dmz created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get net-attach-def -n virt-workloads</span>
+<span class="tg">NAME             AGE
+vlan130-primary  12s
+vlan140-dmz      12s</span>
+<span class="tok">✓ Both NADs created. VMs in virt-workloads can now request VLAN 130 or VLAN 140
+  secondary interfaces by referencing these NAD names in their spec.networks.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 NAD VLAN140 ══ -->
+  <section id="nad-vlan140">
+  <h2>08 — NetworkAttachmentDefinition — VLAN 140</h2>
+  <p>The VLAN 140 NAD is structurally identical to VLAN 130. Two values change: the name, and the bridge reference. Every design decision — type: cnv-bridge, macspoofchk: true, ipam: {} — applies identically for the same reasons documented in Section 07.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">nad-vlan140.yaml — NetworkAttachmentDefinition for VLAN 140</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">k8s.cni.cncf.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkAttachmentDefinition</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vlan140-dmz</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yk">annotations</span><span class="yc">:</span>
+    <span class="yk">k8s.v1.cni.cncf.io/resourceName</span><span class="yc">:</span> <span class="yv">bridge.network.kubevirt.io/br-vlan140</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">config</span><span class="yc">:</span> <span class="ys">|
+    {
+      "cniVersion": "0.3.1",
+      "name": "vlan140-dmz",
+      "type": "cnv-bridge",
+      "bridge": "br-vlan140",
+      "macspoofchk": true,
+      "ipam": {}
+    }</span></pre>
+    </div>
+  </div>
+
+  <div class="callout blue">
+    <span class="cl">Why VLAN 130 and VLAN 140 are separate NADs — not a single NAD with VLAN tagging</span>
+    <p>Some CNI plugins support specifying a VLAN ID inside the NAD config — creating one NAD that handles multiple VLANs. The cnv-bridge plugin does not use this model. Each VLAN gets its own bridge (br-vlan130, br-vlan140) and its own NAD. This is intentional: separate bridges provide separate Layer 2 domains. A VM connected to vlan130-primary can only communicate with other VLAN 130 devices at Layer 2. There is no accidental Layer 2 adjacency between VLAN 130 and VLAN 140 VMs — inter-VLAN traffic must go through the router (leaf SVI and NSX gateway in Model A, or leaf SVI and OVN EgressGateway in Model B), where policy is enforced.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 VM WITH SECONDARY ══ -->
+  <section id="vm-with-secondary">
+  <h2>09 — Adding a secondary network interface to a VirtualMachine CR</h2>
+  <p>With the NNCP (bridge on node) and NAD (named network) in place, adding a secondary VLAN 130 interface to a VM requires two additions to the VirtualMachine CR: an entry in <code>spec.template.spec.networks</code> declaring the network source, and an entry in <code>spec.template.spec.domain.devices.interfaces</code> declaring the interface type. The cloud-init userData configures the guest OS side of the interface.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">vm-banking-app-01.yaml — relevant sections showing secondary interface</div></div>
+    <div class="yaml-body"><pre><span class="yc"># ── inside spec.template.spec.domain.devices.interfaces ─────────────────</span>
+<span class="yk">interfaces</span><span class="yc">:</span>
+  <span class="yc">- masquerade: {}</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">default</span>
+    <span class="yc">    # Primary interface — OVN overlay. Unchanged from VIRT-04 test VM.
+    # Provides cluster-internal access: OCP API, DNS, monitoring, cert-manager.</span>
+
+  <span class="yc">- bridge: {}</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">vlan130-nic</span>
+    <span class="yk">macAddress</span><span class="yc">:</span> <span class="yv">"02:00:00:0a:82:32"</span>
+    <span class="yc">    # bridge: {} — interface type for OVN localnet secondary networks.
+    # Tells KubeVirt to create a tap interface and connect it to the bridge
+    # specified in the NAD (br-vlan130 via the cnv-bridge CNI plugin).
+    #
+    # macAddress: "02:00:00:0a:82:32" — MANDATORY for live migration correctness.
+    # If macAddress is omitted, KubeVirt assigns a random MAC at each VMI start.
+    # The destination VMI (started on the new node during migration) gets a
+    # different random MAC. After migration, the VM has a new MAC — the upstream
+    # switch still has the old MAC in its ARP cache → traffic blackhole for
+    # up to 300 seconds until ARP cache expires.
+    # With an explicit MAC, both source and destination VMI use the same MAC.
+    # The gratuitous ARP (sent by cnv-bridge after migration) updates the switch's
+    # MAC table immediately — zero traffic loss.
+    #
+    # MAC convention: 02:00:00: prefix (locally administered, unicast)
+    # + last 3 octets of VM IP in hex: 10.130.0.50 → 0a:82:32
+    # This convention makes it trivial to derive the VM's IP from its MAC
+    # and vice versa — valuable during network troubleshooting.</span>
+
+<span class="yc"># ── inside spec.template.spec.networks ──────────────────────────────────</span>
+<span class="yk">networks</span><span class="yc">:</span>
+  <span class="yc">- name</span><span class="yc">:</span> <span class="yv">default</span>
+    <span class="yk">pod</span><span class="yc">:</span> <span class="yv">{}</span>
+    <span class="yc">    # pod: {} — primary interface uses the pod overlay network (OVN).</span>
+
+  <span class="yc">- name</span><span class="yc">:</span> <span class="yv">vlan130-nic</span>
+    <span class="yk">multus</span><span class="yc">:</span>
+      <span class="yk">networkName</span><span class="yc">:</span> <span class="yv">vlan130-primary</span>
+      <span class="yc">      # networkName: the NAD name in the same namespace.
+      # Multus looks up this NAD, reads its CNI config (cnv-bridge / br-vlan130),
+      # and calls the cnv-bridge plugin to create the secondary tap interface.
+      # The VM guest OS sees this as eth1 — a standard NIC.</span>
+
+<span class="yc"># ── cloud-init userData — configures eth1 in the guest OS ────────────────</span>
+<span class="yk">volumes</span><span class="yc">:</span>
+  <span class="yc">- name: cloudinitdisk</span>
+    <span class="yk">cloudInitNoCloud</span><span class="yc">:</span>
+      <span class="yk">userData</span><span class="yc">:</span> <span class="ys">|
+        #cloud-config
+        hostname: vm-banking-app-01
+        fqdn: vm-banking-app-01.novacrestbank.local
+        network:
+          version: 2
+          ethernets:
+            eth0:
+              dhcp4: false
+            eth1:
+              dhcp4: false
+              addresses:
+                - 10.130.0.50/24
+              gateway4: 10.130.0.3
+              nameservers:
+                addresses: [10.70.0.10, 10.70.0.11]
+                search: [novacrestbank.local]</span>
+      <span class="yc">      # cloud-init configures eth1 on first boot:
+      # - Static IP 10.130.0.50/24 — the VM's production IP on VLAN 130
+      # - gateway4: 10.130.0.3 — HSRP VIP on leaf-01/02 for VLAN 130 (VIRT-01)
+      # - nameservers: DC01 and DC02 — the domain DNS servers
+      # - search: novacrestbank.local — short names resolve in the domain
+      # eth0 is set to dhcp4: false — the OVN overlay assigns its IP internally,
+      # not through DHCP. Cloud-init must not interfere with eth0.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 MODEL A VERIFY ══ -->
+  <section id="model-a-verify">
+  <h2>10 — Model A verification — VM reachable on VLAN 130</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — complete Model A connectivity verification</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: VMI shows secondary IP on VLAN 130 ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o json | python3 -c "
+import json, sys
+vmi = json.load(sys.stdin)
+for i in vmi['status']['interfaces']:
+    print(f\"{i['name']}: IP={i.get('ipAddress','—')} MAC={i.get('mac','—')}\")
+"</span>
+<span class="tg">default: IP=10.0.2.2 MAC=52:54:00:a1:b1:01
+vlan130-nic: IP=10.130.0.50 MAC=02:00:00:0a:82:32</span>
+<span class="tok">✓ Check 1 passed. Secondary interface has IP=10.130.0.50 on VLAN 130.
+  MAC=02:00:00:0a:82:32 matches the explicit macAddress in the VM YAML — stable for migration.</span>
+
+<span class="section">! ══ CHECK 2: VM reachable from jump host by VLAN 130 IP ════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 3 10.130.0.50</span>
+<span class="tg">64 bytes from 10.130.0.50: icmp_seq=1 ttl=63 time=0.412 ms
+64 bytes from 10.130.0.50: icmp_seq=2 ttl=63 time=0.388 ms
+64 bytes from 10.130.0.50: icmp_seq=3 ttl=63 time=0.401 ms</span>
+<span class="tok">✓ Check 2 passed. VM reachable from jump host at 10.130.0.50.</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 1 vm-banking-app-01.novacrestbank.local</span>
+<span class="tg">64 bytes from 10.130.0.50: icmp_seq=1 ttl=63 time=0.395 ms</span>
+<span class="tok">✓ FQDN resolves and is reachable. DNS → IP → VLAN 130 path confirmed.</span>
+
+<span class="section">! ══ CHECK 3: VM can reach DC01 (LDAP path via NSX T0) ══════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads \
+  -- ping -c 1 10.70.0.10</span>
+<span class="tg">64 bytes from 10.70.0.10: icmp_seq=1 ttl=62 time=0.681 ms</span>
+<span class="tok">✓ Check 3 passed. VM on VLAN 130 reaches DC01 on VLAN 70 via NSX T0 gateway.
+  NSX gateway firewall permitted ICMP. LDAP (389) and Kerberos (88) use same path.</span>
+
+<span class="section">! ══ CHECK 4: Leaf switch sees VM MAC on correct port-channel ═══════════</span>
+<span class="tp">leaf-01#</span> <span class="tc">show mac address-table vlan 130 | include 0200.000a.8232</span>
+<span class="tg">VLAN  MAC Address      Type     Age   Ports
+ 130  0200.000a.8232   dynamic  0     Po212</span>
+<span class="tok">✓ Check 4 passed. Leaf switch has learned the VM's MAC on Po212 (bm-virt-02's port-channel).
+  The switch will update this entry to the new port-channel after live migration (Section 16).</span>
+
+<span class="section">! ══ CHECK 5: macspoofchk — spoofed MAC frames are dropped ═════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads \
+  -- bash -c "ip link set eth1 address 02:ff:ff:ff:ff:ff && ping -c 1 10.130.0.1"</span>
+<span class="te">connect: Network is unreachable</span>
+<span class="tok">✓ Check 5 passed. Frames with spoofed MAC dropped by the bridge — macspoofchk working.
+  Restore: virtctl ssh admin@vm-banking-app-01 -n virt-workloads -- ip link set eth1 address 02:00:00:0a:82:32</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 MODEL B ARCHITECTURE ══ -->
+  <section id="model-b-architecture">
+  <h2>11 — Model B architecture — what changes when NSX is decommissioned</h2>
+  <p>Model B is the target state after VIRT-11 (NSX decommission). Understanding the architecture now ensures the VIRT-11 transition is planned from the beginning — not improvised at the end.</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Model A (now)</th><th>Model B (post VIRT-11)</th></tr></thead>
+    <tbody>
+      <tr><td>VM YAML</td><td>NAD reference to vlan130-primary</td><td>Identical — no change</td></tr>
+      <tr><td>NAD</td><td>cnv-bridge / br-vlan130</td><td>Identical — no change</td></tr>
+      <tr><td>NNCP</td><td>br-vlan130 bridge on nodes</td><td>Identical — no change</td></tr>
+      <tr><td>BGP for 10.130.0.0/24</td><td>NSX T0 (ASN 65010) advertises to leaves</td><td>OVN EgressGateway (same ASN 65010) advertises to leaves</td></tr>
+      <tr><td>Inter-zone policy enforcement</td><td>NSX gateway firewall at T0/T1 boundary</td><td>Kubernetes NetworkPolicy + OVN ACLs</td></tr>
+      <tr><td>VLANs 100/101/102/103</td><td>NSX TEP and Edge uplinks — active</td><td>Removed from Cisco fabric (VIRT-11)</td></tr>
+      <tr><td>NSX Manager cluster</td><td>Running at 10.10.0.63</td><td>Decommissioned</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 NETWORKPOLICY VMS ══ -->
+  <section id="networkpolicy-vms">
+  <h2>12 — NetworkPolicy for VM workloads — Model B intra-cluster policy</h2>
+  <p>In Model B, Kubernetes NetworkPolicy enforces policy on virt-launcher pod traffic within the OCP cluster. NetworkPolicy applies to pods — virt-launcher pods are pods — so the same mechanism works for VMs. However, there is an important scope clarification: NetworkPolicy controls traffic on the pod's primary interface (eth0, OVN overlay). Traffic on the VM's secondary VLAN 130 interface (eth1) is controlled by OVN ACLs, not standard NetworkPolicy. VIRT-11 documents OVN ACL configuration for VLAN 130 traffic. This section covers the NetworkPolicy for primary-interface cluster-internal traffic.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">networkpolicy-virt-workloads.yaml — Model B baseline policies</div></div>
+    <div class="yaml-body"><pre><span class="yc"># Default-deny all ingress in the virt-workloads namespace</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">default-deny-ingress</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span> <span class="yv">{}</span>
+  <span class="yc">  # Empty podSelector: applies to ALL pods — including all virt-launcher pods.
+  # No ingress rules = deny all ingress by default.
+  # All permitted traffic is added explicitly below.</span>
+  <span class="yk">policyTypes</span><span class="yc">:</span>
+    <span class="yc">-</span> <span class="yv">Ingress</span>
+<span class="yc">---</span>
+<span class="yc"># Allow Prometheus scrape from monitoring namespace</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">networking.k8s.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkPolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">allow-monitoring</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">podSelector</span><span class="yc">:</span>
+    <span class="yk">matchLabels</span><span class="yc">:</span>
+      <span class="yk">kubevirt.io</span><span class="yc">:</span> <span class="yv">virt-launcher</span>
+  <span class="yc">  # Targets all virt-launcher pods (all running VMs)</span>
+  <span class="yk">ingress</span><span class="yc">:</span>
+    <span class="yc">- from</span><span class="yc">:</span>
+      <span class="yc">  - namespaceSelector:</span>
+          <span class="yk">matchLabels</span><span class="yc">:</span>
+            <span class="yk">kubernetes.io/metadata.name</span><span class="yc">:</span> <span class="yv">openshift-monitoring</span>
+      <span class="yk">ports</span><span class="yc">:</span>
+        <span class="yc">- protocol</span><span class="yc">:</span> <span class="yv">TCP</span>
+          <span class="yk">port</span><span class="yc">:</span> <span class="yv">9100</span>
+          <span class="yc">          # Port 9100: node-exporter metrics inside the VM (if configured).
+          # Prometheus in openshift-monitoring scrapes this port for VM-level metrics.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 EGRESSGATEWAY ══ -->
+  <section id="egressgateway">
+  <h2>13 — EgressGateway — replacing NSX T0 BGP in Model B</h2>
+  <p>In Model A, the NSX T0 gateway (ASN 65010) holds BGP sessions to leaf-01 (ASN 65001) and leaf-02 (ASN 65002) and advertises 10.130.0.0/24 and 10.140.0.0/24. After NSX decommission, those BGP sessions terminate — the leaves lose their routes to VM subnets. OVN-Kubernetes EgressGateway takes over this function.</p>
+  <p>EgressGateway designates specific OCP nodes as egress points for specific subnets and establishes BGP peering from those nodes to the leaf switches using the same ASN (65010) that NSX T0 used. From the leaf switch's perspective, the BGP peer IP changes from the NSX Edge node IP to an OCP node IP — but the routes advertised (10.130.0.0/24, 10.140.0.0/24) and the ASN (65010) remain the same. The BGP reconfiguration on the leaves is a peer address change, not a routing topology change.</p>
+
+  <div class="callout blue">
+    <span class="cl">EgressGateway is configured in VIRT-11 — not here</span>
+    <p>EgressGateway configuration happens during the NSX decommission process in VIRT-11. The BGP peer configuration on leaf-01 and leaf-02 must be updated (old peer: NSX Edge node IPs on VLAN 102/103; new peer: OCP EgressGateway node IPs on VLAN 110) in a coordinated cutover that takes the BGP session down for less than 30 seconds. VIRT-11 documents this step-by-step. This section exists so that the network planning team can verify VIRT-11's EgressGateway plan against the current Model A BGP configuration.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 SRIOV EXPLAINED ══ -->
+  <section id="sriov-explained">
+  <h2>14 — SR-IOV — what it is and when to use it</h2>
+  <p>SR-IOV (Single Root I/O Virtualization) is a PCIe hardware feature that allows one physical NIC to present multiple independent virtual NICs (called Virtual Functions, or VFs) to the operating system. Each VF can be assigned exclusively to a VM, giving the VM direct, kernel-bypass access to the NIC hardware without going through OVN-Kubernetes or the Linux network stack.</p>
+
+  <h3>The trade-off — performance vs portability</h3>
+  <p>SR-IOV VMs have significantly lower network latency and higher throughput than OVN localnet VMs at very high packet rates, because the VM's NIC driver writes directly to the NIC's hardware ring buffers. However, SR-IOV VMs cannot be live-migrated — the VF is bound to a specific physical NIC on a specific node. If the node running an SR-IOV VM needs maintenance, the VM must be cold-migrated (stopped, moved, restarted). For most banking application VMs, OVN localnet is the correct choice. SR-IOV is reserved for:</p>
+
+  <table>
+    <thead><tr><th>Use SR-IOV</th><th>Use OVN localnet</th></tr></thead>
+    <tbody>
+      <tr><td>High-frequency trading (HFT) — sub-100μs latency requirement</td><td>Payment processing VMs — live migration required for maintenance</td></tr>
+      <tr><td>DPDK workloads — require userspace NIC access</td><td>Core banking VMs — NetworkPolicy enforcement needed</td></tr>
+      <tr><td>RDMA (database replication over InfiniBand or RoCE)</td><td>All VMs where live migration is a requirement</td></tr>
+      <tr><td>&gt;500k packets per second where OVN overhead is measurable</td><td>Development and test VMs — operational simplicity preferred</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 SRIOV CONFIG ══ -->
+  <section id="sriov-config">
+  <h2>15 — SR-IOV configuration — SriovNetworkNodePolicy and NAD</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">sriov-policy.yaml — SriovNetworkNodePolicy for Mellanox ConnectX-7 on VLAN 130</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">sriovnetwork.openshift.io/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">SriovNetworkNodePolicy</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-sriov-vlan130</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">sriov-network-operator</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">resourceName</span><span class="yc">:</span> <span class="yv">ncb_sriov_vlan130</span>
+  <span class="yc">  # resourceName: exposed to the Kubernetes device plugin.
+  # VMs request SR-IOV VFs by adding this resource name to their resource limits.</span>
+  <span class="yk">nodeSelector</span><span class="yc">:</span>
+    <span class="yk">workload-type</span><span class="yc">:</span> <span class="yv">virtualization</span>
+  <span class="yk">numVfs</span><span class="yc">:</span> <span class="yv">8</span>
+  <span class="yc">  # 8 VFs per matching NIC per node. Mellanox ConnectX-7 supports up to 127.
+  # 8 is conservative — sufficient for 2-4 HFT VMs per node with VF headroom.</span>
+  <span class="yk">nicSelector</span><span class="yc">:</span>
+    <span class="yk">vendor</span><span class="yc">:</span> <span class="yv">"15b3"</span>
+    <span class="yc">    # 15b3 = Mellanox Technologies (NVIDIA). PCI vendor ID.
+    # Verify: oc debug node/bm-virt-01 -- chroot /host lspci -nn | grep -i mellanox</span>
+    <span class="yk">deviceID</span><span class="yc">:</span> <span class="yv">"101b"</span>
+    <span class="yc">    # 101b = ConnectX-7 device ID (MT2910).
+    # Verify: lspci -nn | grep -i connectx — look for [15b3:XXXX] at end of line.</span>
+  <span class="yk">deviceType</span><span class="yc">:</span> <span class="yv">netdevice</span>
+  <span class="yc">  # netdevice: kernel driver mode — VF appears as a standard Linux netdev in the guest.
+  # Use vfio-pci for DPDK workloads (passes VF to userspace without kernel driver).</span>
+  <span class="yk">vlan</span><span class="yc">:</span> <span class="yv">130</span>
+  <span class="yc">  # Hardware port VLAN — each VF's port is tagged to VLAN 130 at the NIC level.
+  # The VM guest sees an untagged interface; VLAN tagging happens in hardware.
+  # This is different from OVN localnet where the LACP bond sub-interface carries the tag.</span></pre>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="cl">SR-IOV VMs cannot be live-migrated — plan maintenance accordingly</span>
+    <p>A VF is a hardware resource bound to a specific physical NIC on a specific node. KubeVirt cannot move a VF-backed interface to another node during live migration — the VF simply does not exist on the destination node. Attempting to live-migrate an SR-IOV VM results in a migration failure. When a bare-metal node running SR-IOV VMs requires maintenance (firmware update, hardware replacement), those VMs must be cold-migrated: gracefully shut down within the guest OS, then recreated on another node. Plan SR-IOV VM placement to minimise maintenance disruption — for example, spread HFT VMs across multiple nodes so that maintaining one node takes down only a subset of HFT capacity.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 MAC MOBILITY ══ -->
+  <section id="mac-mobility">
+  <h2>16 — MAC mobility — how live migration preserves VM network identity</h2>
+  <p>When a VM is live-migrated from bm-virt-02 to bm-virt-04, the Cisco leaf switch still has its MAC address table entry pointing to Po212 (bm-virt-02's port-channel). Traffic destined for the VM's MAC is forwarded to the wrong node until the switch updates its MAC table. Without an active mechanism to update it, this causes a traffic blackhole lasting until the MAC table entry ages out — up to 300 seconds depending on the switch configuration.</p>
+
+  <h3>The gratuitous ARP mechanism</h3>
+  <p>When migration completes and the VM is fully running on bm-virt-04, the cnv-bridge CNI plugin (the reason for choosing type: cnv-bridge over type: bridge in the NAD) sends a gratuitous ARP on behalf of the VM. A gratuitous ARP is an ARP reply sent without a prior ARP request — its purpose is to update the ARP caches of other devices on the same VLAN and trigger MAC table updates in switches.</p>
+  <p>The gratuitous ARP contains: sender MAC = 02:00:00:0a:82:32 (the VM's MAC), sender IP = 10.130.0.50. When leaf-01 receives this frame on Po214 (bm-virt-04's port-channel), it updates its MAC address table: 02:00:00:0a:82:32 is now on Po214. All subsequent frames destined for 10.130.0.50 are forwarded to bm-virt-04. The update is instantaneous — zero traffic loss for the VM's VLAN 130 connectivity.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">leaf-01 — MAC table before and after live migration</div></div>
+    <div class="term-body"><pre><span class="td">! Before migration — MAC on Po212 (bm-virt-02)</span>
+<span class="tp">leaf-01#</span> <span class="tc">show mac address-table vlan 130 | include 0200.000a</span>
+<span class="tg">VLAN  MAC Address      Type     Age  Ports
+ 130  0200.000a.8232   dynamic  45   Po212</span>
+
+<span class="td">! Trigger migration from jumphost, wait ~30 seconds for completion</span>
+<span class="td">! virtctl migrate vm-banking-app-01 -n virt-workloads</span>
+
+<span class="td">! After migration — MAC updated to Po214 (bm-virt-04)</span>
+<span class="tp">leaf-01#</span> <span class="tc">show mac address-table vlan 130 | include 0200.000a</span>
+<span class="tg">VLAN  MAC Address      Type     Age  Ports
+ 130  0200.000a.8232   dynamic  0    Po214</span>
+<span class="tok">✓ MAC table updated. Age=0 = just learned from the gratuitous ARP.
+  Traffic to 10.130.0.50 is now forwarded to Po214 (bm-virt-04).
+  Established TCP sessions to the VM experienced zero packet loss — the gratuitous
+  ARP updated the switch before any packet was forwarded to the wrong port.</span>
+
+<span class="td">! Verify from jumphost that the VM IP is still reachable without interruption</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o jsonpath='{.status.nodeName}'</span>
+<span class="tg">bm-virt-04.novacrestbank.local</span>
+<span class="tok">✓ VM now running on bm-virt-04. Same IP (10.130.0.50), same MAC (02:00:00:0a:82:32).
+  Network identity is fully preserved across live migration.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 MIGRATION NETWORK ══ -->
+  <section id="migration-network">
+  <h2>17 — Migration network — bandwidth analysis and architecture decision</h2>
+  <p>KubeVirt performs live migration memory transfer over the pod primary network by default — VLAN 110 for the bare-metal nodes. During migration, guest memory pages are streamed from source to destination node at up to <code>bandwidthPerMigration</code> (64 MiB/s, set in the HyperConverged CR in VIRT-04). The question is whether this migration traffic requires a dedicated network interface.</p>
+
+  <div class="decision">
+    <div class="dq">Dedicated migration network vs default primary network for NovaCrestBank</div>
+    <div class="db">
+      <p><strong>Decision: default primary network (VLAN 110). No dedicated migration VLAN.</strong></p>
+      <p>Bandwidth analysis: VLAN 110 is the LACP bond (25 Gbps = ~3 GiB/s usable). Migration bandwidth limit: 5 concurrent migrations × 64 MiB/s = 320 MiB/s ≈ 2.6 Gbps. OCP cluster traffic (API calls, etcd, pod-to-pod): typically 100–500 Mbps. Total peak: ~3.1 Gbps — within the 3 GiB/s capacity with moderate headroom.</p>
+      <p><strong>Rejected: dedicated migration VLAN on VLAN 120.</strong> VLAN 120 is reserved for ODF Ceph replication. During a node drain (the most common cause of multiple simultaneous migrations), Ceph also begins OSD rebalancing on VLAN 120. Combining migration traffic with Ceph rebalancing on VLAN 120 would create contention at the worst moment. Keeping migration on VLAN 110 separates the traffic concerns cleanly.</p>
+      <p><strong>Revisit when:</strong> VM density increases such that parallelMigrationsPerCluster must exceed 5, or if migration latency begins to impact the P99 latency SLOs of VMs sharing VLAN 110 during maintenance drains.</p>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 VM DNS ══ -->
+  <section id="vm-dns">
+  <h2>18 — DNS for VMs — the four-element hostname chain</h2>
+  <p>A VM on VLAN 130 with IP 10.130.0.50 is not automatically registered in DNS. DNS records were pre-created in VIRT-02b Section 06. This section verifies the complete four-element hostname chain that must be consistent for a VM to have correct DNS identity — especially for Windows domain join and Kerberos authentication.</p>
+
+  <h3>The four elements — all must agree</h3>
+  <ol>
+    <li><strong>DNS A record:</strong> <code>vm-banking-app-01.novacrestbank.local → 10.130.0.50</code></li>
+    <li><strong>DNS PTR record:</strong> <code>10.130.0.50 → vm-banking-app-01.novacrestbank.local</code></li>
+    <li><strong>cloud-init hostname:</strong> <code>hostname: vm-banking-app-01</code> and <code>fqdn: vm-banking-app-01.novacrestbank.local</code></li>
+    <li><strong>Guest OS hostname:</strong> What <code>hostname -f</code> reports inside the guest after cloud-init runs</li>
+  </ol>
+  <p>If any element disagrees — for example, cloud-init sets the hostname to <code>vm-banking-app-01</code> but the DNS PTR record points to <code>vm-app-01.novacrestbank.local</code> — Active Directory domain join fails. The DC performs a forward and reverse DNS lookup of the joining computer's name before accepting the join request, and any mismatch is rejected.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify all four elements of the hostname chain</div></div>
+    <div class="term-body"><pre><span class="td"># Element 1: Forward A record resolves to VLAN 130 IP</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short vm-banking-app-01.novacrestbank.local @10.70.0.10</span>
+<span class="tg">10.130.0.50</span>
+<span class="tok">✓ Forward DNS: FQDN → 10.130.0.50</span>
+
+<span class="td"># Element 2: Reverse PTR record resolves to FQDN</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short -x 10.130.0.50 @10.70.0.10</span>
+<span class="tg">vm-banking-app-01.novacrestbank.local.</span>
+<span class="tok">✓ Reverse DNS: 10.130.0.50 → FQDN</span>
+
+<span class="td"># Element 3 and 4: cloud-init applied correctly, guest hostname matches FQDN</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads -- hostname -f</span>
+<span class="tg">vm-banking-app-01.novacrestbank.local</span>
+<span class="tok">✓ Guest OS FQDN matches DNS records. All four elements are consistent.</span>
+
+<span class="td"># Verify DNS resolution from inside the VM (confirming DC01 is the resolver)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads \
+  -- nslookup dc01.novacrestbank.local</span>
+<span class="tg">Server:   10.70.0.10
+Address:  10.70.0.10#53
+
+Name:   dc01.novacrestbank.local
+Address: 10.70.0.10</span>
+<span class="tok">✓ VM uses DC01 (10.70.0.10) as its DNS server. Domain name resolution works.
+  VM is ready for Windows domain join (for Windows VMs) or
+  for application-level DNS resolution for banking service dependencies.</span>
+
+<span class="section">! ══ WINDOWS DOMAIN JOIN (Windows Server VMs only) ══════════════════════</span>
+<span class="td"># For migrated Windows Server VMs — run inside the VM PowerShell after VM is running:</span>
+<span class="td"># Add-Computer `</span>
+<span class="td">#   -DomainName "novacrestbank.local" `</span>
+<span class="td">#   -OUPath "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local" `</span>
+<span class="td">#   -Credential (Get-Credential) `</span>
+<span class="td">#   -Restart</span>
+<span class="td"># After restart: machine certificate auto-enrolls via GPO (VIRT-02b Section 19).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 19 HANDOVER ══ -->
+  <section id="handover">
+  <h2>19 — Readiness checklist — gate to VIRT-06</h2>
+
+  <div class="gate">
+    <div class="gate-title">Node network (NNCP) checks</div>
+    <div class="gate-item"><div class="gate-box"></div>NNCP vlan130-bridge-policy: STATUS=Available, REASON=SuccessfullyConfigured</div>
+    <div class="gate-item"><div class="gate-box"></div>NNCP vlan140-bridge-policy: STATUS=Available, REASON=SuccessfullyConfigured</div>
+    <div class="gate-item"><div class="gate-box"></div>br-vlan130 bridge exists on all 5 bare-metal nodes — bond0.130 in forwarding state</div>
+    <div class="gate-item"><div class="gate-box"></div>br-vlan140 bridge exists on all 5 bare-metal nodes — bond0.140 in forwarding state</div>
+    <div class="gate-item"><div class="gate-box"></div>STP disabled on both bridges — no port shows "blocking" state</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">NetworkAttachmentDefinition checks</div>
+    <div class="gate-item"><div class="gate-box"></div>NAD vlan130-primary in virt-workloads namespace — type: cnv-bridge, bridge: br-vlan130, macspoofchk: true, ipam: {}</div>
+    <div class="gate-item"><div class="gate-box"></div>NAD vlan140-dmz in virt-workloads namespace — type: cnv-bridge, bridge: br-vlan140, macspoofchk: true, ipam: {}</div>
+    <div class="gate-item"><div class="gate-box"></div>Both NADs have the correct resourceName annotation (bridge.network.kubevirt.io/br-vlan13X)</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">VM connectivity checks (Model A)</div>
+    <div class="gate-item"><div class="gate-box"></div>vm-banking-app-01 VMI shows secondary IP=10.130.0.50, MAC=02:00:00:0a:82:32 in status.interfaces</div>
+    <div class="gate-item"><div class="gate-box"></div>VM reachable at 10.130.0.50 from jump host — ping succeeds</div>
+    <div class="gate-item"><div class="gate-box"></div>FQDN vm-banking-app-01.novacrestbank.local resolves to 10.130.0.50 — DNS correct</div>
+    <div class="gate-item"><div class="gate-box"></div>VM can reach DC01 at 10.70.0.10 via NSX T0 — AD domain join path confirmed</div>
+    <div class="gate-item"><div class="gate-box"></div>macspoofchk verified — spoofed MAC frames are dropped by the bridge</div>
+    <div class="gate-item"><div class="gate-box"></div>Leaf switch MAC table shows VM MAC on correct port-channel</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Live migration networking check</div>
+    <div class="gate-item"><div class="gate-box"></div>Live migration of vm-banking-app-01 succeeded — VMIM phase=Succeeded</div>
+    <div class="gate-item"><div class="gate-box"></div>After migration: leaf MAC table updated — VM MAC now on new port-channel (Po214)</div>
+    <div class="gate-item"><div class="gate-box"></div>After migration: VM still reachable at 10.130.0.50 — gratuitous ARP worked</div>
+    <div class="gate-item"><div class="gate-box"></div>After migration: VMI status.interfaces still shows MAC=02:00:00:0a:82:32 — MAC preserved</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-05 complete — VM networking is operational</span>
+    <p>All bare-metal nodes have br-vlan130 and br-vlan140 bridges configured and stable via NNCP. Both NADs are in place with cnv-bridge, macspoofchk enabled, and empty IPAM. Banking application VMs have secondary interfaces on VLAN 130 with routable IPs reachable from the data centre. Live migration preserves MAC addresses via gratuitous ARP — the leaf switch updates its MAC table immediately after each migration with zero traffic loss. DNS identity is complete and consistent. Proceed to VIRT-06 — MTV Migration — to migrate the remaining hypervisor-hosted VMs to the OpenShift Virtualization platform.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

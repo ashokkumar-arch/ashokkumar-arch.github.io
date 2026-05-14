@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-06 — MTV Migration · NovaCrestBank OpenShift Virtualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --odf:#cc0000;--odf-bg:#fff0f0;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --blue:#1a5c8f;--blue-bg:#eff6ff;
+  --purple:#4e45a0;--purple-bg:#f3f0ff;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --vcf:#2d6e2d;--vcf-bg:#f0faf0;
+  --r:8px;--r2:5px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--odf);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--odf-bg);color:var(--odf);border-left-color:var(--odf);font-weight:500}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);background:var(--odf-bg);border:1px solid #fca5a5;padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;margin:40px 0 10px;color:var(--text)}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--odf);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:32px 0}
+.progress{display:flex;margin:0 0 32px;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.pt{flex:1;padding:10px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.pt:last-child{border-right:none}
+.pt.done{background:#e4f0e0;color:#1a5028}
+.pt.active{background:var(--odf);color:#fff}
+.pt-n{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+.callout{border-left:3px solid var(--odf);background:var(--bg3);border-radius:0 var(--r2) var(--r2) 0;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.65;color:var(--text2)}
+.callout.warn{border-left-color:var(--amber)}
+.callout.success{border-left-color:var(--green)}
+.callout.blue{border-left-color:var(--blue)}
+.callout.why{border-left-color:var(--purple)}
+.callout.vcf{border-left-color:var(--vcf)}
+.callout .cl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px;color:var(--odf)}
+.callout.warn .cl{color:var(--amber)}
+.callout.success .cl{color:var(--green)}
+.callout.blue .cl{color:var(--blue)}
+.callout.why .cl{color:var(--purple)}
+.callout.vcf .cl{color:var(--vcf)}
+.callout p{font-size:13.5px;margin-bottom:6px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.term{background:#1a1a1a;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.term-bar{background:#111;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#666;margin-left:6px}
+.term-body{padding:14px 18px;overflow-x:auto}
+.term-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#ccc;white-space:pre}
+.tp{color:#f1c40f;font-weight:700}.tc{color:#61c5eb}.tg{color:#4ccd99}.td{color:#608b7a}
+.tw{color:#cca700}.te{color:#f85149}.tok{color:#3fb950;font-weight:600}
+.yaml{background:#0d1117;border-radius:var(--r);overflow:hidden;margin:16px 0;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85}
+.yaml-bar{background:#161b22;padding:7px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #30363d}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.y{background:#febc2e}.yaml-dot.g{background:#28c840}
+.yaml-label{font-size:11px;color:#8b949e;margin-left:6px}
+.yaml-body{padding:14px 18px;overflow-x:auto}
+.yaml-body pre{background:transparent;border:none;padding:0;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;color:#c9d1d9;white-space:pre}
+.yk{color:#ff9900}.yv{color:#a8d8a8}.ys{color:#f0c890}.yc{color:#484f58;font-style:italic}.ya{color:#d2a8ff}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 12px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:8px 12px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.decision{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:16px 0;border-left:4px solid var(--blue)}
+.dq{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:6px}
+.dq::before{content:'Design decision  '}
+.db{font-size:13.5px;color:var(--text2);line-height:1.68}
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:700}
+.ok-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--r2);padding:13px 16px;margin:14px 0}
+.ok-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.ok-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.ok-item:last-child{margin-bottom:0}
+.ok-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700}
+.gate{background:var(--bg3);border-radius:var(--r);padding:14px 18px;margin:18px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:#fff7ed;color:#7c3d12;border:1px solid #fed7aa}
+.reg-nist{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe}
+/* MTV-specific */
+.timeline{margin:18px 0;display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:0;align-items:stretch}
+.tl-marker{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0}
+.tl-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--odf);background:var(--odf-bg);flex-shrink:0;margin-top:6px}
+.tl-line{width:2px;background:var(--border2);flex:1;margin:4px 0}
+.tl-content{padding:4px 0 20px 14px;flex:1}
+.tl-phase{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--odf);margin-bottom:3px;font-weight:700}
+.tl-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border2);border:.5px solid var(--border2);margin:16px 0;border-radius:var(--r);overflow:hidden}
+.comp-card{background:var(--bg2);padding:14px 16px}
+.comp-tag{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--odf);margin-bottom:4px;font-weight:700}
+.comp-name{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.comp-desc{font-size:13px;color:var(--text2);line-height:1.6}
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-head">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-06</div>
+    <div class="sb-title">MTV Migration</div>
+    <div class="sb-sub">Cold · Warm · CBT · Post-migration validation</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Concepts — first principles</div>
+    <a class="sb-item active" href="#what-mtv-is">01 — What MTV is</a>
+    <a class="sb-item" href="#how-mtv-works">02 — How MTV moves a VM — disk-level mechanism</a>
+    <a class="sb-item" href="#cold-vs-warm">03 — Cold vs warm migration</a>
+    <a class="sb-item" href="#mtv-components">04 — MTV components — every object explained</a>
+    <div class="sb-sec">MTV installation and configuration</div>
+    <a class="sb-item" href="#mtv-install">05 — Install MTV via OLM</a>
+    <a class="sb-item" href="#provider-vcenter">06 — Source provider — vCenter</a>
+    <a class="sb-item" href="#provider-ocp">07 — Destination provider — OCP Virt</a>
+    <a class="sb-item" href="#network-map">08 — NetworkMap — portgroups to NADs</a>
+    <a class="sb-item" href="#storage-map">09 — StorageMap — vSAN to ODF</a>
+    <div class="sb-sec">Cold migration</div>
+    <a class="sb-item" href="#cold-pre-flight">10 — Cold migration pre-flight checks</a>
+    <a class="sb-item" href="#cold-plan">11 — MigrationPlan — cold — every field annotated</a>
+    <a class="sb-item" href="#cold-execute">12 — Execute and monitor cold migration</a>
+    <div class="sb-sec">Warm migration</div>
+    <a class="sb-item" href="#warm-concept">13 — Warm migration — what CBT is and how cutover works</a>
+    <a class="sb-item" href="#warm-plan">14 — MigrationPlan — warm migration</a>
+    <a class="sb-item" href="#warm-execute">15 — Execute warm migration and cutover</a>
+    <div class="sb-sec">Post-migration</div>
+    <a class="sb-item" href="#dns-update">16 — DNS record update — TTL strategy</a>
+    <a class="sb-item" href="#post-validation">17 — Post-migration validation — 10 checks</a>
+    <a class="sb-item" href="#rollback">18 — Rollback — when and how to revert</a>
+    <a class="sb-item" href="#handover">19 — Readiness checklist — gate to VIRT-07</a>
+    <div class="sb-sec">Series navigation</div>
+    <a class="sb-item" href="virt-05-vm-networking.html">← VIRT-05 — VM Networking</a>
+    <a class="sb-item" href="virt-07-lifecycle-gitops.html">VIRT-07 — VM Lifecycle →</a>
+  </div>
+  <div class="sb-foot">VIRT-06 · MTV Migration · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-06 · MTV Migration</div>
+  <div class="prereq-bar">VIRT-05 complete — VM secondary networking operational, VLAN 130/140 NADs in place, live migration verified</div>
+  <h1>MTV Migration</h1>
+  <div class="subtitle">Moving banking application VMs from the VCF hypervisor environment to OpenShift Virtualization —<br>from MTV first principles through cold migration, warm migration, DNS cutover, and post-migration validation</div>
+
+  <div class="progress">
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-00<br>Foundation</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-03<br>ODF</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-04<br>OCP Virt</div>
+    <div class="pt done"><span class="pt-n">✓</span>VIRT-05<br>Networking</div>
+    <div class="pt active"><span class="pt-n">→</span>VIRT-06<br>MTV</div>
+    <div class="pt"><span class="pt-n">8</span>VIRT-07<br>Lifecycle</div>
+    <div class="pt"><span class="pt-n">9</span>VIRT-11<br>NSX Exit</div>
+  </div>
+
+  <!-- ══ 01 WHAT MTV IS ══ -->
+  <section id="what-mtv-is">
+  <h2>01 — What MTV is — the Migration Toolkit for Virtualization explained</h2>
+  <p>MTV (Migration Toolkit for Virtualization) is a Red Hat operator that automates the migration of virtual machines from hypervisor platforms — VMware vSphere, Red Hat Virtualization, or OpenStack — to OpenShift Virtualization. It handles everything that would otherwise be a manual sequence: connecting to the source hypervisor, converting the disk format, transferring disk data, configuring the VM network and storage in the destination, and starting the migrated VM.</p>
+  <h3>What MTV does that manual migration cannot scale</h3>
+  <p>Migrating a VM manually from vSphere involves: exporting the VMDK from vCenter, converting it to QCOW2 with <code>qemu-img</code>, uploading to ODF using <code>virtctl image-upload</code>, creating a VirtualMachine CR by hand, mapping the VMware portgroup to the correct OVN localnet NAD, and verifying the result. For one VM: 2–4 hours. For fifty VMs: weeks — with inconsistency at every manual step. MTV automates all of this through a declarative API. A MigrationPlan specifies which VMs to migrate, how networks map from VMware portgroups to OCP NADs, and how storage maps from vSAN to ODF StorageClasses. MTV executes the plan, tracks progress per VM, retries on transient failures, and produces a migration report.</p>
+  <div class="callout vcf">
+    <span class="cl">What stays in VCF after VIRT-06 — the two-platform transition period</span>
+    <p>VIRT-06 migrates banking application workload VMs from the VCF environment to OpenShift Virtualization bare-metal nodes. The VCF environment continues to run during this period — it still hosts the management VMs (SDDC Manager, vCenter, NSX Manager) and any workload VMs not yet migrated. VCF is not decommissioned in VIRT-06. Both platforms operate simultaneously until NSX decommission in VIRT-11. VIRT-06 migrates workload VMs only — not management infrastructure.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 02 HOW MTV WORKS ══ -->
+  <section id="how-mtv-works">
+  <h2>02 — How MTV moves a VM — the disk-level mechanism</h2>
+  <p>Understanding what happens at the disk and network level during migration allows you to set realistic expectations, diagnose failures, and explain the process to application teams. MTV performs a specific sequence of operations — each has a measurable duration and a failure mode.</p>
+
+  <h3>Cold migration — the complete six-phase sequence</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-marker"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-phase">Phase 1</div><div class="tl-title">Source VM power-off</div>
+      <div class="tl-desc">MTV signals vCenter to gracefully shut down the VM via VMware Tools or forcefully powers it off. The VM's disks become quiesced — no in-flight writes. Data consistency is guaranteed from this moment. The VM is unavailable from here until it starts on OCP Virt.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-phase">Phase 2</div><div class="tl-title">Disk export via VDDK</div>
+      <div class="tl-desc">MTV connects to VMware VDDK (Virtual Disk Development Kit) on the ESXi host and reads the VMDK block by block. VDDK provides a direct data path to the underlying storage — not through the guest OS or the production fabric. Transfer happens over the VMware management network (VLAN 10 in NovaCrestBank). Without VDDK, MTV falls back to HTTP streaming — approximately 10× slower.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-phase">Phase 3</div><div class="tl-title">Format conversion — VMDK to raw</div>
+      <div class="tl-desc">MTV converts the VMDK format on the fly during transfer. The conversion happens in the MTV importer pod's memory — data is never written to disk in VMDK format on the OCP side. Output is raw block data written directly into a new ODF PVC.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-phase">Phase 4</div><div class="tl-title">PVC creation in ODF</div>
+      <div class="tl-desc">MTV creates a PersistentVolumeClaim backed by <code>ocs-storagecluster-ceph-rbd-virtualization</code> for each VM disk. PVC size matches the VM disk. Thick provisioning means full capacity is reserved in Ceph immediately — no thin provisioning growth events later.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-phase">Phase 5</div><div class="tl-title">VirtualMachine CR creation</div>
+      <div class="tl-desc">MTV creates a VirtualMachine CR in the destination namespace. CPU count, memory size, and firmware type (BIOS or UEFI) are read from the source VM's vSphere configuration. Network interfaces are mapped from VMware portgroups to OCP NADs using the NetworkMap. The migrated PVC is attached as the boot disk.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker"><div class="tl-dot"></div></div>
+      <div class="tl-content"><div class="tl-phase">Phase 6</div><div class="tl-title">VM starts on OCP Virt</div>
+      <div class="tl-desc">MTV starts the VirtualMachine. The guest OS boots from the migrated disk. For RHEL VMs, virtio drivers are pre-installed — clean boot. For Windows VMs without virtio drivers pre-installed before migration, the first boot triggers hardware detection and the VirtIO driver ISO may need to be attached to complete the boot cleanly.</div></div>
+    </div>
+  </div>
+
+  <h3>Transfer rate and duration estimation</h3>
+  <p>MTV transfers disk data from ESXi (via VDDK) to the OCP cluster. Effective rate depends on the ESXi host's management NIC bandwidth (1G on NovaCrestBank's VCF VLAN 10) and ODF write throughput. Expect 100–150 MiB/s per VM.</p>
+  <table>
+    <thead><tr><th>VM disk size</th><th>At 100 MiB/s</th><th>At 150 MiB/s</th></tr></thead>
+    <tbody>
+      <tr><td>50 GiB</td><td>~9 min</td><td>~6 min</td></tr>
+      <tr><td>100 GiB</td><td>~17 min</td><td>~11 min</td></tr>
+      <tr><td>200 GiB</td><td>~34 min</td><td>~23 min</td></tr>
+      <tr><td>500 GiB</td><td>~85 min</td><td>~57 min</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="cl">VDDK — the VMware proprietary library MTV requires</span>
+    <p>MTV uses VMware's VDDK for efficient disk access. VDDK must be downloaded separately from VMware Customer Connect, packaged as a container image, and pushed to Harbor before any migration. Without VDDK, MTV falls back to HTTP streaming (~10× slower — not suitable for production migrations). Section 05 covers VDDK image preparation as the mandatory first step of MTV installation.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 03 COLD VS WARM ══ -->
+  <section id="cold-vs-warm">
+  <h2>03 — Cold vs warm migration — choose the right method for each VM</h2>
+  <table>
+    <thead><tr><th>Characteristic</th><th>Cold migration</th><th>Warm migration</th></tr></thead>
+    <tbody>
+      <tr><td><strong>VM state during transfer</strong></td><td>VM powered OFF — no workload during transfer</td><td>VM stays RUNNING — workload continues throughout</td></tr>
+      <tr><td><strong>Downtime</strong></td><td>Full: disk transfer + boot. Can be hours for large disks.</td><td>Minimal: final CBT sync + boot. Typically 2–10 minutes.</td></tr>
+      <tr><td><strong>Data consistency</strong></td><td>Perfect — disk quiesced before transfer begins</td><td>Good — CBT tracks all changed blocks; final sync captures everything</td></tr>
+      <tr><td><strong>VMware requirement</strong></td><td>vSphere API access only</td><td>CBT (Changed Block Tracking) must be enabled on the source VM</td></tr>
+      <tr><td><strong>Use for</strong></td><td>Dev/test VMs, batch processors, VMs with maintenance windows</td><td>Production banking VMs with strict uptime SLOs</td></tr>
+      <tr><td><strong>Risk</strong></td><td>Low — straightforward two-phase process</td><td>Moderate — if disk change rate exceeds CBT sync rate, cutover fails</td></tr>
+    </tbody>
+  </table>
+  <div class="decision">
+    <div class="dq">NovaCrestBank migration wave assignment</div>
+    <div class="db">
+      <p><strong>Cold — wave 1:</strong> vm-win-test-01, vm-rhel-test-01, vm-preprod-01. These VMs have maintenance windows and no production traffic SLO.</p>
+      <p><strong>Warm — wave 2:</strong> vm-banking-app-01 (payment processing), vm-banking-app-02 (core banking API), vm-api-gateway-01 (partner gateway). Strict uptime SLOs — warm migration limits downtime to 3–5 minutes during cutover.</p>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 04 MTV COMPONENTS ══ -->
+  <section id="mtv-components">
+  <h2>04 — MTV components — every object type explained</h2>
+  <p>MTV extends Kubernetes with six CRDs. A mistake in a Provider or StorageMap propagates to every MigrationPlan that references it — understand each object before creating any plan.</p>
+  <div class="comp-grid">
+    <div class="comp-card"><div class="comp-tag">Provider</div><div class="comp-name">Source and Destination</div><div class="comp-desc">Declares a connection to a virtualisation platform. A vsphere Provider connects to vCenter. An openshift Provider is the destination local OCP cluster. MTV discovers the source inventory (VMs, networks, datastores) through the Provider connection and makes it available for mapping in plans.</div></div>
+    <div class="comp-card"><div class="comp-tag">NetworkMap</div><div class="comp-name">VMware portgroup to OCP NAD</div><div class="comp-desc">Declares how VMware distributed portgroups map to OCP NetworkAttachmentDefinitions. A VM connected to seg-banking-app in VMware is connected to vlan130-primary in OCP after migration. Without a NetworkMap, migrated VMs have no secondary network interfaces and cannot be reached by their production IPs.</div></div>
+    <div class="comp-card"><div class="comp-tag">StorageMap</div><div class="comp-name">VMware datastore to OCP StorageClass</div><div class="comp-desc">Declares how VMware datastores map to OCP StorageClasses. All VMs on vSAN map to ocs-storagecluster-ceph-rbd-virtualization. Without a StorageMap, MTV cannot create PVCs for migrated VM disks and the migration fails at Phase 4.</div></div>
+    <div class="comp-card"><div class="comp-tag">Plan</div><div class="comp-name">The migration specification</div><div class="comp-desc">Declares which VMs to migrate, referencing the Provider, NetworkMap, and StorageMap. Specifies cold or warm migration. A single Plan can migrate multiple VMs in parallel. The Plan is validated by MTV before any Migration is created — validation catches missing mappings and unreachable VMs before disk transfer begins.</div></div>
+    <div class="comp-card"><div class="comp-tag">Migration</div><div class="comp-name">One execution of a Plan</div><div class="comp-desc">A Migration is created to execute a Plan. Tracks real-time progress per VM — current phase, bytes transferred, error details. Multiple Migrations can reference the same Plan for retries (if a transfer fails) or for phased execution (migrate some VMs now, others in the next wave).</div></div>
+    <div class="comp-card"><div class="comp-tag">Hook</div><div class="comp-name">Pre/post migration automation</div><div class="comp-desc">An Ansible playbook or shell script that MTV runs before or after a VM migration. Used for pre-migration quiescing (stop the application gracefully before disk freeze), post-migration smoke tests (verify the application responds on its new IP), and monitoring system updates (register the new IP with the observability stack).</div></div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 05 MTV INSTALL ══ -->
+  <section id="mtv-install">
+  <h2>05 — Install MTV via OLM — including VDDK image preparation</h2>
+
+  <h3>Step 1 — Build and push the VDDK container image to Harbor</h3>
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — build VDDK image and push to Harbor</div></div>
+    <div class="term-body"><pre><span class="td"># Download VMware-vix-disklib from https://developer.vmware.com/web/sdk/8.0/vddk
+# Requires VMware Customer Connect account tied to NovaCrestBank's vSphere license</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">mkdir -p /opt/novacrest/vddk && cd /opt/novacrest/vddk
+tar xzf ~/Downloads/VMware-vix-disklib-8.0.3-xxxxxxxx.x86_64.tar.gz</span>
+
+<span class="td"># Build the VDDK container image — FROM scratch means minimal image, only VDDK libraries</span>
+<span class="tp">[admin@jumphost vddk]$</span> <span class="tc">cat > Dockerfile << 'DKRFILE'
+FROM scratch
+COPY vmware-vix-disklib-distrib /vmware-vix-disklib-distrib
+ENTRYPOINT ["echo", "VDDK image — not intended to be run directly"]
+DKRFILE
+
+podman build -t harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3 .
+podman push harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3</span>
+<span class="tg">Getting image source signatures
+Copying blob sha256:abc123... done
+Writing manifest to image destination</span>
+<span class="tok">✓ VDDK image pushed to Harbor at harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3
+  Harbor's certificate is issued by NovaCrestBank-Issuing-CA which is in the OCP
+  additionalTrustBundle — the pull will succeed without additional configuration.</span></pre>
+    </div>
+  </div>
+
+  <h3>Step 2 — Install MTV Operator via OLM</h3>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">mtv-subscription.yaml — MTV Operator Subscription</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Namespace</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+  <span class="yc">  # All MTV component pods (importer, controller, inventory, validation) run here.
+  # Disk transfer importer pods are created here per-VM during migration.</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">OperatorGroup</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">mtv-operator-group</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">targetNamespaces</span><span class="yc">:</span>
+    <span class="yc">-</span> <span class="yv">openshift-mtv</span>
+<span class="yc">---</span>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">operators.coreos.com/v1alpha1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Subscription</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">mtv-operator</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">channel</span><span class="yc">:</span> <span class="yv">release-v2.6</span>
+  <span class="yc">  # MTV versioning is independent of OCP versioning.
+  # release-v2.6 is compatible with OCP 4.16 and vSphere 8.0.
+  # Check https://access.redhat.com/articles/6242671 for the compatibility matrix.
+  # Using an incompatible MTV version causes VDDK initialisation failures
+  # and disk transfer timeouts that are difficult to trace back to a version mismatch.</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">mtv-operator</span>
+  <span class="yk">source</span><span class="yc">:</span> <span class="yv">redhat-operators</span>
+  <span class="yk">sourceNamespace</span><span class="yc">:</span> <span class="yv">openshift-marketplace</span>
+  <span class="yk">installPlanApproval</span><span class="yc">:</span> <span class="yv">Manual</span></pre>
+    </div>
+  </div>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">forklift-controller.yaml — ForkliftController CR with VDDK image</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">ForkliftController</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">forklift-controller</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">feature_ui</span><span class="yc">:</span> <span class="yv">true</span>
+  <span class="yc">  # Enables the MTV UI panel in the OCP web console.
+  # Provides visual migration planning and progress monitoring.
+  # Useful for presenting migration status to application teams during cutover.</span>
+  <span class="yk">vddk_job_image</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3</span>
+  <span class="yc">  # VDDK container image for optimised VMDK-to-raw disk transfer.
+  # Without this field: MTV falls back to HTTP streaming — ~10x slower.
+  # Must match the exact tag pushed to Harbor in Step 1.</span>
+  <span class="yk">inventory_container_limits_memory</span><span class="yc">:</span> <span class="yv">256Mi</span>
+  <span class="yc">  # Memory limit for the inventory container polling vCenter for VM inventory.
+  # 256Mi is sufficient for NovaCrestBank's VCF inventory (under 500 VMs).
+  # Increase to 512Mi for very large vCenter deployments if inventory collection times out.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — install MTV and verify all components running</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f mtv-subscription.yaml</span>
+<span class="tg">namespace/openshift-mtv created
+operatorgroup.operators.coreos.com/mtv-operator-group created
+subscription.operators.coreos.com/mtv-operator created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">PLAN=$(oc get installplan -n openshift-mtv \
+  -o jsonpath='{.items[0].metadata.name}')
+oc patch installplan ${PLAN} -n openshift-mtv \
+  --type merge -p '{"spec":{"approved":true}}'</span>
+<span class="tg">installplan.operators.coreos.com/install-abc12 patched</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get csv -n openshift-mtv</span>
+<span class="tg">NAME                   DISPLAY                                VERSION  PHASE
+mtv-operator.v2.6.x   Migration Toolkit for Virtualization   2.6.x    Succeeded</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f forklift-controller.yaml && \
+  sleep 30 && oc get pods -n openshift-mtv</span>
+<span class="tg">NAME                        READY   STATUS    RESTARTS
+forklift-controller-xxx     1/1     Running   0
+forklift-inventory-xxx      1/1     Running   0
+forklift-ui-plugin-xxx      1/1     Running   0
+forklift-validation-xxx     1/1     Running   0</span>
+<span class="tok">✓ MTV installed. All 4 ForkliftController components Running.
+  MTV UI accessible: OCP Console → Virtualization → Migration → Overview</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 06 PROVIDER VCENTER ══ -->
+  <section id="provider-vcenter">
+  <h2>06 — Source provider — vCenter (NovaCrestBank VCF environment)</h2>
+  <p>A Provider CR declares a connection to a virtualisation platform. MTV uses this connection to discover VM inventory, read VMDK data via VDDK, and control VM power state during migration. Create the credentials Secret first — the Provider references it, not the credentials directly.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">provider-vcenter.yaml — Source Provider — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Provider</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">type</span><span class="yc">:</span> <span class="yv">vsphere</span>
+  <span class="yc">  # vsphere: connects to a VMware vCenter instance.
+  # Other valid types: ovirt (Red Hat Virtualization), openstack, ova, openshift.</span>
+  <span class="yk">url</span><span class="yc">:</span> <span class="yv">https://vcenter-ocp.novacrestbank.local/sdk</span>
+  <span class="yc">  # vcenter-ocp: the OCP workload vCenter (hosts the ESXi cluster with VMs to migrate).
+  # /sdk is the standard vSphere SDK API path. Must use HTTPS.
+  # Not vcenter-mgmt — the management vCenter hosts only VCF management VMs.</span>
+  <span class="yk">secret</span><span class="yc">:</span>
+    <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp-creds</span>
+    <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yc">    # Secret containing: user=svc-mtv-vcenter@novacrestbank.local, password=..., insecureSkipVerify=false.
+    # Account svc-mtv-vcenter requires: VM read, power-off (cold), snapshot create/delete (warm CBT),
+    # VDDK data access. Retrieved from CyberArk via ESO — same pattern as all service accounts.</span>
+  <span class="yk">settings</span><span class="yc">:</span>
+    <span class="yk">vddkInitImage</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3</span>
+    <span class="yc">    # Specifies VDDK image per-Provider. Allows different VDDK versions for different
+    # vCenter versions if needed. In NovaCrestBank, one vCenter, one VDDK version.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — create credentials Secret and apply Provider</div></div>
+    <div class="term-body"><pre><span class="td"># Retrieve password from CyberArk via ESO (same pattern as VIRT-02 iLO credentials)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">MTV_VC_PASS=$(oc get secret svc-mtv-vcenter \
+  -n openshift-mtv -o jsonpath='{.data.password}' | base64 -d)
+
+oc create secret generic vcenter-ocp-creds \
+  --from-literal=user=svc-mtv-vcenter@novacrestbank.local \
+  --from-literal=password=${MTV_VC_PASS} \
+  --from-literal=insecureSkipVerify=false \
+  -n openshift-mtv</span>
+<span class="tg">secret/vcenter-ocp-creds created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f provider-vcenter.yaml</span>
+<span class="tg">provider.forklift.konveyor.io/vcenter-ocp created</span>
+
+<span class="td"># Wait ~3 minutes for inventory collection to complete</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get provider vcenter-ocp -n openshift-mtv \
+  -o jsonpath='{.status.conditions[?(@.type=="Ready")].status} {.status.vmCount}'</span>
+<span class="tg">True 47</span>
+<span class="tok">✓ Provider Ready=True. MTV discovered 47 VMs in the vCenter inventory.
+  Includes management VMs (vCenter, NSX Manager) — the MigrationPlan in Section 11
+  specifies exactly which VMs to migrate. Management VMs are not migrated.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 07 PROVIDER OCP ══ -->
+  <section id="provider-ocp">
+  <h2>07 — Destination provider — OpenShift Virtualization</h2>
+  <p>The destination Provider declares the local OCP cluster as a migration target. Unlike the source Provider (which requires credentials and a URL), the destination Provider for the local cluster uses the in-cluster service account — MTV already has access to the cluster it runs on.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">provider-ocp.yaml — Destination Provider (local OCP cluster)</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Provider</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">host</span>
+  <span class="yc">  # "host": the conventional name for the local cluster destination Provider.
+  # MTV looks for this name as the default destination when MigrationPlans omit
+  # the destinationProvider field. Always use "host" for the local cluster.</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">type</span><span class="yc">:</span> <span class="yv">openshift</span>
+  <span class="yk">url</span><span class="yc">:</span> <span class="yv">&quot;&quot;</span>
+  <span class="yc">  # Empty URL = use the in-cluster Kubernetes API server.
+  # MTV's forklift-controller ServiceAccount has RBAC to create VirtualMachine,
+  # PVC, and DataVolume objects in any namespace — the destination namespace
+  # is specified in the MigrationPlan's targetNamespace field.</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply destination provider and verify both ready</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f provider-ocp.yaml && oc get providers -n openshift-mtv</span>
+<span class="tg">NAME          TYPE        READY   AGE
+vcenter-ocp   vsphere     True    12m
+host          openshift   True    10s</span>
+<span class="tok">✓ Both providers Ready. Source (vCenter) and destination (OCP Virt) configured.
+  MTV can now bridge migrations between the two platforms.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 08 NETWORK MAP ══ -->
+  <section id="network-map">
+  <h2>08 — NetworkMap — VMware portgroups to OVN localnet NADs</h2>
+  <p>The NetworkMap is the translation table between VMware distributed portgroup IDs and OCP NetworkAttachmentDefinition names. Use the internal vSphere portgroup IDs — not the display names, which can be renamed without notice. Retrieve IDs from the MTV inventory API or the MTV UI under Providers → vcenter-ocp → Networks.</p>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">networkmap-ncb.yaml — NetworkMap — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">NetworkMap</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-network-map</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">map</span><span class="yc">:</span>
+    <span class="yc">    # Each entry maps one VMware portgroup to one OCP network.</span>
+    <span class="yc">- source</span><span class="yc">:</span>
+        <span class="yk">id</span><span class="yc">:</span> <span class="yv">network-1001</span>
+        <span class="yc">        # Internal vSphere ID of DPortGroup-seg-banking-app.
+        # Stable across vCenter renames — always use ID, not display name.</span>
+      <span class="yk">destination</span><span class="yc">:</span>
+        <span class="yk">type</span><span class="yc">:</span> <span class="yv">multus</span>
+        <span class="yc">        # multus: connect via a secondary NAD (not the pod overlay).
+        # Use "pod" only for VMs that need cluster-internal access but no routable VLAN IP.</span>
+        <span class="yk">name</span><span class="yc">:</span> <span class="yv">vlan130-primary</span>
+        <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+        <span class="yc">        # The NAD created in VIRT-05 Section 07. Migrated VM's banking app interface
+        # maps to VLAN 130 and gets its production IP on 10.130.0.0/24.</span>
+    <span class="yc">- source</span><span class="yc">:</span>
+        <span class="yk">id</span><span class="yc">:</span> <span class="yv">network-1002</span>
+        <span class="yc">        # DPortGroup-seg-dmz-app → VLAN 140 DMZ NAD</span>
+      <span class="yk">destination</span><span class="yc">:</span>
+        <span class="yk">type</span><span class="yc">:</span> <span class="yv">multus</span>
+        <span class="yk">name</span><span class="yc">:</span> <span class="yv">vlan140-dmz</span>
+        <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+    <span class="yc">- source</span><span class="yc">:</span>
+        <span class="yk">id</span><span class="yc">:</span> <span class="yv">network-1003</span>
+        <span class="yc">        # seg-infra-services → OVN pod overlay (management/cluster access only)</span>
+      <span class="yk">destination</span><span class="yc">:</span>
+        <span class="yk">type</span><span class="yc">:</span> <span class="yv">pod</span>
+  <span class="yk">provider</span><span class="yc">:</span>
+    <span class="yk">source</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yk">destination</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">host</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 09 STORAGE MAP ══ -->
+  <section id="storage-map">
+  <h2>09 — StorageMap — vSAN to ODF StorageClass</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">storagemap-ncb.yaml — StorageMap — every field annotated</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">StorageMap</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-storage-map</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">map</span><span class="yc">:</span>
+    <span class="yc">- source</span><span class="yc">:</span>
+        <span class="yk">id</span><span class="yc">:</span> <span class="yv">datastore-101</span>
+        <span class="yc">        # Internal vSphere ID of the vSAN datastore.
+        # Retrieve from MTV UI: Providers → vcenter-ocp → Storage.</span>
+      <span class="yk">destination</span><span class="yc">:</span>
+        <span class="yk">storageClass</span><span class="yc">:</span> <span class="yv">ocs-storagecluster-ceph-rbd-virtualization</span>
+        <span class="yc">        # The VM-tuned StorageClass from VIRT-03 Section 18:
+        # - Thick provisioned — full capacity reserved at PVC creation
+        # - VM-optimised RBD image features (layering, deep-flatten, exclusive-lock, object-map)
+        # - ReadWriteMany access mode — live migration supported for migrated VMs.
+        # Do NOT use ocs-storagecluster-ceph-rbd (ReadWriteOnce — breaks live migration
+        # for migrated VMs just as it would for natively created VMs).</span>
+        <span class="yk">accessMode</span><span class="yc">:</span> <span class="yv">ReadWriteMany</span>
+        <span class="yc">        # Explicitly set RWX — overrides the StorageClass default if needed.
+        # Migrated VMs must support live migration: RWX is the requirement.</span>
+  <span class="yk">provider</span><span class="yc">:</span>
+    <span class="yk">source</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yk">destination</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">host</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span></pre>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply NetworkMap and StorageMap</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f networkmap-ncb.yaml -f storagemap-ncb.yaml</span>
+<span class="tg">networkmap.forklift.konveyor.io/ncb-network-map created
+storagemap.forklift.konveyor.io/ncb-storage-map created</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get networkmap,storagemap -n openshift-mtv</span>
+<span class="tg">NAME              READY   AGE
+ncb-network-map   True    30s
+ncb-storage-map   True    28s</span>
+<span class="tok">✓ Both maps Ready. MTV can now translate VMware networks and datastores
+  to OCP NADs and StorageClasses for all MigrationPlans.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 10 COLD PRE-FLIGHT ══ -->
+  <section id="cold-pre-flight">
+  <h2>10 — Cold migration pre-flight checks</h2>
+  <p>Before triggering any migration, verify the source VMs and destination environment are ready. MTV performs its own automated validation when a Plan is created, but the manual checks below catch issues that automated validation misses — particularly DNS record absence and ODF capacity shortfall.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — cold migration pre-flight</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: Source VMs are powered off (cold migration requirement) ════</span>
+<span class="td"># Verify in vCenter UI or via MTV inventory API
+# All three wave 1 VMs must show powerState=poweredOff</span>
+<span class="tok">✓ vm-win-test-01, vm-rhel-test-01, vm-preprod-01 confirmed Powered Off in vCenter</span>
+
+<span class="section">! ══ CHECK 2: ODF has capacity for migrated disks ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n openshift-storage \
+  $(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name | head -1) \
+  -- ceph df | grep -E "CLASS|total"</span>
+<span class="tg">CLASS  SIZE    AVAIL   USED    %USED
+total  76 TiB  74 TiB  2 TiB  2.63</span>
+<span class="tok">✓ 74 TiB raw available (~24 TiB usable RF3).
+  Wave 1 total disk: vm-win-test-01 80GiB + vm-rhel-test-01 40GiB + vm-preprod-01 60GiB = 180GiB. Sufficient.</span>
+
+<span class="section">! ══ CHECK 3: DNS records pre-created (VIRT-02b) ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">for vm in vm-win-test-01 vm-rhel-test-01 vm-preprod-01; do
+  ip=$(dig +short ${vm}.novacrestbank.local @10.70.0.10)
+  echo "${vm}.novacrestbank.local → ${ip}"
+done</span>
+<span class="tg">vm-win-test-01.novacrestbank.local → 10.130.0.100
+vm-rhel-test-01.novacrestbank.local → 10.130.0.101
+vm-preprod-01.novacrestbank.local → 10.140.0.100</span>
+<span class="tok">✓ DNS records exist. Migrated VMs reachable by FQDN immediately after migration.</span>
+
+<span class="section">! ══ CHECK 4: Destination namespace exists ═══════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get namespace virt-workloads -o jsonpath='{.status.phase}'</span>
+<span class="tg">Active</span>
+<span class="tok">✓ virt-workloads namespace exists and Active.</span>
+
+<span class="section">! ══ CHECK 5: NetworkMap and StorageMap Ready ════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get networkmap,storagemap -n openshift-mtv \
+  -o custom-columns="NAME:.metadata.name,READY:.status.conditions[?(@.type=='Ready')].status"</span></pre>
+    </div>
+  </div>
+  </section>
+
+
+<span class="tg">NAME              READY   AGE
+ncb-network-map   True    12m
+ncb-storage-map   True    10m</span>
+<span class="tok">✓ Check 5 passed. Both maps are Ready. Pre-flight complete. Cold migration can proceed.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 11 COLD PLAN ══ -->
+  <section id="cold-plan">
+  <h2>11 — MigrationPlan — cold migration — every field annotated</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">migrationplan-cold.yaml — cold migration for test and pre-production VMs</div></div>
+    <div class="yaml-body"><pre>
+<span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Plan</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-cold-migration-wave1</span>
+  <span class="yc">  # Name identifies the migration wave. NovaCrestBank migrates in waves —
+  # wave1: test/preprod VMs (cold). wave2: production VMs (warm).</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">description</span><span class="yc">:</span> <span class="yv">"Wave 1 — cold migration of test and pre-production VMs"</span>
+  <span class="yk">provider</span><span class="yc">:</span>
+    <span class="yk">source</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yk">destination</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">host</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+  <span class="yk">map</span><span class="yc">:</span>
+    <span class="yk">network</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-network-map</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yk">storage</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-storage-map</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+  <span class="yk">targetNamespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yc">  # targetNamespace: the OCP namespace where migrated VMs are created.
+  # VirtualMachine CRs, PVCs, and DataVolumes are created here after migration.
+  # The NADs referenced by the NetworkMap (vlan130-primary, vlan140-dmz) must
+  # exist in this namespace — verified in pre-flight Check 4.</span>
+  <span class="yk">warm</span><span class="yc">:</span> <span class="yv">false</span>
+  <span class="yc">  # warm: false — cold migration. Source VMs must be powered off before transfer.
+  # warm: true enables CBT-based incremental sync (see Section 14 for warm migration).</span>
+  <span class="yk">vms</span><span class="yc">:</span>
+    <span class="yc">- id</span><span class="yc">:</span> <span class="yv">vm-101</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-win-test-01</span>
+      <span class="yc">      # id: internal vSphere VM ID (moref). Retrieve from MTV inventory API or UI.
+      # name: display name for migration plan reference. Does not have to match vCenter name
+      # but should for clarity. The migrated VirtualMachine CR uses the vCenter VM name.</span>
+    <span class="yc">- id</span><span class="yc">:</span> <span class="yv">vm-102</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-rhel-test-01</span>
+    <span class="yc">- id</span><span class="yc">:</span> <span class="yv">vm-103</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-preprod-01</span>
+  <span class="yk">preserveClusterCpuModel</span><span class="yc">:</span> <span class="yv">true</span>
+  <span class="yc">  # preserveClusterCpuModel: true — use the destination cluster's CPU model
+  # rather than the exact source host CPU model.
+  # Why: the DL385 Gen11 (EPYC 9354P) is a different CPU than the ESXi hosts (Xeon).
+  # If the source VM was configured with host-model CPU in vSphere and we tried to
+  # emulate the exact Xeon model on EPYC hardware, some CPU features would not be
+  # available. Setting this to true tells KubeVirt to use the cluster's native CPU
+  # model — EPYC — which all VMs on the bare-metal nodes share.
+  # Result: migrated VMs may gain access to EPYC-specific CPU extensions (AVX-512,
+  # SHA-NI) that the source Xeon did not have. Applications must be tested if they
+  # depend on specific CPU features being absent.</span>
+</pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 12 COLD EXECUTE ══ -->
+  <section id="cold-execute">
+  <h2>12 — Execute and monitor cold migration</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — apply Plan and trigger Migration</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f migrationplan-cold.yaml</span>
+<span class="tg">plan.forklift.konveyor.io/ncb-cold-migration-wave1 created</span>
+
+<span class="td"># Wait for Plan validation (MTV checks that all VMs are accessible and
+# that the NetworkMap and StorageMap cover all VM networks and datastores)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get plan ncb-cold-migration-wave1 -n openshift-mtv \
+  -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</span>
+<span class="tg">True</span>
+<span class="tok">✓ Plan Ready=True. All VMs accessible, all networks and datastores mapped.
+  Safe to start migration.</span>
+
+<span class="td"># Create the Migration object to start execution</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat << EOF | oc apply -f -
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Migration
+metadata:
+  name: ncb-cold-wave1-run1
+  namespace: openshift-mtv
+spec:
+  plan:
+    name: ncb-cold-migration-wave1
+    namespace: openshift-mtv
+EOF</span>
+<span class="tg">migration.forklift.konveyor.io/ncb-cold-wave1-run1 created</span>
+
+<span class="td"># Monitor migration progress — all 3 VMs migrate in parallel</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 15 'oc get migration ncb-cold-wave1-run1 \
+  -n openshift-mtv -o json | python3 -c "
+import json,sys
+m = json.load(sys.stdin)
+vms = m.get('"'"'status'"'"',{}).get('"'"'vms'"'"',[])
+for vm in vms:
+    name = vm.get('"'"'name'"'"','?')
+    phase = vm.get('"'"'phase'"'"','?')
+    pct = vm.get('"'"'pipeline'"'"',[{}])[-1].get('"'"'progress'"'"',{}).get('"'"'completed'"'"',0)
+    print(f'"'"'{name}: {phase} {pct}%'"'"')
+"'</span>
+<span class="tg">vm-win-test-01:  DiskTransfer 42%
+vm-rhel-test-01: DiskTransfer 67%
+vm-preprod-01:   DiskTransfer 28%</span>
+<span class="td"># After ~25 minutes for all three VMs:</span>
+<span class="tg">vm-win-test-01:  Completed 100%
+vm-rhel-test-01: Completed 100%
+vm-preprod-01:   Completed 100%</span>
+<span class="tok">✓ All 3 VMs migrated. Verify the VirtualMachine CRs were created in virt-workloads:</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vm -n virt-workloads</span>
+<span class="tg">NAME              AGE   STATUS    READY
+vm-rhel9-test-01  14d   Running   True
+vm-win-test-01    2m    Running   True
+vm-rhel-test-01   2m    Running   True
+vm-preprod-01     2m    Running   True</span>
+<span class="tok">✓ All migrated VMs are Running. Cold migration wave 1 complete.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 13 WARM CONCEPT ══ -->
+  <section id="warm-concept">
+  <h2>13 — Warm migration — what CBT is and how cutover works</h2>
+  <p>Warm migration is the method for production VMs that cannot tolerate extended downtime. Understanding the mechanism — specifically Changed Block Tracking (CBT) and the pre-copy/cutover phases — is essential for planning the maintenance window correctly.</p>
+
+  <h3>What Changed Block Tracking (CBT) is</h3>
+  <p>CBT is a VMware feature that tracks which disk blocks have changed since a given point in time. When CBT is enabled on a VM, vSphere maintains a change log for each VMDK. MTV uses the CBT API to retrieve only the changed blocks during incremental synchronisation — not the entire disk. This is what makes warm migration efficient: instead of transferring a 200 GiB disk again during the final cutover, MTV only transfers the blocks that changed since the last sync — typically a few hundred megabytes for a production banking application VM.</p>
+
+  <h3>The three phases of warm migration</h3>
+  <p><strong>Phase 1 — Initial copy:</strong> MTV creates a snapshot of the VM's disk in vSphere (using CBT). The full disk data is transferred to ODF — identical to a cold migration transfer, but the VM stays running. This is the longest phase — 20–90 minutes depending on disk size. The VM continues serving production traffic throughout.</p>
+  <p><strong>Phase 2 — Incremental sync (pre-copy):</strong> After the initial copy, MTV uses CBT to identify blocks that changed while Phase 1 was running and syncs those changes to ODF. Then it syncs again. And again. Each sync iteration is shorter than the previous because the change delta is smaller — the VM's ODF copy converges toward the live disk state. MTV continues pre-copy sync iterations until the engineer triggers cutover.</p>
+  <p><strong>Phase 3 — Cutover:</strong> The engineer triggers cutover during a maintenance window (even a brief one — 3–10 minutes). MTV performs one final CBT sync, powers off the source VM in vSphere, performs a final incremental sync to capture any last changes, and starts the VM in OCP Virt. The ODF copy of the disk is now current. Total cutover downtime = final sync time + VM boot time.</p>
+
+  <div class="callout warn">
+    <span class="cl">CBT must be enabled on source VMs before warm migration — verify first</span>
+    <p>CBT is not enabled by default on all VMware VMs. It must be explicitly enabled in vSphere. Without CBT, MTV cannot perform incremental sync and falls back to transferring the entire disk at every sync iteration — eliminating the warm migration advantage. Verify CBT status before creating a warm MigrationPlan: in vCenter, right-click the VM → Edit Settings → VM Options → Advanced → Edit Configuration → check for <code>ctkEnabled = TRUE</code>. If not set, enable CBT and take a snapshot to initialise the CBT log.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 14 WARM PLAN ══ -->
+  <section id="warm-plan">
+  <h2>14 — MigrationPlan — warm migration for production banking VMs</h2>
+
+  <div class="yaml">
+    <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><div class="yaml-label">migrationplan-warm.yaml — warm migration for production VMs</div></div>
+    <div class="yaml-body"><pre><span class="yk">apiVersion</span><span class="yc">:</span> <span class="yv">forklift.konveyor.io/v1beta1</span>
+<span class="yk">kind</span><span class="yc">:</span> <span class="yv">Plan</span>
+<span class="yk">metadata</span><span class="yc">:</span>
+  <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-warm-migration-wave2</span>
+  <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+<span class="yk">spec</span><span class="yc">:</span>
+  <span class="yk">description</span><span class="yc">:</span> <span class="yv">"Wave 2 — warm migration of production banking application VMs"</span>
+  <span class="yk">provider</span><span class="yc">:</span>
+    <span class="yk">source</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yk">destination</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">host</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+  <span class="yk">map</span><span class="yc">:</span>
+    <span class="yk">network</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-network-map</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+    <span class="yk">storage</span><span class="yc">:</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-storage-map</span>
+      <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
+  <span class="yk">targetNamespace</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
+  <span class="yk">warm</span><span class="yc">:</span> <span class="yv">true</span>
+  <span class="yc">  # warm: true — enables CBT-based incremental synchronisation.
+  # The source VMs stay powered on during Phase 1 (initial copy) and Phase 2 (pre-copy sync).
+  # Only Phase 3 (cutover) requires a brief maintenance window.</span>
+  <span class="yk">vms</span><span class="yc">:</span>
+    <span class="yc">- id</span><span class="yc">:</span> <span class="yv">vm-201</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-banking-app-01</span>
+    <span class="yc">- id</span><span class="yc">:</span> <span class="yv">vm-202</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-banking-app-02</span>
+    <span class="yc">- id</span><span class="yc">:</span> <span class="yv">vm-203</span>
+      <span class="yk">name</span><span class="yc">:</span> <span class="yv">vm-api-gateway-01</span>
+  <span class="yk">preserveClusterCpuModel</span><span class="yc">:</span> <span class="yv">true</span>
+  <span class="yk">cutover</span><span class="yc">:</span> <span class="yv">null</span>
+  <span class="yc">  # cutover: null — do not automatically cut over at a scheduled time.
+  # With null, pre-copy sync runs indefinitely until the engineer explicitly triggers
+  # cutover by setting this field to a timestamp or patching the Migration object.
+  # This is the correct setting for production migrations where cutover must be
+  # coordinated with the application team and change management.
+  # To schedule automatic cutover: cutover: "2024-11-15T02:00:00Z"</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 15 WARM EXECUTE ══ -->
+  <section id="warm-execute">
+  <h2>15 — Execute warm migration — pre-copy phase and cutover</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — start warm migration and monitor pre-copy phase</div></div>
+    <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f migrationplan-warm.yaml</span>
+<span class="tg">plan.forklift.konveyor.io/ncb-warm-migration-wave2 created</span>
+
+<span class="td"># Create the Migration object to start pre-copy sync</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">cat << EOF | oc apply -f -
+apiVersion: forklift.konveyor.io/v1beta1
+kind: Migration
+metadata:
+  name: ncb-warm-wave2-run1
+  namespace: openshift-mtv
+spec:
+  plan:
+    name: ncb-warm-migration-wave2
+    namespace: openshift-mtv
+EOF</span>
+<span class="tg">migration.forklift.konveyor.io/ncb-warm-wave2-run1 created</span>
+
+<span class="td"># Monitor Phase 1 (initial copy) — source VMs remain running throughout</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get migration ncb-warm-wave2-run1 -n openshift-mtv \
+  -o jsonpath='{.status.vms[*].phase}'</span>
+<span class="tg">PreparingData DiskTransfer DiskTransfer</span>
+<span class="td"># Source VMs are still running and serving traffic
+# Phase 1 takes 20-90 minutes depending on disk size</span>
+<span class="tg">CopyingPaused CopyingPaused CopyingPaused</span>
+<span class="tok">✓ Phase 1 complete. CopyingPaused = pre-copy sync iterations running.
+  MTV is performing CBT incremental syncs. Source VMs still running.
+  Monitor the sync delta — it should decrease with each iteration.</span>
+
+<span class="td"># Check current sync iteration delta (how much data is being synced each iteration)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get migration ncb-warm-wave2-run1 -n openshift-mtv \
+  -o jsonpath='{.status.vms[0].pipeline[-1:].progress}'</span>
+<span class="tg">{"total":200000,"completed":200000}</span>
+<span class="td"># After several iterations, the delta is small — ready for cutover</td>
+
+<span class="td"># ── CUTOVER — coordinate with application team and change management ────
+# 1. Notify the load balancer team to remove vm-banking-app-01 from the pool
+# 2. Confirm no in-flight transactions (check application health endpoint)
+# 3. Trigger cutover — MTV performs final sync and powers off source VM</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">CUTOVER_TIME=$(date -u -d '+5 minutes' '+%Y-%m-%dT%H:%M:%SZ')
+oc patch migration ncb-warm-wave2-run1 -n openshift-mtv \
+  --type merge \
+  -p "{\"spec\":{\"cutover\":\"${CUTOVER_TIME}\"}}"</span>
+<span class="tg">migration.forklift.konveyor.io/ncb-warm-wave2-run1 patched</span>
+
+<span class="td"># Cutover timer countdown — monitor the final sync and power-off</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">watch -n 5 'oc get migration ncb-warm-wave2-run1 \
+  -n openshift-mtv -o jsonpath="{.status.vms[*].phase}"'</span>
+<span class="tg">Copying Copying Copying          ← final CBT sync in progress
+PoweringOff PoweringOff Copying  ← source VMs being powered off
+Completed Completed Completed    ← migration done, OCP Virt VMs started</span>
+<span class="tok">✓ Warm migration cutover complete. Total downtime: 4 minutes 12 seconds.
+  All three production VMs now running on OpenShift Virtualization.
+  Source VMs are powered off in vSphere — do not power them on again until
+  post-migration validation is complete (Section 17).</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 16 DNS UPDATE ══ -->
+  <section id="dns-update">
+  <h2>16 — DNS record update — TTL strategy and cutover procedure</h2>
+  <p>After migration, the VMs have new IP addresses on VLAN 130 (or VLAN 140). The old DNS records point to their old IPs on the NSX overlay segments. Any system that resolves the VM's hostname gets the old IP until the DNS record is updated. The DNS update is the last step before a migrated VM is officially "live" on OCP Virt.</p>
+
+  <h3>TTL reduction before migration — reduce cache impact</h3>
+  <p>DNS records have a TTL (Time To Live) — the number of seconds a resolver may cache the record before checking DNS again. The standard TTL in NovaCrestBank's AD-integrated DNS zone is 3600 seconds (1 hour). A migrated VM with a new IP will not be reachable by its old cached DNS record for up to 1 hour after the DNS update.</p>
+  <p>The correct preparation: at least 1 hour before migration begins, reduce the DNS TTL for the migrating VM's A record to 60 seconds. After 1 hour, all caches will have expired their old TTL entries and will start using the 60-second TTL. After cutover, the DNS record is updated with the new IP. All caches expire within 60 seconds — traffic switches to the new IP within 1 minute of the DNS update.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">DC01 — PowerShell — TTL reduction and post-migration DNS update</div></div>
+    <div class="term-body"><pre><span class="td"># Step 1 (1+ hour before cutover): reduce TTL to 60 seconds for production VMs</span>
+<span class="tp">PS C:\></span> <span class="tc">$zone = "novacrestbank.local"
+foreach ($vm in @("vm-banking-app-01","vm-banking-app-02","vm-api-gateway-01")) {
+    Set-DnsServerResourceRecord `
+        -ZoneName $zone `
+        -OldInputObject (Get-DnsServerResourceRecord -ZoneName $zone -Name $vm -RRType A) `
+        -NewInputObject (Get-DnsServerResourceRecord -ZoneName $zone -Name $vm -RRType A |
+            ForEach-Object { $_.TimeToLive = [TimeSpan]::FromSeconds(60); $_ })
+    Write-Host "TTL reduced to 60s for ${vm}"
+}</span>
+<span class="tg">TTL reduced to 60s for vm-banking-app-01
+TTL reduced to 60s for vm-banking-app-02
+TTL reduced to 60s for vm-api-gateway-01</span>
+
+<span class="td"># Wait 1+ hour for TTL changes to propagate through all DNS caches</span>
+<span class="td"># Then proceed with migration cutover (Section 15)</span>
+
+<span class="td"># Step 2 (immediately after cutover): update A record to new VLAN 130 IP</span>
+<span class="td"># Old IP was on NSX overlay segment. New IP is on VLAN 130.</span>
+<span class="tp">PS C:\></span> <span class="tc">$migrations = @{
+    "vm-banking-app-01" = "10.130.0.50"
+    "vm-banking-app-02" = "10.130.0.51"
+    "vm-api-gateway-01" = "10.140.0.50"
+}
+
+foreach ($vm in $migrations.Keys) {
+    $newIP = $migrations[$vm]
+    # Remove old A record
+    Remove-DnsServerResourceRecord -ZoneName $zone -Name $vm -RRType A -Force
+    # Create new A record with new IP (PTR auto-created if "Create PTR" is checked)
+    Add-DnsServerResourceRecordA `
+        -ZoneName $zone `
+        -Name $vm `
+        -IPv4Address $newIP `
+        -TimeToLive ([TimeSpan]::FromSeconds(3600)) `
+        -CreatePtr
+    Write-Host "Updated: ${vm} → ${newIP}"
+}</span>
+<span class="tg">Updated: vm-banking-app-01 → 10.130.0.50
+Updated: vm-banking-app-02 → 10.130.0.51
+Updated: vm-api-gateway-01 → 10.140.0.50</span>
+<span class="tok">✓ DNS records updated. TTL restored to 3600 seconds.
+  Within 60 seconds, all DNS resolvers will return the new VLAN 130 IPs.
+  Verify from jump host:</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short vm-banking-app-01.novacrestbank.local @10.70.0.10</span>
+<span class="tg">10.130.0.50</span>
+<span class="tok">✓ DNS record updated. vm-banking-app-01 now resolves to its VLAN 130 IP.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 17 POST VALIDATION ══ -->
+  <section id="post-validation">
+  <h2>17 — Post-migration validation — 10 checks</h2>
+  <p>Do not declare a migration successful until all 10 checks below pass. Running these checks before restoring traffic to a migrated VM prevents discovering failures under load — which is significantly more disruptive than discovering them during validation.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — 10-point post-migration validation</div></div>
+    <div class="term-body"><pre><span class="section">! ══ CHECK 1: VMI is Running on a bare-metal node ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o custom-columns="NAME:.metadata.name,PHASE:.status.phase,NODE:.status.nodeName"</span>
+<span class="tg">NAME                PHASE    NODE
+vm-banking-app-01   Running  bm-virt-03.novacrestbank.local</span>
+<span class="tok">✓ Check 1 passed. VMI Running on bare-metal node (not ESXi-hosted worker).</span>
+
+<span class="section">! ══ CHECK 2: Secondary interface has correct VLAN 130 IP ════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o jsonpath='{.status.interfaces[?(@.name=="vlan130-nic")].ipAddress}'</span>
+<span class="tg">10.130.0.50</span>
+<span class="tok">✓ Check 2 passed. Secondary interface shows correct VLAN 130 IP.</span>
+
+<span class="section">! ══ CHECK 3: VM reachable by FQDN from jump host ════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 3 vm-banking-app-01.novacrestbank.local</span>
+<span class="tg">64 bytes from 10.130.0.50: icmp_seq=1 ttl=63 time=0.412 ms
+64 bytes from 10.130.0.50: icmp_seq=2 ttl=63 time=0.388 ms
+64 bytes from 10.130.0.50: icmp_seq=3 ttl=63 time=0.401 ms</span>
+<span class="tok">✓ Check 3 passed. DNS resolves correctly, VM reachable at new VLAN 130 IP.</span>
+
+<span class="section">! ══ CHECK 4: Guest OS is using correct hostname ═════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads -- hostname -f</span>
+<span class="tg">vm-banking-app-01.novacrestbank.local</span>
+<span class="tok">✓ Check 4 passed. Guest OS hostname matches FQDN — DNS identity chain complete.</span>
+
+<span class="section">! ══ CHECK 5: Application service is responding ══════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk https://vm-banking-app-01.novacrestbank.local:8443/health</span>
+<span class="tg">{"status":"UP","components":{"db":{"status":"UP"},"ldap":{"status":"UP"}}}</span>
+<span class="tok">✓ Check 5 passed. Banking application health endpoint returns UP.
+  Database and LDAP connections are working from the migrated VM.</span>
+
+<span class="section">! ══ CHECK 6: PVC is using correct StorageClass and AccessMode ═══════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pvc -n virt-workloads | grep vm-banking-app-01</span>
+<span class="tg">vm-banking-app-01     Bound  pvc-abc123  100Gi  RWX  ocs-storagecluster-ceph-rbd-virtualization  2m</span>
+<span class="tok">✓ Check 6 passed. PVC Bound, RWX access mode, correct VM-tuned StorageClass.
+  Live migration is possible for this migrated VM.</span>
+
+<span class="section">! ══ CHECK 7: qemu-guest-agent running ══════════════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
+  -o jsonpath='{.status.guestOSInfo.id}'</span>
+<span class="tg">rhel</span>
+<span class="tok">✓ Check 7 passed. qemu-guest-agent running and reporting guest OS info.
+  For Windows VMs: install virtio-win guest agent if not already present in the migrated VM.</span>
+
+<span class="section">! ══ CHECK 8: Live migration test on migrated VM ═════════════════════════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl migrate vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to migrate</span>
+
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmim -n virt-workloads \
+  -o jsonpath='{.items[0].status.phase}'</span>
+<span class="tg">Succeeded</span>
+<span class="tok">✓ Check 8 passed. Migrated VM supports live migration — RWX PVC confirmed working.</span>
+
+<span class="section">! ══ CHECK 9: No errors in ODF after migration (disk write-heavy phase) ═</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc exec -n openshift-storage \
+  $(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name | head -1) \
+  -- ceph status | grep health</span>
+<span class="tg">health: HEALTH_OK</span>
+<span class="tok">✓ Check 9 passed. Ceph HEALTH_OK after heavy disk write during migration.</span>
+
+<span class="section">! ══ CHECK 10: Source VM in vSphere is powered off and not restarted ════</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get provider vcenter-ocp -n openshift-mtv \
+  -o json | python3 -c "
+import json,sys,subprocess
+r = subprocess.run(['oc','get','--raw',
+  '/apis/forklift.konveyor.io/v1beta1/namespaces/openshift-mtv/providers/vcenter-ocp/vms'],
+  capture_output=True, text=True)
+for vm in json.loads(r.stdout).get('items',[]):
+    if vm['name'] == 'vm-banking-app-01':
+        print(f\"Source VM powerState: {vm.get('powerState','?')}\")
+"</span>
+<span class="tg">Source VM powerState: poweredOff</span>
+<span class="tok">✓ Check 10 passed. Source VM in vSphere remains powered off.
+  CRITICAL: if the source VM is accidentally powered back on while the OCP Virt VM
+  is running, both will have the same IP — a network conflict. The source VM
+  should remain powered off until verified not needed, then deleted from vSphere.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 18 ROLLBACK ══ -->
+  <section id="rollback">
+  <h2>18 — Rollback — when and how to revert a migration</h2>
+  <p>Not every migration succeeds cleanly. Know the rollback procedure before starting any production migration — not after a failure has already occurred.</p>
+
+  <h3>When rollback is appropriate</h3>
+  <p>Rollback is appropriate when post-migration validation reveals that the migrated VM is not functioning correctly and the issue cannot be resolved quickly (within the agreed maintenance window for warm migration, or within acceptable downtime for cold migration). Rollback is specifically the ability to power the source VM back on in vSphere and restore service there while the OCP Virt issue is investigated.</p>
+
+  <div class="callout warn">
+    <span class="cl">Rollback is only possible if the source VM has not been deleted</span>
+    <p>The source VM in vSphere is left in place (powered off) after migration. Rollback is straightforward: power on the source VM in vSphere, update DNS back to the old IP, and declare the migration reverted. Delete the migrated VM from OCP Virt until the issue is resolved. Once the source VM is deleted from vSphere, rollback requires restoring from backup — a significantly more complex operation. Do not delete source VMs until the migration is fully validated and stable for at least 7 days.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — rollback procedure</div></div>
+    <div class="term-body"><pre><span class="td"># Step 1: Stop the migrated VM in OCP Virt (prevents dual-IP conflict)</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl stop vm-banking-app-01 -n virt-workloads</span>
+<span class="tg">VM vm-banking-app-01.virt-workloads was scheduled to stop</span>
+
+<span class="td"># Step 2: Power on the source VM in vSphere (via vCenter UI or API)</span>
+<span class="td"># Or via MTV Provider inventory (the source VM is still registered)</span>
+<span class="td"># In vCenter: right-click vm-banking-app-01 → Power → Power On</span>
+
+<span class="td"># Step 3: Revert DNS to old IP</span>
+<span class="td"># On DC01 PowerShell:</span>
+<span class="td"># Remove-DnsServerResourceRecord -ZoneName "novacrestbank.local" \</span>
+<span class="td">#   -Name "vm-banking-app-01" -RRType A -Force</span>
+<span class="td"># Add-DnsServerResourceRecordA -ZoneName "novacrestbank.local" \</span>
+<span class="td">#   -Name "vm-banking-app-01" -IPv4Address "10.50.0.x" -CreatePtr</span>
+
+<span class="td"># Step 4: Verify service is restored on the source VM</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk https://vm-banking-app-01.novacrestbank.local:8443/health</span>
+<span class="tg">{"status":"UP","components":{"db":{"status":"UP"},"ldap":{"status":"UP"}}}</span>
+<span class="tok">✓ Service restored on source VM. Rollback complete.
+  Investigate migration failure, fix root cause, then re-attempt migration.</span></pre>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- ══ 19 HANDOVER ══ -->
+  <section id="handover">
+  <h2>19 — Readiness checklist — gate to VIRT-07</h2>
+
+  <div class="gate">
+    <div class="gate-title">MTV installation checks</div>
+    <div class="gate-item"><div class="gate-box"></div>MTV CSV Succeeded: mtv-operator.v2.6.x in openshift-mtv namespace</div>
+    <div class="gate-item"><div class="gate-box"></div>ForkliftController deployed with correct VDDK image reference</div>
+    <div class="gate-item"><div class="gate-box"></div>Both Providers Ready: vcenter-ocp (vsphere) and host (openshift)</div>
+    <div class="gate-item"><div class="gate-box"></div>vcenter-ocp provider inventory populated (vmCount > 0)</div>
+    <div class="gate-item"><div class="gate-box"></div>NetworkMap ncb-network-map Ready — all VM portgroups mapped to OCP NADs</div>
+    <div class="gate-item"><div class="gate-box"></div>StorageMap ncb-storage-map Ready — vSAN datastore mapped to ceph-rbd-virtualization</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Cold migration checks (wave 1)</div>
+    <div class="gate-item"><div class="gate-box"></div>Migration ncb-cold-wave1-run1 phase=Succeeded — all 3 VMs in Completed state</div>
+    <div class="gate-item"><div class="gate-box"></div>vm-win-test-01, vm-rhel-test-01, vm-preprod-01 VMIs Running on bare-metal nodes</div>
+    <div class="gate-item"><div class="gate-box"></div>All migrated VMs reachable by FQDN — DNS records correct</div>
+    <div class="gate-item"><div class="gate-box"></div>Source VMs remain powered off in vSphere</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Warm migration checks (wave 2)</div>
+    <div class="gate-item"><div class="gate-box"></div>Migration ncb-warm-wave2-run1 phase=Succeeded — all 3 production VMs Completed</div>
+    <div class="gate-item"><div class="gate-box"></div>vm-banking-app-01, vm-banking-app-02 VMIs Running on bare-metal nodes with VLAN 130 IPs</div>
+    <div class="gate-item"><div class="gate-box"></div>vm-api-gateway-01 VMI Running with VLAN 140 IP</div>
+    <div class="gate-item"><div class="gate-box"></div>DNS records updated to VLAN 130/140 IPs — old IPs no longer resolvable</div>
+    <div class="gate-item"><div class="gate-box"></div>All 10 post-migration validation checks passed for each VM</div>
+    <div class="gate-item"><div class="gate-box"></div>Application health endpoints return UP on all migrated production VMs</div>
+    <div class="gate-item"><div class="gate-box"></div>Live migration verified on at least one migrated production VM</div>
+    <div class="gate-item"><div class="gate-box"></div>ODF HEALTH_OK after migration disk writes</div>
+  </div>
+
+  <div class="callout success">
+    <span class="cl">VIRT-06 complete — banking application VMs are running on OpenShift Virtualization</span>
+    <p>Six VMs have been migrated from the VCF hypervisor environment to OpenShift Virtualization bare-metal nodes. Three via cold migration (test/preprod), three via warm migration (production — with minimal downtime during cutover). All migrated VMs are reachable on VLAN 130/140, DNS records are updated, source VMs are powered off in vSphere, and post-migration validation passes. NSX continues to enforce inter-zone policy (Model A). Proceed to VIRT-07 — VM Lifecycle and GitOps — to bring migrated VMs under Argo CD management and implement OADP backup.</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

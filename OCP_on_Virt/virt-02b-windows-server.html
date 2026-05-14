@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRT-02b — Windows Server for OpenShift Virtualization · NovaCrestBank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#ffffff;--bg3:#edece8;
+  --text:#181715;--text2:#4a4840;--text3:#88867f;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --win:#107c10;--win-bg:#f0faf0;--win-border:#a3d9a3;
+  --ocp:#cc0000;--ocp-bg:#fff0f0;--ocp-border:#fca5a5;
+  --green:#0e6b45;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --amber:#92400e;--amber-bg:#fffbeb;
+  --warn:#991b1b;--warn-bg:#fef2f2;
+  --hw:#1e3a5f;--hw-bg:#eff6ff;--hw-border:#bfdbfe;
+  --virt:#7c2d12;--virt-bg:#fff7ed;--virt-border:#fed7aa;
+  --pci:#7c3d12;--pci-bg:#fff7ed;
+  --nist:#1e3a5f;--nist-bg:#eff6ff;
+  --term-bg:#0d1117;--term-text:#c9d1d9;
+  --term-green:#3fb950;--term-yellow:#e3b341;
+  --term-blue:#58a6ff;--term-gray:#8b949e;
+  --term-orange:#ffa657;--term-red:#f85149;
+  --term-cyan:#39d0d8;--term-purple:#d2a8ff;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0e0c;--bg2:#1a1916;--bg3:#242220;--text:#e8e5dc;
+  --text2:#a8a49c;--text3:#686460;--border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13)}
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.72;-webkit-font-smoothing:antialiased}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;width:268px;height:100vh;background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;z-index:100}
+.sb-header{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-series{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--win);margin-bottom:4px}
+.sb-title{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text);line-height:1.35}
+.sb-sub{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+.sb-nav{flex:1;padding:8px 0}
+.sb-group{padding:12px 18px 4px;font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+.sb-item{display:block;padding:7px 18px 7px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--win-bg);color:var(--win);border-left-color:var(--win);font-weight:500}
+.sb-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+/* MAIN */
+.main{margin-left:268px;padding:44px 56px 100px;max-width:1060px}
+.guide-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--win);background:var(--win-bg);border:1px solid var(--win-border);padding:4px 10px;border-radius:3px;margin-bottom:18px}
+.prereq-bar{background:var(--green-bg);border:1px solid var(--green-border);border-radius:5px;padding:10px 16px;margin-bottom:24px;font-size:12.5px;color:var(--green);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px}
+.prereq-bar::before{content:'✓';font-size:14px}
+h1{font-family:'DM Serif Display',serif;font-size:30px;line-height:1.12;color:var(--text);margin-bottom:8px;letter-spacing:-.015em}
+.subtitle{font-size:14px;color:var(--text2);margin-bottom:32px;font-style:italic;line-height:1.6}
+h2{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;margin:44px 0 12px;color:var(--text);letter-spacing:-.01em}
+h3{font-size:14.5px;font-weight:600;margin:26px 0 8px;color:var(--text)}
+h3:first-child{margin-top:0}
+h4{font-size:12.5px;font-weight:600;margin:18px 0 6px;color:var(--text2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
+p{margin-bottom:13px;color:var(--text2);font-size:14px;line-height:1.78}
+ul,ol{margin:8px 0 14px 22px;color:var(--text2)}
+li{margin-bottom:7px;font-size:14px;line-height:1.72}
+li strong{color:var(--text)}
+code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:3px;color:var(--win);border:1px solid var(--border2)}
+hr{border:none;border-top:.5px solid var(--border);margin:36px 0}
+
+/* TERMINAL */
+.term{background:var(--term-bg);border-radius:7px;padding:0;margin:16px 0;overflow:hidden}
+.term-header{padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;font-family:'DM Mono',monospace;font-size:10px;color:var(--term-gray);display:flex;align-items:center;gap:8px}
+.term-dot{width:10px;height:10px;border-radius:50%;background:#3fb950;flex-shrink:0}
+.term-body{padding:16px 20px;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85;overflow-x:auto;white-space:pre}
+.term-body .prompt{color:var(--term-blue)}
+.term-body .cmd{color:var(--term-text)}
+.term-body .out{color:var(--term-gray)}
+.term-body .ok{color:var(--term-green)}
+.term-body .warn{color:var(--term-yellow)}
+.term-body .err{color:var(--term-red)}
+.term-body .hl{color:var(--term-orange)}
+.term-body .comment{color:#484f58;font-style:italic}
+.term-body .section{color:var(--term-cyan)}
+.term-body .key{color:var(--term-purple)}
+
+/* CALLOUTS */
+.callout{border-radius:5px;padding:14px 18px;margin:18px 0;font-size:13.5px;line-height:1.68}
+.callout strong{display:block;margin-bottom:5px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em}
+.callout p{margin-bottom:6px;font-size:13.5px;color:var(--text2)}
+.callout p:last-child{margin-bottom:0}
+.callout-win{background:var(--win-bg);border-left:3px solid var(--win)}
+.callout-win strong{color:var(--win)}
+.callout-green{background:var(--green-bg);border-left:3px solid var(--green)}
+.callout-green strong{color:var(--green)}
+.callout-warn{background:var(--warn-bg);border-left:3px solid var(--warn)}
+.callout-warn strong{color:var(--warn)}
+.callout-amber{background:var(--amber-bg);border-left:3px solid var(--amber)}
+.callout-amber strong{color:var(--amber)}
+.callout-ocp{background:var(--ocp-bg);border-left:3px solid var(--ocp)}
+.callout-ocp strong{color:var(--ocp)}
+.callout-virt{background:var(--virt-bg);border-left:3px solid var(--virt)}
+.callout-virt strong{color:var(--virt)}
+.callout-hw{background:var(--hw-bg);border-left:3px solid var(--hw)}
+.callout-hw strong{color:var(--hw)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+th{text-align:left;padding:9px 13px;background:var(--bg3);text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border2)}
+td{padding:9px 13px;border-bottom:.5px solid var(--border);vertical-align:top;color:var(--text2);font-size:13px;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.td-none{color:var(--green);font-weight:500}
+.td-new{color:var(--win);font-weight:500}
+.td-guide{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+
+/* WRONG / VERIFY */
+.wrong-box{background:#fef2f2;border:.5px solid #fca5a5;border-radius:5px;padding:14px 18px;margin:16px 0}
+.wrong-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:8px}
+.wrong-item{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:var(--text2);line-height:1.6}
+.wrong-item:last-child{margin-bottom:0}
+.wrong-item::before{content:'✗';color:var(--warn);flex-shrink:0;font-weight:600}
+.verify{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:5px;padding:14px 18px;margin:16px 0}
+.verify-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px}
+.verify-item{display:flex;gap:10px;margin-bottom:7px;font-size:13px;color:var(--text2);line-height:1.6}
+.verify-item:last-child{margin-bottom:0}
+.verify-item::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:600}
+
+/* GATE / CHECKLIST */
+.gate{background:var(--bg3);border-radius:6px;padding:16px 20px;margin:20px 0;border:.5px solid var(--border2)}
+.gate-title{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px}
+.gate-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;color:var(--text2)}
+.gate-item:last-child{margin-bottom:0}
+.gate-box{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px}
+
+/* PROGRESS */
+.progress{display:flex;gap:0;margin:0 0 32px;border:.5px solid var(--border2);border-radius:6px;overflow:hidden}
+.prog-step{flex:1;padding:10px 8px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);border-right:.5px solid var(--border2);background:var(--bg2)}
+.prog-step:last-child{border-right:none}
+.prog-step.done{background:var(--green-bg);color:var(--green)}
+.prog-step.current{background:var(--win-bg);color:var(--win);font-weight:600}
+.prog-num{font-size:14px;display:block;margin-bottom:2px}
+
+/* REG BADGES */
+.reg{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px;margin:2px 1px}
+.reg-pci{background:var(--pci-bg);color:var(--pci);border:1px solid var(--virt-border)}
+.reg-nist{background:var(--nist-bg);color:var(--nist);border:1px solid var(--hw-border)}
+
+/* DECISION BOX */
+.decision{background:var(--bg3);border-radius:6px;padding:16px 18px;margin:18px 0;border-left:4px solid var(--win)}
+.decision-q{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--win);margin-bottom:6px}
+.decision-q::before{content:'Design decision  '}
+.decision-body{font-size:13.5px;color:var(--text2);line-height:1.68}
+
+/* GUI STEP */
+.gui-step{border-left:3px solid var(--win);padding:12px 16px;margin:12px 0;background:var(--win-bg);border-radius:0 5px 5px 0}
+.gui-step-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--win);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.gui-step-action{font-size:13.5px;color:var(--text2);line-height:1.65}
+.gui-path{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:3px;display:inline-block;margin:3px 0;color:var(--text)}
+
+@media(max-width:900px){.sidebar{position:static;width:100%;height:auto}.main{margin-left:0;padding:24px 20px;max-width:100%}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-series">NovaCrestBank · OpenShift Virtualization · VIRT-02b</div>
+    <div class="sb-title">Windows Server for OpenShift Virtualization</div>
+    <div class="sb-sub">DNS · DHCP · OU · PKI — the complete AD reference</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group">Context</div>
+    <a class="sb-item active" href="#why-this-guide">01 — Why a dedicated Windows Server guide</a>
+    <a class="sb-item" href="#what-already-exists">02 — What already exists — zero reconfiguration needed</a>
+    <a class="sb-item" href="#change-register">03 — Complete Windows Server change register</a>
+    <div class="sb-group">DNS</div>
+    <a class="sb-item" href="#dns-what-exists">04 — DNS — what the VIRT series needs and why</a>
+    <a class="sb-item" href="#dns-bare-metal">05 — DNS: bare-metal node records (verification)</a>
+    <a class="sb-item" href="#dns-vm-workload">06 — DNS: VLAN 130 VM workload records</a>
+    <a class="sb-item" href="#dns-vm-dmz">07 — DNS: VLAN 140 VM workload DMZ records</a>
+    <a class="sb-item" href="#dns-post-migration">08 — DNS: post-migration record updates (MTV reference)</a>
+    <a class="sb-item" href="#dns-verification">09 — DNS verification — all records</a>
+    <div class="sb-group">DHCP</div>
+    <a class="sb-item" href="#dhcp-what-exists">10 — DHCP — what already exists</a>
+    <a class="sb-item" href="#dhcp-vlan130">11 — DHCP: new scope for VLAN 130</a>
+    <a class="sb-item" href="#dhcp-vlan140">12 — DHCP: new scope for VLAN 140</a>
+    <a class="sb-item" href="#dhcp-reservations">13 — DHCP: reservations for migrated VMs</a>
+    <a class="sb-item" href="#dhcp-verification">14 — DHCP verification</a>
+    <div class="sb-group">Active Directory</div>
+    <a class="sb-item" href="#ad-what-exists">15 — AD — what already exists</a>
+    <a class="sb-item" href="#ad-ou">16 — New OU for OpenShift Virtualization VMs</a>
+    <a class="sb-item" href="#ad-service-accounts">17 — Service accounts for VM management</a>
+    <div class="sb-group">PKI</div>
+    <a class="sb-item" href="#pki-what-exists">18 — PKI — what already exists and why it is enough</a>
+    <a class="sb-item" href="#pki-machine-template">19 — Machine certificate template — verification</a>
+    <a class="sb-item" href="#pki-vm-certs">20 — Certificate lifecycle for migrated Windows VMs</a>
+    <div class="sb-group">Sign-off</div>
+    <a class="sb-item" href="#readiness-checklist">21 — Windows Server readiness checklist</a>
+    <div class="sb-group">Series navigation</div>
+    <a class="sb-item" href="virt-02-bare-metal-provisioning.html">← VIRT-02 — Node Provisioning</a>
+    <a class="sb-item" href="virt-03-odf.html">VIRT-03 — ODF →</a>
+  </div>
+  <div class="sb-footer">VIRT-02b · Windows Server · ashokkumar-arch.github.io</div>
+</nav>
+
+<main class="main">
+
+  <div class="guide-tag">VIRT-02b · Windows Server for OpenShift Virtualization</div>
+  <div class="prereq-bar">VIRT-02 complete — all five bare-metal nodes are Ready and labelled</div>
+  <h1>Windows Server for<br>OpenShift Virtualization</h1>
+  <div class="subtitle">The complete reference for every Active Directory, DNS, DHCP, and PKI change<br>the OpenShift Virtualization series makes — in one place</div>
+
+  <div class="progress">
+    <div class="prog-step done"><span class="prog-num">✓</span>VIRT-00<br>Foundation</div>
+    <div class="prog-step done"><span class="prog-num">✓</span>VIRT-01<br>Fabric</div>
+    <div class="prog-step done"><span class="prog-num">✓</span>VIRT-02<br>Provision</div>
+    <div class="prog-step current"><span class="prog-num">→</span>VIRT-02b<br>Windows</div>
+    <div class="prog-step"><span class="prog-num">5</span>VIRT-03<br>ODF</div>
+    <div class="prog-step"><span class="prog-num">6</span>VIRT-04<br>OCP Virt</div>
+  </div>
+
+  <!-- SECTION 01 -->
+  <section id="why-this-guide">
+  <h2>01 — Why a dedicated Windows Server guide</h2>
+  <p>In a banking environment with formal change management, every Active Directory change requires its own change request, its own approval, and its own implementation record. The Windows Server and AD team operates independently from the platform team — they cannot be expected to open six different guides across the VIRT series to discover what DNS records need to be added, what DHCP scopes need to exist, and what OU structure is expected.</p>
+  <p>This guide is the single document that answers the question: "What does the OpenShift Virtualization project need from Active Directory, DNS, DHCP, and PKI — and what change request do I need to raise?" Every Windows Server change the entire VIRT series makes is documented here, in the order it needs to happen, with the exact procedure for each change.</p>
+  <p>For the platform engineer: this guide also serves as confirmation that the existing VCF Windows Server infrastructure is reused without modification — you do not need to reconfigure AD integration, rebuild a PKI hierarchy, or create new GPOs. What you do need to know is precisely documented in Section 03 (the complete change register).</p>
+
+  <div class="callout callout-win">
+    <strong>Audience — this guide serves two teams</strong>
+    <p><strong>Windows/AD administrator:</strong> Sections 03 through 20 are yours. Every change that requires AD access is here with step-by-step procedures. Section 21 is the sign-off checklist you return signed before the platform team proceeds to VIRT-03.</p>
+    <p><strong>Platform/OCP engineer:</strong> Section 02 confirms that the existing AD integration, PKI trust, and OAuth configuration require zero changes. Sections 05 and 09 are verification steps you run from the jump host to confirm the AD team's work is complete before VIRT-03.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 02 -->
+  <section id="what-already-exists">
+  <h2>02 — What already exists — zero reconfiguration needed</h2>
+  <p>The OpenShift on VCF + NSX series (Series II) established a complete Windows Server infrastructure that the VIRT series inherits in full. Before describing what changes, it is important to document precisely what does not change — because in a banking environment, the absence of change is as important to document as the presence of change.</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Status for VIRT series</th><th>Why no change is needed</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>AD DS domain</strong><br><code>novacrestbank.local</code><br>DC01 (10.70.0.10) + DC02 (10.70.0.11)</td>
+        <td class="td-none">Zero changes</td>
+        <td>The five bare-metal nodes are worker nodes in the OCP cluster — they do not join the Windows domain. RHCOS nodes are managed by OCP, not by AD. No new computer accounts, no new Group Policy application, no new OU membership for the nodes themselves.</td>
+      </tr>
+      <tr>
+        <td><strong>AD OAuth integration</strong><br>OCP ↔ novacrestbank.local via LDAPS</td>
+        <td class="td-none">Zero changes</td>
+        <td>AD OAuth is a cluster-wide configuration managed by the OAuth cluster operator. The bare-metal nodes are workers — they do not participate in authentication. Users authenticate to OCP via the masters, which already talk to DC01/DC02 on LDAPS port 636. Adding five worker nodes changes nothing about this path.</td>
+      </tr>
+      <tr>
+        <td><strong>PKI trust in OCP</strong><br>Root CA + Issuing CA in additionalTrustBundle</td>
+        <td class="td-none">Zero changes</td>
+        <td>The <code>additionalTrustBundle</code> from the original OCP installation already contains both CA certificates. The Machine Config Operator distributes this trust bundle to every node in the cluster — including new nodes that join after initial installation. The five bare-metal nodes receive the CA trust bundle automatically as part of joining the cluster.</td>
+      </tr>
+      <tr>
+        <td><strong>cert-manager ADCS ClusterIssuer</strong><br>Points to IssuingCA at 10.70.0.21</td>
+        <td class="td-none">Zero changes</td>
+        <td>cert-manager's ClusterIssuer is a cluster-wide resource. It issues certificates for any namespace in the cluster. Workloads on bare-metal nodes use the same ClusterIssuer as workloads on ESXi-hosted nodes. No new issuer, no new configuration.</td>
+      </tr>
+      <tr>
+        <td><strong>Root CA (offline)</strong><br>rootca.novacrestbank.local (10.70.0.20)</td>
+        <td class="td-none">Zero changes</td>
+        <td>The Root CA is offline and powered down except for maintenance. The VIRT series does not require any new subordinate CA or Root CA signing operation.</td>
+      </tr>
+      <tr>
+        <td><strong>Issuing CA (online)</strong><br>issuingca.novacrestbank.local (10.70.0.21)</td>
+        <td class="td-none">Zero changes to CA</td>
+        <td>The Issuing CA and all existing certificate templates are unchanged. The Machine certificate template (used for Windows VM auto-enrolment) already exists and is correctly configured. Section 19 verifies this — it does not change it.</td>
+      </tr>
+      <tr>
+        <td><strong>Group Policy Objects</strong><br>Password policy, FGPP, PKI auto-enrolment</td>
+        <td class="td-none">Zero changes</td>
+        <td>Existing GPOs apply to their current OU scope. The new OU created in Section 16 inherits all GPOs from its parent OU through standard AD inheritance — no GPO modification is needed.</td>
+      </tr>
+      <tr>
+        <td><strong>DNS zones</strong><br>novacrestbank.local forward zone<br>Existing reverse zones</td>
+        <td class="td-none">Zero changes to existing zones</td>
+        <td>The existing forward zone and existing reverse zones (10.10, 10.20, 10.25, 10.40, 10.50, 10.70, 10.100–103) are unchanged. New reverse zones (10.110, 10.120, 10.130, 10.140) were created in VIRT-00 as prerequisites. New records are added to existing zones — no zone structure changes.</td>
+      </tr>
+      <tr>
+        <td><strong>DHCP server</strong><br>DC01 DHCP service</td>
+        <td class="td-none">Zero changes to existing scopes</td>
+        <td>Existing DHCP scopes (Management Domain, OCP nodes discovery) are unchanged. Two new scopes are added for VM workloads. The DHCP failover partnership between DC01 and DC02 extends automatically to new scopes.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-green">
+    <strong>The architecture decision that makes this possible</strong>
+    <p>The reason so little changes in Windows Server for the VIRT series is the architecture decision documented in VIRT-00 ADR-VIRT-01: the bare-metal nodes join the <em>existing</em> OCP cluster rather than forming a new one. If a new cluster were created, it would require a new <code>additionalTrustBundle</code>, new AD OAuth integration, a new cert-manager ClusterIssuer, and potentially a new DNS zone for a new cluster domain. By joining the existing cluster, all of that infrastructure is already in place. One cluster. One Windows Server integration. The VIRT series adds five nodes to something that already exists — not a second parallel system.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 03 -->
+  <section id="change-register">
+  <h2>03 — Complete Windows Server change register</h2>
+  <p>This is the authoritative list of every Windows Server change the OpenShift Virtualization series makes, across all guides. An AD administrator can use this table to raise a single change request covering the full scope of work before any configuration begins.</p>
+
+  <table>
+    <thead><tr><th>Change</th><th>Type</th><th>When needed</th><th>Guide</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>DNS A + PTR records for bm-virt-01 through bm-virt-05 (10.110.0.11–.15) and their iLO interfaces (10.40.0.71–.75)</td>
+        <td class="td-new">DNS — already done</td>
+        <td>Before VIRT-02 — completed in VIRT-00 Section 07d</td>
+        <td class="td-guide">VIRT-00 / VIRT-02b Section 05</td>
+      </tr>
+      <tr>
+        <td>New reverse zones: 110.10.10, 120.10.10, 130.10.10, 140.10.10 in-addr.arpa</td>
+        <td class="td-new">DNS — already done</td>
+        <td>Before VIRT-02 — completed in VIRT-00 Section 07d</td>
+        <td class="td-guide">VIRT-00 / VIRT-02b Section 05</td>
+      </tr>
+      <tr>
+        <td>DNS A + PTR records for VM workloads on VLAN 130 (initial planned VMs)</td>
+        <td class="td-new">DNS — new</td>
+        <td>Before VIRT-05 (VM Networking) — created in this guide Section 06</td>
+        <td class="td-guide">VIRT-02b Section 06</td>
+      </tr>
+      <tr>
+        <td>DNS A + PTR records for VM workloads on VLAN 140 (DMZ-adjacent VMs)</td>
+        <td class="td-new">DNS — new</td>
+        <td>Before VIRT-05 (VM Networking) — created in this guide Section 07</td>
+        <td class="td-guide">VIRT-02b Section 07</td>
+      </tr>
+      <tr>
+        <td>DNS record updates for VMs migrated from VMware (IP changes from VCF segments to VLAN 130/140)</td>
+        <td class="td-new">DNS — new (at migration time)</td>
+        <td>During VIRT-06 (MTV Migration) cutover — procedure documented here, executed there</td>
+        <td class="td-guide">VIRT-02b Section 08</td>
+      </tr>
+      <tr>
+        <td>DHCP scope for VLAN 110 bare-metal discovery (10.110.0.20–.250)</td>
+        <td class="td-new">DHCP — already done</td>
+        <td>Before VIRT-02 — completed in VIRT-00 Section 07d</td>
+        <td class="td-guide">VIRT-00 / VIRT-02b Section 10</td>
+      </tr>
+      <tr>
+        <td>DHCP scope for VLAN 130 VM workload primary (10.130.0.50–.200)</td>
+        <td class="td-new">DHCP — new</td>
+        <td>Before VIRT-05 (VM Networking) — created in this guide</td>
+        <td class="td-guide">VIRT-02b Section 11</td>
+      </tr>
+      <tr>
+        <td>DHCP scope for VLAN 140 VM workload DMZ (10.140.0.50–.200)</td>
+        <td class="td-new">DHCP — new</td>
+        <td>Before VIRT-05 (VM Networking) — created in this guide</td>
+        <td class="td-guide">VIRT-02b Section 12</td>
+      </tr>
+      <tr>
+        <td>DHCP reservations for migrated VMs that must keep their existing IPs</td>
+        <td class="td-new">DHCP — new (at migration time)</td>
+        <td>During VIRT-06 planning phase — procedure documented here</td>
+        <td class="td-guide">VIRT-02b Section 13</td>
+      </tr>
+      <tr>
+        <td>New OU: OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</td>
+        <td class="td-new">AD — new</td>
+        <td>Before VIRT-06 (MTV Migration) — migrated VMs join this OU on domain join</td>
+        <td class="td-guide">VIRT-02b Section 16</td>
+      </tr>
+      <tr>
+        <td>Service account: svc-ocp-virt-mgmt (for AAP VM lifecycle automation in VIRT-10)</td>
+        <td class="td-new">AD — new</td>
+        <td>Before VIRT-10 (AAP) — created now to be available when needed</td>
+        <td class="td-guide">VIRT-02b Section 17</td>
+      </tr>
+      <tr>
+        <td>Machine certificate template verification (auto-enrolment for migrated Windows VMs)</td>
+        <td class="td-none">PKI — verification only, no change</td>
+        <td>Before VIRT-06 — verified in this guide</td>
+        <td class="td-guide">VIRT-02b Section 19</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <span class="reg reg-pci">PCI-DSS v4.0 Req 6.5.1</span>
+  <p style="font-size:13px;color:var(--text2);margin-top:10px">PCI-DSS Requirement 6.5.1 requires that all changes to system components are managed via a change management process. This change register is the input to that process — every change is identified, scoped, and assigned to the guide where it is implemented. No AD change in the VIRT series is undocumented.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 04 -->
+  <section id="dns-what-exists">
+  <h2>04 — DNS — what the VIRT series needs and why</h2>
+  <p>DNS is the foundational dependency for everything else. Before a VM can be reached by name, before a migrated VM can join AD, before the OCP cluster can resolve bare-metal node FQDNs — DNS must be correct. This section establishes the complete DNS picture for the VIRT series before any record is created.</p>
+
+  <h3>The DNS server — no change needed</h3>
+  <p>DNS is served by DC01 and DC02 using Active Directory-integrated zones for <code>novacrestbank.local</code>. The Assisted Installer embedded DC01 (10.70.0.10) as the DNS server for all bare-metal nodes in the DHCP scope (VIRT-00) and in the NMState static configuration (VIRT-02). The bare-metal nodes already use DC01/DC02 for DNS. No DNS server configuration changes are needed — only new records in existing zones.</p>
+
+  <h3>The naming convention — consistent with the VCF series</h3>
+  <p>All new FQDNs follow the pattern established in the VCF series: <code>&lt;hostname&gt;.novacrestbank.local</code>. VM workload records follow the same convention: <code>vm-&lt;function&gt;-&lt;number&gt;.novacrestbank.local</code>. This ensures that any engineer who knows the naming convention from the VCF guides can immediately understand the VIRT naming without a separate lookup.</p>
+
+  <div class="decision">
+    <div class="decision-q">Why DNS records for VMs must exist before the VM is created</div>
+    <div class="decision-body">
+      <p>When a VM is created in OpenShift Virtualization (VIRT-05) or migrated from VMware (VIRT-06), the VM guest OS starts and expects to be reachable by its hostname. If the DNS A record does not exist at that moment, several things fail immediately: Windows VMs cannot join the domain (AD domain join requires forward DNS resolution to succeed before the join is attempted), monitoring agents cannot register the VM by name, and the NSX/NetworkPolicy rules that reference FQDNs cannot resolve the VM's IP. Creating DNS records before the VM exists — a planned, deliberate act — is the correct sequence.</p>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 05 -->
+  <section id="dns-bare-metal">
+  <h2>05 — DNS: bare-metal node records — verification</h2>
+  <p>The bare-metal node DNS records were created in VIRT-00 Section 07d as a provisioning prerequisite. This section verifies they are correct and complete. If they are not present, VIRT-02 could not have succeeded — but verify anyway, because DNS replication between DC01 and DC02 occasionally lags and a record visible on DC01 may not yet be visible on DC02.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — verify bare-metal node DNS records on both DCs</div>
+    <div class="term-body">
+<span class="comment"># Verify from both DC01 and DC02 — replication must be complete on both</span>
+<span class="prompt">[admin@jumphost ~]$</span> <span class="cmd">for dc in 10.70.0.10 10.70.0.11; do
+  echo "=== DNS server: ${dc} ==="
+  for n in 01 02 03 04 05; do
+    ip="10.110.0.1${n#0}"
+    fwd=$(dig +short bm-virt-${n}.novacrestbank.local @${dc} 2>/dev/null)
+    rev=$(dig +short -x ${ip} @${dc} 2>/dev/null)
+    status="✓"
+    [[ "${fwd}" != "${ip}" ]] && status="✗ FORWARD MISSING"
+    [[ -z "${rev}" ]] && status="${status} ✗ PTR MISSING"
+    echo "  bm-virt-${n}: A=${fwd} PTR=${rev} ${status}"
+  done
+done</span>
+<span class="out">=== DNS server: 10.70.0.10 ===
+  bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.local. ✓
+  bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.local. ✓
+  bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.local. ✓
+  bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.local. ✓
+  bm-virt-05: A=10.110.0.15 PTR=bm-virt-05.novacrestbank.local. ✓
+=== DNS server: 10.70.0.11 ===
+  bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.local. ✓
+  bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.local. ✓
+  bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.local. ✓
+  bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.local. ✓
+  bm-virt-05: A=10.110.0.15 PTR=bm-virt-15.novacrestbank.local. ✓</span>
+<span class="ok">✓ All bare-metal node A and PTR records are present and identical on both DC01 and DC02.
+✓ AD DNS replication is complete for these records.</span>
+    </div>
+  </div>
+
+  <div class="wrong-box">
+    <div class="wrong-title">If records are present on DC01 but missing on DC02</div>
+    <div class="wrong-item"><strong>Cause:</strong> AD DNS replication has not completed. AD-integrated DNS zones replicate via AD replication — not DNS zone transfer. If DC01 and DC02 replication is healthy, new records propagate within 15 seconds. If replication is delayed or broken, records may not appear on DC02 for minutes or not at all.</div>
+    <div class="wrong-item"><strong>Check replication health:</strong> On DC01, run <code>repadmin /showrepl</code> in PowerShell. Any replication failure appears as a non-zero error count. If replication is failing, fix it before proceeding — DNS that works on DC01 but not DC02 means half the environment loses DNS when DC01 is unavailable.</div>
+    <div class="wrong-item"><strong>Force immediate replication:</strong> <code>repadmin /syncall /AdeP</code> on DC01 forces replication to all partners immediately. Wait 30 seconds and re-run the verification command above.</div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 06 -->
+  <section id="dns-vm-workload">
+  <h2>06 — DNS: VLAN 130 VM workload records</h2>
+  <p>VLAN 130 (vm-workload-primary, 10.130.0.0/24) is where banking application VMs migrated from the hypervisor environment will live. DNS records for these VMs must exist before the VMs are created or migrated — because the VM's first action after boot is often a DNS lookup (to find a domain controller for AD join, or to find another service it depends on).</p>
+
+  <h3>Which VMs get records in VLAN 130</h3>
+  <p>Two categories of VMs use VLAN 130 DNS records:</p>
+  <ul>
+    <li><strong>New VMs created in OpenShift Virtualization (VIRT-05):</strong> These are VMs built from templates directly on the OCP Virt platform. DNS records are created here before the VM template is deployed.</li>
+    <li><strong>VMs migrated from the hypervisor environment (VIRT-06 MTV):</strong> These VMs may already have DNS records in the existing environment pointing to their old IPs (on NSX segments). After migration, their IPs change to the VLAN 130 range. Section 08 covers the record update procedure for migrated VMs — this section covers new VMs only.</li>
+  </ul>
+
+  <h3>Creating VLAN 130 DNS records in Windows DNS Manager — step by step</h3>
+  <p>Open DNS Manager on DC01: <span class="gui-path">Start → Windows Administrative Tools → DNS</span></p>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 1 — Create the A record</div>
+    <div class="gui-step-action">
+      Navigate to: <span class="gui-path">DC01 → Forward Lookup Zones → novacrestbank.local</span><br>
+      Right-click in the right pane → <strong>New Host (A or AAAA)</strong><br>
+      Name: <code>vm-banking-app-01</code> (the hostname only — no domain suffix)<br>
+      IP address: <code>10.130.0.50</code><br>
+      ☑ Check <strong>"Create associated pointer (PTR) record"</strong> — this creates the PTR record in the 130.10.10.in-addr.arpa reverse zone automatically<br>
+      Click <strong>Add Host</strong>
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 2 — Verify the PTR record was created</div>
+    <div class="gui-step-action">
+      Navigate to: <span class="gui-path">DC01 → Reverse Lookup Zones → 130.10.10.in-addr.arpa</span><br>
+      Verify a PTR record exists: <code>50</code> → <code>vm-banking-app-01.novacrestbank.local</code><br>
+      If the PTR record is missing, right-click in the reverse zone → <strong>New Pointer (PTR)</strong> → Host IP: <code>10.130.0.50</code> → Host name: <code>vm-banking-app-01.novacrestbank.local</code>
+    </div>
+  </div>
+
+  <h3>Initial VLAN 130 DNS records — NovaCrestBank VIRT series</h3>
+  <p>The following records cover the initial set of VMs planned for the OpenShift Virtualization environment. Additional records are added as new VMs are created or migrated — the procedure above applies each time.</p>
+
+  <table>
+    <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>vm-banking-app-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.50</td><td>Banking application VM — migrated from VMware (MTV VIRT-06)</td></tr>
+      <tr><td><code>vm-banking-app-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.51</td><td>Banking application VM — migrated from VMware (MTV VIRT-06)</td></tr>
+      <tr><td><code>vm-win-test-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.100</td><td>Windows Server 2022 test VM — created in VIRT-04 as first test VM</td></tr>
+      <tr><td><code>vm-rhel-test-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.101</td><td>RHEL 9 test VM — created in VIRT-04 as first Linux test VM</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-amber">
+    <strong>Use static IPs for VMs that run critical banking services</strong>
+    <p>The DNS records above use static IPs. This is correct for VMs running banking services — their IP must be predictable and stable. A VM running a payment processing service cannot have its IP change because a DHCP lease expired. Static IP + DNS A record is the correct pattern. DHCP (Section 11) is for VMs that do not need a predictable IP — development VMs, test environments, short-lived batch processors.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 07 -->
+  <section id="dns-vm-dmz">
+  <h2>07 — DNS: VLAN 140 VM workload DMZ records</h2>
+  <p>VLAN 140 (vm-workload-dmz, 10.140.0.0/24) hosts VMs that require stricter security separation from the primary VM workload — for example, VMs hosting partner-facing APIs, pre-production environments, or systems designated as DMZ-adjacent by the security team. The DNS procedure is identical to Section 06.</p>
+
+  <table>
+    <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>vm-api-gateway-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.140.0.50</td><td>Partner API gateway VM — DMZ-adjacent, external partner connectivity</td></tr>
+      <tr><td><code>vm-preprod-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.140.0.100</td><td>Pre-production environment VM — isolated from production VLAN 130</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-win">
+    <strong>The difference between VLAN 130 and VLAN 140 in DNS terms</strong>
+    <p>From DNS Manager's perspective, records for both VLANs go into the same <code>novacrestbank.local</code> forward zone. The difference is in the IP range — VLAN 130 VMs have IPs in 10.130.0.0/24 and their PTR records go in <code>130.10.10.in-addr.arpa</code>. VLAN 140 VMs have IPs in 10.140.0.0/24 and their PTR records go in <code>140.10.10.in-addr.arpa</code>. DNS itself does not enforce security separation — that is NSX gateway firewall (Model A) or Kubernetes NetworkPolicy (Model B) in VIRT-05.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 08 -->
+  <section id="dns-post-migration">
+  <h2>08 — DNS: post-migration record updates — MTV reference procedure</h2>
+  <p>This section documents the DNS update procedure for VMs migrated from the hypervisor environment in VIRT-06. It is documented here so the AD team understands the full scope of change before VIRT-06 begins. The actual execution happens during the VIRT-06 migration cutover — but the procedure is approved here.</p>
+
+  <h3>What changes when a VM is migrated</h3>
+  <p>A VM running in the current hypervisor environment has an IP address on one of the NSX overlay segments (for example, 10.70.0.x on seg-infra-services, or on a banking application segment). After migration to OpenShift Virtualization, the VM's new network interface is on VLAN 130 (10.130.0.0/24) or VLAN 140 (10.140.0.0/24).</p>
+  <p>The VM's hostname does not change. The DNS FQDN does not change. Only the IP address changes. The DNS update is: delete the old A record and PTR record, create a new A record with the new IP, create a new PTR record in the VLAN 130/140 reverse zone.</p>
+
+  <h3>The migration DNS update procedure</h3>
+  <p>This procedure is executed during the cutover window in VIRT-06. Document it here so the AD team can prepare and have the DNS Manager open and ready during the migration window.</p>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 1 — Record the old IP before migration begins</div>
+    <div class="gui-step-action">
+      Before starting MTV migration, record the VM's current IP: <code>nslookup &lt;vm-fqdn&gt; 10.70.0.10</code><br>
+      Record both the A record IP and the reverse zone it lives in. You will need this to delete the old PTR record.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 2 — Delete the old A record</div>
+    <div class="gui-step-action">
+      In DNS Manager: <span class="gui-path">Forward Lookup Zones → novacrestbank.local</span><br>
+      Find the VM's hostname. Right-click → <strong>Delete</strong>. Confirm.<br>
+      <strong>Do not delete the record until after the VM has stopped responding at the old IP</strong> — deleting it too early causes a DNS outage for any system that depends on the VM by name.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 3 — Delete the old PTR record</div>
+    <div class="gui-step-action">
+      In DNS Manager: navigate to the reverse zone matching the VM's old IP.<br>
+      Find the PTR record for the old IP. Right-click → <strong>Delete</strong>. Confirm.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 4 — Create the new A record with the VLAN 130 IP</div>
+    <div class="gui-step-action">
+      <span class="gui-path">Forward Lookup Zones → novacrestbank.local</span> → Right-click → <strong>New Host (A or AAAA)</strong><br>
+      Name: same hostname as before (only the IP changes)<br>
+      IP: new IP from VLAN 130 (10.130.0.x) or VLAN 140 (10.140.0.x)<br>
+      ☑ Check <strong>"Create associated pointer (PTR) record"</strong><br>
+      Click <strong>Add Host</strong>
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 5 — Verify from jump host</div>
+    <div class="gui-step-action">
+      <code>nslookup &lt;vm-fqdn&gt; 10.70.0.10</code> must return the new IP.<br>
+      <code>nslookup &lt;new-ip&gt; 10.70.0.10</code> must return the VM's FQDN.<br>
+      Allow 15–30 seconds for AD DNS replication before verifying against DC02.
+    </div>
+  </div>
+
+  <div class="callout callout-amber">
+    <strong>DNS TTL and the migration window</strong>
+    <p>AD-integrated DNS zones in NovaCrestBank use the default TTL of 1 hour. Any system that cached the VM's old IP will continue using it for up to 1 hour after the DNS record is updated. For banking systems where sub-minute cutover is required, the migration window must account for DNS TTL. The pre-migration checklist in VIRT-06 includes a TTL reduction step — temporarily setting the VM's DNS record TTL to 60 seconds one hour before migration begins, ensuring clients refresh quickly after cutover.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 09 -->
+  <section id="dns-verification">
+  <h2>09 — DNS verification — all records complete</h2>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>jumphost — complete DNS verification from jump host</div>
+    <div class="term-body">
+<span class="section">! ══ Verify all new VLAN 130 VM records ═════════════════════════════════</span>
+<span class="prompt">[admin@jumphost ~]$</span> <span class="cmd">for fqdn in \
+  vm-banking-app-01.novacrestbank.local \
+  vm-banking-app-02.novacrestbank.local \
+  vm-win-test-01.novacrestbank.local \
+  vm-rhel-test-01.novacrestbank.local; do
+  ip=$(dig +short ${fqdn} @10.70.0.10)
+  rev=$(dig +short -x ${ip} @10.70.0.10 2>/dev/null)
+  echo "${fqdn}: A=${ip} PTR=${rev}"
+done</span>
+<span class="out">vm-banking-app-01.novacrestbank.local: A=10.130.0.50 PTR=vm-banking-app-01.novacrestbank.local.
+vm-banking-app-02.novacrestbank.local: A=10.130.0.51 PTR=vm-banking-app-02.novacrestbank.local.
+vm-win-test-01.novacrestbank.local:    A=10.130.0.100 PTR=vm-win-test-01.novacrestbank.local.
+vm-rhel-test-01.novacrestbank.local:   A=10.130.0.101 PTR=vm-rhel-test-01.novacrestbank.local.</span>
+<span class="ok">✓ All VLAN 130 VM DNS records resolve correctly forward and reverse.</span>
+
+<span class="section">! ══ Verify VLAN 140 VM records ══════════════════════════════════════════</span>
+<span class="prompt">[admin@jumphost ~]$</span> <span class="cmd">for fqdn in \
+  vm-api-gateway-01.novacrestbank.local \
+  vm-preprod-01.novacrestbank.local; do
+  ip=$(dig +short ${fqdn} @10.70.0.10)
+  rev=$(dig +short -x ${ip} @10.70.0.10 2>/dev/null)
+  echo "${fqdn}: A=${ip} PTR=${rev}"
+done</span>
+<span class="out">vm-api-gateway-01.novacrestbank.local: A=10.140.0.50 PTR=vm-api-gateway-01.novacrestbank.local.
+vm-preprod-01.novacrestbank.local:     A=10.140.0.100 PTR=vm-preprod-01.novacrestbank.local.</span>
+<span class="ok">✓ All VLAN 140 VM DNS records resolve correctly.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 10 -->
+  <section id="dhcp-what-exists">
+  <h2>10 — DHCP — what already exists</h2>
+  <p>The DHCP server runs on DC01 with failover partnership to DC02. The following scopes were created before or during VIRT-02 and are already active:</p>
+
+  <table>
+    <thead><tr><th>Scope name</th><th>Network</th><th>Range</th><th>Purpose</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>VLAN10-Management</td><td>10.10.0.0/24</td><td>10.10.0.50–.250</td><td>VCF management VMs (SDDC, vCenter, NSX)</td><td class="td-none">Existing — do not modify</td></tr>
+      <tr><td>VLAN110-BM-Discovery</td><td>10.110.0.0/24</td><td>10.110.0.20–.250</td><td>Bare-metal node Assisted Installer discovery phase</td><td class="td-none">Created VIRT-00 — active</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-win">
+    <strong>Why the VLAN 110 discovery scope is temporary in purpose but permanent in configuration</strong>
+    <p>The VLAN 110 DHCP scope (10.110.0.20–.250) was created for the Assisted Installer discovery phase. After the five bare-metal nodes were provisioned, their IPs were set to static addresses (10.110.0.11–.15) via NMState. The DHCP scope is no longer actively used by the five provisioned nodes. However, it should be kept — because any future bare-metal node added to the cluster also goes through the Assisted Installer discovery phase and needs a DHCP IP on VLAN 110. Leave this scope active.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 11 -->
+  <section id="dhcp-vlan130">
+  <h2>11 — DHCP: new scope for VLAN 130 (vm-workload-primary)</h2>
+  <p>VMs on VLAN 130 that do not use a static IP — for example, development VMs, test instances, or short-lived batch processors — need DHCP. The scope is created on DC01 and automatically replicated to DC02 through the DHCP failover partnership that was established in the Classic series.</p>
+
+  <h3>Why not give every VM a static IP?</h3>
+  <p>Static IPs are correct for VMs that run production services with stable hostnames and firewall rules referencing their IP. But not every VM needs a static IP — a developer spinning up a test VM should not have to coordinate with the AD team to reserve an IP address. DHCP for the 10.130.0.50–.200 range handles dynamic VMs, while 10.130.0.10–.49 is reserved for static assignments (like the VMs in Section 06). The split is clean and administratively manageable.</p>
+
+  <h3>Creating the VLAN 130 DHCP scope in DHCP Manager</h3>
+  <p>Open DHCP Manager on DC01: <span class="gui-path">Start → Windows Administrative Tools → DHCP</span></p>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 1 — Create a new scope</div>
+    <div class="gui-step-action">
+      Right-click <span class="gui-path">DC01 → IPv4</span> → <strong>New Scope</strong><br>
+      The New Scope Wizard opens. Click <strong>Next</strong>.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 2 — Scope name</div>
+    <div class="gui-step-action">
+      Name: <code>VLAN130-VM-Workload-Primary</code><br>
+      Description: <code>VM workload primary network — banking application VMs on OpenShift Virtualization</code><br>
+      Click <strong>Next</strong>.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 3 — IP address range</div>
+    <div class="gui-step-action">
+      Start IP address: <code>10.130.0.50</code><br>
+      End IP address: <code>10.130.0.200</code><br>
+      Subnet mask: <code>255.255.255.0</code> (prefix length 24)<br>
+      Click <strong>Next</strong>.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 4 — Exclusions</div>
+    <div class="gui-step-action">
+      Add exclusion range: Start <code>10.130.0.50</code> End <code>10.130.0.99</code><br>
+      Why: 10.130.0.50–.99 is reserved for semi-static assignments (VMs that use DHCP reservations rather than true static IPs — see Section 13). Excluding them from the general pool prevents IP conflicts.<br>
+      Effective DHCP range: 10.130.0.100–.200 (101 addresses for dynamic VMs).<br>
+      Click <strong>Next</strong>.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 5 — Lease duration</div>
+    <div class="gui-step-action">
+      8 days (default).<br>
+      Rationale: VM workloads are longer-lived than bare-metal discovery — an 8-day lease is appropriate. Development VMs that are powered off for more than 8 days will get a new IP on next boot, which is acceptable for non-production workloads.
+    </div>
+  </div>
+
+  <div class="gui-step">
+    <div class="gui-step-num">Step 6 — Configure DHCP options</div>
+    <div class="gui-step-action">
+      Select <strong>Yes, I want to configure these options now</strong> → Click <strong>Next</strong>.<br><br>
+      <strong>Router (option 003):</strong> <code>10.130.0.3</code> (HSRP VIP on leaf-01/02 for VLAN 130) → Add → Next<br><br>
+      <strong>Domain Name and DNS Servers (option 006):</strong><br>
+      Parent domain: <code>novacrestbank.local</code><br>
+      DNS servers: <code>10.70.0.10</code> → Add → <code>10.70.0.11</code> → Add → Next<br><br>
+      <strong>WINS Servers:</strong> Leave blank → Next<br><br>
+      Select <strong>Yes, I want to activate this scope now</strong> → Next → Finish.
+    </div>
+  </div>
+
+  <div class="callout callout-amber">
+    <strong>The DHCP relay on the leaf switch is already in place</strong>
+    <p>In VIRT-01 Section 08, the VLAN 130 SVI on leaf-01 and leaf-02 was configured with <code>ip helper-address 10.70.0.10</code>. This relay agent is what forwards DHCP broadcast requests from VMs on VLAN 130 to DC01 at 10.70.0.10. Without the relay, VMs on VLAN 130 would send DHCP broadcasts that never reach DC01. The relay was already configured as part of the fabric configuration — DHCP for VLAN 130 VMs works immediately after this scope is created, without any additional configuration.</p>
+  </div>
+
+  <h3>Verify the DHCP failover partnership extends to the new scope</h3>
+  <p>The DHCP failover partnership between DC01 and DC02 was established in the Classic series. In Windows Server 2016 and later, a new scope is not automatically added to an existing failover partnership — it must be explicitly added.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — add new scope to failover partnership</div>
+    <div class="term-body">
+<span class="comment"># Run on DC01 as a domain administrator</span>
+<span class="prompt">PS C:\></span> <span class="cmd"># Check the existing failover relationship name</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Failover</span>
+<span class="out">Name            : DC01-DC02-Failover
+PartnerServer   : dc02.novacrestbank.local
+Mode            : LoadBalance
+LoadBalancePercent : 50
+State           : Normal
+ScopeId         : {10.10.0.0, 10.110.0.0}</span>
+
+<span class="comment"># The new VLAN 130 scope is not yet in the partnership.
+# Add it now so DC02 also serves DHCP for VLAN 130 VMs.</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Add-DhcpServerv4FailoverScope `
+  -Name "DC01-DC02-Failover" `
+  -ScopeId "10.130.0.0"</span>
+
+<span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Failover</span>
+<span class="out">Name            : DC01-DC02-Failover
+PartnerServer   : dc02.novacrestbank.local
+Mode            : LoadBalance
+LoadBalancePercent : 50
+State           : Normal
+ScopeId         : {10.10.0.0, 10.110.0.0, 10.130.0.0}</span>
+<span class="ok">✓ VLAN 130 scope is now part of the DC01-DC02 failover partnership.
+✓ DC02 will serve DHCP for VLAN 130 VMs if DC01 is unavailable.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 12 -->
+  <section id="dhcp-vlan140">
+  <h2>12 — DHCP: new scope for VLAN 140 (vm-workload-dmz)</h2>
+  <p>The VLAN 140 DHCP scope follows exactly the same procedure as Section 11. The differences are the IP range and the scope name. Follow the same New Scope Wizard steps with the following values:</p>
+
+  <table>
+    <thead><tr><th>Field</th><th>VLAN 130 (Section 11)</th><th>VLAN 140 (this section)</th></tr></thead>
+    <tbody>
+      <tr><td>Scope name</td><td>VLAN130-VM-Workload-Primary</td><td><code>VLAN140-VM-Workload-DMZ</code></td></tr>
+      <tr><td>Start IP</td><td>10.130.0.50</td><td><code>10.140.0.50</code></td></tr>
+      <tr><td>End IP</td><td>10.130.0.200</td><td><code>10.140.0.200</code></td></tr>
+      <tr><td>Exclusion</td><td>10.130.0.50–.99</td><td><code>10.140.0.50–.99</code></td></tr>
+      <tr><td>Router (option 003)</td><td>10.130.0.3</td><td><code>10.140.0.3</code></td></tr>
+      <tr><td>DNS servers</td><td>10.70.0.10, 10.70.0.11</td><td><code>10.70.0.10, 10.70.0.11</code> (same)</td></tr>
+      <tr><td>Lease duration</td><td>8 days</td><td><code>8 days</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — add VLAN 140 scope to failover partnership</div>
+    <div class="term-body">
+<span class="prompt">PS C:\></span> <span class="cmd">Add-DhcpServerv4FailoverScope `
+  -Name "DC01-DC02-Failover" `
+  -ScopeId "10.140.0.0"</span>
+
+<span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Failover | Select-Object -ExpandProperty ScopeId</span>
+<span class="out">10.10.0.0
+10.110.0.0
+10.130.0.0
+10.140.0.0</span>
+<span class="ok">✓ All four scopes are now in the DC01-DC02 failover partnership.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 13 -->
+  <section id="dhcp-reservations">
+  <h2>13 — DHCP: reservations for migrated VMs</h2>
+  <p>Some VMs migrated from the hypervisor environment are configured to use DHCP rather than static IPs — but they need the same IP every time they boot. A DHCP reservation satisfies both requirements: the VM uses DHCP (no changes to the VM's network configuration), but DC01 always assigns it the same IP based on its MAC address.</p>
+
+  <h3>When to use DHCP reservations vs static IPs</h3>
+  <p>Use a DHCP reservation when: the VM's OS is configured for DHCP (changing it to static requires OS-level change which is a separate change request), or the VM is a development/test VM where a static IP assignment is administratively disproportionate to the risk. Use a true static IP (configured in the VM via cloud-init or NMState) when: the VM runs a production service, the IP appears in firewall rules or monitoring configurations, or the VM's IP must be stable across even a DC01/DC02 DHCP failure.</p>
+
+  <h3>Creating a DHCP reservation</h3>
+  <p>A DHCP reservation requires the VM's MAC address. For a VM migrated from VMware, the MAC address is available in vCenter before migration. For a VM running on OpenShift Virtualization, the MAC is in the VirtualMachine CR (set by KubeVirt or explicitly specified).</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — create DHCP reservation</div>
+    <div class="term-body">
+<span class="comment"># Add a reservation for a migrated VM in the VLAN 130 scope
+# Replace MAC address and IP with actual values from the VM</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Add-DhcpServerv4Reservation `
+  -ScopeId "10.130.0.0" `
+  -IPAddress "10.130.0.50" `
+  -ClientId "52-54-00-a1-c1-01" `
+  -Description "vm-banking-app-01 — migrated from VMware VIRT-06" `
+  -Name "vm-banking-app-01"</span>
+
+<span class="comment"># Verify the reservation</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Reservation -ScopeId "10.130.0.0"</span>
+<span class="out">IPAddress    ClientId              Name                Description
+---------    --------              ----                -----------
+10.130.0.50  52-54-00-a1-c1-01    vm-banking-app-01   migrated from VMware VIRT-06</span>
+<span class="ok">✓ DHCP reservation created. The VM will receive 10.130.0.50 on every boot regardless of
+✓ when it boots or which DC (DC01 or DC02) serves the request.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 14 -->
+  <section id="dhcp-verification">
+  <h2>14 — DHCP verification</h2>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — verify all DHCP scopes and failover</div>
+    <div class="term-body">
+<span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Scope | Select-Object ScopeId, Name, State, StartRange, EndRange</span>
+<span class="out">ScopeId      Name                          State    StartRange   EndRange
+--------     ----                          -----    ----------   --------
+10.10.0.0    VLAN10-Management             Active   10.10.0.50   10.10.0.250
+10.110.0.0   VLAN110-BM-Discovery          Active   10.110.0.20  10.110.0.250
+10.130.0.0   VLAN130-VM-Workload-Primary   Active   10.130.0.50  10.130.0.200
+10.140.0.0   VLAN140-VM-Workload-DMZ       Active   10.140.0.50  10.140.0.200</span>
+<span class="ok">✓ All four DHCP scopes are Active.</span>
+
+<span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Failover | Select-Object Name, State, ScopeId</span>
+<span class="out">Name                  State   ScopeId
+----                  -----   -------
+DC01-DC02-Failover    Normal  {10.10.0.0, 10.110.0.0, 10.130.0.0, 10.140.0.0}</span>
+<span class="ok">✓ Failover partnership is Normal and includes all four scopes.
+✓ DC02 will serve DHCP for all scopes if DC01 is unavailable.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 15 -->
+  <section id="ad-what-exists">
+  <h2>15 — Active Directory — what already exists</h2>
+  <p>The Active Directory domain <code>novacrestbank.local</code> was established in the Classic series with a complete OU structure for NovaCrestBank. The following already exists and requires no changes for the VIRT series:</p>
+
+  <table>
+    <thead><tr><th>OU path</th><th>Contents</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><code>DC=novacrestbank,DC=local</code></td><td>Domain root</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>OU=Servers,DC=novacrestbank,DC=local</code></td><td>All server computer accounts</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>OU=Service Accounts,DC=novacrestbank,DC=local</code></td><td>svc-ocp-installer, svc-ocp-admin, and other service accounts</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>OU=OCP Groups,DC=novacrestbank,DC=local</code></td><td>OCP-Cluster-Admins, OCP-Developers, etc.</td><td class="td-none">Unchanged</td></tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 16 -->
+  <section id="ad-ou">
+  <h2>16 — New OU for OpenShift Virtualization VMs</h2>
+  <p>When Windows Server VMs are migrated from the hypervisor environment to OpenShift Virtualization (VIRT-06) and join the AD domain, they need an OU to join into. Creating a dedicated OU for OpenShift Virtualization-hosted VMs provides two operational benefits: it visually separates OCP-hosted VMs from hypervisor-hosted VMs in AD management tooling, and it allows future Group Policy targeting if VM-specific policies are needed (for example, a GPO that applies only to VMs running on OCP Virt).</p>
+
+  <div class="decision">
+    <div class="decision-q">Why a dedicated OU rather than using the existing Servers OU</div>
+    <div class="decision-body">
+      <p>The existing <code>OU=Servers</code> works for all server computer accounts. Migrated VMs could join there without issue. However, as the VM migration progresses and more banking application VMs move to OpenShift Virtualization, the ability to apply a GPO specifically to OCP-hosted VMs — for example, a Group Policy that configures Windows VMs to report their OpenShift node as the primary management endpoint to monitoring tools — requires a dedicated OU. Creating the OU now, before the first VM is migrated, is cheaper than reorganising AD after migration.</p>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — create OCP-Virt OU</div>
+    <div class="term-body">
+<span class="prompt">PS C:\></span> <span class="cmd"># Create the OU under Servers
+New-ADOrganizationalUnit `
+  -Name "OCP-Virt" `
+  -Path "OU=Servers,DC=novacrestbank,DC=local" `
+  -Description "Computer accounts for VMs running on OpenShift Virtualization bare-metal nodes" `
+  -ProtectedFromAccidentalDeletion $true</span>
+
+<span class="comment"># Verify the OU was created</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Get-ADOrganizationalUnit `
+  -Filter {Name -eq "OCP-Virt"} | `
+  Select-Object Name, DistinguishedName</span>
+<span class="out">Name      DistinguishedName
+----      -----------------
+OCP-Virt  OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</span>
+<span class="ok">✓ OU created: OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local
+✓ Protected from accidental deletion is enabled.
+✓ Existing GPOs (password policy, PKI auto-enrolment, security baseline) apply
+✓ through inheritance from the parent OU — no GPO changes needed.</span>
+    </div>
+  </div>
+
+  <h3>How migrated VMs join this OU</h3>
+  <p>When a migrated Windows Server VM joins the domain (during the VIRT-06 post-migration validation procedure), the domain join command specifies the OU:</p>
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>migrated VM — PowerShell — domain join with OU specification</div>
+    <div class="term-body">
+<span class="comment"># Run inside the migrated Windows VM after it is running on OpenShift Virtualization</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Add-Computer `
+  -DomainName "novacrestbank.local" `
+  -OUPath "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local" `
+  -Credential (Get-Credential) `
+  -Restart</span>
+<span class="comment"># Enter domain admin credentials when prompted
+# The VM reboots and joins the domain in the correct OU</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 17 -->
+  <section id="ad-service-accounts">
+  <h2>17 — Service accounts for VM management</h2>
+  <p>The VIRT-10 guide (Ansible Automation Platform) uses a service account to manage VM lifecycle operations — patching guest OSes, running compliance scans inside VMs, and configuring newly provisioned VMs. This account is created now so it is available when VIRT-10 is implemented.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — create AAP VM management service account</div>
+    <div class="term-body">
+<span class="comment"># Create the service account for Ansible Automation Platform VM management</span>
+<span class="prompt">PS C:\></span> <span class="cmd">New-ADUser `
+  -Name "svc-ocp-virt-mgmt" `
+  -SamAccountName "svc-ocp-virt-mgmt" `
+  -UserPrincipalName "svc-ocp-virt-mgmt@novacrestbank.local" `
+  -Path "OU=Service Accounts,DC=novacrestbank,DC=local" `
+  -Description "Service account for Ansible Automation Platform VM lifecycle management on OpenShift Virtualization" `
+  -Enabled $true `
+  -PasswordNeverExpires $false `
+  -CannotChangePassword $true `
+  -AccountPassword (ConvertTo-SecureString `
+    (Get-Content /opt/novacrest/secrets/svc-ocp-virt-mgmt-pass) `
+    -AsPlainText -Force)</span>
+
+<span class="comment"># Store the password in CyberArk immediately after creation
+# The AAP integration in VIRT-10 retrieves it via External Secrets Operator</span>
+
+<span class="comment"># Apply Fine-Grained Password Policy (FGPP) for service accounts
+# Service accounts use a 90-day rotation policy with complexity requirements</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Add-ADFineGrainedPasswordPolicySubject `
+  -Identity "Service-Account-PSO" `
+  -Subjects "svc-ocp-virt-mgmt"</span>
+
+<span class="prompt">PS C:\></span> <span class="cmd">Get-ADUser svc-ocp-virt-mgmt | Select-Object Name, Enabled, DistinguishedName</span>
+<span class="out">Name                Enabled  DistinguishedName
+----                -------  -----------------
+svc-ocp-virt-mgmt   True    CN=svc-ocp-virt-mgmt,OU=Service Accounts,DC=novacrestbank,DC=local</span>
+<span class="ok">✓ Service account created in Service Accounts OU with FGPP applied.
+✓ Password stored in CyberArk — retrievable by AAP via ESO in VIRT-10.</span>
+    </div>
+  </div>
+
+  <span class="reg reg-pci">PCI-DSS v4.0 Req 8.6</span>
+  <p style="font-size:13px;color:var(--text2);margin-top:10px">PCI-DSS Requirement 8.6 requires that system/application accounts and related authentication factors are managed via a defined process. The service account above is subject to the Fine-Grained Password Policy, stored in CyberArk (the PCI-compliant PAM vault), and retrievable only via the ESO integration — never hardcoded in automation scripts.</p>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 18 -->
+  <section id="pki-what-exists">
+  <h2>18 — PKI — what already exists and why it is enough</h2>
+  <p>The NovaCrestBank PKI (Root CA + Issuing CA) was built in the Classic series and extended in the VCF series. For the VIRT series, the existing PKI requires no structural changes. This section documents exactly why — so the security team can confirm the existing PKI scope is sufficient without reviewing the full Classic and VCF series documentation.</p>
+
+  <table>
+    <thead><tr><th>PKI component</th><th>Current state</th><th>What the VIRT series needs</th><th>Action required</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Root CA<br><code>NovaCrestBank-Root-CA</code><br>Offline at 10.70.0.20</td>
+        <td>Offline. Signed the Issuing CA certificate. In use by OCP via additionalTrustBundle.</td>
+        <td>No new subordinate CAs. No new Root CA signing operations.</td>
+        <td class="td-none">None</td>
+      </tr>
+      <tr>
+        <td>Issuing CA<br><code>NovaCrestBank-Issuing-CA</code><br>Online at 10.70.0.21</td>
+        <td>Issuing certificates via ADCS web enrolment and cert-manager ADCS issuer. Serves all VCF and OCP components.</td>
+        <td>Issues certificates for new platform services on bare-metal nodes via existing cert-manager ClusterIssuer. Issues machine certificates for migrated Windows VMs via auto-enrolment GPO.</td>
+        <td class="td-none">None to the CA — verification only in Section 19</td>
+      </tr>
+      <tr>
+        <td>cert-manager ClusterIssuer<br>ADCS issuer → 10.70.0.21</td>
+        <td>Configured in OCP as a ClusterIssuer. Issues certificates for Harbor, GitLab, Jenkins, Argo CD, and all platform services.</td>
+        <td>Continues to issue certificates for workloads on bare-metal nodes — same ClusterIssuer, same CA, same trust chain. No new configuration.</td>
+        <td class="td-none">None</td>
+      </tr>
+      <tr>
+        <td>OCP additionalTrustBundle<br>Root CA + Issuing CA PEM</td>
+        <td>Distributed to all OCP nodes by the Machine Config Operator. All nodes trust the NovaCrestBank CA chain.</td>
+        <td>Bare-metal nodes join the cluster and receive the trust bundle automatically via MCO. No manual certificate installation on the nodes.</td>
+        <td class="td-none">None</td>
+      </tr>
+      <tr>
+        <td>Machine certificate template<br>ADCS auto-enrolment</td>
+        <td>Exists in ADCS from the Classic series. GPO enables auto-enrolment for all domain-joined computers.</td>
+        <td>Migrated Windows VMs join the domain and auto-enrol for machine certificates. Same template, same GPO.</td>
+        <td class="td-none">Verification only — Section 19</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 19 -->
+  <section id="pki-machine-template">
+  <h2>19 — Machine certificate template — verification before VM migration</h2>
+  <p>When a Windows Server VM is migrated from the hypervisor environment and joins the AD domain (VIRT-06), it automatically requests a machine certificate via the GPO auto-enrolment policy. This requires the Machine certificate template to be correctly published and the GPO to be in scope. This section verifies both — without changing either.</p>
+
+  <div class="term">
+    <div class="term-header"><div class="term-dot"></div>DC01 — PowerShell — verify Machine template is published</div>
+    <div class="term-body">
+<span class="prompt">PS C:\></span> <span class="cmd"># Verify the Machine template is published by the Issuing CA
+certutil -CATemplates | Where-Object { $_ -match "Machine" }</span>
+<span class="out">Machine: Machine -- Auto-Enroll: Access is granted</span>
+<span class="ok">✓ Machine certificate template is published by NovaCrestBank-Issuing-CA.
+✓ "Auto-Enroll: Access is granted" confirms that computer accounts in the domain
+✓ can automatically request machine certificates via GPO.</span>
+
+<span class="comment"># Verify the auto-enrolment GPO is applied to the OCP-Virt OU</span>
+<span class="prompt">PS C:\></span> <span class="cmd">Get-GPInheritance -Target "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local" |
+  Select-Object -ExpandProperty InheritedGpoLinks |
+  Where-Object { $_.DisplayName -match "PKI|Certificate|Enroll" } |
+  Select-Object DisplayName, Enabled</span>
+<span class="out">DisplayName                              Enabled
+-----------                              -------
+PKI Auto-Enrollment Policy               True</span>
+<span class="ok">✓ PKI Auto-Enrollment Policy GPO is inherited by the OCP-Virt OU through AD GPO inheritance.
+✓ No changes needed. Migrated Windows VMs joining this OU will auto-enrol for machine certificates.</span>
+    </div>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 20 -->
+  <section id="pki-vm-certs">
+  <h2>20 — Certificate lifecycle for migrated Windows VMs</h2>
+  <p>This section documents what certificate operations happen automatically when a Windows Server VM is migrated to OpenShift Virtualization — so the security team knows what to expect and does not raise a change request for something that is working as designed.</p>
+
+  <table>
+    <thead><tr><th>Event</th><th>Certificate action</th><th>Who does it</th><th>Requires manual action?</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>VM migrated and started on OCP Virt bare-metal node</td>
+        <td>No certificate action — the VM's existing machine certificate is still valid. It was issued for the VM's hostname, not its IP or its host node.</td>
+        <td>Automatic</td>
+        <td class="td-none">No</td>
+      </tr>
+      <tr>
+        <td>VM joins AD domain (if it was not already joined, or if it was disjoined before migration)</td>
+        <td>Machine certificate auto-enrolment triggers automatically via GPO. The Issuing CA issues a new machine certificate for the VM's FQDN.</td>
+        <td>Auto-enrolment GPO</td>
+        <td class="td-none">No</td>
+      </tr>
+      <tr>
+        <td>VM machine certificate approaches expiry (default 1 year)</td>
+        <td>Auto-enrolment renews the certificate automatically. The VM requests a new certificate before expiry. The old certificate is superseded.</td>
+        <td>Auto-enrolment GPO</td>
+        <td class="td-none">No</td>
+      </tr>
+      <tr>
+        <td>New Windows Server VM created from template in OCP Virt (VIRT-04)</td>
+        <td>Cloud-init configures the hostname. After domain join, auto-enrolment triggers. Certificate issued for the new hostname.</td>
+        <td>Auto-enrolment GPO</td>
+        <td class="td-none">No</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-green">
+    <strong>The PKI is designed for exactly this workload</strong>
+    <p>The two-tier PKI with ADCS auto-enrolment was designed to handle exactly the pattern of the VIRT series: new Windows VMs appearing in AD and automatically receiving machine certificates, certificates renewing without administrator intervention, and the trust chain extending automatically to any new OCP node that joins the cluster. Nothing about the VIRT series is outside the PKI's designed operating envelope.</p>
+  </div>
+  </section>
+
+  <hr>
+
+  <!-- SECTION 21 -->
+  <section id="readiness-checklist">
+  <h2>21 — Windows Server readiness checklist</h2>
+  <p>This checklist is the sign-off document. The Windows/AD administrator completes this checklist and confirms all items before the platform team proceeds to VIRT-03. In NovaCrestBank's change management process, this signed checklist is the evidence that the Windows Server changes have been implemented and verified.</p>
+
+  <div class="gate">
+    <div class="gate-title">DNS — all records verified</div>
+    <div class="gate-item"><div class="gate-box"></div>A and PTR records for bm-virt-01 through bm-virt-05 resolve correctly on both DC01 and DC02</div>
+    <div class="gate-item"><div class="gate-box"></div>A and PTR records for iLO interfaces (bm-virt-01-ilo through bm-virt-05-ilo) resolve on both DCs</div>
+    <div class="gate-item"><div class="gate-box"></div>Reverse zones 110.10.10, 120.10.10, 130.10.10, 140.10.10 in-addr.arpa exist and are AD-integrated</div>
+    <div class="gate-item"><div class="gate-box"></div>VLAN 130 VM records (vm-banking-app-01, vm-banking-app-02, vm-win-test-01, vm-rhel-test-01) resolve forward and reverse</div>
+    <div class="gate-item"><div class="gate-box"></div>VLAN 140 VM records (vm-api-gateway-01, vm-preprod-01) resolve forward and reverse</div>
+    <div class="gate-item"><div class="gate-box"></div>DNS post-migration update procedure (Section 08) has been reviewed and understood by the AD team</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">DHCP — all scopes active and in failover partnership</div>
+    <div class="gate-item"><div class="gate-box"></div>VLAN110-BM-Discovery scope is Active (pre-existing — confirm not accidentally disabled)</div>
+    <div class="gate-item"><div class="gate-box"></div>VLAN130-VM-Workload-Primary scope is Active — range 10.130.0.100–.200 — gateway 10.130.0.3 — DNS 10.70.0.10/11</div>
+    <div class="gate-item"><div class="gate-box"></div>VLAN140-VM-Workload-DMZ scope is Active — range 10.140.0.100–.200 — gateway 10.140.0.3 — DNS 10.70.0.10/11</div>
+    <div class="gate-item"><div class="gate-box"></div>DC01-DC02-Failover partnership includes all four scopes (10.10.0.0, 10.110.0.0, 10.130.0.0, 10.140.0.0) — State: Normal</div>
+    <div class="gate-item"><div class="gate-box"></div>DHCP relay on leaf-01 and leaf-02 VLAN 130 and 140 SVIs is configured (<code>ip helper-address 10.70.0.10</code>) — confirmed in VIRT-01</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">Active Directory</div>
+    <div class="gate-item"><div class="gate-box"></div>OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local exists and is protected from accidental deletion</div>
+    <div class="gate-item"><div class="gate-box"></div>PKI Auto-Enrollment Policy GPO is inherited by the OCP-Virt OU (verified via Get-GPInheritance)</div>
+    <div class="gate-item"><div class="gate-box"></div>svc-ocp-virt-mgmt service account created in Service Accounts OU — FGPP applied — password stored in CyberArk</div>
+  </div>
+
+  <div class="gate">
+    <div class="gate-title">PKI</div>
+    <div class="gate-item"><div class="gate-box"></div>Machine certificate template is published by NovaCrestBank-Issuing-CA (<code>certutil -CATemplates</code> shows "Auto-Enroll: Access is granted")</div>
+    <div class="gate-item"><div class="gate-box"></div>OCP additionalTrustBundle has not been modified — bare-metal nodes trust the CA chain via MCO distribution (no action needed — confirmed)</div>
+    <div class="gate-item"><div class="gate-box"></div>cert-manager ADCS ClusterIssuer is healthy — <code>oc get clusterissuer</code> shows Ready=True</div>
+  </div>
+
+  <div class="callout callout-virt">
+    <strong>VIRT-02b complete — Windows Server is ready for the VIRT series</strong>
+    <p>All DNS records are verified. Both DHCP scopes are active and in the failover partnership. The OCP-Virt OU is created. The service account is provisioned. The PKI is verified and requires no changes. The platform team may proceed to VIRT-03 (ODF on Bare-Metal).</p>
+  </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const a = document.querySelector(`.sb-item[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
