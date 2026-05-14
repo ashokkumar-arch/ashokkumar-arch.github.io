@@ -15,6 +15,8 @@
   --blue:#1a5c8f;--blue-light:#eaf2fb;
   --green:#0e6b45;--green-light:#eaf7f1;
   --amber:#a87015;--amber-light:#fdf6e3;
+  --virt:#6e2b8c;--virt-light:#f5f0fb;
+  --aws:#e47911;--aws-light:#fff8f0;
   --border:#d8d6cf;
   --font-display:'DM Serif Display',Georgia,serif;
   --font-body:'DM Sans',system-ui,sans-serif;
@@ -22,16 +24,12 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
-
-/* ── NAV ── */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
 .nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
 .nav-logo{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
 .nav-links{display:flex;gap:2rem;list-style:none}
 .nav-links a{font-size:.875rem;color:var(--ink2);text-decoration:none;letter-spacing:.02em;font-weight:500;transition:color .2s}
 .nav-links a:hover{color:var(--red)}
-
-/* ── HERO ── */
 .hero{padding:140px 2rem 80px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:4rem;align-items:start}
 .hero-tag{font-family:var(--font-mono);font-size:.75rem;color:var(--red);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem}
 .hero-tag::before{content:'';display:block;width:32px;height:1px;background:var(--red)}
@@ -44,6 +42,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,
 .pill-blue{background:var(--blue-light);border-color:#b0cde8;color:#0d3a5c}
 .pill-green{background:var(--green-light);border-color:#a0d8c0;color:#074a2e}
 .pill-amber{background:var(--amber-light);border-color:#e0c070;color:#6a4400}
+.pill-virt{background:var(--virt-light);border-color:#c0a0dc;color:#4a1a6a}
+.pill-aws{background:var(--aws-light);border-color:#f0b870;color:#7a3800}
 .hero-cta{display:inline-flex;align-items:center;gap:.6rem;background:var(--ink);color:var(--paper);padding:.75rem 1.5rem;font-size:.875rem;font-weight:500;letter-spacing:.02em;text-decoration:none;transition:background .2s}
 .hero-cta:hover{background:var(--red)}
 .hero-aside{background:var(--paper2);border:1px solid var(--border);padding:1.75rem;min-width:260px}
@@ -52,23 +52,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,
 .aside-stat:last-of-type{border-bottom:none}
 .stat-n{font-family:var(--font-display);font-size:1.6rem;color:var(--ink)}
 .stat-label{font-size:.8rem;color:var(--ink2)}
-
-/* ── SECTION BASE ── */
 section{max-width:1100px;margin:0 auto;padding:5rem 2rem}
 .section-label{font-family:var(--font-mono);font-size:.72rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
 .section-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.2rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem}
 .section-sub{font-size:.95rem;color:var(--ink2);font-weight:300;max-width:600px;line-height:1.7}
 hr.rule{border:none;border-top:1px solid var(--border);margin:0}
-
-/* ── SUMMARY ── */
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2.5rem}
 .summary-block p{font-size:.95rem;color:var(--ink2);line-height:1.8;margin-bottom:1rem}
 .summary-block p:last-child{margin-bottom:0}
 .highlight-box{background:var(--paper2);border-left:3px solid var(--red);padding:1.25rem 1.5rem;margin-top:1.5rem}
 .highlight-box p{font-size:.875rem;color:var(--ink2);line-height:1.7;font-style:italic}
-
-/* ── CERTS ── */
 .certs-section{background:var(--paper2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .certs-inner{max-width:1100px;margin:0 auto;padding:4rem 2rem}
 .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border);margin-top:2rem;border:1px solid var(--border)}
@@ -78,13 +72,10 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .cert-icon.pmp{background:#003b6f;color:#fff}
 .cert-icon.aws{background:#ff9900;color:#1a1a1a}
 .cert-icon.vmw{background:#1d428a;color:#fff}
-.cert-icon.rh{background:#c8102e;color:#fff}
 .cert-icon.lf{background:#003153;color:#fff}
-.cert-icon.cisco{background:#1ba0d7;color:#fff}
 .cert-icon.ms{background:#0078d4;color:#fff}
 .cert-icon.ec{background:#1a1a40;color:#fff}
 .cert-icon.py{background:#3776ab;color:#fff}
-.cert-icon.pu{background:#5c2d91;color:#fff}
 .cert-name{font-size:.875rem;font-weight:500;color:var(--ink);line-height:1.3;margin-bottom:.2rem}
 .cert-issuer{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.04em}
 .cert-verify{font-size:.72rem;color:var(--blue);text-decoration:none;margin-top:.3rem;display:inline-block}
@@ -94,9 +85,6 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .exp-name{font-size:.8rem;font-weight:500;color:var(--ink)}
 .exp-issuer{font-family:var(--font-mono);font-size:.65rem;color:var(--ink3)}
 .expired-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-top:2.5rem;margin-bottom:.75rem}
-
-/* ── PROJECTS ── */
-.projects-intro{margin-bottom:3rem}
 .series-grid{display:grid;gap:1.5rem}
 .series-card{border:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:0;transition:border-color .2s}
 .series-card:hover{border-color:var(--ink2)}
@@ -105,6 +93,8 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .series-tag{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
 .series-tag.classic{color:var(--blue)}
 .series-tag.vcf{color:#6e2b8c}
+.series-tag.virt{color:#c8102e}
+.series-tag.aws-cap{color:var(--aws)}
 .series-tag.planned{color:var(--ink3)}
 .series-name{font-family:var(--font-display);font-size:1.35rem;color:var(--ink);letter-spacing:-.01em;margin-bottom:.5rem}
 .series-desc{font-size:.875rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;max-width:560px}
@@ -120,8 +110,7 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .badge-live{background:#eaf7f1;color:#074a2e;border:1px solid #a0d8c0}
 .badge-progress{background:var(--amber-light);color:#6a4400;border:1px solid #e0c070}
 .badge-planned{background:var(--paper2);color:var(--ink3);border:1px solid var(--border)}
-
-/* ── CONSULTING ── */
+.series-group-label{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);padding:.5rem 0;border-bottom:1px solid var(--border);margin:2.5rem 0 1rem}
 .consulting-card{border:1px solid var(--border);margin-top:2.5rem}
 .consulting-header{background:var(--ink);color:var(--paper);padding:1.5rem 2rem;display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:start}
 .c-org{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--paper3);margin-bottom:.4rem}
@@ -132,14 +121,10 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .c-item{display:flex;gap:.75rem;margin-bottom:1rem;font-size:.875rem;color:var(--ink2);line-height:1.6}
 .c-item::before{content:'→';color:var(--red);flex-shrink:0;margin-top:.05rem;font-size:.8rem}
 .c-outcome{background:var(--paper2);border-left:3px solid var(--green);padding:1rem 1.25rem;font-size:.8rem;color:var(--ink2);line-height:1.7;font-style:italic}
-
-/* ── DIAGRAM SECTION ── */
 .diagram-section{background:var(--paper2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .diagram-inner{max-width:1100px;margin:0 auto;padding:4rem 2rem}
 .diagram-wrapper{margin-top:2rem;border:1px solid var(--border);background:var(--paper);padding:2rem;overflow-x:auto}
 .diagram-caption{margin-top:1rem;font-family:var(--font-mono);font-size:.72rem;color:var(--ink3);letter-spacing:.04em;text-align:center}
-
-/* ── CONTACT / FOOTER ── */
 .contact-section{background:var(--ink);color:var(--paper)}
 .contact-inner{max-width:1100px;margin:0 auto;padding:4rem 2rem;display:grid;grid-template-columns:1fr auto;gap:4rem;align-items:center}
 .contact-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.2rem);letter-spacing:-.02em;margin-bottom:.75rem}
@@ -149,8 +134,6 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .contact-link:hover{border-color:var(--paper3)}
 .contact-link span{font-family:var(--font-mono);font-size:.65rem;color:#6a6a64;letter-spacing:.06em;text-transform:uppercase;margin-left:auto}
 footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
-
-/* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .hero-tag{animation:fadeUp .5s ease both}
 .hero-name{animation:fadeUp .5s .1s ease both}
@@ -158,7 +141,6 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
 .hero-pills{animation:fadeUp .5s .3s ease both}
 .hero-cta{animation:fadeUp .5s .4s ease both}
 .hero-aside{animation:fadeUp .5s .2s ease both}
-
 @media(max-width:768px){
   .hero{grid-template-columns:1fr;gap:2rem}
   .summary-grid{grid-template-columns:1fr}
@@ -173,7 +155,6 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <div class="nav-inner">
     <a href="#" class="nav-logo">Ashok Kumar P.</a>
@@ -187,12 +168,11 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
   </div>
 </nav>
 
-<!-- HERO -->
 <div class="hero">
   <div>
     <div class="hero-tag">Platform & Cloud Architecture</div>
     <h1 class="hero-name">Ashok<br>Kumar P.<em>.</em></h1>
-    <p class="hero-title">Platform and cloud-native architect with enterprise consulting experience at VMware (Broadcom) and prior technical depth as a Red Hat kernel support engineer. Designing and implementing OpenShift across private data centers, VMware Cloud Foundation, and hybrid AWS environments.</p>
+    <p class="hero-title">Platform and cloud-native architect with enterprise consulting experience at VMware (Broadcom) and prior technical depth as a Red Hat kernel support engineer. Designing and implementing OpenShift across private data centers, VMware Cloud Foundation, OpenShift Virtualization, and hybrid AWS environments.</p>
     <div class="hero-pills">
       <span class="pill pill-blue">PMP</span>
       <span class="pill pill-green">DevSecOps</span>
@@ -200,20 +180,23 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
       <span class="pill pill-blue">Kubernetes</span>
       <span class="pill pill-amber">VMware VCF</span>
       <span class="pill pill-amber">NSX</span>
-      <span class="pill pill-green">ROSA on AWS</span>
+      <span class="pill pill-virt">OCP Virtualization</span>
+      <span class="pill pill-virt">KubeVirt</span>
+      <span class="pill pill-aws">AWS</span>
+      <span class="pill pill-green">ROSA</span>
       <span class="pill pill-red">PCI-DSS</span>
       <span class="pill pill-blue">RHEL</span>
     </div>
-    <a href="#projects" class="hero-cta">View Technical Portfolio →</a>
+    <a href="#projects" class="hero-cta">View Technical Portfolio &rarr;</a>
   </div>
   <div class="hero-aside">
     <div class="aside-label">Portfolio at a glance</div>
     <div class="aside-stat">
-      <span class="stat-n">67</span>
+      <span class="stat-n">79</span>
       <span class="stat-label">Reference guides</span>
     </div>
     <div class="aside-stat">
-      <span class="stat-n">2</span>
+      <span class="stat-n">3</span>
       <span class="stat-label">Complete series</span>
     </div>
     <div class="aside-stat">
@@ -221,7 +204,7 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
       <span class="stat-label">Active certifications</span>
     </div>
     <div class="aside-stat">
-      <span class="stat-n">5+</span>
+      <span class="stat-n">4+</span>
       <span class="stat-label">Planned series</span>
     </div>
   </div>
@@ -229,7 +212,6 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
 
 <hr class="rule">
 
-<!-- ABOUT -->
 <section id="about">
   <div class="section-label">Background</div>
   <h2 class="section-title">About</h2>
@@ -238,7 +220,7 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
     <div class="summary-block">
       <p>Began with enterprise Linux at Red Hat, working in the kernel support team — diagnosing low-level RHEL issues, supporting complex enterprise environments, and building the systems-level foundation that informs every architectural decision made today.</p>
       <p>At VMware (Broadcom), was deployed directly to a government banking client on day one — no probationary ramp — and performed the full consulting motion: stakeholder mapping from zero, application requirements elicitation, gap analysis of existing Tanzu environments, risk identification, and benefits realization toward platform modernization.</p>
-      <p>Currently building a hands-on architecture portfolio covering the full spectrum from physical data center fabric through OpenShift on VCF+NSX, hybrid cloud connectivity with ROSA on AWS, and planned extensions into OpenShift Virtualization, OpenShift AI, and enterprise GitOps.</p>
+      <p>Currently building a hands-on architecture portfolio covering the full spectrum: physical data center fabric through OpenShift on VCF+NSX, complete VM migration to OpenShift Virtualization with full NSX decommission, hybrid cloud connectivity with ROSA on AWS, and standalone AWS cloud engineering projects.</p>
     </div>
     <div class="summary-block">
       <p>The portfolio environment — NovaCrestBank, a fictional government banking institution — is deliberately designed to reflect real enterprise constraints: PCI-DSS v4.0 and NIST SP 800-53 compliance requirements, HSM-backed PKI, dual-fabric FC SAN, Thales Luna HSM integration, CyberArk PAM, and a complete Cisco leaf-spine physical fabric.</p>
@@ -252,129 +234,70 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
 
 <hr class="rule">
 
-<!-- CERTIFICATIONS -->
 <div class="certs-section" id="certifications">
   <div class="certs-inner">
     <div class="section-label">Credentials</div>
     <h2 class="section-title">Certifications</h2>
     <p class="section-sub">Active credentials spanning cloud platforms, container security, networking, project management, and DevSecOps.</p>
-
     <div class="cert-grid">
       <div class="cert-card">
-        <div class="cert-icon pmp">
-          <img src="https://images.credly.com/size/200x200/images/31da017a-a50c-48a8-8012-c4811063581f/blob.png" alt="PMP Logo" class="cert-icon">
-        </div>
-       <div>
-          <div class="cert-name">Project Management Professional (PMP)®</div>
-          <div class="cert-issuer">Project Management Institute</div>
-          <a href="https://www.credly.com/badges/e58c4f17-3b71-4d46-aca9-d935518d11f8/linked_in_profile" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div class="cert-icon pmp"><img src="https://images.credly.com/size/200x200/images/31da017a-a50c-48a8-8012-c4811063581f/blob.png" alt="PMP" class="cert-icon"></div>
+        <div><div class="cert-name">Project Management Professional (PMP)&reg;</div><div class="cert-issuer">Project Management Institute</div><a href="https://www.credly.com/badges/e58c4f17-3b71-4d46-aca9-d935518d11f8/linked_in_profile" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon ec">E|CDE</div>
-        <div>
-          <div class="cert-name">EC-Council Certified DevSecOps Engineer</div>
-          <div class="cert-issuer">EC-Council</div>
-          <a href="https://aspen.eccouncil.org/VerifyBadge?type=certification&a=ur+FcDDi2fuaaEABMUp2TVq1gKANOx/44LBK/++KSGc=" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">EC-Council Certified DevSecOps Engineer</div><div class="cert-issuer">EC-Council</div><a href="https://aspen.eccouncil.org/VerifyBadge?type=certification&a=ur+FcDDi2fuaaEABMUp2TVq1gKANOx/44LBK/++KSGc=" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon lf">CKS</div>
-        <div>
-          <div class="cert-name">CKS: Certified Kubernetes Security Specialist</div>
-          <div class="cert-issuer">The Linux Foundation</div>
-          <a href="https://www.credly.com/badges/44c4d41a-859c-40cc-b6db-0e4aaff2f133/linked_in_profile" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">CKS: Certified Kubernetes Security Specialist</div><div class="cert-issuer">The Linux Foundation</div><a href="https://www.credly.com/badges/44c4d41a-859c-40cc-b6db-0e4aaff2f133/linked_in_profile" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon aws">SA</div>
-        <div>
-          <div class="cert-name">AWS Certified Solutions Architect – Associate</div>
-          <div class="cert-issuer">Amazon Web Services</div>
-          <a href="https://www.credly.com/badges/b99394bb-4472-4290-a907-fc34be5c7906/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">AWS Certified Solutions Architect &ndash; Associate</div><div class="cert-issuer">Amazon Web Services</div><a href="https://www.credly.com/badges/b99394bb-4472-4290-a907-fc34be5c7906/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon aws">SysOps</div>
-        <div>
-          <div class="cert-name">AWS Certified SysOps Administrator – Associate</div>
-          <div class="cert-issuer">Amazon Web Services</div>
-          <a href="https://www.credly.com/badges/754ed44c-66f7-4305-8d01-c90105282d6e/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">AWS Certified SysOps Administrator &ndash; Associate</div><div class="cert-issuer">Amazon Web Services</div><a href="https://www.credly.com/badges/754ed44c-66f7-4305-8d01-c90105282d6e/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon aws">Dev</div>
-        <div>
-          <div class="cert-name">AWS Certified Developer – Associate</div>
-          <div class="cert-issuer">Amazon Web Services</div>
-          <a href="https://www.credly.com/badges/8251e1a1-d668-46e9-ba0d-1da17950853c/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">AWS Certified Developer &ndash; Associate</div><div class="cert-issuer">Amazon Web Services</div><a href="https://www.credly.com/badges/8251e1a1-d668-46e9-ba0d-1da17950853c/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon aws">WA</div>
-        <div>
-          <div class="cert-name">AWS Well-Architected Proficient</div>
-          <div class="cert-issuer">Amazon Web Services</div>
-          <a href="https://www.credly.com/badges/77a67d88-671c-42fe-9285-d8f48e232b87/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">AWS Well-Architected Proficient</div><div class="cert-issuer">Amazon Web Services</div><a href="https://www.credly.com/badges/77a67d88-671c-42fe-9285-d8f48e232b87/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon vmw">VCP</div>
-        <div>
-          <div class="cert-name">VCP – Application Modernization 2023</div>
-          <div class="cert-issuer">Broadcom / VMware</div>
-          <a href="https://www.credly.com/badges/70cec057-ae7a-4262-bbce-2a22c329b3a6/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">VCP &ndash; Application Modernization 2023</div><div class="cert-issuer">Broadcom / VMware</div><a href="https://www.credly.com/badges/70cec057-ae7a-4262-bbce-2a22c329b3a6/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon vmw">VCP</div>
-        <div>
-          <div class="cert-name">VCP – Data Center Virtualization 2023</div>
-          <div class="cert-issuer">Broadcom / VMware</div>
-          <a href="https://www.credly.com/badges/f182672b-54c3-4f3d-b707-e423195e8e36/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">VCP &ndash; Data Center Virtualization 2023</div><div class="cert-issuer">Broadcom / VMware</div><a href="https://www.credly.com/badges/f182672b-54c3-4f3d-b707-e423195e8e36/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon vmw">VCP</div>
-        <div>
-          <div class="cert-name">VCP – Network Virtualization 2023</div>
-          <div class="cert-issuer">Broadcom / VMware</div>
-          <a href="https://www.credly.com/badges/70ac77c9-1e55-4e75-958c-8bcb7b59d5ad/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">VCP &ndash; Network Virtualization 2023</div><div class="cert-issuer">Broadcom / VMware</div><a href="https://www.credly.com/badges/70ac77c9-1e55-4e75-958c-8bcb7b59d5ad/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
-        <div class="cert-icon ccna">
-          <img src="https://images.credly.com/size/200x200/images/81324abf-aff1-44e3-b36b-130a7b8361a0/blob.png" alt="ccna Logo" class="cert-icon">
-        </div>
-       <div>
-          <div class="cert-name">CCNA</div>
-          <div class="cert-issuer">Cisco</div>
-          <a href="https://www.credly.com/badges/af0ae4d7-4dbe-4d05-b90a-2cb7ed9093e4/linked_in_profile" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div class="cert-icon aws"><img src="https://images.credly.com/size/200x200/images/81324abf-aff1-44e3-b36b-130a7b8361a0/blob.png" alt="CCNA" class="cert-icon"></div>
+        <div><div class="cert-name">CCNA</div><div class="cert-issuer">Cisco</div><a href="https://www.credly.com/badges/af0ae4d7-4dbe-4d05-b90a-2cb7ed9093e4/linked_in_profile" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon ms">MS</div>
-        <div>
-          <div class="cert-name">Identity with Windows Server</div>
-          <div class="cert-issuer">Microsoft</div>
-          <a href="https://www.credly.com/badges/297c75e5-fa4b-455d-bc68-dfa9230a60b0/public_url" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">Identity with Windows Server</div><div class="cert-issuer">Microsoft</div><a href="https://www.credly.com/badges/297c75e5-fa4b-455d-bc68-dfa9230a60b0/public_url" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
       <div class="cert-card">
         <div class="cert-icon py">PCEP</div>
-        <div>
-          <div class="cert-name">PCEP™ – Certified Entry-Level Python Programmer</div>
-          <div class="cert-issuer">Python Institute</div>
-          <a href="https://www.credly.com/badges/5341cd90-1bc2-4471-b403-3ede205b77e5/linked_in_profile" target="_blank" class="cert-verify">Verify credential →</a>
-        </div>
+        <div><div class="cert-name">PCEP&trade; &ndash; Certified Entry-Level Python Programmer</div><div class="cert-issuer">Python Institute</div><a href="https://www.credly.com/badges/5341cd90-1bc2-4471-b403-3ede205b77e5/linked_in_profile" target="_blank" class="cert-verify">Verify credential &rarr;</a></div>
       </div>
     </div>
-
     <div class="expired-label">Previously held</div>
     <div class="expired-grid">
       <div class="exp-card"><div class="exp-name">Red Hat Certified Engineer (RHCE)</div><div class="exp-issuer">Red Hat</div></div>
       <div class="exp-card"><div class="exp-name">Red Hat Certified OpenShift Administrator</div><div class="exp-issuer">Red Hat</div></div>
-      <div class="exp-card"><div class="exp-name">Red Hat Certified Specialist – Ansible Automation</div><div class="exp-issuer">Red Hat</div></div>
+      <div class="exp-card"><div class="exp-name">Red Hat Certified Specialist &ndash; Ansible Automation</div><div class="exp-issuer">Red Hat</div></div>
       <div class="exp-card"><div class="exp-name">CKA: Certified Kubernetes Administrator</div><div class="exp-issuer">The Linux Foundation</div></div>
       <div class="exp-card"><div class="exp-name">Associate Cloud Engineer</div><div class="exp-issuer">Google Cloud</div></div>
       <div class="exp-card"><div class="exp-name">Azure Administrator Associate</div><div class="exp-issuer">Microsoft</div></div>
@@ -382,15 +305,14 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
   </div>
 </div>
 
-<!-- PROJECTS -->
 <section id="projects">
   <div class="section-label">Technical Portfolio</div>
   <h2 class="section-title">Projects</h2>
-  <p class="section-sub">Enterprise-grade reference environments built around NovaCrestBank — a fictional government banking institution designed to simulate real-world consulting engagements with PCI-DSS, NIST SP 800-53, and APRA compliance requirements.</p>
+  <p class="section-sub">Enterprise-grade reference environments and standalone cloud engineering projects &mdash; spanning private data center fabric, platform modernization, VM migration, and AWS cloud services.</p>
 
-  <div class="series-grid" style="margin-top:2.5rem">
+  <div class="series-group-label">OpenShift Platform Engineering &middot; NovaCrestBank Reference Environment</div>
+  <div class="series-grid">
 
-    <!-- Series I -->
     <div class="series-card">
       <div class="series-num">I</div>
       <div class="series-body">
@@ -404,17 +326,16 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
       <div class="series-meta">
         <div><div class="file-count">31</div><div class="file-label">guides</div></div>
         <span class="status-badge badge-live">Live</span>
-        <a href="series-1-classic.html" class="series-link">View series →</a>
+        <a href="series-1-classic.html" class="series-link">View series &rarr;</a>
       </div>
     </div>
 
-    <!-- Series II -->
     <div class="series-card">
       <div class="series-num">II</div>
       <div class="series-body">
         <div class="series-tag vcf">Private Cloud</div>
         <div class="series-name">OpenShift on VMware Cloud Foundation + NSX</div>
-        <p class="series-desc">A standalone series — no prior series required. Begins with a complete foundation guide covering the VCF architecture, VLAN and IP plan, NSX overlay design, DNS record plan, and PKI certificate plan for the NovaCrestBank environment. Then covers the full VCF + NSX configuration (Transport Zones, T0/T1 gateways, NSX Load Balancer, Distributed Firewall), OCP installation, Harbor registry, Cert-Manager, ACS, OpenShift Pipelines, GitOps with Argo CD and Jenkins, ODF/Ceph storage, observability with Prometheus/Loki/Tempo, cluster upgrades, and enterprise secret management with CyberArk.</p>
+        <p class="series-desc">A standalone series &mdash; no prior series required. Begins with a complete foundation guide covering the VCF architecture, VLAN and IP plan, NSX overlay design, DNS record plan, and PKI certificate plan. Covers the full VCF + NSX configuration (Transport Zones, T0/T1 gateways, NSX Load Balancer, Distributed Firewall), OCP installation, Harbor registry, Cert-Manager, ACS, OpenShift Pipelines, GitOps with Argo CD and Jenkins, ODF/Ceph storage, observability with Prometheus/Loki/Tempo, cluster upgrades, and enterprise secret management with CyberArk.</p>
         <div class="series-chips">
           <span class="chip">VCF</span><span class="chip">NSX-T</span><span class="chip">T0/T1 Gateways</span><span class="chip">DFW</span><span class="chip">Harbor</span><span class="chip">Cert-Manager</span><span class="chip">ACS</span><span class="chip">Tekton</span><span class="chip">Argo CD</span><span class="chip">Jenkins</span><span class="chip">ODF/Ceph</span><span class="chip">GitLab</span><span class="chip">CyberArk ESO</span><span class="chip">Loki</span><span class="chip">Tempo</span>
         </div>
@@ -422,13 +343,56 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
       <div class="series-meta">
         <div><div class="file-count">37</div><div class="file-label">guides</div></div>
         <span class="status-badge badge-live">Live</span>
-        <a href="series-2-vcf.html" class="series-link">View series →</a>
+        <a href="series-2-vcf.html" class="series-link">View series &rarr;</a>
       </div>
     </div>
 
-    <!-- Series III -->
     <div class="series-card">
       <div class="series-num">III</div>
+      <div class="series-body">
+        <div class="series-tag virt">Cloud-Native Virtualization</div>
+        <div class="series-name">OpenShift Virtualization &mdash; VM Migration &amp; Platform Decommission</div>
+        <p class="series-desc">A natural continuation of Series II &mdash; migrating all VM workloads from VCF to OpenShift Virtualization (KubeVirt) on bare-metal, then fully decommissioning NSX and VCF. Covers physical fabric preparation, ODF storage, KubeVirt architecture, VM networking (OVN localnet, Multus, MAC mobility), warm/cold migration with MTV, VM lifecycle under GitOps, ACS security on bare-metal nodes, ACM fleet governance, AAP guest OS automation (IPAM, AD join, patching, alert-driven live migration), and the complete NSX decommission: DFW &rarr; NetworkPolicy translation, BGP cutover from NSX T0 to OVN EgressGateway, Edge node and Manager removal, leaf TEP VLAN cleanup, and license elimination.</p>
+        <div class="series-chips">
+          <span class="chip">OpenShift Virtualization</span><span class="chip">KubeVirt</span><span class="chip">MTV</span><span class="chip">OVN-Kubernetes</span><span class="chip">ODF/Ceph</span><span class="chip">Multus</span><span class="chip">MetalLB BGP</span><span class="chip">Argo CD</span><span class="chip">ACS/StackRox</span><span class="chip">ACM</span><span class="chip">AAP</span><span class="chip">EDA</span><span class="chip">NSX Decommission</span>
+        </div>
+      </div>
+      <div class="series-meta">
+        <div><div class="file-count">12</div><div class="file-label">guides</div></div>
+        <span class="status-badge badge-live">Live</span>
+        <a href="series-3-virt.html" class="series-link">View series &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="series-group-label" style="margin-top:3rem">Standalone Projects &middot; Independent Skill Demonstrations</div>
+  <div class="series-grid">
+
+    <div class="series-card">
+      <div class="series-num" style="font-size:1.3rem;letter-spacing:.02em;align-items:center;padding-top:1.8rem">CAP</div>
+      <div class="series-body">
+        <div class="series-tag aws-cap">AWS Cloud Engineering &middot; Capstone</div>
+        <div class="series-name">SCEMS &mdash; Smart City Environmental Monitoring System</div>
+        <p class="series-desc">A standalone AWS cloud engineering capstone &mdash; independent of the NovaCrestBank platform series. Demonstrates AWS-native services to build a scalable, secure, real-time environmental monitoring platform for a smart city use case. Covers the full cloud engineering lifecycle: containerised Python application on ECS Fargate, CI/CD pipeline with AWS CodePipeline and CodeBuild, infrastructure-as-code with CloudFormation, IAM least-privilege design, VPC networking, Application Load Balancer, and CloudWatch observability. Showcases AWS architectural best practices as a self-contained AWS skills demonstration.</p>
+        <div class="series-chips">
+          <span class="chip">Amazon ECS Fargate</span><span class="chip">CodePipeline</span><span class="chip">CodeBuild</span><span class="chip">CloudFormation</span><span class="chip">ECR</span><span class="chip">IAM</span><span class="chip">VPC</span><span class="chip">ALB</span><span class="chip">CloudWatch</span><span class="chip">S3</span><span class="chip">Python / Flask</span><span class="chip">Docker</span>
+        </div>
+      </div>
+      <div class="series-meta">
+        <div><div class="file-count">1</div><div class="file-label">project</div></div>
+        <span class="status-badge badge-live">Live</span>
+        <a href="https://github.com/ashokkumar-arch/scems-capstone" target="_blank" class="series-link">View on GitHub &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="series-group-label" style="margin-top:3rem">Planned Series &middot; In Development</div>
+  <div class="series-grid">
+
+    <div class="series-card">
+      <div class="series-num">IV</div>
       <div class="series-body">
         <div class="series-tag planned">Public Cloud</div>
         <div class="series-name">ROSA on AWS (STS Mode)</div>
@@ -438,61 +402,41 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
         </div>
       </div>
       <div class="series-meta">
-        <div><div class="file-count">—</div><div class="file-label">in progress</div></div>
+        <div><div class="file-count">&mdash;</div><div class="file-label">in progress</div></div>
         <span class="status-badge badge-progress">In Progress</span>
         <span class="series-link soon">Coming soon</span>
       </div>
     </div>
 
-    <!-- Series IV -->
-    <div class="series-card">
-      <div class="series-num">IV</div>
-      <div class="series-body">
-        <div class="series-tag planned">Hybrid Cloud — Capstone</div>
-        <div class="series-name">Hybrid Cloud: VCF + NSX ↔ ROSA on AWS</div>
-        <p class="series-desc">The capstone project — connecting the private data center to AWS at every layer. Covers Direct Connect and Transit Gateway for private network connectivity, extending on-premises AD identity and PKI CA hierarchy into AWS, HSM-backed key management across environments, and unified observability across private and public cloud clusters.</p>
-        <div class="series-chips">
-          <span class="chip">Direct Connect</span><span class="chip">Transit Gateway</span><span class="chip">Identity Federation</span><span class="chip">PKI Extension</span><span class="chip">HSM → AWS</span><span class="chip">Cross-cluster GitOps</span>
-        </div>
-      </div>
-      <div class="series-meta">
-        <div><div class="file-count">—</div><div class="file-label">planned</div></div>
-        <span class="status-badge badge-planned">Planned</span>
-        <span class="series-link soon">Coming soon</span>
-      </div>
-    </div>
-
-    <!-- Series V -->
     <div class="series-card">
       <div class="series-num">V</div>
       <div class="series-body">
-        <div class="series-tag planned">Cloud-Native Virtualization</div>
-        <div class="series-name">OpenShift Virtualization + VM Migration (MTV)</div>
-        <p class="series-desc">Migrating VMware workloads to OpenShift Virtualization (KubeVirt) alongside the VCF environment. Covers VM discovery, network and storage design for virtualized workloads, warm migration strategy, cutover planning, and post-migration validation using the Migration Toolkit for Virtualization.</p>
+        <div class="series-tag planned">Hybrid Cloud</div>
+        <div class="series-name">Hybrid Cloud: OCP Virt + ROSA on AWS</div>
+        <p class="series-desc">Connecting NovaCrestBank's bare-metal OCP Virt environment to AWS at every layer. Covers Direct Connect and Transit Gateway for private network connectivity, extending on-premises AD identity and PKI CA hierarchy into AWS, HSM-backed key management across environments, cross-cluster GitOps, and unified observability via ACM across private and public cloud clusters.</p>
         <div class="series-chips">
-          <span class="chip">OpenShift Virtualization</span><span class="chip">KubeVirt</span><span class="chip">MTV</span><span class="chip">VM Migration</span><span class="chip">Warm Migration</span>
+          <span class="chip">Direct Connect</span><span class="chip">Transit Gateway</span><span class="chip">Identity Federation</span><span class="chip">PKI Extension</span><span class="chip">Cross-cluster GitOps</span><span class="chip">ACM</span>
         </div>
       </div>
       <div class="series-meta">
-        <div><div class="file-count">—</div><div class="file-label">planned</div></div>
+        <div><div class="file-count">&mdash;</div><div class="file-label">planned</div></div>
         <span class="status-badge badge-planned">Planned</span>
         <span class="series-link soon">Coming soon</span>
       </div>
     </div>
 
-    <!-- Series VI -->
     <div class="series-card">
       <div class="series-num">VI</div>
       <div class="series-body">
         <div class="series-tag planned">AI Platform</div>
-        <div class="series-name">OpenShift AI on VCF</div>
-        <p class="series-desc">Deploying Red Hat OpenShift AI (RHOAI) on the VCF environment. Covers the KServe/ODH architecture, model serving infrastructure, GPU operator configuration, and integrating AI workloads with the existing platform services (Harbor, GitOps, observability).</p>
+        <div class="series-name">OpenShift AI on Bare-Metal</div>
+        <p class="series-desc">Deploying Red Hat OpenShift AI (RHOAI) on the bare-metal OCP Virt environment post-VCF decommission. Covers the KServe/ODH architecture, model serving infrastructure, GPU operator configuration, and integrating AI workloads with the existing platform services (Harbor, GitOps, observability, ACM governance).</p>
         <div class="series-chips">
           <span class="chip">OpenShift AI</span><span class="chip">RHOAI</span><span class="chip">KServe</span><span class="chip">Model Serving</span><span class="chip">GPU Operator</span>
         </div>
       </div>
       <div class="series-meta">
-        <div><div class="file-count">—</div><div class="file-label">planned</div></div>
+        <div><div class="file-count">&mdash;</div><div class="file-label">planned</div></div>
         <span class="status-badge badge-planned">Planned</span>
         <span class="series-link soon">Coming soon</span>
       </div>
@@ -503,277 +447,147 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
 
 <hr class="rule">
 
-<!-- CONSULTING -->
 <section id="consulting">
   <div class="section-label">Consulting Experience</div>
   <h2 class="section-title">Enterprise Engagement</h2>
-  <p class="section-sub">On-site consulting architect at a government banking institution — the full advisory motion from day one.</p>
-
+  <p class="section-sub">On-site consulting architect at a government banking institution &mdash; the full advisory motion from day one.</p>
   <div class="consulting-card">
     <div class="consulting-header">
       <div>
-        <div class="c-org">VMware (Broadcom) · Consulting Architect</div>
-        <div class="c-title">Government Banking Institution — Tanzu on VCF Platform Modernization</div>
+        <div class="c-org">VMware (Broadcom) &middot; Consulting Architect</div>
+        <div class="c-title">Government Banking Institution &mdash; Tanzu on VCF Platform Modernization</div>
       </div>
-      <div class="c-meta">
-        On-site · Client location<br>
-        Government Bank IT<br>
-        App modernization · VMs → Tanzu
-      </div>
+      <div class="c-meta">On-site &middot; Client location<br>Government Bank IT<br>App modernization &middot; VMs &rarr; Tanzu</div>
     </div>
     <div class="consulting-body">
       <div>
-        <div class="c-section-title">Stakeholder Engagement & Advisory</div>
-        <div class="c-item">Deployed directly to client site on day one with no probationary ramp — mapped the entire stakeholder landscape from zero, from HR through C-level executives to L1 operations engineers, identifying influence, interest, and communication preferences for each.</div>
-        <div class="c-item">Facilitated cross-functional meetings between application owners, operations team leads (networking, security), and vendor sales teams — maintaining a self-managed stakeholder register and engagement plan throughout.</div>
+        <div class="c-section-title">Stakeholder Engagement &amp; Advisory</div>
+        <div class="c-item">Deployed directly to client site on day one with no probationary ramp &mdash; mapped the entire stakeholder landscape from zero, from HR through C-level executives to L1 operations engineers, identifying influence, interest, and communication preferences for each.</div>
+        <div class="c-item">Facilitated cross-functional meetings between application owners, operations team leads (networking, security), and vendor sales teams &mdash; maintaining a self-managed stakeholder register and engagement plan throughout.</div>
         <div class="c-item">Conducted individual requirements elicitation sessions with each application owner, documenting functional requirements, migration expectations, scheduling constraints, and integration dependencies for every workload targeted for Tanzu migration.</div>
       </div>
       <div>
-        <div class="c-section-title">Technical Architecture & Risk Management</div>
-        <div class="c-item">Proactively evaluated existing Tanzu cluster architectures and identified security context gaps — recommending ReadOnlyRootFilesystem, runAsUser, fsGroups, capabilities constraints, and network policies aligned with the principle of least privilege.</div>
-        <div class="c-item">Identified IP addressing constraints in the existing network plan — only two additional clusters could be provisioned with available pools — and presented a risk register entry with remediation options to relevant stakeholders before the limitation became a delivery blocker.</div>
-        <div class="c-item">Resolved an escalated application owner incident (OOM-killed Java application) by diagnosing container memory limit misconfiguration via logs, explaining the OOM-killer mechanism to the development team, and guiding corrective action — converting a confrontational situation into a collaborative one.</div>
-        <div class="c-item">Contributed to benefits realization planning by identifying operational pain points (multi-cluster management overhead) as positive risk opportunities — directly supporting the case for ACM adoption and expanding the platform footprint.</div>
-        <div class="c-outcome">Performed the full consulting motion — stakeholder management, communication management, business analysis, risk management, gap analysis, and platform advocacy — in a live government banking environment, without a formal project management mandate.</div>
+        <div class="c-section-title">Technical Architecture &amp; Risk Management</div>
+        <div class="c-item">Proactively evaluated existing Tanzu cluster architectures and identified security context gaps &mdash; recommending ReadOnlyRootFilesystem, runAsUser, fsGroups, capabilities constraints, and network policies aligned with the principle of least privilege.</div>
+        <div class="c-item">Identified IP addressing constraints in the existing network plan &mdash; only two additional clusters could be provisioned with available pools &mdash; and presented a risk register entry with remediation options to relevant stakeholders before the limitation became a delivery blocker.</div>
+        <div class="c-item">Resolved an escalated application owner incident (OOM-killed Java application) by diagnosing container memory limit misconfiguration via logs, explaining the OOM-killer mechanism to the development team, and guiding corrective action &mdash; converting a confrontational situation into a collaborative one.</div>
+        <div class="c-item">Contributed to benefits realization planning by identifying operational pain points (multi-cluster management overhead) as positive risk opportunities &mdash; directly supporting the case for ACM adoption and expanding the platform footprint.</div>
+        <div class="c-outcome">Performed the full consulting motion &mdash; stakeholder management, communication management, business analysis, risk management, gap analysis, and platform advocacy &mdash; in a live government banking environment, without a formal project management mandate.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- DIAGRAM -->
 <div class="diagram-section">
   <div class="diagram-inner">
     <div class="section-label">Reference Environment</div>
-    <h2 class="section-title">NovaCrestBank — Data Center Fabric</h2>
-    <p class="section-sub">Production-grade fictional enterprise environment. Every guide in this portfolio is grounded in this architecture — real hostnames, IPs, and naming conventions following enterprise standards.</p>
+    <h2 class="section-title">NovaCrestBank &mdash; Data Center Fabric</h2>
+    <p class="section-sub">Production-grade fictional enterprise environment. Every guide in Series I, II, and III is grounded in this architecture &mdash; real hostnames, IPs, and naming conventions following enterprise standards.</p>
     <div class="diagram-wrapper">
       <svg width="100%" viewBox="0 0 680 1580" role="img">
 <title>NovaCrestBank Complete Data Center Fabric</title>
-<desc>Enterprise data center architecture: dual ISP, Palo Alto NGFW, DMZ with F5 and VPN, Cisco Nexus spine-leaf, 5 ESXi hosts, FC SAN, NetApp NAS, Thales HSM, OOB management, and branch office.</desc>
+<desc>Enterprise data center architecture: dual ISP, Palo Alto NGFW, DMZ with F5 and VPN, Cisco Nexus spine-leaf, bare-metal OCP Virt nodes, FC SAN, NetApp NAS, Thales HSM, OOB management, and branch office.</desc>
 <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
 <rect x="20" y="16" width="460" height="72" rx="8" fill="none" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="5 3"/>
 <text x="32" y="31" font-family="DM Mono,monospace" font-size="9" fill="#7a7a74" letter-spacing="1">PUBLIC INTERNET / ISP BACKBONE</text>
-<rect x="30" y="36" width="200" height="44" rx="5" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/>
-<text x="130" y="55" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Public DNS + CDN + DDoS</text>
-<text x="130" y="70" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">Cloudflare / Akamai</text>
-<rect x="248" y="36" width="106" height="44" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="301" y="55" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">ISP Device A</text>
-<text x="301" y="70" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">Nokia 7750 SR</text>
-<rect x="364" y="36" width="106" height="44" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="417" y="55" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">ISP Device B</text>
-<text x="417" y="70" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">Cisco NCS 5500</text>
-<rect x="248" y="112" width="106" height="50" rx="5" fill="#f3edfb" stroke="#9673c6" stroke-width="0.5"/>
-<text x="301" y="130" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Edge Router</text>
-<text x="301" y="146" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">ASR 1002-X (active)</text>
-<rect x="364" y="112" width="106" height="50" rx="5" fill="#f3edfb" stroke="#9673c6" stroke-width="0.5"/>
-<text x="417" y="130" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Edge Router</text>
-<text x="417" y="146" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Juniper MX204 (stby)</text>
-<line x1="301" y1="80" x2="301" y2="112" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<line x1="417" y1="80" x2="417" y2="112" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<line x1="354" y1="137" x2="364" y2="137" stroke="#d8d6cf" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr)"/>
-<rect x="248" y="188" width="222" height="50" rx="5" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/>
-<text x="359" y="208" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Next-Gen Firewall (HA pair)</text>
-<text x="359" y="225" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Palo Alto PA-5250 · App-ID · IPS · SSL decrypt</text>
-<line x1="301" y1="162" x2="301" y2="188" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<line x1="417" y1="162" x2="417" y2="188" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<rect x="20" y="258" width="460" height="166" rx="8" fill="none" stroke="#a87015" stroke-width="0.5" stroke-dasharray="5 3"/>
-<text x="32" y="273" font-family="DM Mono,monospace" font-size="9" fill="#a87015" letter-spacing="1">DMZ ZONE — PHYSICALLY SEPARATE RACK</text>
-<rect x="224" y="278" width="162" height="44" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="305" y="296" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">DMZ Transit Switch</text>
-<text x="305" y="311" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">Cisco Catalyst 9300</text>
-<line x1="359" y1="238" x2="359" y2="278" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<rect x="30" y="338" width="185" height="74" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/>
-<text x="122" y="358" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Load Balancer (HA pair)</text>
-<text x="122" y="374" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">F5 BIG-IP i5800/i10800</text>
-<text x="122" y="389" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">LTM · ASM/WAF · TLS offload</text>
-<rect x="240" y="338" width="228" height="74" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/>
-<text x="354" y="358" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">VPN Gateway (HA pair)</text>
-<text x="354" y="374" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco ASA 5555-X / PA GlobalProtect</text>
-<text x="354" y="389" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Remote-access VPN · IPsec site-to-site</text>
-<line x1="260" y1="322" x2="170" y2="338" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<line x1="340" y1="322" x2="340" y2="338" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<rect x="248" y="452" width="222" height="44" rx="5" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/>
-<text x="359" y="470" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Palo Alto PA-5250 — inside interface</text>
-<text x="359" y="485" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">DMZ → Trust · second inspection pass</text>
-<line x1="122" y1="412" x2="260" y2="474" stroke="#d8d6cf" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr)"/>
-<line x1="354" y1="412" x2="354" y2="452" stroke="#d8d6cf" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr)"/>
-<rect x="20" y="516" width="460" height="234" rx="8" fill="none" stroke="#0e6b45" stroke-width="0.5" stroke-dasharray="5 3"/>
-<text x="32" y="531" font-family="DM Mono,monospace" font-size="9" fill="#0e6b45" letter-spacing="1">TRUST ZONE — CISCO NEXUS LEAF-SPINE FABRIC</text>
-<rect x="30" y="538" width="190" height="50" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="125" y="558" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Spine Switch 1</text>
-<text x="125" y="574" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco Nexus 9504 · 100 GbE · ECMP</text>
-<rect x="250" y="538" width="220" height="50" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="360" y="558" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Spine Switch 2</text>
-<text x="360" y="574" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco Nexus 9504 · 100 GbE · ECMP</text>
-<line x1="310" y1="496" x2="130" y2="538" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<line x1="400" y1="496" x2="400" y2="538" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
-<line x1="220" y1="563" x2="250" y2="563" stroke="#d8d6cf" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr)"/>
-<rect x="30" y="628" width="128" height="50" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="94" y="648" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Leaf 1 — Rack 1</text>
-<text x="94" y="663" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">93180YC-FX</text>
-<rect x="176" y="628" width="128" height="50" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="240" y="648" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Leaf 2 — Rack 2</text>
-<text x="240" y="663" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">93180YC-FX</text>
-<rect x="322" y="628" width="148" height="50" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="396" y="648" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Leaf 3 — Rack 3</text>
-<text x="396" y="663" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">93180YC-FX</text>
-<line x1="94" y1="588" x2="94" y2="628" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<line x1="140" y1="588" x2="240" y2="628" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<line x1="175" y1="588" x2="396" y2="628" stroke="#1a5c8f" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr)"/>
-<line x1="320" y1="588" x2="94" y2="628" stroke="#1a5c8f" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr)"/>
-<line x1="350" y1="588" x2="240" y2="628" stroke="#1a5c8f" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr)"/>
-<line x1="396" y1="588" x2="396" y2="628" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<rect x="20" y="770" width="460" height="106" rx="8" fill="none" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="5 3"/>
-<text x="32" y="785" font-family="DM Mono,monospace" font-size="9" fill="#7a7a74" letter-spacing="1">COMPUTE — HP PROLIANT DL380 GEN11 · ESXI · VSAN · NSX</text>
-<rect x="28" y="792" width="82" height="72" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="69" y="812" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Host 1</text>
-<text x="69" y="828" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">vmnic0/1: mgmt</text>
-<text x="69" y="841" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">vmnic2/3: VM/NSX</text>
-<text x="69" y="854" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">vmnic4/5: vSAN</text>
-<rect x="118" y="792" width="82" height="72" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="159" y="812" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Host 2</text>
-<text x="159" y="828" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">+ FC HBA</text>
-<text x="159" y="841" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">Emulex LPe35002</text>
-<text x="159" y="854" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">Oracle RAC</text>
-<rect x="208" y="792" width="82" height="72" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="249" y="812" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Host 3</text>
-<text x="249" y="828" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">+ FC HBA</text>
-<text x="249" y="841" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">Emulex LPe35002</text>
-<text x="249" y="854" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">Oracle RAC</text>
-<rect x="298" y="792" width="82" height="72" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="339" y="825" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Host 4</text>
-<text x="339" y="841" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">ESXi · vSAN · NSX</text>
-<rect x="388" y="792" width="82" height="72" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="429" y="825" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Host 5</text>
-<text x="429" y="841" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">ESXi · vSAN · NSX</text>
-<line x1="94" y1="678" x2="69" y2="792" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<line x1="100" y1="678" x2="159" y2="792" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<line x1="240" y1="678" x2="249" y2="792" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<line x1="250" y1="678" x2="339" y2="792" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<line x1="396" y1="678" x2="429" y2="792" stroke="#1a5c8f" stroke-width="1.5" marker-end="url(#arr)"/>
-<rect x="28" y="878" width="442" height="28" rx="4" fill="none" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="4 2"/>
-<text x="249" y="896" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">vSAN distributed datastore — NVMe/SSD · all ESXi hosts · dedicated VLAN 25 · MTU 9000</text>
-<rect x="120" y="926" width="260" height="50" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/>
-<text x="250" y="946" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Jump Host / PAM Server</text>
-<text x="250" y="962" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Windows Server 2022 · CyberArk PSM · VLAN 40</text>
-<rect x="20" y="994" width="460" height="66" rx="8" fill="none" stroke="#a87015" stroke-width="0.5" stroke-dasharray="4 2"/>
-<text x="32" y="1008" font-family="DM Mono,monospace" font-size="9" fill="#a87015" letter-spacing="1">OUT-OF-BAND MANAGEMENT — PHYSICALLY SEPARATE</text>
-<rect x="190" y="1014" width="220" height="38" rx="5" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/>
-<text x="300" y="1029" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">OOB Management Switch</text>
-<text x="300" y="1043" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco Catalyst 9200 · iLO all hosts</text>
-<line x1="69" y1="864" x2="220" y2="1014" stroke="#a87015" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-<line x1="159" y1="864" x2="260" y2="1014" stroke="#a87015" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-<line x1="249" y1="864" x2="300" y2="1014" stroke="#a87015" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-<rect x="20" y="1078" width="340" height="186" rx="8" fill="none" stroke="#9673c6" stroke-width="0.5" stroke-dasharray="4 2"/>
-<text x="32" y="1092" font-family="DM Mono,monospace" font-size="9" fill="#9673c6" letter-spacing="1">FIBRE CHANNEL SAN — FC OPTICAL FIBER</text>
-<rect x="30" y="1098" width="140" height="50" rx="5" fill="#f3edfb" stroke="#9673c6" stroke-width="0.5"/>
-<text x="100" y="1118" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">FC Switch Fabric A</text>
-<text x="100" y="1133" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco MDS 9148S · 32Gb</text>
-<rect x="190" y="1098" width="140" height="50" rx="5" fill="#f3edfb" stroke="#9673c6" stroke-width="0.5"/>
-<text x="260" y="1118" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">FC Switch Fabric B</text>
-<text x="260" y="1133" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco MDS 9148S · 32Gb</text>
-<rect x="30" y="1170" width="300" height="74" rx="5" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/>
-<text x="180" y="1192" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">SAN Array — Dell EMC PowerStore 1000T</text>
-<text x="180" y="1208" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Dual controller · NVMe all-flash · Oracle RAC</text>
-<text x="180" y="1222" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Ctrl A → Fabric A · Ctrl B → Fabric B</text>
-<line x1="100" y1="1148" x2="100" y2="1170" stroke="#9673c6" stroke-width="1.5" stroke-dasharray="5 2" marker-end="url(#arr)"/>
-<line x1="260" y1="1148" x2="260" y2="1170" stroke="#9673c6" stroke-width="1.5" stroke-dasharray="5 2" marker-end="url(#arr)"/>
-<line x1="159" y1="864" x2="100" y2="1098" stroke="#9673c6" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-<line x1="249" y1="864" x2="240" y2="1098" stroke="#9673c6" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-<rect x="370" y="1078" width="110" height="86" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/>
-<text x="425" y="1100" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">NAS Array</text>
-<text x="425" y="1116" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">NetApp AFF A400</text>
-<text x="425" y="1130" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">ONTAP · NFS/SMB</text>
-<text x="425" y="1144" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">VLAN 30 · 25 GbE</text>
-<rect x="370" y="1178" width="110" height="86" rx="5" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/>
-<text x="425" y="1200" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">HSM (×2 HA)</text>
-<text x="425" y="1216" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Thales Luna HSM 7</text>
-<text x="425" y="1230" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">FIPS 140-2 Level 3</text>
-<text x="425" y="1244" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Enc. keys · OTP · PCI</text>
+<rect x="30" y="36" width="200" height="44" rx="5" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/><text x="130" y="55" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Public DNS + CDN + DDoS</text><text x="130" y="70" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">Cloudflare / Akamai</text>
+<rect x="248" y="36" width="106" height="44" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="301" y="55" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">ISP Device A</text><text x="301" y="70" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">BGP · AS 64500</text>
+<rect x="368" y="36" width="100" height="44" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="418" y="55" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">ISP Device B</text><text x="418" y="70" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">BGP · AS 64501</text>
+<rect x="80" y="120" width="320" height="60" rx="8" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/><text x="240" y="143" font-family="DM Serif Display,serif" font-size="13" text-anchor="middle" fill="#3a3a36">Palo Alto PA-5250 (HA Pair)</text><text x="240" y="161" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">NGFW · Threat Prevention · SSL Inspect · Zone-based policy</text>
+<line x1="130" y1="80" x2="150" y2="120" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="301" y1="80" x2="240" y2="120" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="418" y1="80" x2="330" y2="120" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<rect x="40" y="220" width="180" height="60" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/><text x="130" y="244" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">F5 BigIP (HA)</text><text x="130" y="259" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">LTM · GTM · ASM · iRules</text><text x="130" y="273" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">10.0.0.240–.241 VIP pool</text>
+<rect x="240" y="220" width="180" height="60" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/><text x="330" y="244" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">GlobalProtect VPN GW</text><text x="330" y="259" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">PA-5250 VPN Module</text><text x="330" y="273" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Split tunnel · MFA · SAML</text>
+<line x1="200" y1="150" x2="130" y2="220" stroke="#c8102e" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="260" y1="150" x2="330" y2="220" stroke="#c8102e" stroke-width="1" marker-end="url(#arr)"/>
+<rect x="20" y="330" width="420" height="72" rx="8" fill="none" stroke="#1a5c8f" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text x="34" y="348" font-family="DM Mono,monospace" font-size="9" fill="#1a5c8f" letter-spacing="1">CISCO NEXUS SPINE LAYER</text>
+<rect x="30" y="354" width="185" height="40" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/><text x="122" y="371" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Spine-01 (Nexus 9504)</text><text x="122" y="386" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">BGP RR · ECMP · 100G uplinks</text>
+<rect x="225" y="354" width="205" height="40" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/><text x="327" y="371" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Spine-02 (Nexus 9504)</text><text x="327" y="386" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">BGP RR · ECMP · 100G uplinks</text>
+<line x1="130" y1="280" x2="122" y2="354" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="330" y1="280" x2="327" y2="354" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<rect x="20" y="450" width="420" height="80" rx="8" fill="none" stroke="#1a5c8f" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text x="34" y="468" font-family="DM Mono,monospace" font-size="9" fill="#1a5c8f" letter-spacing="1">CISCO NEXUS LEAF LAYER</text>
+<rect x="30" y="474" width="185" height="48" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/><text x="122" y="493" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Leaf-01 (93180YC-FX)</text><text x="122" y="507" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">VLAN 110/120/130/140 · SVIs · HSRP</text><text x="122" y="519" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">BGP AS 65001 · OVN MetalLB peers</text>
+<rect x="225" y="474" width="205" height="48" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/><text x="327" y="493" font-family="DM Serif Display,serif" font-size="12" text-anchor="middle" fill="#3a3a36">Leaf-02 (93180YC-FX)</text><text x="327" y="507" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">VLAN 110/120/130/140 · SVIs · HSRP</text><text x="327" y="519" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">BGP AS 65002 · OVN MetalLB peers</text>
+<line x1="122" y1="394" x2="122" y2="474" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="327" y1="394" x2="327" y2="474" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<rect x="20" y="580" width="420" height="200" rx="8" fill="none" stroke="#d8d6cf" stroke-width="0.5"/>
+<text x="34" y="598" font-family="DM Mono,monospace" font-size="9" fill="#7a7a74" letter-spacing="1">COMPUTE — 5× HP PROLIANT DL385 GEN11 (BARE-METAL OCP VIRT NODES)</text>
+<rect x="30" y="604" width="76" height="60" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="68" y="624" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">bm-virt-01</text><text x="68" y="638" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">10.110.0.11</text><text x="68" y="652" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">EPYC · 512G</text>
+<rect x="115" y="604" width="76" height="60" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="153" y="624" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">bm-virt-02</text><text x="153" y="638" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">10.110.0.12</text><text x="153" y="652" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">EPYC · 512G</text>
+<rect x="200" y="604" width="76" height="60" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="238" y="624" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">bm-virt-03</text><text x="238" y="638" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">10.110.0.13</text><text x="238" y="652" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">EPYC · 512G</text>
+<rect x="285" y="604" width="76" height="60" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="323" y="624" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">bm-virt-04</text><text x="323" y="638" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">10.110.0.14</text><text x="323" y="652" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">EPYC · 512G</text>
+<rect x="370" y="604" width="76" height="60" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="408" y="624" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">bm-virt-05</text><text x="408" y="638" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">10.110.0.15</text><text x="408" y="652" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">EPYC · 512G</text>
+<text x="230" y="688" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">OCP Virtualization · ODF Ceph · 20 NVMe OSDs · KubeVirt VMs</text>
+<text x="230" y="700" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">Po211–Po215 · 2×25G LAG to leaf-01/02</text>
+<text x="230" y="712" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74">VLAN 110 node · VLAN 120 ODF · VLAN 130 VM workload · VLAN 140 VM DMZ</text>
+<line x1="122" y1="522" x2="150" y2="580" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="327" y1="522" x2="300" y2="580" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<rect x="20" y="820" width="190" height="86" rx="5" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/><text x="115" y="843" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Dell PowerStore (×2 HA)</text><text x="115" y="859" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">FC SAN · 32 Gbit</text><text x="115" y="873" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Block storage · Series I/II</text><text x="115" y="887" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">VLAN 20 · iSCSI fallback</text>
+<rect x="230" y="820" width="210" height="86" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="335" y="843" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Windows Domain Controllers</text><text x="335" y="859" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">DC01 10.70.0.10 · DC02 10.70.0.11</text><text x="335" y="873" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">AD DS · DNS · DHCP · PKI</text><text x="335" y="887" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">VLAN 70 · HP DL360 Gen11</text>
+<line x1="230" y1="634" x2="115" y2="820" stroke="#9673c6" stroke-width="1.5" stroke-dasharray="5 2" marker-end="url(#arr)"/>
+<line x1="280" y1="760" x2="335" y2="820" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
+<rect x="20" y="950" width="190" height="86" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="115" y="970" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">OOB Management</text><text x="115" y="986" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">iLO 1 GbE · 10.40.0.x</text><text x="115" y="1000" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Jump host · VLAN 40</text><text x="115" y="1014" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">jumphost.novacrestbank.local</text>
+<rect x="230" y="950" width="210" height="86" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="335" y="970" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Root CA + Issuing CA</text><text x="335" y="986" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">10.70.0.20 · 10.70.0.21</text><text x="335" y="1000" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">2-tier PKI · ADCS</text><text x="335" y="1014" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">SHA-256 · 4096-bit RSA</text>
+<rect x="370" y="1078" width="110" height="86" rx="5" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/><text x="425" y="1100" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">NetApp AFF (×2 HA)</text><text x="425" y="1116" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">NFS · Trident CSI</text><text x="425" y="1130" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">ONTAP · NFS/SMB</text><text x="425" y="1144" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">VLAN 30 · 25 GbE</text>
+<rect x="370" y="1178" width="110" height="86" rx="5" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/><text x="425" y="1200" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">HSM (×2 HA)</text><text x="425" y="1216" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Thales Luna HSM 7</text><text x="425" y="1230" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">FIPS 140-2 Level 3</text><text x="425" y="1244" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Enc. keys · OTP · PCI</text>
 <line x1="420" y1="678" x2="425" y2="1078" stroke="#0e6b45" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr)"/>
-<rect x="490" y="36" width="180" height="50" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="580" y="56" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">End User / Customer</text>
-<text x="580" y="71" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">banking.novacrestbank.com</text>
-<rect x="490" y="104" width="180" height="50" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="580" y="124" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Remote Admin</text>
-<text x="580" y="139" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">AnyConnect / GlobalProtect VPN</text>
+<rect x="490" y="36" width="180" height="50" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="580" y="56" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">End User / Customer</text><text x="580" y="71" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">banking.novacrestbank.com</text>
+<rect x="490" y="104" width="180" height="50" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="580" y="124" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Remote Admin</text><text x="580" y="139" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">AnyConnect / GlobalProtect VPN</text>
 <line x1="490" y1="61" x2="230" y2="61" stroke="#1a5c8f" stroke-width="1" marker-end="url(#arr)"/>
 <rect x="490" y="176" width="180" height="226" rx="8" fill="none" stroke="#1a5c8f" stroke-width="0.5" stroke-dasharray="5 3"/>
 <text x="502" y="192" font-family="DM Mono,monospace" font-size="9" fill="#1a5c8f" letter-spacing="1">BRANCH OFFICE</text>
-<rect x="498" y="198" width="164" height="40" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="580" y="215" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch ISP Device</text>
-<text x="580" y="229" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">ISP CPE · broadband / MPLS</text>
-<rect x="498" y="250" width="164" height="44" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/>
-<text x="580" y="268" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch VPN Device</text>
-<text x="580" y="283" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco ISR 4000 / PA-400</text>
-<rect x="498" y="306" width="164" height="40" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="580" y="322" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch LAN Switch</text>
-<text x="580" y="337" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Catalyst 9200 / Meraki</text>
-<rect x="498" y="358" width="164" height="36" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="580" y="380" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch Employee</text>
+<rect x="498" y="198" width="164" height="40" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="580" y="215" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch ISP Device</text><text x="580" y="229" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">ISP CPE · broadband / MPLS</text>
+<rect x="498" y="250" width="164" height="44" rx="5" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/><text x="580" y="268" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch VPN Device</text><text x="580" y="283" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Cisco ISR 4000 / PA-400</text>
+<rect x="498" y="306" width="164" height="40" rx="5" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/><text x="580" y="322" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch LAN Switch</text><text x="580" y="337" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74">Catalyst 9200 / Meraki</text>
+<rect x="498" y="358" width="164" height="36" rx="5" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="580" y="380" font-family="DM Serif Display,serif" font-size="11" text-anchor="middle" fill="#3a3a36">Branch Employee</text>
 <line x1="580" y1="238" x2="580" y2="250" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
 <line x1="580" y1="294" x2="580" y2="306" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
 <line x1="580" y1="346" x2="580" y2="358" stroke="#3a3a36" stroke-width="1" marker-end="url(#arr)"/>
 <rect x="490" y="440" width="180" height="340" rx="8" fill="none" stroke="#d8d6cf" stroke-width="0.5"/>
 <text x="580" y="460" font-family="DM Mono,monospace" font-size="8" text-anchor="middle" fill="#7a7a74" letter-spacing="1">LEGEND</text>
-<rect x="502" y="472" width="12" height="9" rx="2" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/>
-<text x="520" y="481" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">ISP · OOB · HSM · CDN</text>
-<rect x="502" y="490" width="12" height="9" rx="2" fill="#f3edfb" stroke="#9673c6" stroke-width="0.5"/>
-<text x="520" y="499" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Edge routers · FC switches</text>
-<rect x="502" y="508" width="12" height="9" rx="2" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/>
-<text x="520" y="517" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Firewall · SAN storage</text>
-<rect x="502" y="526" width="12" height="9" rx="2" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/>
-<text x="520" y="535" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">F5 · VPN · NAS · Jump host</text>
-<rect x="502" y="544" width="12" height="9" rx="2" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/>
-<text x="520" y="553" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Nexus spine + leaf · branch</text>
-<rect x="502" y="562" width="12" height="9" rx="2" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/>
-<text x="520" y="571" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Compute · end users</text>
-<line x1="502" y1="592" x2="516" y2="592" stroke="#1a5c8f" stroke-width="1.5"/>
-<text x="522" y="596" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Ethernet 25G / 100G</text>
-<line x1="502" y1="610" x2="516" y2="610" stroke="#9673c6" stroke-width="1.5" stroke-dasharray="5 2"/>
-<text x="522" y="614" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">FC optical fiber (SAN)</text>
-<line x1="502" y1="628" x2="516" y2="628" stroke="#0e6b45" stroke-width="1" stroke-dasharray="4 2"/>
-<text x="522" y="632" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">NFS over Ethernet</text>
-<line x1="502" y1="646" x2="516" y2="646" stroke="#d8d6cf" stroke-width="1" stroke-dasharray="4 2"/>
-<text x="522" y="650" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">VPN / OOB / HA link</text>
-<line x1="502" y1="664" x2="516" y2="664" stroke="#a87015" stroke-width="0.5" stroke-dasharray="3 3"/>
-<text x="522" y="668" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">iLO 1 GbE (out-of-band)</text>
+<rect x="502" y="472" width="12" height="9" rx="2" fill="#fdf6e3" stroke="#e0c070" stroke-width="0.5"/><text x="520" y="481" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">ISP · OOB · HSM · CDN</text>
+<rect x="502" y="490" width="12" height="9" rx="2" fill="#f3edfb" stroke="#9673c6" stroke-width="0.5"/><text x="520" y="499" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Edge routers · FC switches</text>
+<rect x="502" y="508" width="12" height="9" rx="2" fill="#fff0f3" stroke="#f0b0bc" stroke-width="0.5"/><text x="520" y="517" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Firewall · SAN storage</text>
+<rect x="502" y="526" width="12" height="9" rx="2" fill="#eaf7f1" stroke="#a0d8c0" stroke-width="0.5"/><text x="520" y="535" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">F5 · VPN · NAS · Jump host</text>
+<rect x="502" y="544" width="12" height="9" rx="2" fill="#eaf2fb" stroke="#b0cde8" stroke-width="0.5"/><text x="520" y="553" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Nexus spine + leaf · branch</text>
+<rect x="502" y="562" width="12" height="9" rx="2" fill="#f2f1ed" stroke="#d8d6cf" stroke-width="0.5"/><text x="520" y="571" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Compute · end users</text>
+<line x1="502" y1="592" x2="516" y2="592" stroke="#1a5c8f" stroke-width="1.5"/><text x="522" y="596" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">Ethernet 25G / 100G</text>
+<line x1="502" y1="610" x2="516" y2="610" stroke="#9673c6" stroke-width="1.5" stroke-dasharray="5 2"/><text x="522" y="614" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">FC optical fiber (SAN)</text>
+<line x1="502" y1="628" x2="516" y2="628" stroke="#0e6b45" stroke-width="1" stroke-dasharray="4 2"/><text x="522" y="632" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">NFS over Ethernet</text>
+<line x1="502" y1="646" x2="516" y2="646" stroke="#d8d6cf" stroke-width="1" stroke-dasharray="4 2"/><text x="522" y="650" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">VPN / OOB / HA link</text>
+<line x1="502" y1="664" x2="516" y2="664" stroke="#a87015" stroke-width="0.5" stroke-dasharray="3 3"/><text x="522" y="668" font-family="DM Mono,monospace" font-size="8" fill="#7a7a74">iLO 1 GbE (out-of-band)</text>
 <rect x="502" y="690" width="160" height="82" rx="4" fill="#f2f1ed"/>
 <text x="582" y="706" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle" fill="#7a7a74" letter-spacing="1">ENVIRONMENT</text>
-<text x="506" y="722" font-family="DM Mono,monospace" font-size="7.5" fill="#7a7a74">Compute</text><text x="658" y="722" font-family="DM Mono,monospace" font-size="7.5" text-anchor="end" fill="#3a3a36">5× HP DL380 Gen11</text>
+<text x="506" y="722" font-family="DM Mono,monospace" font-size="7.5" fill="#7a7a74">Compute</text><text x="658" y="722" font-family="DM Mono,monospace" font-size="7.5" text-anchor="end" fill="#3a3a36">5× HP DL385 Gen11</text>
 <text x="506" y="736" font-family="DM Mono,monospace" font-size="7.5" fill="#7a7a74">Spines</text><text x="658" y="736" font-family="DM Mono,monospace" font-size="7.5" text-anchor="end" fill="#3a3a36">2× Nexus 9504</text>
 <text x="506" y="750" font-family="DM Mono,monospace" font-size="7.5" fill="#7a7a74">Leafs</text><text x="658" y="750" font-family="DM Mono,monospace" font-size="7.5" text-anchor="end" fill="#3a3a36">3× 93180YC-FX</text>
 <text x="506" y="764" font-family="DM Mono,monospace" font-size="7.5" fill="#7a7a74">Firewall</text><text x="658" y="764" font-family="DM Mono,monospace" font-size="7.5" text-anchor="end" fill="#3a3a36">PA-5250 HA</text>
 <text x="249" y="1560" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">NovaCrestBank · Private data center fabric · Portfolio reference environment · corp.novacrestbank.com</text>
       </svg>
     </div>
-    <div class="diagram-caption">NovaCrestBank physical data center fabric — fictional enterprise banking environment used as the reference architecture for all portfolio guides.</div>
+    <div class="diagram-caption">NovaCrestBank physical data center fabric &mdash; fictional enterprise banking environment used as the reference architecture for Series I, II, and III portfolio guides.</div>
   </div>
 </div>
 
-<!-- CONTACT -->
 <div class="contact-section" id="contact">
   <div class="contact-inner">
     <div>
       <h2 class="contact-title">Open to opportunities.</h2>
-      <p class="contact-sub">Targeting Consulting Architect, Platform Architect, Technical Account Manager, and Solutions Engineer roles — with a particular focus on OpenShift, VMware/Broadcom, and hybrid cloud environments.</p>
+      <p class="contact-sub">Targeting Consulting Architect, Platform Architect, Technical Account Manager, and Solutions Engineer roles &mdash; with a particular focus on OpenShift, VMware/Broadcom, and hybrid cloud environments.</p>
     </div>
     <div class="contact-links">
-      <a href="https://github.com/ashokkumar-arch" target="_blank" class="contact-link">
-        GitHub Portfolio <span>ashokkumar-arch</span>
-      </a>
-      <a href="https://www.linkedin.com/in/" target="_blank" class="contact-link">
-        LinkedIn <span>Connect</span>
-      </a>
-      <a href="https://www.credly.com/" target="_blank" class="contact-link">
-        Credly Badges <span>Verify</span>
-      </a>
+      <a href="https://github.com/ashokkumar-arch" target="_blank" class="contact-link">GitHub Portfolio <span>ashokkumar-arch</span></a>
+      <a href="https://www.linkedin.com/in/" target="_blank" class="contact-link">LinkedIn <span>Connect</span></a>
+      <a href="https://www.credly.com/" target="_blank" class="contact-link">Credly Badges <span>Verify</span></a>
     </div>
   </div>
 </div>
 
 <footer>
-  Ashok Kumar P. · Platform & Cloud Architecture Portfolio · ashokkumar-arch.github.io · Built with purpose.
+  Ashok Kumar P. &middot; Platform &amp; Cloud Architecture Portfolio &middot; ashokkumar-arch.github.io &middot; Built with purpose.
 </footer>
 
 </body>
