@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Series III — OpenShift Virtualization | Ashok Kumar P.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a74;
+  --paper:#faf9f6;--paper2:#f2f1ed;--paper3:#e8e6e0;
+  --red:#c8102e;--blue:#1a5c8f;--green:#0e6b45;--amber:#a87015;
+  --virt:#6e2b8c;--ocp:#cc0000;--ovn:#1a5c8f;
+  --border:#d8d6cf;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--font-display);font-size:1.1rem;color:var(--ink);text-decoration:none}
+.nav-back{font-size:.875rem;color:var(--ink2);text-decoration:none}
+.nav-back:hover{color:var(--red)}
+.page-header{padding:100px 2rem 60px;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}
+.series-badge{font-family:var(--font-mono);font-size:.72rem;color:var(--ocp);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.series-badge::before{content:'III';display:inline-flex;align-items:center;justify-content:center;width:34px;height:24px;background:var(--ocp);color:#fff;font-size:.7rem;font-family:var(--font-display)}
+h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);letter-spacing:-.02em;color:var(--ink);margin-bottom:.75rem}
+.page-sub{font-size:.95rem;color:var(--ink2);font-weight:300;max-width:680px;line-height:1.7;margin-bottom:1.5rem}
+.meta-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.meta-item{font-family:var(--font-mono);font-size:.75rem;color:var(--ink3)}
+.meta-item strong{color:var(--ink);font-weight:500}
+.continuation-box{margin-top:1.25rem;padding:1rem 1.25rem;background:#f5f0fb;border-left:3px solid var(--virt);font-size:.875rem;color:var(--ink2);line-height:1.7;max-width:740px}
+.continuation-box strong{color:var(--virt)}
+main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
+.section-label{font-family:var(--font-mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.25rem;margin-top:3rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-label:first-child{margin-top:0}
+.guide-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border)}
+.guide-card{background:var(--paper);padding:1.25rem 1.5rem;display:grid;grid-template-columns:64px 1fr auto;gap:1.25rem;align-items:start;transition:background .15s;text-decoration:none;color:inherit}
+.guide-card:hover{background:var(--paper2)}
+.guide-card.foundation{background:#f5f0fb;border-left:3px solid var(--virt)}
+.guide-card.foundation:hover{background:#ede0f7}
+.guide-card.finale{background:#fff0f0;border-left:3px solid var(--ocp)}
+.guide-card.finale:hover{background:#ffe0e0}
+.guide-num{font-family:var(--font-display);font-size:1.2rem;color:var(--paper3);line-height:1;padding-top:.15rem}
+.guide-num.foundation-num{color:var(--virt);font-size:.95rem;line-height:1.3;padding-top:.15rem;font-family:var(--font-mono);font-weight:500}
+.guide-num.finale-num{color:var(--ocp);font-size:.95rem;line-height:1.3;padding-top:.15rem;font-family:var(--font-mono);font-weight:500}
+.guide-title{font-size:.95rem;font-weight:500;color:var(--ink);margin-bottom:.3rem;line-height:1.3}
+.guide-desc{font-size:.8rem;color:var(--ink2);line-height:1.6}
+.guide-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem}
+.chip{font-family:var(--font-mono);font-size:.65rem;padding:.15rem .5rem;border-radius:2px;background:var(--paper2);border:1px solid var(--border);color:var(--ink3)}
+.chip-virt{background:#f5f0fb;border-color:#c0a0dc;color:#4a1a6c}
+.chip-ocp{background:#fff0f0;border-color:#f0b0b0;color:#8a0000}
+.chip-ovn{background:#eaf2fb;border-color:#b0cde8;color:#0d3a5c}
+.chip-odf{background:#eaf7f1;border-color:#a0d8c0;color:#074a2e}
+.chip-sec{background:#fdf6e3;border-color:#e0c070;color:#6a4400}
+.guide-arrow{font-size:1rem;color:var(--border);align-self:center;transition:color .15s}
+.guide-card:hover .guide-arrow{color:var(--ink2)}
+footer{background:var(--ink);padding:1.5rem 2rem;text-align:center;font-family:var(--font-mono);font-size:.7rem;color:#4a4a44;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Ashok Kumar P.</a>
+    <a href="index.html#projects" class="nav-back">&larr; All projects</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="series-badge">Series III &mdash; Cloud-Native Virtualization</div>
+  <h1>OpenShift Virtualization<br><em>VM Migration &amp; Platform Decommission</em></h1>
+  <p class="page-sub">Migrating all VM workloads from VMware Cloud Foundation to OpenShift Virtualization (KubeVirt) on bare-metal, then fully decommissioning NSX and VCF &mdash; 12 guides covering bare-metal provisioning, ODF storage, VM networking, cold and warm migration, GitOps lifecycle, ACS security, ACM fleet governance, AAP guest OS automation, and the complete NSX exit.</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>12</strong> guides</div>
+    <div class="meta-item"><strong>Environment:</strong> novacrestbank.local &middot; 10.110–140.x.x</div>
+    <div class="meta-item"><strong>Compliance:</strong> PCI-DSS v4.0 &middot; NIST SP 800-53</div>
+    <div class="meta-item"><strong>Status:</strong> Complete</div>
+  </div>
+  <div class="continuation-box">
+    <strong>Natural continuation of Series II.</strong> This series picks up where Series II ends — the VCF + NSX environment is running, OpenShift is installed, and the platform is operationally mature. Series III migrates every VM workload off ESXi onto bare-metal KubeVirt nodes, then systematically decommissions NSX (DFW &rarr; NetworkPolicy, T0 BGP &rarr; OVN EgressGateway, Edge nodes, NSX Manager) and VCF (vCenter, SDDC Manager, ESXi repurposing) — eliminating approximately $450,000 per year in VMware licensing. Series I or II experience is helpful context but not required; each guide is self-contained with environment references.
+  </div>
+</div>
+
+<main>
+
+  <!-- VIRT-00 -->
+  <div class="section-label"><span>Foundation &mdash; start here</span><span>1 guide</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_Virt/virt-00-foundation-prerequisites.html" class="guide-card foundation">
+      <div class="guide-num foundation-num">VIRT<br>00</div>
+      <div>
+        <div class="guide-title">Foundation &amp; Prerequisites</div>
+        <div class="guide-desc">The architectural decision record for NovaCrestBank's VCF-to-OCP Virt migration. Covers the business case for KubeVirt (licensing, operational complexity, and the VCF roadmap), the complete VLAN and IP plan for the bare-metal environment (VLAN 110 node, 120 ODF replication, 130 VM workload, 140 VM DMZ), hardware specification for the five HP ProLiant DL385 Gen11 bare-metal nodes (AMD EPYC 9354P, 512 GiB RAM, 4&times;3.84 TB NVMe OSD, 2&times;480 GB SSD RAID-1 OS), DNS record plan, MAC address convention, migration wave strategy (Wave 1 cold, Wave 2 warm), and a 15-item readiness checklist. The design decision record before any tool is opened.</div>
+        <div class="guide-chips"><span class="chip chip-virt">VIRT-00</span><span class="chip chip-virt">KubeVirt</span><span class="chip">Business case</span><span class="chip">VLAN plan</span><span class="chip">IP plan</span><span class="chip chip-sec">PCI-DSS</span><span class="chip">DL385 Gen11</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <!-- PHASE 1: BARE-METAL FABRIC -->
+  <div class="section-label"><span>Phase 1 &mdash; Physical fabric &amp; bare-metal provisioning</span><span>3 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_Virt/virt-01-physical-fabric.html" class="guide-card">
+      <div class="guide-num">01</div>
+      <div>
+        <div class="guide-title">Physical Fabric &mdash; Cisco Nexus Configuration</div>
+        <div class="guide-desc">Extending the NovaCrestBank Cisco Nexus leaf fabric for bare-metal OCP nodes. Covers the VLAN design for four bare-metal VLANs (110 node, 120 ODF replication with MTU 9000, 130 VM workload primary, 140 VM workload DMZ), SVI configuration on leaf-01 and leaf-02 with HSRP for gateway redundancy, DHCP relay for PXE boot and Assisted Installer, BGP configuration for OCP subnet advertisement to the spine layer, and port-channel configuration (Po211&ndash;Po215) for the five bare-metal nodes with dual 25G LAG. Full leaf-01 and leaf-02 NX-OS configuration with verification checklist.</div>
+        <div class="guide-chips"><span class="chip chip-ovn">Cisco Nexus</span><span class="chip">VLAN 110/120/130/140</span><span class="chip">HSRP</span><span class="chip">BGP</span><span class="chip">MTU 9000</span><span class="chip">Port-channel</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-02-bare-metal-provisioning.html" class="guide-card">
+      <div class="guide-num">02</div>
+      <div>
+        <div class="guide-title">Bare-Metal Provisioning &mdash; Assisted Installer</div>
+        <div class="guide-desc">Provisioning five HP ProLiant DL385 Gen11 servers as RHCOS bare-metal OCP worker nodes using the Assisted Installer. Covers the 5-layer NMState network configuration explanation (NMState, LLDP, bond, VLAN, IP), iLO virtual media ISO boot, CSR approval workflow, MachineSet label and taint configuration (<code>workload-type=virtualization</code> and <code>kubevirt.io/virt=true:NoSchedule</code>), and a debugging section for common bare-metal provisioning failures (network config mismatches, DHCP relay issues, NMState YAML errors). Every NMState field is annotated with its effect and the consequence of misconfiguration.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">Assisted Installer</span><span class="chip">NMState</span><span class="chip">RHCOS</span><span class="chip">iLO</span><span class="chip">CSR approval</span><span class="chip">MachineSet</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-02b-windows-server.html" class="guide-card">
+      <div class="guide-num">02b</div>
+      <div>
+        <div class="guide-title">Windows Server &mdash; AD, DNS &amp; PKI Groundwork</div>
+        <div class="guide-desc">The Windows Server and Active Directory groundwork required before VM migration can begin. Covers DNS records for the five bare-metal nodes (A records, PTR records, OCP API VIP, and Ingress VIP), DHCP scopes for VLAN 110/130/140, the OCP-Virt OU structure in Active Directory (OU=OCP-Virt,OU=Servers), the <code>svc-ocp-virt-mgmt</code> service account with Fine-Grained Password Policy and CyberArk integration, the PKI machine certificate template for OCP node certificates, and a sign-off checklist confirming all Windows-side prerequisites are complete before the first VM is migrated.</div>
+        <div class="guide-chips"><span class="chip">Windows AD</span><span class="chip">DNS records</span><span class="chip">DHCP scopes</span><span class="chip">PKI template</span><span class="chip">FGPP</span><span class="chip">CyberArk</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <!-- PHASE 2: OCP VIRT PLATFORM -->
+  <div class="section-label"><span>Phase 2 &mdash; OCP Virtualization platform</span><span>3 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_Virt/virt-03-odf.html" class="guide-card">
+      <div class="guide-num">03</div>
+      <div>
+        <div class="guide-title">ODF &mdash; Ceph Storage for VM Workloads</div>
+        <div class="guide-desc">ODF from first principles for VM workloads. Covers all six Ceph daemon types (MON, OSD, MGR, MDS, RGW, MCG) with their functions and why each exists, the three storage types (block RBD, shared filesystem CephFS, object RGW), the converged topology across all five bare-metal nodes (20 OSDs, Replication Factor 3, ~25 TB usable), Local Storage Operator for raw NVMe disk preparation, the StorageCluster CR with every field annotated, the 7-check Ceph health verification sequence, and the <code>ocs-storagecluster-ceph-rbd-virtualization</code> StorageClass deep-dive explaining why it is the correct choice for KubeVirt VM disks (ReadWriteMany, live migration support).</div>
+        <div class="guide-chips"><span class="chip chip-odf">ODF</span><span class="chip chip-odf">Ceph RBD</span><span class="chip">20 OSDs</span><span class="chip">RF3</span><span class="chip">NVMe</span><span class="chip chip-odf">ReadWriteMany</span><span class="chip">LocalStorage</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-04-openshift-virtualization.html" class="guide-card">
+      <div class="guide-num">04</div>
+      <div>
+        <div class="guide-title">OpenShift Virtualization &mdash; KubeVirt Installation</div>
+        <div class="guide-desc">KubeVirt from first principles — how QEMU/KVM virtualisation works inside a Kubernetes pod, the virt-launcher pod model, how KubeVirt extends the Kubernetes API with VirtualMachine and VirtualMachineInstance CRDs. Covers the HyperConverged Operator CR with every featureGate annotated (nonRoot: true, liveMigrationConfig, dedicatedCPUPlacement), the PerformanceProfile for bare-metal nodes (CPU cores 4&ndash;63 isolated, 0&ndash;3 reserved, 400&times;1 GiB hugepages, single-numa-node), the VirtualMachine CR anatomy (domain, devices, networks, volumes, evictionStrategy), and DataVolume for cloning from the RHEL 9 and Windows 2022 DataSource images in the golden image namespace.</div>
+        <div class="guide-chips"><span class="chip chip-virt">KubeVirt</span><span class="chip chip-ocp">HyperConverged</span><span class="chip">PerformanceProfile</span><span class="chip">Hugepages</span><span class="chip">CPU pinning</span><span class="chip">DataVolume</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-05-vm-networking.html" class="guide-card">
+      <div class="guide-num">05</div>
+      <div>
+        <div class="guide-title">VM Networking &mdash; Multus, OVN Localnet &amp; VLAN Interfaces</div>
+        <div class="guide-desc">VM networking from first principles — how Multus meta-plugin enables multiple network interfaces on a pod, the difference between OVN overlay (primary masquerade interface) and OVN localnet (secondary VLAN interface that connects directly to the physical fabric). Covers Model A (NSX present &mdash; Geneve overlay coexistence) vs Model B (OVN-only post-NSX). Full configuration of NodeNetworkConfigurationPolicy for VLAN 130 and 140 localnet bridges, NetworkAttachmentDefinition for VM secondary interfaces, MAC address convention (02:00:00:xx:xx:xx derived from VM IP), MAC mobility across live migration, the migration network configuration, and the 4-element DNS hostname chain for a fully qualified VM name.</div>
+        <div class="guide-chips"><span class="chip chip-ovn">Multus</span><span class="chip chip-ovn">OVN localnet</span><span class="chip">NNCP</span><span class="chip">NAD</span><span class="chip">VLAN 130/140</span><span class="chip">MAC mobility</span><span class="chip">Live migration</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <!-- PHASE 3: VM MIGRATION -->
+  <div class="section-label"><span>Phase 3 &mdash; VM migration from VCF</span><span>1 guide</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_Virt/virt-06-mtv-migration.html" class="guide-card">
+      <div class="guide-num">06</div>
+      <div>
+        <div class="guide-title">MTV &mdash; Migration Toolkit for Virtualization</div>
+        <div class="guide-desc">VM migration from VCF to OCP Virt using the Migration Toolkit for Virtualization. Covers the 6-phase disk-level migration mechanism (discovery, warm copy, delta sync, cutover, import, start), why VDDK is required for vSphere disk access, cold vs warm migration comparison and when to choose each, all six MTV CRDs (Provider, NetworkMap, StorageMap, MigrationPlan, Migration, Hook) with fully annotated YAML, the cold MigrationPlan for Wave 1 test VMs (preserveClusterCpuModel explained), the warm MigrationPlan for Wave 2 banking application VMs (cutover:null pattern), DNS TTL reduction strategy for the cutover window, a 10-check post-migration validation sequence, and the rollback procedure if migration validation fails.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">MTV</span><span class="chip">VDDK</span><span class="chip">Cold migration</span><span class="chip">Warm migration</span><span class="chip chip-virt">Provider</span><span class="chip">NetworkMap</span><span class="chip">StorageMap</span><span class="chip">MigrationPlan</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <!-- PHASE 4: LIFECYCLE AND OPERATIONS -->
+  <div class="section-label"><span>Phase 4 &mdash; VM lifecycle, GitOps &amp; platform operations</span><span>3 guides</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_Virt/virt-07-lifecycle-gitops.html" class="guide-card">
+      <div class="guide-num">07</div>
+      <div>
+        <div class="guide-title">VM Lifecycle &amp; GitOps</div>
+        <div class="guide-desc">VirtualMachine CRs under Argo CD control &mdash; the two-repository pattern (platform-config and banking-config), Kustomize base/overlay structure with dev overlay (shared CPU, no hugepages) and production overlay (CPU pinning, hugepages, explicit MAC, VLAN 130, evictionStrategy: LiveMigrate). Full ApplicationSet with dev auto-sync and production manual-sync. VirtualMachineSnapshot and Restore for in-cluster point-in-time recovery. OADP (DataProtectionApplication CR) for off-cluster backup to ODF MCG, BackupSchedule with qemu-guest-agent quiesce hooks, and 30-day TTL. CPU and memory hot-plug via the maxSockets/maxGuest featureGate &mdash; how to add vCPUs and RAM to a running VM without downtime.</div>
+        <div class="guide-chips"><span class="chip chip-virt">Argo CD</span><span class="chip">Kustomize overlays</span><span class="chip chip-ocp">ApplicationSet</span><span class="chip">VMSnapshot</span><span class="chip chip-odf">OADP</span><span class="chip">Hot-plug</span><span class="chip">evictionStrategy</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-08-security-acs.html" class="guide-card">
+      <div class="guide-num">08</div>
+      <div>
+        <div class="guide-title">Security &mdash; ACS &amp; VM Hardening</div>
+        <div class="guide-desc">Extending Red Hat Advanced Cluster Security to bare-metal VM nodes. Covers the three visibility layers for VM workloads (virt-launcher pod visible via eBPF, guest network traffic partially visible, guest OS processes not visible) and what compensates for each gap. ACS Collector DaemonSet toleration for the <code>kubevirt.io/virt</code> taint, the normal virt-launcher process tree baseline, VM-specific ACS policies (Privileged Container scoping, Network Baseline Violation in Enforce mode after 14-day baseline, custom VM Escape Indicator policy with KILL_POD_ENFORCEMENT). NetworkPolicy for virt-workloads (default-deny, allow-migration-tunnel port 49152, allow-monitoring-scrape). RHEL 9 CIS Benchmark Level 1 cloud-init hardening. Windows Server 2022 GPO-based hardening. PCI-DSS and NIST SP 800-53 compliance evidence mapping. ACS &rarr; Splunk VM event forwarding.</div>
+        <div class="guide-chips"><span class="chip chip-sec">ACS/StackRox</span><span class="chip">eBPF</span><span class="chip chip-ovn">NetworkPolicy</span><span class="chip">CIS L1</span><span class="chip chip-sec">PCI-DSS</span><span class="chip chip-sec">NIST 800-53</span><span class="chip">Splunk</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-09-acm.html" class="guide-card">
+      <div class="guide-num">09</div>
+      <div>
+        <div class="guide-title">ACM &mdash; Advanced Cluster Management</div>
+        <div class="guide-desc">ACM from first principles &mdash; the four pillars (Governance, Application Lifecycle, Cluster Lifecycle, Observability) and how each applies to VM workloads. MultiClusterHub CR with every component annotated (enableClusterBackup, observability, search). Cluster label taxonomy (environment, region, platform, compliance, vendor). Governance policies: LDAP IdP enforcement across all clusters, VM NetworkPolicy guardrails with enforce mode and drift auto-remediation (NetworkPolicy deletion detected and re-created within 90 seconds), VM evictionStrategy governance. GitOpsCluster bridging ACM to the VIRT-07 Argo CD instance. Placement rules with hugepage-capacity prioritiser. SiteConfig ZTP cluster factory for bare-metal cluster provisioning. ManagedClusterSet + OCP version governance policy. Global search via GraphQL API for fleet-wide VM inventory. MultiClusterObservability with Thanos aggregating KubeVirt metrics. Hybrid cloud bridge to ROSA on AWS.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">ACM</span><span class="chip">MultiClusterHub</span><span class="chip">Governance</span><span class="chip">PlacementRule</span><span class="chip chip-virt">GitOpsCluster</span><span class="chip">Thanos</span><span class="chip">ZTP</span><span class="chip">Global search</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+    <a href="OCP_on_Virt/virt-10-aap.html" class="guide-card">
+      <div class="guide-num">10</div>
+      <div>
+        <div class="guide-title">AAP &mdash; Ansible Automation Platform</div>
+        <div class="guide-desc">AAP from first principles for VM guest OS operations &mdash; every playbook YAML directive explained (gather_facts, become, serial, register, until, when, notify, no_log, changed_when, failed_when, loop, loop_control, delegate_to, set_fact, pause, debug, assert) with valid values, effect, and reasoning for each choice. 25-module real-world catalogue (ansible.builtin.*, ansible.posix.*, ansible.windows.*, kubernetes.core.*, community.kubevirt.*, netapp.ontap.*, ansible.builtin.uri, community.general.servicenow). Complete playbooks for: new VM provisioning (RHEL 9 and Windows Server 2022 VirtualMachine CR via Kubernetes API), NetApp AFF PVC provisioning via Trident, IPAM reservation in Infoblox, DNS A and PTR record creation, AD domain join (RHEL realm join via stdin, Windows win_domain_membership with OU placement), Windows VCF migration (VirtIO pre-install, MTV API trigger, DNS update), fleet OS patching with serial batches and pre-patch snapshot, CIS compliance scanning inside VM guests, configuration drift remediation, CPU/memory hot-plug with hugepage validation, F5 BigIP load balancer registration, node drain via live migration, and the complete Alertmanager &rarr; EDA &rarr; AAP &rarr; ServiceNow &rarr; VMIM remediation pipeline.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">AAP</span><span class="chip chip-sec">EDA</span><span class="chip">Playbook anatomy</span><span class="chip">IPAM</span><span class="chip">AD join</span><span class="chip">Patching</span><span class="chip">Live migration</span><span class="chip">ServiceNow</span><span class="chip">Alertmanager</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+  <!-- PHASE 5: NSX DECOMMISSION -->
+  <div class="section-label"><span>Phase 5 &mdash; NSX decommission &amp; VCF exit</span><span>1 guide</span></div>
+  <div class="guide-grid">
+    <a href="OCP_on_Virt/virt-11-nsx-decommission.html" class="guide-card finale">
+      <div class="guide-num finale-num">VIRT<br>11</div>
+      <div>
+        <div class="guide-title">NSX Decommission &amp; VCF Exit</div>
+        <div class="guide-desc">The complete NSX and VCF decommission sequence across five phases: (1) DFW &rarr; NetworkPolicy translation &mdash; every NovaCrestBank DFW rule translated to a Kubernetes NetworkPolicy with traffic parity validation, the three DFW capabilities that have no NetworkPolicy equivalent and their compensating controls; (2) BGP migration &mdash; MetalLB BGP replacing NSX T0 as the BGP speaker to the Cisco leaf switches, the dual-homed intermediate state for zero-downtime cutover, the exact procedure to withdraw the NSX T0 BGP sessions after OVN is advertising all 6 prefixes; (3) NSX Edge decommission &mdash; T1/T0 gateways deleted via API, Edge transport node removal, Edge VM destruction; (4) NSX Manager decommission &mdash; ESXi transport node removal with NSX vib uninstall, Manager VM destruction; (5) Leaf switch TEP VLAN cleanup &mdash; VLAN 100 (TEP) and VLAN 10 (NSX management) removed from Cisco Nexus, ESXi port-channels removed. License elimination evidence package. VCF exit: vCenter and SDDC Manager destruction, former ESXi servers reprovisioned as additional OCP bare-metal nodes. ~$450,000/year VMware licensing eliminated.</div>
+        <div class="guide-chips"><span class="chip chip-ocp">NSX Decommission</span><span class="chip chip-ovn">MetalLB BGP</span><span class="chip chip-ovn">OVN EgressGateway</span><span class="chip chip-ovn">NetworkPolicy</span><span class="chip">BGP cutover</span><span class="chip">TEP VLAN removal</span><span class="chip chip-sec">License elimination</span><span class="chip">VCF exit</span></div>
+      </div>
+      <div class="guide-arrow">&rarr;</div>
+    </a>
+  </div>
+
+</main>
+<footer>
+  Ashok Kumar P. &middot; Series III &mdash; OpenShift Virtualization &middot; 12 guides &middot; ashokkumar-arch.github.io
+</footer>
+</body>
+</html>
