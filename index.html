@@ -17,6 +17,7 @@
   --amber:#a87015;--amber-light:#fdf6e3;
   --virt:#6e2b8c;--virt-light:#f5f0fb;
   --aws:#e47911;--aws-light:#fff8f0;
+  --ai:#076678;--ai-light:#e8f4f8;
   --border:#d8d6cf;
   --font-display:'DM Serif Display',Georgia,serif;
   --font-body:'DM Sans',system-ui,sans-serif;
@@ -95,6 +96,7 @@ hr.rule{border:none;border-top:1px solid var(--border);margin:0}
 .series-tag.vcf{color:#6e2b8c}
 .series-tag.virt{color:#c8102e}
 .series-tag.aws-cap{color:var(--aws)}
+.series-tag.ai-ref{color:var(--ai)}
 .series-tag.planned{color:var(--ink3)}
 .series-name{font-family:var(--font-display);font-size:1.35rem;color:var(--ink);letter-spacing:-.01em;margin-bottom:.5rem}
 .series-desc{font-size:.875rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;max-width:560px}
@@ -192,7 +194,7 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
   <div class="hero-aside">
     <div class="aside-label">Portfolio at a glance</div>
     <div class="aside-stat">
-      <span class="stat-n">79</span>
+      <span class="stat-n">80</span>
       <span class="stat-label">Reference guides</span>
     </div>
     <div class="aside-stat">
@@ -204,7 +206,7 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
       <span class="stat-label">Active certifications</span>
     </div>
     <div class="aside-stat">
-      <span class="stat-n">4+</span>
+      <span class="stat-n">2</span>
       <span class="stat-label">Planned series</span>
     </div>
   </div>
@@ -387,13 +389,27 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
       </div>
     </div>
 
+    <div class="series-card">
+      <div class="series-num" style="font-size:1.2rem;letter-spacing:.02em;align-items:center;padding-top:1.8rem">AI</div>
+      <div class="series-body">
+        <div class="series-tag ai-ref">AI Platform &middot; Architecture Reference</div>
+        <div class="series-name">OpenShift AI &mdash; Architecture &amp; Implementation Reference</div>
+        <p class="series-desc">A standalone architectural reference &mdash; not a series. Covers what AI and machine learning actually are (from first principles, without jargon), why MLOps requires a dedicated platform, the complete RHOAI component stack (KServe, ModelMesh, Data Science Pipelines, Model Registry, TrustyAI), the NVIDIA GPU Operator on RHCOS, two NovaCrestBank use cases with documented architecture decisions (Fraud Detection via KServe + Triton + GPU; Document Intelligence via ModelMesh + async pipeline), integration with the existing platform (Harbor, Argo CD, ACM, ACS, AAP, ODF), infrastructure prerequisites, and the consulting questions that determine implementation approach. The GPU infrastructure decision traces back to the DL385 Gen11 PCIe 5.0 selection documented in VIRT-00.</p>
+        <div class="series-chips">
+          <span class="chip">OpenShift AI</span><span class="chip">RHOAI</span><span class="chip">KServe</span><span class="chip">ModelMesh</span><span class="chip">DS Pipelines</span><span class="chip">TrustyAI</span><span class="chip">GPU Operator</span><span class="chip">NVIDIA A100</span><span class="chip">Fraud Detection</span><span class="chip">Document Intelligence</span><span class="chip">Consulting</span>
+        </div>
+      </div>
+      <div class="series-meta">
+        <div><div class="file-count">1</div><div class="file-label">guide</div></div>
+        <span class="status-badge badge-live">Live</span>
+        <a href="rhoai-ai.html" class="series-link">View guide &rarr;</a>
+      </div>
+    </div>
+
   </div>
 
   <div class="series-group-label" style="margin-top:3rem">Planned Series &middot; In Development</div>
   <div class="series-grid">
-
-    <div class="series-card">
-      <div class="series-num">IV</div>
       <div class="series-body">
         <div class="series-tag planned">Public Cloud</div>
         <div class="series-name">ROSA on AWS (STS Mode)</div>
@@ -417,23 +433,6 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
         <p class="series-desc">Connecting NovaCrestBank's bare-metal OCP Virt environment to AWS at every layer. Covers Direct Connect and Transit Gateway for private network connectivity, extending on-premises AD identity and PKI CA hierarchy into AWS, HSM-backed key management across environments, cross-cluster GitOps, and unified observability via ACM across private and public cloud clusters.</p>
         <div class="series-chips">
           <span class="chip">Direct Connect</span><span class="chip">Transit Gateway</span><span class="chip">Identity Federation</span><span class="chip">PKI Extension</span><span class="chip">Cross-cluster GitOps</span><span class="chip">ACM</span>
-        </div>
-      </div>
-      <div class="series-meta">
-        <div><div class="file-count">&mdash;</div><div class="file-label">planned</div></div>
-        <span class="status-badge badge-planned">Planned</span>
-        <span class="series-link soon">Coming soon</span>
-      </div>
-    </div>
-
-    <div class="series-card">
-      <div class="series-num">VI</div>
-      <div class="series-body">
-        <div class="series-tag planned">AI Platform</div>
-        <div class="series-name">OpenShift AI on Bare-Metal</div>
-        <p class="series-desc">Deploying Red Hat OpenShift AI (RHOAI) on the bare-metal OCP Virt environment post-VCF decommission. Covers the KServe/ODH architecture, model serving infrastructure, GPU operator configuration, and integrating AI workloads with the existing platform services (Harbor, GitOps, observability, ACM governance).</p>
-        <div class="series-chips">
-          <span class="chip">OpenShift AI</span><span class="chip">RHOAI</span><span class="chip">KServe</span><span class="chip">Model Serving</span><span class="chip">GPU Operator</span>
         </div>
       </div>
       <div class="series-meta">
@@ -483,7 +482,7 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
   <div class="diagram-inner">
     <div class="section-label">Reference Environment</div>
     <h2 class="section-title">NovaCrestBank &mdash; Data Center Fabric</h2>
-    <p class="section-sub">Production-grade fictional enterprise environment. Every guide in Series I, II, and III is grounded in this architecture &mdash; real hostnames, IPs, and naming conventions following enterprise standards.</p>
+    <p class="section-sub">Production-grade fictional enterprise environment. Every guide in Series I, II, III, and the OpenShift AI reference is grounded in this architecture &mdash; real hostnames, IPs, and naming conventions following enterprise standards.</p>
     <div class="diagram-wrapper">
       <svg width="100%" viewBox="0 0 680 1580" role="img">
 <title>NovaCrestBank Complete Data Center Fabric</title>
@@ -569,7 +568,7 @@ footer{background:var(--ink);border-top:1px solid #1e1e1a;padding:1.5rem 2rem;te
 <text x="249" y="1560" font-family="DM Mono,monospace" font-size="9" text-anchor="middle" fill="#7a7a74">NovaCrestBank · Private data center fabric · Portfolio reference environment · corp.novacrestbank.com</text>
       </svg>
     </div>
-    <div class="diagram-caption">NovaCrestBank physical data center fabric &mdash; fictional enterprise banking environment used as the reference architecture for Series I, II, and III portfolio guides.</div>
+    <div class="diagram-caption">NovaCrestBank physical data center fabric &mdash; fictional enterprise banking environment used as the reference architecture for Series I, II, III, and the OpenShift AI reference guide.</div>
   </div>
 </div>
 
