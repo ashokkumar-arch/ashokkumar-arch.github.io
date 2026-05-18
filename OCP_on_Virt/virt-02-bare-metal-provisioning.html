@@ -308,22 +308,22 @@ tr:hover td{background:var(--bg3)}
 <span class="td"># DNS server is DC01 at 10.70.0.10</span>
 
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for n in 01 02 03 04 05; do
-  fwd=$(dig +short bm-virt-${n}.novacrestbank.local @10.70.0.10)
+  fwd=$(dig +short bm-virt-${n}.novacrestbank.internal @10.70.0.10)
   rev=$(dig +short -x ${fwd} @10.70.0.10 2>/dev/null)
   echo "bm-virt-${n}: A=${fwd} PTR=${rev}"
 done</span>
-<span class="tg">bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.local.
-bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.local.
-bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.local.
-bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.local.
-bm-virt-05: A=10.110.0.15 PTR=bm-virt-05.novacrestbank.local.</span>
+<span class="tg">bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.internal.
+bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.internal.
+bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.internal.
+bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.internal.
+bm-virt-05: A=10.110.0.15 PTR=bm-virt-05.novacrestbank.internal.</span>
 <span class="tok">✓ Gate 2 passed. All five nodes resolve forward and reverse correctly from DC01.</span>
     </pre></div>
   </div>
 
   <div class="wrong-box">
     <div class="wrong-title">DNS gate failure — causes and fixes</div>
-    <div class="wrong-item"><strong>A record returns empty:</strong> The forward A record was not created in DNS Manager on DC01. Open DNS Manager → Forward Lookup Zones → novacrestbank.local → right-click → New Host (A or AAAA) → enter the name (bm-virt-01) and IP (10.110.0.11) → check "Create associated pointer (PTR) record" → Add Host.</div>
+    <div class="wrong-item"><strong>A record returns empty:</strong> The forward A record was not created in DNS Manager on DC01. Open DNS Manager → Forward Lookup Zones → novacrestbank.internal → right-click → New Host (A or AAAA) → enter the name (bm-virt-01) and IP (10.110.0.11) → check "Create associated pointer (PTR) record" → Add Host.</div>
     <div class="wrong-item"><strong>PTR record returns empty but A record works:</strong> The reverse zone does not exist. Open DNS Manager → Reverse Lookup Zones → right-click → New Zone → Primary zone → AD-integrated → enter network ID 10.110.0. → finish. Then re-create the A record with "Create associated pointer" checked.</div>
     <div class="wrong-item"><strong>DNS times out (no response):</strong> The jump host's <code>/etc/resolv.conf</code> does not point to DC01. Verify with <code>cat /etc/resolv.conf</code> — it must show <code>nameserver 10.70.0.10</code>.</div>
   </div>
@@ -511,7 +511,7 @@ done</span>
     <li><strong>Generate discovery ISO</strong> (Section 05): The <code>openshift-install agent</code> command generates a bootable ISO specific to your cluster. This ISO contains the Assisted Installer agent, your cluster's API endpoint, and your pull secret. It takes approximately 2 minutes.</li>
     <li><strong>Mount ISO via iLO virtual media</strong> (Section 06): The ISO is served from the jump host's HTTP server (set up in VIRT-00 Section 07b) and mounted to each server's virtual DVD drive via the iLO Redfish API. No physical media is involved.</li>
     <li><strong>Boot each server from virtual DVD</strong> (Section 07): Each server is powered on and booted from the virtual DVD. The server boots into RAM — it does not touch its local NVMe disks. The Assisted Installer agent starts and sends a DHCP discover on VLAN 110 to get a temporary IP from DC01's discovery DHCP scope.</li>
-    <li><strong>Agent registers with the cluster</strong>: Once the node has an IP, the agent calls the cluster's infrastructure API endpoint (<code>https://api.ocp.novacrestbank.local:6443</code>) to register itself and report its hardware inventory. This is why gate 1 (cluster health) and gate 2 (DNS — specifically the API endpoint) must pass before this step.</li>
+    <li><strong>Agent registers with the cluster</strong>: Once the node has an IP, the agent calls the cluster's infrastructure API endpoint (<code>https://api.ocp.novacrestbank.internal:6443</code>) to register itself and report its hardware inventory. This is why gate 1 (cluster health) and gate 2 (DNS — specifically the API endpoint) must pass before this step.</li>
     <li><strong>Discovery and validation</strong> (Section 08): The Assisted Installer validates each node's hardware against the minimum requirements: CPU count, RAM, disk size, NIC count, network connectivity. Validation results appear in the Assisted Installer UI within 3–5 minutes of the node booting.</li>
     <li><strong>Configure static IPs via NMState</strong> (Section 10): Before triggering installation, each node's permanent network configuration is set via NMState. This assigns the static IP (10.110.0.11–.15), configures the LACP bond (bond0), and creates VLAN sub-interfaces for VLANs 110, 120, 130, and 140.</li>
     <li><strong>Trigger installation</strong> (Section 11): Installation is triggered on all five nodes simultaneously. The agent writes the RHCOS image to each node's OS disk (the 2 × 480 GB SSD RAID-1 volume), applies the ignition configuration, and reboots the node.</li>
@@ -531,7 +531,7 @@ done</span>
   <p>The discovery ISO is generated using the <code>openshift-install agent create image</code> command. This command requires two input files: <code>install-config.yaml</code> (which defines cluster parameters) and <code>agent-config.yaml</code> (which defines the hosts being added). Both files are consumed and deleted by the command — always keep backups.</p>
 
   <h3>What install-config.yaml provides for Add Hosts</h3>
-  <p>For an Add Hosts operation on an existing cluster, the <code>install-config.yaml</code> does not define a new cluster — it tells the agent which existing cluster to join. The critical fields are the cluster name (<code>metadata.name: ocp</code>) and base domain (<code>baseDomain: novacrestbank.local</code>), which together form the cluster's API endpoint: <code>api.ocp.novacrestbank.local</code>. The agent uses this endpoint to register discovered nodes with the cluster.</p>
+  <p>For an Add Hosts operation on an existing cluster, the <code>install-config.yaml</code> does not define a new cluster — it tells the agent which existing cluster to join. The critical fields are the cluster name (<code>metadata.name: ocp</code>) and base domain (<code>baseDomain: novacrestbank.internal</code>), which together form the cluster's API endpoint: <code>api.ocp.novacrestbank.internal</code>. The agent uses this endpoint to register discovered nodes with the cluster.</p>
 
   <h3>What agent-config.yaml provides</h3>
   <p><code>agent-config.yaml</code> is specific to the Assisted Installer Add Hosts flow. It defines the hosts being added — their MAC addresses (used to match discovery reports to specific servers) and the rendezvous IP (the IP of one node that acts as the coordination point during discovery). The rendezvous node does not have a special role after installation — any node can be the rendezvous. Use bm-virt-01 (10.110.0.11) as the rendezvous.</p>
@@ -571,7 +571,7 @@ done</span>
 apiVersion: v1
 metadata:
   name: ocp
-baseDomain: novacrestbank.local
+baseDomain: novacrestbank.internal
 pullSecret: 'PASTE_PULL_SECRET_JSON_HERE'
 sshKey: 'ssh-ed25519 AAAAC3NzaC1...   ocp-novacrestbank'
 additionalTrustBundle: |
@@ -602,27 +602,27 @@ metadata:
   name: ocp
 rendezvousIP: 10.110.0.11
 hosts:
-  - hostname: bm-virt-01.novacrestbank.local
+  - hostname: bm-virt-01.novacrestbank.internal
     role: worker
     interfaces:
       - name: eth0
         macAddress: "52:54:00:a1:b1:01"
-  - hostname: bm-virt-02.novacrestbank.local
+  - hostname: bm-virt-02.novacrestbank.internal
     role: worker
     interfaces:
       - name: eth0
         macAddress: "52:54:00:a1:b1:02"
-  - hostname: bm-virt-03.novacrestbank.local
+  - hostname: bm-virt-03.novacrestbank.internal
     role: worker
     interfaces:
       - name: eth0
         macAddress: "52:54:00:a1:b1:03"
-  - hostname: bm-virt-04.novacrestbank.local
+  - hostname: bm-virt-04.novacrestbank.internal
     role: worker
     interfaces:
       - name: eth0
         macAddress: "52:54:00:a1:b1:04"
-  - hostname: bm-virt-05.novacrestbank.local
+  - hostname: bm-virt-05.novacrestbank.internal
     role: worker
     interfaces:
       - name: eth0
@@ -641,7 +641,7 @@ EOF</span>
     <thead><tr><th>Field</th><th>Value</th><th>What it does — and what breaks if it is wrong</th></tr></thead>
     <tbody>
       <tr><td><code>rendezvousIP</code></td><td>10.110.0.11</td><td>The IP of the node that acts as the coordination point during multi-node discovery. The agent on every other node sends its discovery data to this IP. If bm-virt-01 does not get this IP via DHCP (e.g., DHCP relay is broken), the other nodes cannot complete discovery. This is why bm-virt-01's DHCP lease must be confirmed before others are booted.</td></tr>
-      <tr><td><code>hostname</code></td><td>bm-virt-01.novacrestbank.local</td><td>The FQDN the agent assigns to the node. Must exactly match the DNS A record created in VIRT-00. If this does not match the reverse DNS lookup of the node's IP, the Assisted Installer validation fails with "hostname mismatch."</td></tr>
+      <tr><td><code>hostname</code></td><td>bm-virt-01.novacrestbank.internal</td><td>The FQDN the agent assigns to the node. Must exactly match the DNS A record created in VIRT-00. If this does not match the reverse DNS lookup of the node's IP, the Assisted Installer validation fails with "hostname mismatch."</td></tr>
       <tr><td><code>role: worker</code></td><td>worker</td><td>Tells the Assisted Installer to provision this node as a worker, not a control plane node. All five DL385 nodes are workers — they run VM workloads and ODF, not the API server or etcd.</td></tr>
       <tr><td><code>macAddress</code></td><td>NIC MAC address</td><td>The MAC address of the NIC port the agent will use for discovery communication. The agent uses this to match the physical node to the hostname definition in agent-config.yaml. If the MAC address is wrong, the node boots and registers but is assigned the wrong hostname — it may appear as an unknown host in the Assisted Installer UI.</td></tr>
     </tbody>
@@ -796,7 +796,7 @@ done</span>
   </div>
 
   <h3>Minute 4–8: Hardware discovery and registration</h3>
-  <p>The agent inventories the node's hardware: AMD EPYC CPU count (64 cores), RAM (512 GiB), disk inventory (2 × 480 GB SSD OS disks + 4 × 3.84 TB NVMe OSD disks), and NIC list (Mellanox ConnectX-7 × 3). It then calls <code>https://api.ocp.novacrestbank.local:6443</code> to register with the cluster and submit its hardware inventory. The cluster API endpoint is embedded in the ISO — this is why the cluster's DNS must resolve before the nodes are booted.</p>
+  <p>The agent inventories the node's hardware: AMD EPYC CPU count (64 cores), RAM (512 GiB), disk inventory (2 × 480 GB SSD OS disks + 4 × 3.84 TB NVMe OSD disks), and NIC list (Mellanox ConnectX-7 × 3). It then calls <code>https://api.ocp.novacrestbank.internal:6443</code> to register with the cluster and submit its hardware inventory. The cluster API endpoint is embedded in the ISO — this is why the cluster's DNS must resolve before the nodes are booted.</p>
 
   <div class="term">
     <div class="term-header"><div class="term-dot"></div>jumphost — watch agent registration with the cluster</div>
@@ -806,11 +806,11 @@ done</span>
 <span class="tg">Every 10.0s: oc get agents -A
 
 NAMESPACE              NAME                                   CLUSTER  APPROVED  ROLE    STAGE
-assisted-installer     bm-virt-01.novacrestbank.local-xxx     ocp      false     worker  Waiting for control plane
-assisted-installer     bm-virt-02.novacrestbank.local-yyy     ocp      false     worker  Waiting for control plane
-assisted-installer     bm-virt-03.novacrestbank.local-zzz     ocp      false     worker  Waiting for control plane
-assisted-installer     bm-virt-04.novacrestbank.local-aaa     ocp      false     worker  Waiting for control plane
-assisted-installer     bm-virt-05.novacrestbank.local-bbb     ocp      false     worker  Waiting for control plane</span>
+assisted-installer     bm-virt-01.novacrestbank.internal-xxx     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-02.novacrestbank.internal-yyy     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-03.novacrestbank.internal-zzz     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-04.novacrestbank.internal-aaa     ocp      false     worker  Waiting for control plane
+assisted-installer     bm-virt-05.novacrestbank.internal-bbb     ocp      false     worker  Waiting for control plane</span>
 <span class="tok">✓ All five agents have registered. "Waiting for control plane" is the expected state
 ✓ before validation completes and installation is triggered.</span>
     </pre></div>
@@ -832,7 +832,7 @@ assisted-installer     bm-virt-05.novacrestbank.local-bbb     ocp      false    
       <tr><td>CPU count</td><td>Minimum 2 cores for worker</td><td>64 cores ✓</td><td>VMs require physical CPU cores. With OpenShift Virtualization, the recommendation is minimum 16 cores per node for practical VM density.</td></tr>
       <tr><td>RAM</td><td>Minimum 16 GiB for worker</td><td>512 GiB ✓</td><td>Each VM reserves its configured RAM at boot. 512 GiB supports approximately 60–80 banking application VMs at 4–8 GiB RAM each per node.</td></tr>
       <tr><td>Disk</td><td>Minimum 120 GiB for OS</td><td>480 GiB SSD RAID-1 ✓</td><td>RHCOS installation requires approximately 60 GiB. The OS disk must be separate from ODF OSD disks.</td></tr>
-      <tr><td>Network connectivity</td><td>Can reach cluster API</td><td>10.110.0.11–15 → 10.50.0.200 ✓</td><td>The node must be able to reach <code>api.ocp.novacrestbank.local:6443</code>. This verifies that BGP routing between VLAN 110 and VLAN 50 is working through the NSX T0.</td></tr>
+      <tr><td>Network connectivity</td><td>Can reach cluster API</td><td>10.110.0.11–15 → 10.50.0.200 ✓</td><td>The node must be able to reach <code>api.ocp.novacrestbank.internal:6443</code>. This verifies that BGP routing between VLAN 110 and VLAN 50 is working through the NSX T0.</td></tr>
       <tr><td>Hostname DNS</td><td>Hostname resolves forward and reverse</td><td>A + PTR records exist ✓</td><td>The agent performs a reverse DNS lookup of its IP. If the PTR record is missing, this check fails with "hostname mismatch."</td></tr>
       <tr><td>NTP sync</td><td>Clock within 4 seconds of NTP</td><td>Synced from DC01 ✓</td><td>etcd leader election uses time. Large clock skew between nodes causes etcd to reject writes and degrades cluster operation.</td></tr>
     </tbody>
@@ -1055,11 +1055,11 @@ bm-virt-05.novacre: READY</span>
 <span class="td"># ── DNS configuration ──────────────────────────────────────────────────────</span>
 <span class="key">dns-resolver:</span>
   <span class="key">config:</span>
-    <span class="td">    # search: novacrestbank.local — unqualified hostnames are searched in this domain
+    <span class="td">    # search: novacrestbank.internal — unqualified hostnames are searched in this domain
     # server: DC01 and DC02 — the Windows DNS servers from the VCF environment
     # These are the same DNS servers used by all other components in NovaCrestBank</span>
     <span class="key">search:</span>
-      - novacrestbank.local
+      - novacrestbank.internal
     <span class="key">server:</span>
       - 10.70.0.10
       - 10.70.0.11
@@ -1086,11 +1086,11 @@ bm-virt-05.novacre: READY</span>
     <div class="term-body"><pre><span class="td"># Get the agent names (UUIDs) for all five nodes</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get agents -A -o custom-columns=NAME:.metadata.name,HOST:.spec.hostname</span>
 <span class="tg">NAME                                   HOST
-bm-virt-01.novacrestbank.local-abc123  bm-virt-01.novacrestbank.local
-bm-virt-02.novacrestbank.local-def456  bm-virt-02.novacrestbank.local
-bm-virt-03.novacrestbank.local-ghi789  bm-virt-03.novacrestbank.local
-bm-virt-04.novacrestbank.local-jkl012  bm-virt-04.novacrestbank.local
-bm-virt-05.novacrestbank.local-mno345  bm-virt-05.novacrestbank.local</span>
+bm-virt-01.novacrestbank.internal-abc123  bm-virt-01.novacrestbank.internal
+bm-virt-02.novacrestbank.internal-def456  bm-virt-02.novacrestbank.internal
+bm-virt-03.novacrestbank.internal-ghi789  bm-virt-03.novacrestbank.internal
+bm-virt-04.novacrestbank.internal-jkl012  bm-virt-04.novacrestbank.internal
+bm-virt-05.novacrestbank.internal-mno345  bm-virt-05.novacrestbank.internal</span>
 
 <span class="td"># Create NMState files for each node (only the IP differs between nodes)</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for n in 01 02 03 04 05; do
@@ -1178,7 +1178,7 @@ routes:
 dns-resolver:
   config:
     search:
-      - novacrestbank.local
+      - novacrestbank.internal
     server:
       - 10.70.0.10
       - 10.70.0.11
@@ -1194,11 +1194,11 @@ Created nmstate for bm-virt-05 (node IP: 10.110.0.15, ODF IP: 10.120.0.15)</span
 <span class="td"># Apply NMState to each agent using the Assisted Installer API
 # Replace the agent UUIDs with actual values from 'oc get agents -A' output above</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">AGENTS=(
-  "bm-virt-01.novacrestbank.local-abc123:bm-virt-01"
-  "bm-virt-02.novacrestbank.local-def456:bm-virt-02"
-  "bm-virt-03.novacrestbank.local-ghi789:bm-virt-03"
-  "bm-virt-04.novacrestbank.local-jkl012:bm-virt-04"
-  "bm-virt-05.novacrestbank.local-mno345:bm-virt-05"
+  "bm-virt-01.novacrestbank.internal-abc123:bm-virt-01"
+  "bm-virt-02.novacrestbank.internal-def456:bm-virt-02"
+  "bm-virt-03.novacrestbank.internal-ghi789:bm-virt-03"
+  "bm-virt-04.novacrestbank.internal-jkl012:bm-virt-04"
+  "bm-virt-05.novacrestbank.internal-mno345:bm-virt-05"
 )
 
 for entry in "${AGENTS[@]}"; do
@@ -1236,11 +1236,11 @@ done</span>
     -p '{"spec": {"approved": true}}'
   echo "Approved: ${name}"
 done</span>
-<span class="tg">Approved: bm-virt-01.novacrestbank.local-abc123
-Approved: bm-virt-02.novacrestbank.local-def456
-Approved: bm-virt-03.novacrestbank.local-ghi789
-Approved: bm-virt-04.novacrestbank.local-jkl012
-Approved: bm-virt-05.novacrestbank.local-mno345</span>
+<span class="tg">Approved: bm-virt-01.novacrestbank.internal-abc123
+Approved: bm-virt-02.novacrestbank.internal-def456
+Approved: bm-virt-03.novacrestbank.internal-ghi789
+Approved: bm-virt-04.novacrestbank.internal-jkl012
+Approved: bm-virt-05.novacrestbank.internal-mno345</span>
 <span class="tok">✓ Installation triggered on all five nodes simultaneously.</span>
     </pre></div>
   </div>
@@ -1272,11 +1272,11 @@ Approved: bm-virt-05.novacrestbank.local-mno345</span>
 <span class="tg">Every 15.0s: oc get agents -A
 
 HOST                             STAGE         PROGRESS
-bm-virt-01.novacrestbank.local   Installing    45%
-bm-virt-02.novacrestbank.local   Installing    38%
-bm-virt-03.novacrestbank.local   Installing    52%
-bm-virt-04.novacrestbank.local   Rebooting     100%
-bm-virt-05.novacrestbank.local   Joined        100%</span>
+bm-virt-01.novacrestbank.internal   Installing    45%
+bm-virt-02.novacrestbank.internal   Installing    38%
+bm-virt-03.novacrestbank.internal   Installing    52%
+bm-virt-04.novacrestbank.internal   Rebooting     100%
+bm-virt-05.novacrestbank.internal   Joined        100%</span>
 <span class="td"># bm-virt-04 has finished writing RHCOS and is rebooting
 # bm-virt-05 has rebooted into RHCOS and has submitted its CSR (Joined)
 # bm-virt-01/02/03 are still writing the OS image to disk</span>
@@ -1439,7 +1439,7 @@ nvme3n1 3.8T disk  0</span>
 
 <span class="section">! ══ CHECK 7: Node can reach cluster API ════════════════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01 -- chroot /host \
-  curl -sk -o /dev/null -w "%{http_code}" https://api.ocp.novacrestbank.local:6443/healthz</span>
+  curl -sk -o /dev/null -w "%{http_code}" https://api.ocp.novacrestbank.internal:6443/healthz</span>
 <span class="tg">200</span>
 <span class="tok">✓ Check 7 passed. Node can reach the cluster API endpoint on VLAN 50 via routing through the NSX T0.</span>
 
@@ -1540,7 +1540,7 @@ bm-virt-05   (empty string)  true  kubevirt.io/virt</span>
   <div class="wrong-box">
     <div class="wrong-title">Node boots but never appears in Assisted Installer — root causes</div>
     <div class="wrong-item"><strong>Symptom:</strong> Server powers on, boots from ISO, but no agent appears in <code>oc get agents -A</code> after 10 minutes. <strong>Root cause:</strong> DHCP relay is not working — the node has no IP and cannot reach the cluster API to register. <strong>Fix:</strong> Check leaf switch SVI for <code>ip helper-address 10.70.0.10</code>. Check DC01 DHCP scope is active and has available addresses. Check the route from leaf SVI to 10.70.0.10 exists in the routing table.</div>
-    <div class="wrong-item"><strong>Symptom:</strong> Server gets a DHCP IP but agent does not register. <strong>Root cause:</strong> The agent cannot reach <code>api.ocp.novacrestbank.local:6443</code>. The BGP route for 10.50.0.0/24 is not reachable from VLAN 110. <strong>Fix:</strong> From the jump host, verify <code>nc -zv 10.50.0.200 6443</code> from a host on VLAN 110. Check that the BGP advertisement for 10.110.0.0/24 from the leaf reaches the NSX T0, and that the T0 has a return route.</div>
+    <div class="wrong-item"><strong>Symptom:</strong> Server gets a DHCP IP but agent does not register. <strong>Root cause:</strong> The agent cannot reach <code>api.ocp.novacrestbank.internal:6443</code>. The BGP route for 10.50.0.0/24 is not reachable from VLAN 110. <strong>Fix:</strong> From the jump host, verify <code>nc -zv 10.50.0.200 6443</code> from a host on VLAN 110. Check that the BGP advertisement for 10.110.0.0/24 from the leaf reaches the NSX T0, and that the T0 has a return route.</div>
     <div class="wrong-item"><strong>Symptom:</strong> Agent appears but hostname shows as unknown or incorrect. <strong>Root cause:</strong> The MAC address in agent-config.yaml does not match the physical NIC. The agent cannot correlate the discovered hardware to a hostname definition. <strong>Fix:</strong> Retrieve the actual MAC from the iLO Redfish <code>/redfish/v1/Systems/1/EthernetInterfaces</code> endpoint and update agent-config.yaml, then regenerate the ISO.</div>
   </div>
 

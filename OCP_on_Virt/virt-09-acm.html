@@ -421,7 +421,7 @@ oc patch installplan ${PLAN} -n open-cluster-management \
 <span class="tok">✓ MultiClusterHub phase=Running. All ACM Hub components deployed.
   ACM console accessible at:
   oc get route multicloud-console -n open-cluster-management -o jsonpath='{.spec.host}'
-  → multicloud-console.apps.ocp.novacrestbank.local</span></pre>
+  → multicloud-console.apps.ocp.novacrestbank.internal</span></pre>
     </div>
   </div>
   </section>
@@ -437,7 +437,7 @@ oc patch installplan ${PLAN} -n open-cluster-management \
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify local-cluster is registered and healthy</div></div>
     <div class="term-body"><pre><span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get managedcluster</span>
 <span class="tg">NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                       JOINED   AVAILABLE   AGE
-local-cluster   true           https://api.ocp.novacrestbank.local:6443   True     True        6m</span>
+local-cluster   true           https://api.ocp.novacrestbank.internal:6443   True     True        6m</span>
 <span class="tok">✓ local-cluster Joined=True, Available=True.
   The NovaCrestBank OCP cluster is now a managed cluster.
   All ACM policies created on the Hub will apply to local-cluster.</span>
@@ -584,7 +584,7 @@ vendor: OpenShift</span>
                     <span class="yc">- name</span><span class="yc">:</span> <span class="yv">NovaCrestBank-AD</span>
                       <span class="yk">type</span><span class="yc">:</span> <span class="yv">LDAP</span>
                       <span class="yk">ldap</span><span class="yc">:</span>
-                        <span class="yk">url</span><span class="yc">:</span> <span class="yv">ldaps://dc01.novacrestbank.local:636/...</span>
+                        <span class="yk">url</span><span class="yc">:</span> <span class="yv">ldaps://dc01.novacrestbank.internal:636/...</span>
                         <span class="yk">insecure</span><span class="yc">:</span> <span class="yv">false</span>
                         <span class="yc">        # complianceType: musthave — the cluster's OAuth CR must contain
                         # an identityProvider named NovaCrestBank-AD of type LDAP pointing to DC01.
@@ -898,7 +898,7 @@ default-deny-ingress-virt   &lt;none&gt;         45s</span>
   <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">banking-config-channel</span>
 <span class="yk">spec</span><span class="yc">:</span>
   <span class="yk">type</span><span class="yc">:</span> <span class="yv">Git</span>
-  <span class="yk">pathname</span><span class="yc">:</span> <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+  <span class="yk">pathname</span><span class="yc">:</span> <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
   <span class="yc">  # The same banking-config repo used in VIRT-07 by Argo CD.
   # ACM Channel and Argo CD source can both reference the same Git repo —
   # they do not conflict. ACM's Subscription can coexist with Argo CD Applications.</span>
@@ -949,7 +949,7 @@ default-deny-ingress-virt   &lt;none&gt;         45s</span>
   <span class="yk">name</span><span class="yc">:</span> <span class="yv">ncb-dr-site</span>
   <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">siteconfig</span>
 <span class="yk">spec</span><span class="yc">:</span>
-  <span class="yk">baseDomain</span><span class="yc">:</span> <span class="yv">novacrestbank.local</span>
+  <span class="yk">baseDomain</span><span class="yc">:</span> <span class="yv">novacrestbank.internal</span>
   <span class="yk">pullSecretRef</span><span class="yc">:</span>
     <span class="yk">name</span><span class="yc">:</span> <span class="yv">pullsecret</span>
   <span class="yk">clusters</span><span class="yc">:</span>
@@ -968,7 +968,7 @@ default-deny-ingress-virt   &lt;none&gt;         45s</span>
         # - policy-vm-eviction-strategy → checks VMs for evictionStrategy: LiveMigrate
         # The cluster factory produces a governance-compliant cluster from day one.</span>
       <span class="yk">nodes</span><span class="yc">:</span>
-        <span class="yc">- hostName</span><span class="yc">:</span> <span class="yv">bm-dr-01.novacrestbank.local</span>
+        <span class="yc">- hostName</span><span class="yc">:</span> <span class="yv">bm-dr-01.novacrestbank.internal</span>
           <span class="yk">bmcAddress</span><span class="yc">:</span> <span class="yv">redfish+https://10.40.1.71/redfish/v1/Systems/1</span>
           <span class="yk">bmcCredentialsName</span><span class="yc">:</span>
             <span class="yk">name</span><span class="yc">:</span> <span class="yv">bm-dr-01-bmc-secret</span>
@@ -1052,10 +1052,10 @@ default-deny-ingress-virt   &lt;none&gt;         45s</span>
     <div class="term-body"><pre><span class="td"># Search for all VirtualMachine objects across all managed clusters</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get route search-api -n open-cluster-management \
   -o jsonpath='{.spec.host}'</span>
-<span class="tg">search-api-open-cluster-management.apps.ocp.novacrestbank.local</span>
+<span class="tg">search-api-open-cluster-management.apps.ocp.novacrestbank.internal</span>
 
 <span class="td"># Query: find all VirtualMachines across all clusters</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">SEARCH_URL="https://search-api-open-cluster-management.apps.ocp.novacrestbank.local"
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">SEARCH_URL="https://search-api-open-cluster-management.apps.ocp.novacrestbank.internal"
 TOKEN=$(oc whoami -t)
 
 curl -sk -X POST "${SEARCH_URL}/searchapi/graphql" \
@@ -1196,7 +1196,7 @@ for result in r[\"data\"][\"result\"]:
     <div class="gate-title">ACM installation checks</div>
     <div class="gate-item"><div class="gate-box"></div>ACM operator CSV Succeeded: advanced-cluster-management.v2.11.x in open-cluster-management namespace</div>
     <div class="gate-item"><div class="gate-box"></div>MultiClusterHub phase=Running — all Hub components deployed</div>
-    <div class="gate-item"><div class="gate-box"></div>ACM console accessible at multicloud-console.apps.ocp.novacrestbank.local</div>
+    <div class="gate-item"><div class="gate-box"></div>ACM console accessible at multicloud-console.apps.ocp.novacrestbank.internal</div>
     <div class="gate-item"><div class="gate-box"></div>local-cluster ManagedCluster Joined=True, Available=True</div>
     <div class="gate-item"><div class="gate-box"></div>Cluster labels applied: environment=production, platform=baremetal-virt, compliance=pci-dss, region=ap-southeast-2</div>
   </div>

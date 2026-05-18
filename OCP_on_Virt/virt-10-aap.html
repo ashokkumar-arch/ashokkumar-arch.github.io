@@ -274,7 +274,7 @@ tr:hover td{background:var(--bg3)}
     <span class="pk">vm_name</span><span class="pc">:</span> <span class="ps">"vm-banking-app-01"</span>
     <span class="pk">vm_namespace</span><span class="pc">:</span> <span class="ps">"virt-workloads"</span>
     <span class="pk">vm_ip</span><span class="pc">:</span> <span class="ps">"10.130.0.50"</span>
-    <span class="pk">ad_domain</span><span class="pc">:</span> <span class="ps">"novacrestbank.local"</span>
+    <span class="pk">ad_domain</span><span class="pc">:</span> <span class="ps">"novacrestbank.internal"</span>
 
   <span class="pk">vars_files</span><span class="pc">:</span>
 <span class="pc">    # vars_files: (list of paths) Load variables from external YAML files.
@@ -696,7 +696,7 @@ tr:hover td{background:var(--bg3)}
     <span class="yc">    # Automation Controller: the web UI and REST API.
     # Hosts Job Templates, Inventories, Credentials, Schedules, Surveys.
     # All playbook execution is triggered from and tracked by the Controller.</span>
-    <span class="yk">admin_email</span><span class="yc">:</span> <span class="yv">platform-admin@novacrestbank.local</span>
+    <span class="yk">admin_email</span><span class="yc">:</span> <span class="yv">platform-admin@novacrestbank.internal</span>
     <span class="yk">garbage_collect_secrets</span><span class="yc">:</span> <span class="yv">true</span>
     <span class="yc">    # garbage_collect_secrets: remove orphaned k8s Secrets when AAP resources are deleted.
     # Prevents credential accumulation in the aap namespace over time.</span>
@@ -729,7 +729,7 @@ oc apply -f aap-subscription.yaml   # channel: stable-2.4</span>
 <span class="tg">True</span>
 <span class="tok">✓ AAP deployed. Access URL:
   oc get route ncb-aap -n aap -o jsonpath='{.spec.host}'
-  → ncb-aap.apps.ocp.novacrestbank.local
+  → ncb-aap.apps.ocp.novacrestbank.internal
   Initial admin password:
   oc get secret ncb-aap-admin-password -n aap -o jsonpath='{.data.password}' | base64 -d</span>
 
@@ -869,7 +869,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
                       <span class="pk">userData</span><span class="pc">:</span> <span class="pe">|
                         #cloud-config
                         hostname: {{ vm_name }}
-                        fqdn: {{ vm_name }}.novacrestbank.local
+                        fqdn: {{ vm_name }}.novacrestbank.internal
                         network:
                           version: 2
                           ethernets:
@@ -879,7 +879,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
                               gateway4: 10.130.0.3
                               nameservers:
                                 addresses: [10.70.0.10, 10.70.0.11]
-                                search: [novacrestbank.local]</span>
+                                search: [novacrestbank.internal]</span>
                 <span class="pk">evictionStrategy</span><span class="pc">:</span> <span class="pv">LiveMigrate</span>
                 <span class="pk">nodeSelector</span><span class="pc">:</span>
                   <span class="pk">workload-type</span><span class="pc">:</span> <span class="pv">virtualization</span>
@@ -923,7 +923,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
   <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
   <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
   <span class="pk">vars</span><span class="pc">:</span>
-    <span class="pk">netapp_hostname</span><span class="pc">:</span> <span class="ps">"netapp-mgmt.novacrestbank.local"</span>
+    <span class="pk">netapp_hostname</span><span class="pc">:</span> <span class="ps">"netapp-mgmt.novacrestbank.internal"</span>
     <span class="pk">netapp_svm</span><span class="pc">:</span> <span class="ps">"svm-banking"</span>
     <span class="pc">    # SVM (Storage Virtual Machine): the logical tenant on ONTAP.
     # svm-banking is the SVM for banking application data volumes —
@@ -1003,8 +1003,8 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
   <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
   <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
   <span class="pk">vars</span><span class="pc">:</span>
-    <span class="pk">infoblox_host</span><span class="pc">:</span> <span class="ps">"infoblox.novacrestbank.local"</span>
-    <span class="pk">dns_zone</span><span class="pc">:</span> <span class="ps">"novacrestbank.local"</span>
+    <span class="pk">infoblox_host</span><span class="pc">:</span> <span class="ps">"infoblox.novacrestbank.internal"</span>
+    <span class="pk">dns_zone</span><span class="pc">:</span> <span class="ps">"novacrestbank.internal"</span>
 
   <span class="pk">tasks</span><span class="pc">:</span>
 
@@ -1049,7 +1049,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
         <span class="po">zone</span><span class="pc">:</span> <span class="pe">"{{ dns_zone }}"</span>
         <span class="po">ttl</span><span class="pc">:</span> <span class="pv">3600</span>
         <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
-      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.local</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.internal</span>
       <span class="pc">      # delegate_to: dc01 — run this task ON DC01 over WinRM (not localhost).
       # The win_dns_record module requires running on a Windows DNS server.
       # AAP must have WinRM credentials for DC01 configured as an inventory host.</span>
@@ -1064,7 +1064,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
         <span class="po">value</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}.{{ dns_zone }}"</span>
         <span class="po">zone</span><span class="pc">:</span> <span class="ps">"0.130.10.in-addr.arpa"</span>
         <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
-      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.local</span>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.internal</span>
 
 <span class="pc"># Play 2: RHEL AD join — runs directly on the VM guest OS via SSH</span>
 <span class="pk">- name</span><span class="pc">:</span> <span class="ps">Join RHEL VM to Active Directory</span>
@@ -1130,7 +1130,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
         <span class="po">domain_admin_password</span><span class="pc">:</span> <span class="pe">"{{ ad_password }}"</span>
         <span class="po">domain_ou_path</span><span class="pc">:</span> <span class="pe">"{{ ad_ou }}"</span>
         <span class="pc">        # domain_ou_path: where in AD the computer account is created.
-        # OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local (from VIRT-02b).
+        # OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal (from VIRT-02b).
         # Without this: the computer account goes to the default Computers container
         # and does not receive the banking VM GPOs.</span>
         <span class="po">state</span><span class="pc">:</span> <span class="pv">domain</span>
@@ -1167,7 +1167,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
 
     <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Copy VirtIO drivers ISO from file share</span>
       <span class="pm">ansible.windows.win_copy</span><span class="pc">:</span>
-        <span class="po">src</span><span class="pc">:</span> <span class="ps">"\\\\fileserver.novacrestbank.local\\iso\\virtio-win.iso"</span>
+        <span class="po">src</span><span class="pc">:</span> <span class="ps">"\\\\fileserver.novacrestbank.internal\\iso\\virtio-win.iso"</span>
         <span class="po">dest</span><span class="pc">:</span> <span class="ps">"C:\\Temp\\virtio-win.iso"</span>
         <span class="pc">        # win_copy: copy a file from the AAP execution node to the Windows target.
         # src can be a UNC path accessible from the AAP node.
@@ -1253,9 +1253,9 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
         <span class="po">name</span><span class="pc">:</span> <span class="pe">"{{ vm_name }}"</span>
         <span class="po">type</span><span class="pc">:</span> <span class="pv">A</span>
         <span class="po">value</span><span class="pc">:</span> <span class="pe">"{{ vm_vlan130_ip }}"</span>
-        <span class="po">zone</span><span class="pc">:</span> <span class="pv">novacrestbank.local</span>
+        <span class="po">zone</span><span class="pc">:</span> <span class="pv">novacrestbank.internal</span>
         <span class="po">state</span><span class="pc">:</span> <span class="pv">present</span>
-      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.local</span></pre>
+      <span class="pk">delegate_to</span><span class="pc">:</span> <span class="pv">dc01.novacrestbank.internal</span></pre>
     </div>
   </div>
   </section>
@@ -1488,7 +1488,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
     <span class="pc">- name</span><span class="pc">:</span> <span class="ps">Ensure Splunk rsyslog forwarding is configured</span>
       <span class="pm">ansible.builtin.lineinfile</span><span class="pc">:</span>
         <span class="po">path</span><span class="pc">:</span> <span class="pv">/etc/rsyslog.d/99-splunk-fwd.conf</span>
-        <span class="po">line</span><span class="pc">:</span> <span class="ps">"*.* @@splunk-hec.novacrestbank.local:514"</span>
+        <span class="po">line</span><span class="pc">:</span> <span class="ps">"*.* @@splunk-hec.novacrestbank.internal:514"</span>
         <span class="po">create</span><span class="pc">:</span> <span class="pv">true</span>
         <span class="pc">        # create: true → create the file if it does not exist.
         # Without create: lineinfile fails if the file is absent.
@@ -1557,7 +1557,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
       <span class="pm">kubernetes.core.k8s_exec</span><span class="pc">:</span>
         <span class="po">namespace</span><span class="pc">:</span> <span class="pv">stackrox</span>
         <span class="po">pod</span><span class="pc">:</span>
-          <span class="pe">"collector-{{ vm_node | replace('.novacrestbank.local','') | replace('-','') }}"</span>
+          <span class="pe">"collector-{{ vm_node | replace('.novacrestbank.internal','') | replace('-','') }}"</span>
         <span class="po">command</span><span class="pc">:</span>
           <span class="pc">- chroot</span>
           <span class="pc">- /host</span>
@@ -1642,7 +1642,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
   <span class="pk">hosts</span><span class="pc">:</span> <span class="pv">localhost</span>
   <span class="pk">gather_facts</span><span class="pc">:</span> <span class="pv">false</span>
   <span class="pk">vars</span><span class="pc">:</span>
-    <span class="pk">f5_host</span><span class="pc">:</span> <span class="ps">"f5-bigip.novacrestbank.local"</span>
+    <span class="pk">f5_host</span><span class="pc">:</span> <span class="ps">"f5-bigip.novacrestbank.internal"</span>
     <span class="pk">f5_pool</span><span class="pc">:</span> <span class="ps">"pool_banking_app_vlan130"</span>
     <span class="pk">f5_port</span><span class="pc">:</span> <span class="pv">8443</span>
     <span class="pk">f5_partition</span><span class="pc">:</span> <span class="ps">"Common"</span>
@@ -1721,7 +1721,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
   <span class="pk">vars</span><span class="pc">:</span>
     <span class="pk">target_node</span><span class="pc">:</span> <span class="pe">"{{ node_to_drain }}"</span>
     <span class="pc">    # node_to_drain: from the AAP Survey — operator specifies which node to drain.
-    # e.g., "bm-virt-03.novacrestbank.local"</span>
+    # e.g., "bm-virt-03.novacrestbank.internal"</span>
 
   <span class="pk">tasks</span><span class="pc">:</span>
 
@@ -1827,7 +1827,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
     <span class="yc">- name</span><span class="yc">:</span> <span class="yv">eda-webhook</span>
       <span class="yk">webhookConfigs</span><span class="yc">:</span>
         <span class="yc">- url</span><span class="yc">:</span>
-            <span class="yv">https://ncb-aap-eda.apps.ocp.novacrestbank.local/api/eda/v1/external_event/vm-alerts/</span>
+            <span class="yv">https://ncb-aap-eda.apps.ocp.novacrestbank.internal/api/eda/v1/external_event/vm-alerts/</span>
           <span class="yc">          # EDA's webhook endpoint. EDA listens here for Alertmanager POST requests.
           # Each firing alert sends one JSON payload containing the alert labels and annotations.
           # EDA receives the payload and evaluates it against the Rulebook below.</span>
@@ -2172,7 +2172,7 @@ Installing 'netapp.ontap:22.8.0' to ...</span>
     <div class="gate-title">AAP installation checks</div>
     <div class="gate-item"><div class="gate-box"></div>AAP operator CSV Succeeded: aap-operator in the aap namespace</div>
     <div class="gate-item"><div class="gate-box"></div>Automation Controller, Hub, and EDA components all Running</div>
-    <div class="gate-item"><div class="gate-box"></div>AAP admin URL accessible: ncb-aap.apps.ocp.novacrestbank.local</div>
+    <div class="gate-item"><div class="gate-box"></div>AAP admin URL accessible: ncb-aap.apps.ocp.novacrestbank.internal</div>
     <div class="gate-item"><div class="gate-box"></div>Required collections installed in Execution Environment: kubernetes.core, community.kubevirt, netapp.ontap, ansible.windows, community.windows, ansible.posix, community.general</div>
     <div class="gate-item"><div class="gate-box"></div>AAP Credentials configured: OCP API (ServiceAccount token), AD service account, NetApp ONTAP, Infoblox, F5 BigIP, ServiceNow</div>
   </div>

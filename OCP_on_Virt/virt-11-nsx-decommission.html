@@ -310,11 +310,11 @@ done</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi -n virt-workloads \
   -o custom-columns="NAME:.metadata.name,PHASE:.status.phase,NODE:.status.nodeName" | \
   grep -v "^NAME"</span>
-<span class="tg">vm-banking-app-01   Running   bm-virt-02.novacrestbank.local
-vm-banking-app-02   Running   bm-virt-04.novacrestbank.local
-vm-api-gateway-01   Running   bm-virt-01.novacrestbank.local
-vm-win-test-01      Running   bm-virt-03.novacrestbank.local
-vm-rhel-test-01     Running   bm-virt-05.novacrestbank.local</span>
+<span class="tg">vm-banking-app-01   Running   bm-virt-02.novacrestbank.internal
+vm-banking-app-02   Running   bm-virt-04.novacrestbank.internal
+vm-api-gateway-01   Running   bm-virt-01.novacrestbank.internal
+vm-win-test-01      Running   bm-virt-03.novacrestbank.internal
+vm-rhel-test-01     Running   bm-virt-05.novacrestbank.internal</span>
 <span class="tok">✓ All 5 VMs Running on bare-metal nodes — none on ESXi.
   All VMIs on bm-virt-01 through bm-virt-05 (not on ESXi nodes).</span>
 
@@ -784,7 +784,7 @@ speaker-bm05      1/1     Running   0          2m</span>
     *via 10.10.0.63, [20/0], ECMP, BGP, tag 65099    ← NSX T0
     *via 10.110.0.11, [20/0], ECMP, BGP, tag 65100   ← OVN bm-virt-01</span>
 <span class="tok">✓ ECMP routing: both paths are active. Test banking app connectivity:</span>
-<span class="tp">jumphost$</span> <span class="tc">curl -sk --connect-timeout 5 https://banking-app.novacrestbank.local/health</span>
+<span class="tp">jumphost$</span> <span class="tc">curl -sk --connect-timeout 5 https://banking-app.novacrestbank.internal/health</span>
 <span class="tg">{"status":"UP","version":"3.2.1"}</span>
 <span class="tok">✓ Banking application reachable. PROCEED TO BGP CUTOVER.</span>
 
@@ -809,7 +809,7 @@ speaker-bm05      1/1     Running   0          2m</span>
 <span class="tok">✓ NSX T0 BGP session is DOWN. All 5 OVN sessions are Established.
   The leaf switches are routing via OVN exclusively.</span>
 
-<span class="tp">jumphost$</span> <span class="tc">curl -sk --connect-timeout 5 https://banking-app.novacrestbank.local/health</span>
+<span class="tp">jumphost$</span> <span class="tc">curl -sk --connect-timeout 5 https://banking-app.novacrestbank.internal/health</span>
 <span class="tg">{"status":"UP","version":"3.2.1"}</span>
 <span class="tok">✓ Banking application still reachable via OVN path only.
   BGP cutover complete. NSX T0 no longer carries any production traffic.
@@ -907,11 +907,11 @@ nodes = json.load(sys.stdin)['results']
 for n in nodes:
     print(n['id'], n['display_name'], n['state'])
 "</span>
-<span class="tg">tn-aa1b2c  esxi-01.novacrestbank.local  success
-tn-bb3d4e  esxi-02.novacrestbank.local  success
-tn-cc5f6g  esxi-03.novacrestbank.local  success
-tn-dd7h8i  esxi-04.novacrestbank.local  success
-tn-ee9j0k  esxi-05.novacrestbank.local  success</span>
+<span class="tg">tn-aa1b2c  esxi-01.novacrestbank.internal  success
+tn-bb3d4e  esxi-02.novacrestbank.internal  success
+tn-cc5f6g  esxi-03.novacrestbank.internal  success
+tn-dd7h8i  esxi-04.novacrestbank.internal  success
+tn-ee9j0k  esxi-05.novacrestbank.internal  success</span>
 
 <span class="section">! ══ STEP 2: Remove NSX from each ESXi host ══════════════════════════════</span>
 <span class="td"># The DELETE request triggers NSX Manager to uninstall NSX vibs from the ESXi host

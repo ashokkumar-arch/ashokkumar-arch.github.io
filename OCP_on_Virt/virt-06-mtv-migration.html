@@ -327,12 +327,12 @@ COPY vmware-vix-disklib-distrib /vmware-vix-disklib-distrib
 ENTRYPOINT ["echo", "VDDK image — not intended to be run directly"]
 DKRFILE
 
-podman build -t harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3 .
-podman push harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3</span>
+podman build -t harbor.apps.ocp.novacrestbank.internal/mtv/vddk:8.0.3 .
+podman push harbor.apps.ocp.novacrestbank.internal/mtv/vddk:8.0.3</span>
 <span class="tg">Getting image source signatures
 Copying blob sha256:abc123... done
 Writing manifest to image destination</span>
-<span class="tok">✓ VDDK image pushed to Harbor at harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3
+<span class="tok">✓ VDDK image pushed to Harbor at harbor.apps.ocp.novacrestbank.internal/mtv/vddk:8.0.3
   Harbor's certificate is issued by NovaCrestBank-Issuing-CA which is in the OCP
   additionalTrustBundle — the pull will succeed without additional configuration.</span></pre>
     </div>
@@ -389,7 +389,7 @@ Writing manifest to image destination</span>
   <span class="yc">  # Enables the MTV UI panel in the OCP web console.
   # Provides visual migration planning and progress monitoring.
   # Useful for presenting migration status to application teams during cutover.</span>
-  <span class="yk">vddk_job_image</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3</span>
+  <span class="yk">vddk_job_image</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.internal/mtv/vddk:8.0.3</span>
   <span class="yc">  # VDDK container image for optimised VMDK-to-raw disk transfer.
   # Without this field: MTV falls back to HTTP streaming — ~10x slower.
   # Must match the exact tag pushed to Harbor in Step 1.</span>
@@ -448,18 +448,18 @@ forklift-validation-xxx     1/1     Running   0</span>
   <span class="yk">type</span><span class="yc">:</span> <span class="yv">vsphere</span>
   <span class="yc">  # vsphere: connects to a VMware vCenter instance.
   # Other valid types: ovirt (Red Hat Virtualization), openstack, ova, openshift.</span>
-  <span class="yk">url</span><span class="yc">:</span> <span class="yv">https://vcenter-ocp.novacrestbank.local/sdk</span>
+  <span class="yk">url</span><span class="yc">:</span> <span class="yv">https://vcenter-ocp.novacrestbank.internal/sdk</span>
   <span class="yc">  # vcenter-ocp: the OCP workload vCenter (hosts the ESXi cluster with VMs to migrate).
   # /sdk is the standard vSphere SDK API path. Must use HTTPS.
   # Not vcenter-mgmt — the management vCenter hosts only VCF management VMs.</span>
   <span class="yk">secret</span><span class="yc">:</span>
     <span class="yk">name</span><span class="yc">:</span> <span class="yv">vcenter-ocp-creds</span>
     <span class="yk">namespace</span><span class="yc">:</span> <span class="yv">openshift-mtv</span>
-    <span class="yc">    # Secret containing: user=svc-mtv-vcenter@novacrestbank.local, password=..., insecureSkipVerify=false.
+    <span class="yc">    # Secret containing: user=svc-mtv-vcenter@novacrestbank.internal, password=..., insecureSkipVerify=false.
     # Account svc-mtv-vcenter requires: VM read, power-off (cold), snapshot create/delete (warm CBT),
     # VDDK data access. Retrieved from CyberArk via ESO — same pattern as all service accounts.</span>
   <span class="yk">settings</span><span class="yc">:</span>
-    <span class="yk">vddkInitImage</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.local/mtv/vddk:8.0.3</span>
+    <span class="yk">vddkInitImage</span><span class="yc">:</span> <span class="yv">harbor.apps.ocp.novacrestbank.internal/mtv/vddk:8.0.3</span>
     <span class="yc">    # Specifies VDDK image per-Provider. Allows different VDDK versions for different
     # vCenter versions if needed. In NovaCrestBank, one vCenter, one VDDK version.</span></pre>
     </div>
@@ -472,7 +472,7 @@ forklift-validation-xxx     1/1     Running   0</span>
   -n openshift-mtv -o jsonpath='{.data.password}' | base64 -d)
 
 oc create secret generic vcenter-ocp-creds \
-  --from-literal=user=svc-mtv-vcenter@novacrestbank.local \
+  --from-literal=user=svc-mtv-vcenter@novacrestbank.internal \
   --from-literal=password=${MTV_VC_PASS} \
   --from-literal=insecureSkipVerify=false \
   -n openshift-mtv</span>
@@ -664,12 +664,12 @@ total  76 TiB  74 TiB  2 TiB  2.63</span>
 
 <span class="section">! ══ CHECK 3: DNS records pre-created (VIRT-02b) ════════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for vm in vm-win-test-01 vm-rhel-test-01 vm-preprod-01; do
-  ip=$(dig +short ${vm}.novacrestbank.local @10.70.0.10)
-  echo "${vm}.novacrestbank.local → ${ip}"
+  ip=$(dig +short ${vm}.novacrestbank.internal @10.70.0.10)
+  echo "${vm}.novacrestbank.internal → ${ip}"
 done</span>
-<span class="tg">vm-win-test-01.novacrestbank.local → 10.130.0.100
-vm-rhel-test-01.novacrestbank.local → 10.130.0.101
-vm-preprod-01.novacrestbank.local → 10.140.0.100</span>
+<span class="tg">vm-win-test-01.novacrestbank.internal → 10.130.0.100
+vm-rhel-test-01.novacrestbank.internal → 10.130.0.101
+vm-preprod-01.novacrestbank.internal → 10.140.0.100</span>
 <span class="tok">✓ DNS records exist. Migrated VMs reachable by FQDN immediately after migration.</span>
 
 <span class="section">! ══ CHECK 4: Destination namespace exists ═══════════════════════════════</span>
@@ -979,7 +979,7 @@ Completed Completed Completed    ← migration done, OCP Virt VMs started</span>
   <div class="term">
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">DC01 — PowerShell — TTL reduction and post-migration DNS update</div></div>
     <div class="term-body"><pre><span class="td"># Step 1 (1+ hour before cutover): reduce TTL to 60 seconds for production VMs</span>
-<span class="tp">PS C:\></span> <span class="tc">$zone = "novacrestbank.local"
+<span class="tp">PS C:\></span> <span class="tc">$zone = "novacrestbank.internal"
 foreach ($vm in @("vm-banking-app-01","vm-banking-app-02","vm-api-gateway-01")) {
     Set-DnsServerResourceRecord `
         -ZoneName $zone `
@@ -1023,7 +1023,7 @@ Updated: vm-api-gateway-01 → 10.140.0.50</span>
   Within 60 seconds, all DNS resolvers will return the new VLAN 130 IPs.
   Verify from jump host:</span>
 
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short vm-banking-app-01.novacrestbank.local @10.70.0.10</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short vm-banking-app-01.novacrestbank.internal @10.70.0.10</span>
 <span class="tg">10.130.0.50</span>
 <span class="tok">✓ DNS record updated. vm-banking-app-01 now resolves to its VLAN 130 IP.</span></pre>
     </div>
@@ -1043,7 +1043,7 @@ Updated: vm-api-gateway-01 → 10.140.0.50</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
   -o custom-columns="NAME:.metadata.name,PHASE:.status.phase,NODE:.status.nodeName"</span>
 <span class="tg">NAME                PHASE    NODE
-vm-banking-app-01   Running  bm-virt-03.novacrestbank.local</span>
+vm-banking-app-01   Running  bm-virt-03.novacrestbank.internal</span>
 <span class="tok">✓ Check 1 passed. VMI Running on bare-metal node (not ESXi-hosted worker).</span>
 
 <span class="section">! ══ CHECK 2: Secondary interface has correct VLAN 130 IP ════════════════</span>
@@ -1053,7 +1053,7 @@ vm-banking-app-01   Running  bm-virt-03.novacrestbank.local</span>
 <span class="tok">✓ Check 2 passed. Secondary interface shows correct VLAN 130 IP.</span>
 
 <span class="section">! ══ CHECK 3: VM reachable by FQDN from jump host ════════════════════════</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 3 vm-banking-app-01.novacrestbank.local</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 3 vm-banking-app-01.novacrestbank.internal</span>
 <span class="tg">64 bytes from 10.130.0.50: icmp_seq=1 ttl=63 time=0.412 ms
 64 bytes from 10.130.0.50: icmp_seq=2 ttl=63 time=0.388 ms
 64 bytes from 10.130.0.50: icmp_seq=3 ttl=63 time=0.401 ms</span>
@@ -1061,11 +1061,11 @@ vm-banking-app-01   Running  bm-virt-03.novacrestbank.local</span>
 
 <span class="section">! ══ CHECK 4: Guest OS is using correct hostname ═════════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads -- hostname -f</span>
-<span class="tg">vm-banking-app-01.novacrestbank.local</span>
+<span class="tg">vm-banking-app-01.novacrestbank.internal</span>
 <span class="tok">✓ Check 4 passed. Guest OS hostname matches FQDN — DNS identity chain complete.</span>
 
 <span class="section">! ══ CHECK 5: Application service is responding ══════════════════════════</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk https://vm-banking-app-01.novacrestbank.local:8443/health</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk https://vm-banking-app-01.novacrestbank.internal:8443/health</span>
 <span class="tg">{"status":"UP","components":{"db":{"status":"UP"},"ldap":{"status":"UP"}}}</span>
 <span class="tok">✓ Check 5 passed. Banking application health endpoint returns UP.
   Database and LDAP connections are working from the migrated VM.</span>
@@ -1146,13 +1146,13 @@ for vm in json.loads(r.stdout).get('items',[]):
 
 <span class="td"># Step 3: Revert DNS to old IP</span>
 <span class="td"># On DC01 PowerShell:</span>
-<span class="td"># Remove-DnsServerResourceRecord -ZoneName "novacrestbank.local" \</span>
+<span class="td"># Remove-DnsServerResourceRecord -ZoneName "novacrestbank.internal" \</span>
 <span class="td">#   -Name "vm-banking-app-01" -RRType A -Force</span>
-<span class="td"># Add-DnsServerResourceRecordA -ZoneName "novacrestbank.local" \</span>
+<span class="td"># Add-DnsServerResourceRecordA -ZoneName "novacrestbank.internal" \</span>
 <span class="td">#   -Name "vm-banking-app-01" -IPv4Address "10.50.0.x" -CreatePtr</span>
 
 <span class="td"># Step 4: Verify service is restored on the source VM</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk https://vm-banking-app-01.novacrestbank.local:8443/health</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk https://vm-banking-app-01.novacrestbank.internal:8443/health</span>
 <span class="tg">{"status":"UP","components":{"db":{"status":"UP"},"ldap":{"status":"UP"}}}</span>
 <span class="tok">✓ Service restored on source VM. Rollback complete.
   Investigate migration failure, fix root cause, then re-attempt migration.</span></pre>

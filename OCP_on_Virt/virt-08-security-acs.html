@@ -225,7 +225,7 @@ tr:hover td{background:var(--bg3)}
 
 <span class="section">! ══ CHECK 2: SecuredCluster registered and Healthy ══════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl central cluster list \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "${ACS_PASS}"</span>
 <span class="tg">NAME               STATUS    ADMCTL   SENSOR VERSION   LAST CONTACT
@@ -244,11 +244,11 @@ ncb-ocp-cluster    Healthy   Active   4.4.x            just now</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n stackrox -l app=collector \
   -o custom-columns="POD:.metadata.name,NODE:.spec.nodeName" | \
   grep bm-virt</span>
-<span class="tg">collector-bm01   bm-virt-01.novacrestbank.local
-collector-bm02   bm-virt-02.novacrestbank.local
-collector-bm03   bm-virt-03.novacrestbank.local
-collector-bm04   bm-virt-04.novacrestbank.local
-collector-bm05   bm-virt-05.novacrestbank.local</span>
+<span class="tg">collector-bm01   bm-virt-01.novacrestbank.internal
+collector-bm02   bm-virt-02.novacrestbank.internal
+collector-bm03   bm-virt-03.novacrestbank.internal
+collector-bm04   bm-virt-04.novacrestbank.internal
+collector-bm05   bm-virt-05.novacrestbank.internal</span>
 <span class="tok">✓ All 5 bare-metal nodes have Collector pods. ACS already has eBPF visibility
   into virt-launcher pods on these nodes. No additional Collector configuration needed.</span></pre>
     </div>
@@ -318,11 +318,11 @@ collector-bm05   bm-virt-05.novacrestbank.local</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n stackrox -l app=collector \
   -o custom-columns="POD:.metadata.name,NODE:.spec.nodeName,STATUS:.status.phase" | \
   grep bm-virt</span>
-<span class="tg">collector-bm01   bm-virt-01.novacrestbank.local   Running
-collector-bm02   bm-virt-02.novacrestbank.local   Running
-collector-bm03   bm-virt-03.novacrestbank.local   Running
-collector-bm04   bm-virt-04.novacrestbank.local   Running
-collector-bm05   bm-virt-05.novacrestbank.local   Running</span>
+<span class="tg">collector-bm01   bm-virt-01.novacrestbank.internal   Running
+collector-bm02   bm-virt-02.novacrestbank.internal   Running
+collector-bm03   bm-virt-03.novacrestbank.internal   Running
+collector-bm04   bm-virt-04.novacrestbank.internal   Running
+collector-bm05   bm-virt-05.novacrestbank.internal   Running</span>
 <span class="tok">✓ All 5 bare-metal nodes have Running Collector pods.
   ACS now has persistent eBPF visibility into all virt-launcher pods on all bare-metal nodes.
   The toleration ensures Collector reschedules correctly after any node reboot or pod restart.</span></pre>
@@ -481,7 +481,7 @@ kubevirt-migrate-vm-api-01        Succeeded</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
   -u "admin:${ACS_PASS}" \
   -X POST \
-  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/policies" \
+  "https://central-stackrox.apps.ocp.novacrestbank.internal/v1/policies" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "VM Escape Indicator — Unexpected Process in virt-launcher",
@@ -508,7 +508,7 @@ kubevirt-migrate-vm-api-01        Succeeded</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
   -u "admin:${ACS_PASS}" \
   -X POST \
-  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/policies" \
+  "https://central-stackrox.apps.ocp.novacrestbank.internal/v1/policies" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "VM Secondary Interface Missing Explicit MAC Address",
@@ -555,7 +555,7 @@ kubevirt-migrate-vm-api-01        Succeeded</span>
 
 <span class="td"># View the admission controller evaluation in ACS Central for this pod start</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl alert list \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "${ACS_PASS}" \
   --since 5m --namespace virt-workloads 2>/dev/null | head -5</span>
@@ -583,7 +583,7 @@ kubevirt-migrate-vm-api-01        Succeeded</span>
 <span class="td"># Or via API — get the network graph for virt-workloads</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">curl -sk \
   -u "admin:${ACS_PASS}" \
-  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/networkgraph?clusterId=ncb-ocp-cluster&namespaces=virt-workloads&since=336h" \
+  "https://central-stackrox.apps.ocp.novacrestbank.internal/v1/networkgraph?clusterId=ncb-ocp-cluster&namespaces=virt-workloads&since=336h" \
   | python3 -c "
 import json,sys
 g = json.load(sys.stdin)
@@ -826,7 +826,7 @@ networkpolicy.networking.k8s.io/allow-migration-tunnel created</span>
 
   <span class="yc">  # ── Forward audit logs to Splunk via rsyslog ────────────────────────</span>
   <span class="yc">  - cat > /etc/rsyslog.d/99-splunk-hecfwd.conf << 'EOF'</span>
-  <span class="yc">    *.* @@splunk-hec.novacrestbank.local:514</span>
+  <span class="yc">    *.* @@splunk-hec.novacrestbank.internal:514</span>
   <span class="yc">    EOF</span>
   <span class="yc">  - systemctl restart rsyslog</span>
   <span class="yc">  # Forward all syslog and audit events to Splunk via syslog-over-TCP.
@@ -860,7 +860,7 @@ networkpolicy.networking.k8s.io/allow-migration-tunnel created</span>
 
   <div class="callout success">
     <span class="cl">Windows guest hardening inherits from VIRT-02b OU and FGPP configuration</span>
-    <p>The Windows Server 2022 VMs were domain-joined after migration (VIRT-06 post-migration DNS section). Domain join places them in <code>OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</code> — the OU created in VIRT-02b Section 16. The GPOs linked to this OU apply automatically on the next Group Policy refresh (90 minutes by default, or <code>gpupdate /force</code> to apply immediately). The FGPP (Fine-Grained Password Policy) for service accounts in this OU was also configured in VIRT-02b. No additional AD configuration is needed — the VIRT-02b groundwork is already in place.</p>
+    <p>The Windows Server 2022 VMs were domain-joined after migration (VIRT-06 post-migration DNS section). Domain join places them in <code>OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal</code> — the OU created in VIRT-02b Section 16. The GPOs linked to this OU apply automatically on the next Group Policy refresh (90 minutes by default, or <code>gpupdate /force</code> to apply immediately). The FGPP (Fine-Grained Password Policy) for service accounts in this OU was also configured in VIRT-02b. No additional AD configuration is needed — the VIRT-02b groundwork is already in place.</p>
   </div>
   </section>
 
@@ -875,7 +875,7 @@ networkpolicy.networking.k8s.io/allow-migration-tunnel created</span>
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — run and export compliance scans for the VIRT environment</div></div>
     <div class="term-body"><pre><span class="section">! ══ PCI-DSS compliance scan ════════════════════════════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl compliance results \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "${ACS_PASS}" \
   --standard PCI_DSS_3_2 \
@@ -893,7 +893,7 @@ PCI_DSS_3_2   11.4          IDS to detect intrusion attempts                  PA
 
 <span class="section">! ══ CIS Kubernetes Benchmark ════════════════════════════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl compliance results \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "${ACS_PASS}" \
   --standard CIS_K8S \
@@ -910,7 +910,7 @@ CIS_K8S   5.7.1   Namespace should have NetworkPolicy      PASS    virt-workload
 
 <span class="section">! ══ Export PCI-DSS results for QSA evidence package ═════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">roxctl compliance results \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "${ACS_PASS}" \
   --standard PCI_DSS_3_2 \
@@ -1019,9 +1019,9 @@ echo "Exported: ~/ocp-kit/pci-dss-scan-$(date +%Y%m%d).csv"</span>
     <div class="term-body"><pre><span class="td"># Trigger a test event: cause a policy violation in virt-workloads
 # that will appear in Splunk within 30 seconds</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc run test-policy-virt \
-  --image=harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest \
   --restart=Never \
-  --overrides='{"spec":{"containers":[{"name":"test","image":"harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest","securityContext":{"privileged":true}}]}}' \
+  --overrides='{"spec":{"containers":[{"name":"test","image":"harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest","securityContext":{"privileged":true}}]}}' \
   -n virt-workloads 2>&1</span>
 <span class="te">Error from server: admission webhook "sensor.stackrox.svc" denied the request:
 Policy "Privileged Container" violated.

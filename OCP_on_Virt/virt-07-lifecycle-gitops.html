@@ -266,7 +266,7 @@ tr:hover td{background:var(--bg3)}
   <div class="decision">
     <div class="dq">Config repo structure for NovaCrestBank VMs</div>
     <div class="db">
-      <p><strong>Repository:</strong> <code>gitlab.novacrestbank.local/gitops/banking-config</code> — the same config repo used for containerised banking application deployment (OCP-OPS-05). VMs are new top-level directories alongside the existing <code>apps/</code> directory tree.</p>
+      <p><strong>Repository:</strong> <code>gitlab.novacrestbank.internal/gitops/banking-config</code> — the same config repo used for containerised banking application deployment (OCP-OPS-05). VMs are new top-level directories alongside the existing <code>apps/</code> directory tree.</p>
       <p><strong>Structure:</strong> <code>vms/banking-app-vm/</code> with <code>base/</code> (shared VirtualMachine CR) and <code>overlays/dev/</code>, <code>overlays/production/</code>. Mirrors the Kustomize overlay structure already established for containerised applications. Engineers familiar with the existing config repo structure immediately understand the VM overlay layout.</p>
     </div>
   </div>
@@ -433,7 +433,7 @@ ncb-argocd-redis                         1/1     Running   3m
 ncb-argocd-repo-server                   1/1     Running   3m
 ncb-argocd-server                        1/1     Running   3m</span>
 <span class="tok">✓ All 6 Argo CD components Running.
-  UI: ncb-argocd-server-gitops.apps.ocp.novacrestbank.local
+  UI: ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal
   defaultPolicy: role:readonly — all AD users can view, none can modify without group membership.
   resourceExclusions: VMI and VMIM excluded — VM start/stop does not trigger OutOfSync.</span></pre>
     </div>
@@ -457,7 +457,7 @@ ncb-argocd-server                        1/1     Running   3m</span>
 <span class="yk">spec</span><span class="yc">:</span>
   <span class="yk">description</span><span class="yc">:</span> <span class="yv">NovaCrestBank VM workloads — dev and production VirtualMachine CRs</span>
   <span class="yk">sourceRepos</span><span class="yc">:</span>
-    <span class="yc">-</span> <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+    <span class="yc">-</span> <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
     <span class="yc">    # Only this repository. Applications in this project cannot sync from
     # any other source — not GitHub, not an external Helm chart repository.</span>
   <span class="yk">destinations</span><span class="yc">:</span>
@@ -705,7 +705,7 @@ ncb-argocd-server                        1/1     Running   3m</span>
         path: /metadata/name
         value: vm-banking-app-01</span>
       <span class="yc">      # Rename to match the existing DNS record and MAC convention from VIRT-05.
-      # vm-banking-app-01.novacrestbank.local → 10.130.0.50 (DNS pre-created in VIRT-02b).
+      # vm-banking-app-01.novacrestbank.internal → 10.130.0.50 (DNS pre-created in VIRT-02b).
       # This overlay manages the SAME VM that MTV migrated in VIRT-06 —
       # it brings the migrated VM under GitOps control.</span>
       <span class="ys">- op: replace
@@ -812,7 +812,7 @@ ncb-argocd-server                        1/1     Running   3m</span>
     <span class="yk">spec</span><span class="yc">:</span>
       <span class="yk">project</span><span class="yc">:</span> <span class="yv">virt-workloads</span>
       <span class="yk">source</span><span class="yc">:</span>
-        <span class="yk">repoURL</span><span class="yc">:</span> <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+        <span class="yk">repoURL</span><span class="yc">:</span> <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
         <span class="yk">targetRevision</span><span class="yc">:</span> <span class="yv">HEAD</span>
         <span class="yk">path</span><span class="yc">:</span> <span class="yv">vms/banking-app-vm/overlays/{{env}}</span>
         <span class="yc">        # Each environment points at its own Kustomize overlay directory.
@@ -1024,7 +1024,7 @@ restore-banking-app-01-from-pre-upgrade       true       2024-11-15T11:52:34Z</s
   -o jsonpath='{.status.phase}'</span>
 <span class="tg">Running</span>
 <span class="tok">✓ VM Running again with pre-upgrade disk state. Total restore time: ~90 seconds.
-  Application team verifies: curl https://vm-banking-app-01.novacrestbank.local:8443/health
+  Application team verifies: curl https://vm-banking-app-01.novacrestbank.internal:8443/health
   → {"status":"UP"} — payment processing restored to pre-upgrade state.</span></pre>
     </div>
   </div>
@@ -1375,7 +1375,7 @@ Completed</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl start vm-banking-app-01 -n virt-workloads && \
   oc get vmi vm-banking-app-01 -n virt-workloads -w</span>
 <span class="tg">NAME                PHASE      NODE                          IP
-vm-banking-app-01   Running    bm-virt-03.novacrestbank.local  10.0.2.2</span>
+vm-banking-app-01   Running    bm-virt-03.novacrestbank.internal  10.0.2.2</span>
 <span class="tok">✓ VM restored and running from last night's backup. Secondary VLAN 130 interface
   reconfigures via cloud-init on first boot — 10.130.0.50 active within 60 seconds.</span></pre>
     </div>
@@ -1482,7 +1482,7 @@ vm-banking-app-01   Running    bm-virt-03.novacrestbank.local  10.0.2.2</span>
   JVM can now expand its heap into the additional 16 GiB.</span>
 
 <span class="td"># Verify hugepage consumption on the node</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-03.novacrestbank.local -- \
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-03.novacrestbank.internal -- \
   chroot /host grep HugePages_Free /proc/meminfo</span>
 <span class="tg">HugePages_Free: 336</span>
 <span class="tok">✓ HugePages_Free: 400 - 48 (this VM) - 16 (other VMs) = 336 remaining.
@@ -1520,7 +1520,7 @@ git push origin feat/vm-banking-app-01-resize</span>
     <div class="gate-title">OpenShift GitOps checks</div>
     <div class="gate-item"><div class="gate-box"></div>OpenShift GitOps operator CSV Succeeded: openshift-gitops-operator.v1.12.x</div>
     <div class="gate-item"><div class="gate-box"></div>ArgoCD ncb-argocd in gitops namespace: all 6 components Running</div>
-    <div class="gate-item"><div class="gate-box"></div>ArgoCD server route accessible at ncb-argocd-server-gitops.apps.ocp.novacrestbank.local</div>
+    <div class="gate-item"><div class="gate-box"></div>ArgoCD server route accessible at ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal</div>
     <div class="gate-item"><div class="gate-box"></div>resourceExclusions configured: VirtualMachineInstance and VirtualMachineInstanceMigration excluded</div>
     <div class="gate-item"><div class="gate-box"></div>banking-config repo registered and status: Successful</div>
     <div class="gate-item"><div class="gate-box"></div>AppProject virt-workloads created: source restricted to banking-config, destinations virt-workloads + virt-workloads-dev only</div>

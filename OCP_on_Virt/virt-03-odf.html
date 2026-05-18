@@ -424,7 +424,7 @@ tr:hover td{background:var(--bg3)}
 
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
   echo "=== ${node} ==="
-  oc debug node/${node}.novacrestbank.local -- \
+  oc debug node/${node}.novacrestbank.internal -- \
     chroot /host lsblk -d -o NAME,SIZE,TYPE,FSTYPE,ROTA 2>/dev/null | \
     grep -E "NAME|nvme|sda|sdb"
   echo ""
@@ -483,7 +483,7 @@ nvme3n1   3.8T  disk           0    ← ODF OSD disk 4 ✓</span>
 <span class="td"># This label is what LSO uses to discover disks and what ODF uses to place daemon pods</span>
 
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
-  oc label node ${node}.novacrestbank.local \
+  oc label node ${node}.novacrestbank.internal \
     cluster.ocs.openshift.io/openshift-storage="" \
     --overwrite
   echo "Labelled: ${node}"
@@ -498,11 +498,11 @@ Labelled: bm-virt-05</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get nodes -l cluster.ocs.openshift.io/openshift-storage \
   -o custom-columns="NAME:.metadata.name,ODF:.metadata.labels.cluster\.ocs\.openshift\.io/openshift-storage"</span>
 <span class="tg">NAME                             ODF
-bm-virt-01.novacrestbank.local   (empty string)
-bm-virt-02.novacrestbank.local   (empty string)
-bm-virt-03.novacrestbank.local   (empty string)
-bm-virt-04.novacrestbank.local   (empty string)
-bm-virt-05.novacrestbank.local   (empty string)</span>
+bm-virt-01.novacrestbank.internal   (empty string)
+bm-virt-02.novacrestbank.internal   (empty string)
+bm-virt-03.novacrestbank.internal   (empty string)
+bm-virt-04.novacrestbank.internal   (empty string)
+bm-virt-05.novacrestbank.internal   (empty string)</span>
 <span class="tok">✓ All 5 nodes carry cluster.ocs.openshift.io/openshift-storage="" label.
 ✓ The empty string value is correct — ODF uses the label key's presence, not its value.
 ✓ The existing kubevirt.io/virt=true:NoSchedule taint remains — ODF pods will tolerate it via the StorageCluster CR placement section.</span></pre>
@@ -762,26 +762,26 @@ STATUS:.status.phase,\
 NODE:.metadata.annotations.storage\.openshift\.com/device-id" \
   | sort -k4</span>
 <span class="tg">NAME              CAPACITY  STATUS     NODE
-local-pv-a1b001   3756Gi    Available  bm-virt-01.novacrestbank.local
-local-pv-a1b002   3756Gi    Available  bm-virt-01.novacrestbank.local
-local-pv-a1b003   3756Gi    Available  bm-virt-01.novacrestbank.local
-local-pv-a1b004   3756Gi    Available  bm-virt-01.novacrestbank.local
-local-pv-c2d005   3756Gi    Available  bm-virt-02.novacrestbank.local
-local-pv-c2d006   3756Gi    Available  bm-virt-02.novacrestbank.local
-local-pv-c2d007   3756Gi    Available  bm-virt-02.novacrestbank.local
-local-pv-c2d008   3756Gi    Available  bm-virt-02.novacrestbank.local
-local-pv-e3f009   3756Gi    Available  bm-virt-03.novacrestbank.local
-local-pv-e3f010   3756Gi    Available  bm-virt-03.novacrestbank.local
-local-pv-e3f011   3756Gi    Available  bm-virt-03.novacrestbank.local
-local-pv-e3f012   3756Gi    Available  bm-virt-03.novacrestbank.local
-local-pv-g4h013   3756Gi    Available  bm-virt-04.novacrestbank.local
-local-pv-g4h014   3756Gi    Available  bm-virt-04.novacrestbank.local
-local-pv-g4h015   3756Gi    Available  bm-virt-04.novacrestbank.local
-local-pv-g4h016   3756Gi    Available  bm-virt-04.novacrestbank.local
-local-pv-i5j017   3756Gi    Available  bm-virt-05.novacrestbank.local
-local-pv-i5j018   3756Gi    Available  bm-virt-05.novacrestbank.local
-local-pv-i5j019   3756Gi    Available  bm-virt-05.novacrestbank.local
-local-pv-i5j020   3756Gi    Available  bm-virt-05.novacrestbank.local</span>
+local-pv-a1b001   3756Gi    Available  bm-virt-01.novacrestbank.internal
+local-pv-a1b002   3756Gi    Available  bm-virt-01.novacrestbank.internal
+local-pv-a1b003   3756Gi    Available  bm-virt-01.novacrestbank.internal
+local-pv-a1b004   3756Gi    Available  bm-virt-01.novacrestbank.internal
+local-pv-c2d005   3756Gi    Available  bm-virt-02.novacrestbank.internal
+local-pv-c2d006   3756Gi    Available  bm-virt-02.novacrestbank.internal
+local-pv-c2d007   3756Gi    Available  bm-virt-02.novacrestbank.internal
+local-pv-c2d008   3756Gi    Available  bm-virt-02.novacrestbank.internal
+local-pv-e3f009   3756Gi    Available  bm-virt-03.novacrestbank.internal
+local-pv-e3f010   3756Gi    Available  bm-virt-03.novacrestbank.internal
+local-pv-e3f011   3756Gi    Available  bm-virt-03.novacrestbank.internal
+local-pv-e3f012   3756Gi    Available  bm-virt-03.novacrestbank.internal
+local-pv-g4h013   3756Gi    Available  bm-virt-04.novacrestbank.internal
+local-pv-g4h014   3756Gi    Available  bm-virt-04.novacrestbank.internal
+local-pv-g4h015   3756Gi    Available  bm-virt-04.novacrestbank.internal
+local-pv-g4h016   3756Gi    Available  bm-virt-04.novacrestbank.internal
+local-pv-i5j017   3756Gi    Available  bm-virt-05.novacrestbank.internal
+local-pv-i5j018   3756Gi    Available  bm-virt-05.novacrestbank.internal
+local-pv-i5j019   3756Gi    Available  bm-virt-05.novacrestbank.internal
+local-pv-i5j020   3756Gi    Available  bm-virt-05.novacrestbank.internal</span>
 <span class="tok">✓ 20 PVs created — 4 per node across 5 nodes.
 ✓ All STATUS=Available — ready to be claimed by ODF OSD pods.
 ✓ All 3756Gi (3.84 TB NVMe — displayed in GiB by Kubernetes).
@@ -1197,11 +1197,11 @@ openshift-storage.noobaa.io                 openshift-storage.noobaa.io/obc     
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-storage -l app=rook-ceph-osd \
   -o custom-columns="POD:.metadata.name,NODE:.spec.nodeName" | \
   awk '{print $2}' | sort | uniq -c</span>
-<span class="tg">      4 bm-virt-01.novacrestbank.local
-      4 bm-virt-02.novacrestbank.local
-      4 bm-virt-03.novacrestbank.local
-      4 bm-virt-04.novacrestbank.local
-      4 bm-virt-05.novacrestbank.local</span>
+<span class="tg">      4 bm-virt-01.novacrestbank.internal
+      4 bm-virt-02.novacrestbank.internal
+      4 bm-virt-03.novacrestbank.internal
+      4 bm-virt-04.novacrestbank.internal
+      4 bm-virt-05.novacrestbank.internal</span>
 <span class="tok">✓ Check 6 passed. Exactly 4 OSD pods per node — balanced distribution.
   If any node shows more than 4 or fewer than 4: check the CRUSH tree (Section 15).</span>
 

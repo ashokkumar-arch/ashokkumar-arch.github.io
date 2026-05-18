@@ -243,12 +243,12 @@ tr:hover td{background:var(--bg3)}
     <thead><tr><th>Component</th><th>Status for VIRT series</th><th>Why no change is needed</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong>AD DS domain</strong><br><code>novacrestbank.local</code><br>DC01 (10.70.0.10) + DC02 (10.70.0.11)</td>
+        <td><strong>AD DS domain</strong><br><code>novacrestbank.internal</code><br>DC01 (10.70.0.10) + DC02 (10.70.0.11)</td>
         <td class="td-none">Zero changes</td>
         <td>The five bare-metal nodes are worker nodes in the OCP cluster — they do not join the Windows domain. RHCOS nodes are managed by OCP, not by AD. No new computer accounts, no new Group Policy application, no new OU membership for the nodes themselves.</td>
       </tr>
       <tr>
-        <td><strong>AD OAuth integration</strong><br>OCP ↔ novacrestbank.local via LDAPS</td>
+        <td><strong>AD OAuth integration</strong><br>OCP ↔ novacrestbank.internal via LDAPS</td>
         <td class="td-none">Zero changes</td>
         <td>AD OAuth is a cluster-wide configuration managed by the OAuth cluster operator. The bare-metal nodes are workers — they do not participate in authentication. Users authenticate to OCP via the masters, which already talk to DC01/DC02 on LDAPS port 636. Adding five worker nodes changes nothing about this path.</td>
       </tr>
@@ -263,12 +263,12 @@ tr:hover td{background:var(--bg3)}
         <td>cert-manager's ClusterIssuer is a cluster-wide resource. It issues certificates for any namespace in the cluster. Workloads on bare-metal nodes use the same ClusterIssuer as workloads on ESXi-hosted nodes. No new issuer, no new configuration.</td>
       </tr>
       <tr>
-        <td><strong>Root CA (offline)</strong><br>rootca.novacrestbank.local (10.70.0.20)</td>
+        <td><strong>Root CA (offline)</strong><br>rootca.novacrestbank.internal (10.70.0.20)</td>
         <td class="td-none">Zero changes</td>
         <td>The Root CA is offline and powered down except for maintenance. The VIRT series does not require any new subordinate CA or Root CA signing operation.</td>
       </tr>
       <tr>
-        <td><strong>Issuing CA (online)</strong><br>issuingca.novacrestbank.local (10.70.0.21)</td>
+        <td><strong>Issuing CA (online)</strong><br>issuingca.novacrestbank.internal (10.70.0.21)</td>
         <td class="td-none">Zero changes to CA</td>
         <td>The Issuing CA and all existing certificate templates are unchanged. The Machine certificate template (used for Windows VM auto-enrolment) already exists and is correctly configured. Section 19 verifies this — it does not change it.</td>
       </tr>
@@ -278,7 +278,7 @@ tr:hover td{background:var(--bg3)}
         <td>Existing GPOs apply to their current OU scope. The new OU created in Section 16 inherits all GPOs from its parent OU through standard AD inheritance — no GPO modification is needed.</td>
       </tr>
       <tr>
-        <td><strong>DNS zones</strong><br>novacrestbank.local forward zone<br>Existing reverse zones</td>
+        <td><strong>DNS zones</strong><br>novacrestbank.internal forward zone<br>Existing reverse zones</td>
         <td class="td-none">Zero changes to existing zones</td>
         <td>The existing forward zone and existing reverse zones (10.10, 10.20, 10.25, 10.40, 10.50, 10.70, 10.100–103) are unchanged. New reverse zones (10.110, 10.120, 10.130, 10.140) were created in VIRT-00 as prerequisites. New records are added to existing zones — no zone structure changes.</td>
       </tr>
@@ -361,7 +361,7 @@ tr:hover td{background:var(--bg3)}
         <td class="td-guide">VIRT-02b Section 13</td>
       </tr>
       <tr>
-        <td>New OU: OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</td>
+        <td>New OU: OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal</td>
         <td class="td-new">AD — new</td>
         <td>Before VIRT-06 (MTV Migration) — migrated VMs join this OU on domain join</td>
         <td class="td-guide">VIRT-02b Section 16</td>
@@ -393,10 +393,10 @@ tr:hover td{background:var(--bg3)}
   <p>DNS is the foundational dependency for everything else. Before a VM can be reached by name, before a migrated VM can join AD, before the OCP cluster can resolve bare-metal node FQDNs — DNS must be correct. This section establishes the complete DNS picture for the VIRT series before any record is created.</p>
 
   <h3>The DNS server — no change needed</h3>
-  <p>DNS is served by DC01 and DC02 using Active Directory-integrated zones for <code>novacrestbank.local</code>. The Assisted Installer embedded DC01 (10.70.0.10) as the DNS server for all bare-metal nodes in the DHCP scope (VIRT-00) and in the NMState static configuration (VIRT-02). The bare-metal nodes already use DC01/DC02 for DNS. No DNS server configuration changes are needed — only new records in existing zones.</p>
+  <p>DNS is served by DC01 and DC02 using Active Directory-integrated zones for <code>novacrestbank.internal</code>. The Assisted Installer embedded DC01 (10.70.0.10) as the DNS server for all bare-metal nodes in the DHCP scope (VIRT-00) and in the NMState static configuration (VIRT-02). The bare-metal nodes already use DC01/DC02 for DNS. No DNS server configuration changes are needed — only new records in existing zones.</p>
 
   <h3>The naming convention — consistent with the VCF series</h3>
-  <p>All new FQDNs follow the pattern established in the VCF series: <code>&lt;hostname&gt;.novacrestbank.local</code>. VM workload records follow the same convention: <code>vm-&lt;function&gt;-&lt;number&gt;.novacrestbank.local</code>. This ensures that any engineer who knows the naming convention from the VCF guides can immediately understand the VIRT naming without a separate lookup.</p>
+  <p>All new FQDNs follow the pattern established in the VCF series: <code>&lt;hostname&gt;.novacrestbank.internal</code>. VM workload records follow the same convention: <code>vm-&lt;function&gt;-&lt;number&gt;.novacrestbank.internal</code>. This ensures that any engineer who knows the naming convention from the VCF guides can immediately understand the VIRT naming without a separate lookup.</p>
 
   <div class="decision">
     <div class="decision-q">Why DNS records for VMs must exist before the VM is created</div>
@@ -421,7 +421,7 @@ tr:hover td{background:var(--bg3)}
   echo "=== DNS server: ${dc} ==="
   for n in 01 02 03 04 05; do
     ip="10.110.0.1${n#0}"
-    fwd=$(dig +short bm-virt-${n}.novacrestbank.local @${dc} 2>/dev/null)
+    fwd=$(dig +short bm-virt-${n}.novacrestbank.internal @${dc} 2>/dev/null)
     rev=$(dig +short -x ${ip} @${dc} 2>/dev/null)
     status="✓"
     [[ "${fwd}" != "${ip}" ]] && status="✗ FORWARD MISSING"
@@ -430,17 +430,17 @@ tr:hover td{background:var(--bg3)}
   done
 done</span>
 <span class="out">=== DNS server: 10.70.0.10 ===
-  bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.local. ✓
-  bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.local. ✓
-  bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.local. ✓
-  bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.local. ✓
-  bm-virt-05: A=10.110.0.15 PTR=bm-virt-05.novacrestbank.local. ✓
+  bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.internal. ✓
+  bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.internal. ✓
+  bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.internal. ✓
+  bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.internal. ✓
+  bm-virt-05: A=10.110.0.15 PTR=bm-virt-05.novacrestbank.internal. ✓
 === DNS server: 10.70.0.11 ===
-  bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.local. ✓
-  bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.local. ✓
-  bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.local. ✓
-  bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.local. ✓
-  bm-virt-05: A=10.110.0.15 PTR=bm-virt-15.novacrestbank.local. ✓</span>
+  bm-virt-01: A=10.110.0.11 PTR=bm-virt-01.novacrestbank.internal. ✓
+  bm-virt-02: A=10.110.0.12 PTR=bm-virt-02.novacrestbank.internal. ✓
+  bm-virt-03: A=10.110.0.13 PTR=bm-virt-03.novacrestbank.internal. ✓
+  bm-virt-04: A=10.110.0.14 PTR=bm-virt-04.novacrestbank.internal. ✓
+  bm-virt-05: A=10.110.0.15 PTR=bm-virt-15.novacrestbank.internal. ✓</span>
 <span class="ok">✓ All bare-metal node A and PTR records are present and identical on both DC01 and DC02.
 ✓ AD DNS replication is complete for these records.</span>
     </div>
@@ -474,7 +474,7 @@ done</span>
   <div class="gui-step">
     <div class="gui-step-num">Step 1 — Create the A record</div>
     <div class="gui-step-action">
-      Navigate to: <span class="gui-path">DC01 → Forward Lookup Zones → novacrestbank.local</span><br>
+      Navigate to: <span class="gui-path">DC01 → Forward Lookup Zones → novacrestbank.internal</span><br>
       Right-click in the right pane → <strong>New Host (A or AAAA)</strong><br>
       Name: <code>vm-banking-app-01</code> (the hostname only — no domain suffix)<br>
       IP address: <code>10.130.0.50</code><br>
@@ -487,8 +487,8 @@ done</span>
     <div class="gui-step-num">Step 2 — Verify the PTR record was created</div>
     <div class="gui-step-action">
       Navigate to: <span class="gui-path">DC01 → Reverse Lookup Zones → 130.10.10.in-addr.arpa</span><br>
-      Verify a PTR record exists: <code>50</code> → <code>vm-banking-app-01.novacrestbank.local</code><br>
-      If the PTR record is missing, right-click in the reverse zone → <strong>New Pointer (PTR)</strong> → Host IP: <code>10.130.0.50</code> → Host name: <code>vm-banking-app-01.novacrestbank.local</code>
+      Verify a PTR record exists: <code>50</code> → <code>vm-banking-app-01.novacrestbank.internal</code><br>
+      If the PTR record is missing, right-click in the reverse zone → <strong>New Pointer (PTR)</strong> → Host IP: <code>10.130.0.50</code> → Host name: <code>vm-banking-app-01.novacrestbank.internal</code>
     </div>
   </div>
 
@@ -498,10 +498,10 @@ done</span>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td><code>vm-banking-app-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.50</td><td>Banking application VM — migrated from VMware (MTV VIRT-06)</td></tr>
-      <tr><td><code>vm-banking-app-02.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.51</td><td>Banking application VM — migrated from VMware (MTV VIRT-06)</td></tr>
-      <tr><td><code>vm-win-test-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.100</td><td>Windows Server 2022 test VM — created in VIRT-04 as first test VM</td></tr>
-      <tr><td><code>vm-rhel-test-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.130.0.101</td><td>RHEL 9 test VM — created in VIRT-04 as first Linux test VM</td></tr>
+      <tr><td><code>vm-banking-app-01.novacrestbank.internal</code></td><td>A + PTR</td><td>10.130.0.50</td><td>Banking application VM — migrated from VMware (MTV VIRT-06)</td></tr>
+      <tr><td><code>vm-banking-app-02.novacrestbank.internal</code></td><td>A + PTR</td><td>10.130.0.51</td><td>Banking application VM — migrated from VMware (MTV VIRT-06)</td></tr>
+      <tr><td><code>vm-win-test-01.novacrestbank.internal</code></td><td>A + PTR</td><td>10.130.0.100</td><td>Windows Server 2022 test VM — created in VIRT-04 as first test VM</td></tr>
+      <tr><td><code>vm-rhel-test-01.novacrestbank.internal</code></td><td>A + PTR</td><td>10.130.0.101</td><td>RHEL 9 test VM — created in VIRT-04 as first Linux test VM</td></tr>
     </tbody>
   </table>
 
@@ -521,14 +521,14 @@ done</span>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td><code>vm-api-gateway-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.140.0.50</td><td>Partner API gateway VM — DMZ-adjacent, external partner connectivity</td></tr>
-      <tr><td><code>vm-preprod-01.novacrestbank.local</code></td><td>A + PTR</td><td>10.140.0.100</td><td>Pre-production environment VM — isolated from production VLAN 130</td></tr>
+      <tr><td><code>vm-api-gateway-01.novacrestbank.internal</code></td><td>A + PTR</td><td>10.140.0.50</td><td>Partner API gateway VM — DMZ-adjacent, external partner connectivity</td></tr>
+      <tr><td><code>vm-preprod-01.novacrestbank.internal</code></td><td>A + PTR</td><td>10.140.0.100</td><td>Pre-production environment VM — isolated from production VLAN 130</td></tr>
     </tbody>
   </table>
 
   <div class="callout callout-win">
     <strong>The difference between VLAN 130 and VLAN 140 in DNS terms</strong>
-    <p>From DNS Manager's perspective, records for both VLANs go into the same <code>novacrestbank.local</code> forward zone. The difference is in the IP range — VLAN 130 VMs have IPs in 10.130.0.0/24 and their PTR records go in <code>130.10.10.in-addr.arpa</code>. VLAN 140 VMs have IPs in 10.140.0.0/24 and their PTR records go in <code>140.10.10.in-addr.arpa</code>. DNS itself does not enforce security separation — that is NSX gateway firewall (Model A) or Kubernetes NetworkPolicy (Model B) in VIRT-05.</p>
+    <p>From DNS Manager's perspective, records for both VLANs go into the same <code>novacrestbank.internal</code> forward zone. The difference is in the IP range — VLAN 130 VMs have IPs in 10.130.0.0/24 and their PTR records go in <code>130.10.10.in-addr.arpa</code>. VLAN 140 VMs have IPs in 10.140.0.0/24 and their PTR records go in <code>140.10.10.in-addr.arpa</code>. DNS itself does not enforce security separation — that is NSX gateway firewall (Model A) or Kubernetes NetworkPolicy (Model B) in VIRT-05.</p>
   </div>
   </section>
 
@@ -557,7 +557,7 @@ done</span>
   <div class="gui-step">
     <div class="gui-step-num">Step 2 — Delete the old A record</div>
     <div class="gui-step-action">
-      In DNS Manager: <span class="gui-path">Forward Lookup Zones → novacrestbank.local</span><br>
+      In DNS Manager: <span class="gui-path">Forward Lookup Zones → novacrestbank.internal</span><br>
       Find the VM's hostname. Right-click → <strong>Delete</strong>. Confirm.<br>
       <strong>Do not delete the record until after the VM has stopped responding at the old IP</strong> — deleting it too early causes a DNS outage for any system that depends on the VM by name.
     </div>
@@ -574,7 +574,7 @@ done</span>
   <div class="gui-step">
     <div class="gui-step-num">Step 4 — Create the new A record with the VLAN 130 IP</div>
     <div class="gui-step-action">
-      <span class="gui-path">Forward Lookup Zones → novacrestbank.local</span> → Right-click → <strong>New Host (A or AAAA)</strong><br>
+      <span class="gui-path">Forward Lookup Zones → novacrestbank.internal</span> → Right-click → <strong>New Host (A or AAAA)</strong><br>
       Name: same hostname as before (only the IP changes)<br>
       IP: new IP from VLAN 130 (10.130.0.x) or VLAN 140 (10.140.0.x)<br>
       ☑ Check <strong>"Create associated pointer (PTR) record"</strong><br>
@@ -608,30 +608,30 @@ done</span>
     <div class="term-body">
 <span class="section">! ══ Verify all new VLAN 130 VM records ═════════════════════════════════</span>
 <span class="prompt">[admin@jumphost ~]$</span> <span class="cmd">for fqdn in \
-  vm-banking-app-01.novacrestbank.local \
-  vm-banking-app-02.novacrestbank.local \
-  vm-win-test-01.novacrestbank.local \
-  vm-rhel-test-01.novacrestbank.local; do
+  vm-banking-app-01.novacrestbank.internal \
+  vm-banking-app-02.novacrestbank.internal \
+  vm-win-test-01.novacrestbank.internal \
+  vm-rhel-test-01.novacrestbank.internal; do
   ip=$(dig +short ${fqdn} @10.70.0.10)
   rev=$(dig +short -x ${ip} @10.70.0.10 2>/dev/null)
   echo "${fqdn}: A=${ip} PTR=${rev}"
 done</span>
-<span class="out">vm-banking-app-01.novacrestbank.local: A=10.130.0.50 PTR=vm-banking-app-01.novacrestbank.local.
-vm-banking-app-02.novacrestbank.local: A=10.130.0.51 PTR=vm-banking-app-02.novacrestbank.local.
-vm-win-test-01.novacrestbank.local:    A=10.130.0.100 PTR=vm-win-test-01.novacrestbank.local.
-vm-rhel-test-01.novacrestbank.local:   A=10.130.0.101 PTR=vm-rhel-test-01.novacrestbank.local.</span>
+<span class="out">vm-banking-app-01.novacrestbank.internal: A=10.130.0.50 PTR=vm-banking-app-01.novacrestbank.internal.
+vm-banking-app-02.novacrestbank.internal: A=10.130.0.51 PTR=vm-banking-app-02.novacrestbank.internal.
+vm-win-test-01.novacrestbank.internal:    A=10.130.0.100 PTR=vm-win-test-01.novacrestbank.internal.
+vm-rhel-test-01.novacrestbank.internal:   A=10.130.0.101 PTR=vm-rhel-test-01.novacrestbank.internal.</span>
 <span class="ok">✓ All VLAN 130 VM DNS records resolve correctly forward and reverse.</span>
 
 <span class="section">! ══ Verify VLAN 140 VM records ══════════════════════════════════════════</span>
 <span class="prompt">[admin@jumphost ~]$</span> <span class="cmd">for fqdn in \
-  vm-api-gateway-01.novacrestbank.local \
-  vm-preprod-01.novacrestbank.local; do
+  vm-api-gateway-01.novacrestbank.internal \
+  vm-preprod-01.novacrestbank.internal; do
   ip=$(dig +short ${fqdn} @10.70.0.10)
   rev=$(dig +short -x ${ip} @10.70.0.10 2>/dev/null)
   echo "${fqdn}: A=${ip} PTR=${rev}"
 done</span>
-<span class="out">vm-api-gateway-01.novacrestbank.local: A=10.140.0.50 PTR=vm-api-gateway-01.novacrestbank.local.
-vm-preprod-01.novacrestbank.local:     A=10.140.0.100 PTR=vm-preprod-01.novacrestbank.local.</span>
+<span class="out">vm-api-gateway-01.novacrestbank.internal: A=10.140.0.50 PTR=vm-api-gateway-01.novacrestbank.internal.
+vm-preprod-01.novacrestbank.internal:     A=10.140.0.100 PTR=vm-preprod-01.novacrestbank.internal.</span>
 <span class="ok">✓ All VLAN 140 VM DNS records resolve correctly.</span>
     </div>
   </div>
@@ -722,7 +722,7 @@ vm-preprod-01.novacrestbank.local:     A=10.140.0.100 PTR=vm-preprod-01.novacres
       Select <strong>Yes, I want to configure these options now</strong> → Click <strong>Next</strong>.<br><br>
       <strong>Router (option 003):</strong> <code>10.130.0.3</code> (HSRP VIP on leaf-01/02 for VLAN 130) → Add → Next<br><br>
       <strong>Domain Name and DNS Servers (option 006):</strong><br>
-      Parent domain: <code>novacrestbank.local</code><br>
+      Parent domain: <code>novacrestbank.internal</code><br>
       DNS servers: <code>10.70.0.10</code> → Add → <code>10.70.0.11</code> → Add → Next<br><br>
       <strong>WINS Servers:</strong> Leave blank → Next<br><br>
       Select <strong>Yes, I want to activate this scope now</strong> → Next → Finish.
@@ -744,7 +744,7 @@ vm-preprod-01.novacrestbank.local:     A=10.140.0.100 PTR=vm-preprod-01.novacres
 <span class="prompt">PS C:\></span> <span class="cmd"># Check the existing failover relationship name</span>
 <span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Failover</span>
 <span class="out">Name            : DC01-DC02-Failover
-PartnerServer   : dc02.novacrestbank.local
+PartnerServer   : dc02.novacrestbank.internal
 Mode            : LoadBalance
 LoadBalancePercent : 50
 State           : Normal
@@ -758,7 +758,7 @@ ScopeId         : {10.10.0.0, 10.110.0.0}</span>
 
 <span class="prompt">PS C:\></span> <span class="cmd">Get-DhcpServerv4Failover</span>
 <span class="out">Name            : DC01-DC02-Failover
-PartnerServer   : dc02.novacrestbank.local
+PartnerServer   : dc02.novacrestbank.internal
 Mode            : LoadBalance
 LoadBalancePercent : 50
 State           : Normal
@@ -875,15 +875,15 @@ DC01-DC02-Failover    Normal  {10.10.0.0, 10.110.0.0, 10.130.0.0, 10.140.0.0}</s
   <!-- SECTION 15 -->
   <section id="ad-what-exists">
   <h2>15 — Active Directory — what already exists</h2>
-  <p>The Active Directory domain <code>novacrestbank.local</code> was established in the Classic series with a complete OU structure for NovaCrestBank. The following already exists and requires no changes for the VIRT series:</p>
+  <p>The Active Directory domain <code>novacrestbank.internal</code> was established in the Classic series with a complete OU structure for NovaCrestBank. The following already exists and requires no changes for the VIRT series:</p>
 
   <table>
     <thead><tr><th>OU path</th><th>Contents</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td><code>DC=novacrestbank,DC=local</code></td><td>Domain root</td><td class="td-none">Unchanged</td></tr>
-      <tr><td><code>OU=Servers,DC=novacrestbank,DC=local</code></td><td>All server computer accounts</td><td class="td-none">Unchanged</td></tr>
-      <tr><td><code>OU=Service Accounts,DC=novacrestbank,DC=local</code></td><td>svc-ocp-installer, svc-ocp-admin, and other service accounts</td><td class="td-none">Unchanged</td></tr>
-      <tr><td><code>OU=OCP Groups,DC=novacrestbank,DC=local</code></td><td>OCP-Cluster-Admins, OCP-Developers, etc.</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>DC=novacrestbank,DC=internal</code></td><td>Domain root</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>OU=Servers,DC=novacrestbank,DC=internal</code></td><td>All server computer accounts</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>OU=Service Accounts,DC=novacrestbank,DC=internal</code></td><td>svc-ocp-installer, svc-ocp-admin, and other service accounts</td><td class="td-none">Unchanged</td></tr>
+      <tr><td><code>OU=OCP Groups,DC=novacrestbank,DC=internal</code></td><td>OCP-Cluster-Admins, OCP-Developers, etc.</td><td class="td-none">Unchanged</td></tr>
     </tbody>
   </table>
   </section>
@@ -908,7 +908,7 @@ DC01-DC02-Failover    Normal  {10.10.0.0, 10.110.0.0, 10.130.0.0, 10.140.0.0}</s
 <span class="prompt">PS C:\></span> <span class="cmd"># Create the OU under Servers
 New-ADOrganizationalUnit `
   -Name "OCP-Virt" `
-  -Path "OU=Servers,DC=novacrestbank,DC=local" `
+  -Path "OU=Servers,DC=novacrestbank,DC=internal" `
   -Description "Computer accounts for VMs running on OpenShift Virtualization bare-metal nodes" `
   -ProtectedFromAccidentalDeletion $true</span>
 
@@ -918,8 +918,8 @@ New-ADOrganizationalUnit `
   Select-Object Name, DistinguishedName</span>
 <span class="out">Name      DistinguishedName
 ----      -----------------
-OCP-Virt  OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</span>
-<span class="ok">✓ OU created: OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local
+OCP-Virt  OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal</span>
+<span class="ok">✓ OU created: OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal
 ✓ Protected from accidental deletion is enabled.
 ✓ Existing GPOs (password policy, PKI auto-enrolment, security baseline) apply
 ✓ through inheritance from the parent OU — no GPO changes needed.</span>
@@ -933,8 +933,8 @@ OCP-Virt  OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</span>
     <div class="term-body">
 <span class="comment"># Run inside the migrated Windows VM after it is running on OpenShift Virtualization</span>
 <span class="prompt">PS C:\></span> <span class="cmd">Add-Computer `
-  -DomainName "novacrestbank.local" `
-  -OUPath "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local" `
+  -DomainName "novacrestbank.internal" `
+  -OUPath "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal" `
   -Credential (Get-Credential) `
   -Restart</span>
 <span class="comment"># Enter domain admin credentials when prompted
@@ -957,8 +957,8 @@ OCP-Virt  OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</span>
 <span class="prompt">PS C:\></span> <span class="cmd">New-ADUser `
   -Name "svc-ocp-virt-mgmt" `
   -SamAccountName "svc-ocp-virt-mgmt" `
-  -UserPrincipalName "svc-ocp-virt-mgmt@novacrestbank.local" `
-  -Path "OU=Service Accounts,DC=novacrestbank,DC=local" `
+  -UserPrincipalName "svc-ocp-virt-mgmt@novacrestbank.internal" `
+  -Path "OU=Service Accounts,DC=novacrestbank,DC=internal" `
   -Description "Service account for Ansible Automation Platform VM lifecycle management on OpenShift Virtualization" `
   -Enabled $true `
   -PasswordNeverExpires $false `
@@ -979,7 +979,7 @@ OCP-Virt  OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local</span>
 <span class="prompt">PS C:\></span> <span class="cmd">Get-ADUser svc-ocp-virt-mgmt | Select-Object Name, Enabled, DistinguishedName</span>
 <span class="out">Name                Enabled  DistinguishedName
 ----                -------  -----------------
-svc-ocp-virt-mgmt   True    CN=svc-ocp-virt-mgmt,OU=Service Accounts,DC=novacrestbank,DC=local</span>
+svc-ocp-virt-mgmt   True    CN=svc-ocp-virt-mgmt,OU=Service Accounts,DC=novacrestbank,DC=internal</span>
 <span class="ok">✓ Service account created in Service Accounts OU with FGPP applied.
 ✓ Password stored in CyberArk — retrievable by AAP via ESO in VIRT-10.</span>
     </div>
@@ -1051,7 +1051,7 @@ certutil -CATemplates | Where-Object { $_ -match "Machine" }</span>
 ✓ can automatically request machine certificates via GPO.</span>
 
 <span class="comment"># Verify the auto-enrolment GPO is applied to the OCP-Virt OU</span>
-<span class="prompt">PS C:\></span> <span class="cmd">Get-GPInheritance -Target "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local" |
+<span class="prompt">PS C:\></span> <span class="cmd">Get-GPInheritance -Target "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal" |
   Select-Object -ExpandProperty InheritedGpoLinks |
   Where-Object { $_.DisplayName -match "PKI|Certificate|Enroll" } |
   Select-Object DisplayName, Enabled</span>
@@ -1135,7 +1135,7 @@ PKI Auto-Enrollment Policy               True</span>
 
   <div class="gate">
     <div class="gate-title">Active Directory</div>
-    <div class="gate-item"><div class="gate-box"></div>OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local exists and is protected from accidental deletion</div>
+    <div class="gate-item"><div class="gate-box"></div>OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal exists and is protected from accidental deletion</div>
     <div class="gate-item"><div class="gate-box"></div>PKI Auto-Enrollment Policy GPO is inherited by the OCP-Virt OU (verified via Get-GPInheritance)</div>
     <div class="gate-item"><div class="gate-box"></div>svc-ocp-virt-mgmt service account created in Service Accounts OU — FGPP applied — password stored in CyberArk</div>
   </div>

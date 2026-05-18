@@ -640,8 +640,8 @@ mtq-operator.v1.3.x                           Succeeded</span>
   <span class="yc">  # ── StorageImport — default StorageClass for DataVolume imports ──────</span>
   <span class="yk">storageImport</span><span class="yc">:</span>
     <span class="yk">insecureRegistries</span><span class="yc">:</span>
-      <span class="yc">-</span> <span class="yv">harbor.apps.ocp.novacrestbank.local</span>
-      <span class="yc">  # harbor.apps.ocp.novacrestbank.local: NovaCrestBank's internal Harbor registry.
+      <span class="yc">-</span> <span class="yv">harbor.apps.ocp.novacrestbank.internal</span>
+      <span class="yc">  # harbor.apps.ocp.novacrestbank.internal: NovaCrestBank's internal Harbor registry.
       # CDI (DataVolume importer) treats this registry as trusted even though it
       # uses an internal CA certificate (NovaCrestBank-Issuing-CA).
       # Without this entry, DataVolume imports from Harbor fail with TLS errors
@@ -751,7 +751,7 @@ AVAILABLE:.status.numberAvailable"</span>
 
 <span class="section">! ══ CHECK 6: /dev/kvm available on bare-metal nodes ════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03; do
-  result=$(oc debug node/${node}.novacrestbank.local \
+  result=$(oc debug node/${node}.novacrestbank.internal \
     -- chroot /host ls -la /dev/kvm 2>/dev/null)
   echo "${node}: ${result}"
 done</span>
@@ -784,37 +784,37 @@ SCHEDULABLE:.metadata.labels.kubevirt\.io/schedulable,\
 ODF:.metadata.labels.cluster\.ocs\.openshift\.io/openshift-storage,\
 TAINT:.spec.taints[0].key"</span>
 <span class="tg">NAME                             SCHEDULABLE  ODF   TAINT
-bm-virt-01.novacrestbank.local   true         (empty string)  kubevirt.io/virt
-bm-virt-02.novacrestbank.local   true         (empty string)  kubevirt.io/virt
-bm-virt-03.novacrestbank.local   true         (empty string)  kubevirt.io/virt
-bm-virt-04.novacrestbank.local   true         (empty string)  kubevirt.io/virt
-bm-virt-05.novacrestbank.local   true         (empty string)  kubevirt.io/virt</span>
+bm-virt-01.novacrestbank.internal   true         (empty string)  kubevirt.io/virt
+bm-virt-02.novacrestbank.internal   true         (empty string)  kubevirt.io/virt
+bm-virt-03.novacrestbank.internal   true         (empty string)  kubevirt.io/virt
+bm-virt-04.novacrestbank.internal   true         (empty string)  kubevirt.io/virt
+bm-virt-05.novacrestbank.internal   true         (empty string)  kubevirt.io/virt</span>
 <span class="tok">✓ All 5 bare-metal nodes carry kubevirt.io/schedulable=true and the kubevirt.io/virt taint.
 ✓ ODF label (cluster.ocs.openshift.io/openshift-storage) is also present on all nodes.</span>
 
 <span class="td"># Add the workload-type label for scheduling policy clarity</span>
 <span class="td"># This label is used by VM node affinity rules to target the bare-metal tier</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">for node in bm-virt-01 bm-virt-02 bm-virt-03 bm-virt-04 bm-virt-05; do
-  oc label node ${node}.novacrestbank.local \
+  oc label node ${node}.novacrestbank.internal \
     workload-type=virtualization \
     node-role.kubernetes.io/bm-worker="" \
     --overwrite
 done</span>
-<span class="tg">node/bm-virt-01.novacrestbank.local labeled
-node/bm-virt-02.novacrestbank.local labeled
-node/bm-virt-03.novacrestbank.local labeled
-node/bm-virt-04.novacrestbank.local labeled
-node/bm-virt-05.novacrestbank.local labeled</span>
+<span class="tg">node/bm-virt-01.novacrestbank.internal labeled
+node/bm-virt-02.novacrestbank.internal labeled
+node/bm-virt-03.novacrestbank.internal labeled
+node/bm-virt-04.novacrestbank.internal labeled
+node/bm-virt-05.novacrestbank.internal labeled</span>
 
 <span class="td"># Verify virt-handler is running on all 5 nodes (confirms HCO recognises them)</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-cnv -l kubevirt.io=virt-handler \
   -o custom-columns="NAME:.metadata.name,NODE:.spec.nodeName,STATUS:.status.phase"</span>
 <span class="tg">NAME                   NODE                            STATUS
-virt-handler-abc01     bm-virt-01.novacrestbank.local  Running
-virt-handler-def02     bm-virt-02.novacrestbank.local  Running
-virt-handler-ghi03     bm-virt-03.novacrestbank.local  Running
-virt-handler-jkl04     bm-virt-04.novacrestbank.local  Running
-virt-handler-mno05     bm-virt-05.novacrestbank.local  Running</span>
+virt-handler-abc01     bm-virt-01.novacrestbank.internal  Running
+virt-handler-def02     bm-virt-02.novacrestbank.internal  Running
+virt-handler-ghi03     bm-virt-03.novacrestbank.internal  Running
+virt-handler-jkl04     bm-virt-04.novacrestbank.internal  Running
+virt-handler-mno05     bm-virt-05.novacrestbank.internal  Running</span>
 <span class="tok">✓ virt-handler running on all 5 bare-metal nodes.
   One virt-handler per node is the correct configuration.
   virt-handler absence on a node means VMs cannot run on that node —
@@ -960,7 +960,7 @@ bm-worker   True     False     False     5      5</span>
   UPDATED=True, UPDATING=False, DEGRADED=False, READY=5 of 5.
 
   Verify hugepages are allocated on a node:</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01.novacrestbank.local -- \
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01.novacrestbank.internal -- \
   chroot /host grep -i hugepage /proc/meminfo</span>
 <span class="tg">AnonHugePages:         0 kB
 ShmemHugePages:        0 kB
@@ -1076,7 +1076,7 @@ Hugetlb:       419430400 kB</span>
   --insecure</span>
 <span class="tg">PVC openshift-virtualization-os-images/rhel9-base-image created
 Waiting for PVC rhel9-base-image to be ready...
-Uploading data to https://cdi-uploadproxy.apps.ocp.novacrestbank.local
+Uploading data to https://cdi-uploadproxy.apps.ocp.novacrestbank.internal
 
  40.00 GiB / 40.00 GiB [======================] 100.00% 56s
 
@@ -1249,7 +1249,7 @@ Uploading /opt/novacrest/images/rhel-9.3-x86_64-kvm.qcow2 completed successfully
             <span class="yk">userData</span><span class="yc">:</span> <span class="ys">|
               #cloud-config
               hostname: vm-rhel9-test-01
-              fqdn: vm-rhel9-test-01.novacrestbank.local
+              fqdn: vm-rhel9-test-01.novacrestbank.internal
               users:
                 - name: admin
                   groups: wheel
@@ -1299,7 +1299,7 @@ Uploading /opt/novacrest/images/rhel-9.3-x86_64-kvm.qcow2 completed successfully
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — create namespace, apply VM, watch start sequence</div></div>
     <div class="term-body"><pre><span class="td"># Create the virt-workloads namespace</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc new-project virt-workloads</span>
-<span class="tg">Now using project "virt-workloads" on server "https://api.ocp.novacrestbank.local:6443".</span>
+<span class="tg">Now using project "virt-workloads" on server "https://api.ocp.novacrestbank.internal:6443".</span>
 
 <span class="td"># Apply the VirtualMachine CR</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc apply -f vm-rhel9-test.yaml</span>
@@ -1324,9 +1324,9 @@ NODE:.status.nodeName,IP:.status.interfaces[0].ipAddress"'</span>
 <span class="tg">NAME               PHASE      NODE                          IP
 vm-rhel9-test-01   Pending    --                            --</span>
 <span class="td"># Scheduler selects a bare-metal node with available hugepages...</span>
-<span class="tg">vm-rhel9-test-01   Scheduling bm-virt-02.novacrestbank.local  --</span>
+<span class="tg">vm-rhel9-test-01   Scheduling bm-virt-02.novacrestbank.internal  --</span>
 <span class="td"># virt-handler prepares the node, virt-launcher pod starts...</span>
-<span class="tg">vm-rhel9-test-01   Running    bm-virt-02.novacrestbank.local  10.0.2.2</span>
+<span class="tg">vm-rhel9-test-01   Running    bm-virt-02.novacrestbank.internal  10.0.2.2</span>
 <span class="tok">✓ VM is Running on bm-virt-02.
   10.0.2.2 is the masquerade network IP (pod network internal — not the VLAN 130 IP).
   For the production routable IP, see VIRT-05 (VM Networking with OVN localnet).</span>
@@ -1371,7 +1371,7 @@ Last login: Mon Nov  4 14:35:22 2024
 <span class="section">! ══ CHECK 2: VM scheduled on bare-metal node ════════════════════════════</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-rhel9-test-01 -n virt-workloads \
   -o jsonpath='{.status.nodeName}'</span>
-<span class="tg">bm-virt-02.novacrestbank.local</span>
+<span class="tg">bm-virt-02.novacrestbank.internal</span>
 <span class="tok">✓ Check 2 passed. VM is running on a bare-metal node (not an ESXi-hosted worker).</span>
 
 <span class="section">! ══ CHECK 3: virt-launcher pod is Running ══════════════════════════════</span>
@@ -1391,7 +1391,7 @@ virt-launcher-vm-rhel9-test-01-abc1   2/2     Running   0          8m</span>
   No other pod or process can use cores 8–11 while this VM is running.</span>
 
 <span class="section">! ══ CHECK 5: Hugepages — VM is using 1Gi hugepages ═════════════════════</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-02.novacrestbank.local -- \
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-02.novacrestbank.internal -- \
   chroot /host grep -i hugepage /proc/meminfo | grep Free</span>
 <span class="tg">HugePages_Free:      392</span>
 <span class="tok">✓ Check 5 passed. HugePages_Free dropped from 400 to 392.
@@ -1425,7 +1425,7 @@ kubevirt-migrate-vm-rhel9-test-01-xxx   Succeeded</span>
 
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-rhel9-test-01 -n virt-workloads \
   -o jsonpath='{.status.nodeName}'</span>
-<span class="tg">bm-virt-04.novacrestbank.local</span>
+<span class="tg">bm-virt-04.novacrestbank.internal</span>
 <span class="tok">✓ Check 8 passed. Live migration SUCCEEDED.
   VM moved from bm-virt-02 to bm-virt-04 without downtime.
   The VM's guest OS continued running throughout — no reboot, no connection drop.

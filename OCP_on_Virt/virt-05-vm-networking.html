@@ -237,7 +237,7 @@ tr:hover td{background:var(--bg3)}
   <p>The test VM created in VIRT-04 uses a masquerade interface for its primary network connection. Masquerade is NAT — the VM gets an IP inside the OVN pod overlay network, and traffic to and from it is translated through the virt-launcher pod's IP. The VM is not directly reachable from outside the OCP cluster. For a test VM used to verify that KubeVirt is working, this is sufficient. For banking application VMs, it is not acceptable.</p>
 
   <h3>What banking application VMs need</h3>
-  <p>Consider a payment-processing VM that has been running in the existing hypervisor environment for years. It is reachable at IP 10.130.0.50 from the load balancer that distributes transactions to it, from the core banking system it calls for account data, from the monitoring system that polls it for health, and from the firewall rules that control its traffic. Its FQDN is <code>vm-banking-app-01.novacrestbank.local</code> and is hardcoded in configuration files across the data centre.</p>
+  <p>Consider a payment-processing VM that has been running in the existing hypervisor environment for years. It is reachable at IP 10.130.0.50 from the load balancer that distributes transactions to it, from the core banking system it calls for account data, from the monitoring system that polls it for health, and from the firewall rules that control its traffic. Its FQDN is <code>vm-banking-app-01.novacrestbank.internal</code> and is hardcoded in configuration files across the data centre.</p>
   <p>When this VM is migrated to OpenShift Virtualization, all of those integrations must continue working without reconfiguration. A masquerade interface on 10.0.2.2 does not satisfy this requirement. What is needed is a secondary network interface that connects the VM directly to VLAN 130 on the physical Cisco fabric — giving it a real, routable IP of 10.130.0.50 reachable from anywhere that has a route to 10.130.0.0/24.</p>
 
   <div class="callout blue">
@@ -461,7 +461,7 @@ vlan140-bridge-policy   Available   SuccessfullyConfigured</span>
 <span class="tok">✓ Both NNCPs Available. Bridges created on all 5 bare-metal nodes.</span>
 
 <span class="td"># Verify bridge on a node — bond0.130 in forwarding state (STP disabled)</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01.novacrestbank.local -- \
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc debug node/bm-virt-01.novacrestbank.internal -- \
   chroot /host bridge link show br-vlan130</span>
 <span class="tg">3: bond0.130@bond0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 master br-vlan130 state forwarding priority 32 cost 100</span>
 <span class="tok">✓ bond0.130 is a member of br-vlan130 in "forwarding" state immediately.
@@ -644,7 +644,7 @@ vlan140-dmz      12s</span>
       <span class="yk">userData</span><span class="yc">:</span> <span class="ys">|
         #cloud-config
         hostname: vm-banking-app-01
-        fqdn: vm-banking-app-01.novacrestbank.local
+        fqdn: vm-banking-app-01.novacrestbank.internal
         network:
           version: 2
           ethernets:
@@ -657,12 +657,12 @@ vlan140-dmz      12s</span>
               gateway4: 10.130.0.3
               nameservers:
                 addresses: [10.70.0.10, 10.70.0.11]
-                search: [novacrestbank.local]</span>
+                search: [novacrestbank.internal]</span>
       <span class="yc">      # cloud-init configures eth1 on first boot:
       # - Static IP 10.130.0.50/24 — the VM's production IP on VLAN 130
       # - gateway4: 10.130.0.3 — HSRP VIP on leaf-01/02 for VLAN 130 (VIRT-01)
       # - nameservers: DC01 and DC02 — the domain DNS servers
-      # - search: novacrestbank.local — short names resolve in the domain
+      # - search: novacrestbank.internal — short names resolve in the domain
       # eth0 is set to dhcp4: false — the OVN overlay assigns its IP internally,
       # not through DHCP. Cloud-init must not interfere with eth0.</span></pre>
     </div>
@@ -697,7 +697,7 @@ vlan130-nic: IP=10.130.0.50 MAC=02:00:00:0a:82:32</span>
 64 bytes from 10.130.0.50: icmp_seq=3 ttl=63 time=0.401 ms</span>
 <span class="tok">✓ Check 2 passed. VM reachable from jump host at 10.130.0.50.</span>
 
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 1 vm-banking-app-01.novacrestbank.local</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">ping -c 1 vm-banking-app-01.novacrestbank.internal</span>
 <span class="tg">64 bytes from 10.130.0.50: icmp_seq=1 ttl=63 time=0.395 ms</span>
 <span class="tok">✓ FQDN resolves and is reachable. DNS → IP → VLAN 130 path confirmed.</span>
 
@@ -907,7 +907,7 @@ vlan130-nic: IP=10.130.0.50 MAC=02:00:00:0a:82:32</span>
 <span class="td">! Verify from jumphost that the VM IP is still reachable without interruption</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">oc get vmi vm-banking-app-01 -n virt-workloads \
   -o jsonpath='{.status.nodeName}'</span>
-<span class="tg">bm-virt-04.novacrestbank.local</span>
+<span class="tg">bm-virt-04.novacrestbank.internal</span>
 <span class="tok">✓ VM now running on bm-virt-04. Same IP (10.130.0.50), same MAC (02:00:00:0a:82:32).
   Network identity is fully preserved across live migration.</span></pre>
     </div>
@@ -941,37 +941,37 @@ vlan130-nic: IP=10.130.0.50 MAC=02:00:00:0a:82:32</span>
 
   <h3>The four elements — all must agree</h3>
   <ol>
-    <li><strong>DNS A record:</strong> <code>vm-banking-app-01.novacrestbank.local → 10.130.0.50</code></li>
-    <li><strong>DNS PTR record:</strong> <code>10.130.0.50 → vm-banking-app-01.novacrestbank.local</code></li>
-    <li><strong>cloud-init hostname:</strong> <code>hostname: vm-banking-app-01</code> and <code>fqdn: vm-banking-app-01.novacrestbank.local</code></li>
+    <li><strong>DNS A record:</strong> <code>vm-banking-app-01.novacrestbank.internal → 10.130.0.50</code></li>
+    <li><strong>DNS PTR record:</strong> <code>10.130.0.50 → vm-banking-app-01.novacrestbank.internal</code></li>
+    <li><strong>cloud-init hostname:</strong> <code>hostname: vm-banking-app-01</code> and <code>fqdn: vm-banking-app-01.novacrestbank.internal</code></li>
     <li><strong>Guest OS hostname:</strong> What <code>hostname -f</code> reports inside the guest after cloud-init runs</li>
   </ol>
-  <p>If any element disagrees — for example, cloud-init sets the hostname to <code>vm-banking-app-01</code> but the DNS PTR record points to <code>vm-app-01.novacrestbank.local</code> — Active Directory domain join fails. The DC performs a forward and reverse DNS lookup of the joining computer's name before accepting the join request, and any mismatch is rejected.</p>
+  <p>If any element disagrees — for example, cloud-init sets the hostname to <code>vm-banking-app-01</code> but the DNS PTR record points to <code>vm-app-01.novacrestbank.internal</code> — Active Directory domain join fails. The DC performs a forward and reverse DNS lookup of the joining computer's name before accepting the join request, and any mismatch is rejected.</p>
 
   <div class="term">
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><div class="term-label">jumphost — verify all four elements of the hostname chain</div></div>
     <div class="term-body"><pre><span class="td"># Element 1: Forward A record resolves to VLAN 130 IP</span>
-<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short vm-banking-app-01.novacrestbank.local @10.70.0.10</span>
+<span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short vm-banking-app-01.novacrestbank.internal @10.70.0.10</span>
 <span class="tg">10.130.0.50</span>
 <span class="tok">✓ Forward DNS: FQDN → 10.130.0.50</span>
 
 <span class="td"># Element 2: Reverse PTR record resolves to FQDN</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">dig +short -x 10.130.0.50 @10.70.0.10</span>
-<span class="tg">vm-banking-app-01.novacrestbank.local.</span>
+<span class="tg">vm-banking-app-01.novacrestbank.internal.</span>
 <span class="tok">✓ Reverse DNS: 10.130.0.50 → FQDN</span>
 
 <span class="td"># Element 3 and 4: cloud-init applied correctly, guest hostname matches FQDN</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads -- hostname -f</span>
-<span class="tg">vm-banking-app-01.novacrestbank.local</span>
+<span class="tg">vm-banking-app-01.novacrestbank.internal</span>
 <span class="tok">✓ Guest OS FQDN matches DNS records. All four elements are consistent.</span>
 
 <span class="td"># Verify DNS resolution from inside the VM (confirming DC01 is the resolver)</span>
 <span class="tp">[admin@jumphost ~]$</span> <span class="tc">virtctl ssh admin@vm-banking-app-01 -n virt-workloads \
-  -- nslookup dc01.novacrestbank.local</span>
+  -- nslookup dc01.novacrestbank.internal</span>
 <span class="tg">Server:   10.70.0.10
 Address:  10.70.0.10#53
 
-Name:   dc01.novacrestbank.local
+Name:   dc01.novacrestbank.internal
 Address: 10.70.0.10</span>
 <span class="tok">✓ VM uses DC01 (10.70.0.10) as its DNS server. Domain name resolution works.
   VM is ready for Windows domain join (for Windows VMs) or
@@ -980,8 +980,8 @@ Address: 10.70.0.10</span>
 <span class="section">! ══ WINDOWS DOMAIN JOIN (Windows Server VMs only) ══════════════════════</span>
 <span class="td"># For migrated Windows Server VMs — run inside the VM PowerShell after VM is running:</span>
 <span class="td"># Add-Computer `</span>
-<span class="td">#   -DomainName "novacrestbank.local" `</span>
-<span class="td">#   -OUPath "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=local" `</span>
+<span class="td">#   -DomainName "novacrestbank.internal" `</span>
+<span class="td">#   -OUPath "OU=OCP-Virt,OU=Servers,DC=novacrestbank,DC=internal" `</span>
 <span class="td">#   -Credential (Get-Credential) `</span>
 <span class="td">#   -Restart</span>
 <span class="td"># After restart: machine certificate auto-enrolls via GPO (VIRT-02b Section 19).</span></pre>
@@ -1015,7 +1015,7 @@ Address: 10.70.0.10</span>
     <div class="gate-title">VM connectivity checks (Model A)</div>
     <div class="gate-item"><div class="gate-box"></div>vm-banking-app-01 VMI shows secondary IP=10.130.0.50, MAC=02:00:00:0a:82:32 in status.interfaces</div>
     <div class="gate-item"><div class="gate-box"></div>VM reachable at 10.130.0.50 from jump host — ping succeeds</div>
-    <div class="gate-item"><div class="gate-box"></div>FQDN vm-banking-app-01.novacrestbank.local resolves to 10.130.0.50 — DNS correct</div>
+    <div class="gate-item"><div class="gate-box"></div>FQDN vm-banking-app-01.novacrestbank.internal resolves to 10.130.0.50 — DNS correct</div>
     <div class="gate-item"><div class="gate-box"></div>VM can reach DC01 at 10.70.0.10 via NSX T0 — AD domain join path confirmed</div>
     <div class="gate-item"><div class="gate-box"></div>macspoofchk verified — spoofed MAC frames are dropped by the bridge</div>
     <div class="gate-item"><div class="gate-box"></div>Leaf switch MAC table shows VM MAC on correct port-channel</div>
