@@ -363,14 +363,14 @@ payment-service-run-12345-acs-scan        acs-scan         ---         ---      
 <span class="td"># Stream logs from the currently running buildah step</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">tkn taskrun logs payment-service-run-12345-buildah-build \
   -n banking-apps --follow</span>
-<span class="tg">[buildah-build] STEP 1/6: FROM harbor.apps.ocp.novacrestbank.local/platform/ubi9/openjdk-21:latest
+<span class="tg">[buildah-build] STEP 1/6: FROM harbor.apps.ocp.novacrestbank.internal/platform/ubi9/openjdk-21:latest
 [buildah-build] STEP 2/6: COPY target/payment-service.jar /app/
 [buildah-build] STEP 3/6: EXPOSE 8080
 [buildah-build] STEP 4/6: USER 1001
 [buildah-build] STEP 5/6: ENTRYPOINT ["java","-jar","/app/payment-service.jar"]
-[buildah-build] COMMIT harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.2.3
+[buildah-build] COMMIT harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.2.3
 [buildah-build] Getting image source signatures
-[buildah-build] Successfully pushed harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.2.3</span>
+[buildah-build] Successfully pushed harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.2.3</span>
     </pre></div>
   </div>
 </div>
@@ -498,7 +498,7 @@ payment-service-run-12345-acs-scan        acs-scan         ---         ---      
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — install and approve</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — install and approve</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f pipelines-subscription.yaml</span>
 <span class="tg">subscription.operators.coreos.com/openshift-pipelines-operator-rh created</span>
 
@@ -525,7 +525,7 @@ payment-service-run-12345-acs-scan        acs-scan         ---         ---      
   <div class="ps">The Pipelines operator creates a TektonConfig object that controls the overall installation. Three controllers must be Running. ClusterTasks provide pre-built Tasks for common operations like git-clone — they should be available cluster-wide after installation.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify TektonConfig, controllers, and ClusterTasks</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify TektonConfig, controllers, and ClusterTasks</span></div>
     <div class="term-body"><pre><span class="td"># Check 1: TektonConfig — the operator's top-level configuration object</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get tektonconfig config</span>
 <span class="tg">NAME     VERSION   READY   REASON
@@ -581,7 +581,7 @@ Pipeline version: v0.59.x</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — create pipeline namespace resources and ServiceAccount</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — create pipeline namespace resources and ServiceAccount</span></div>
     <div class="term-body"><pre><span class="td"># Create the pipeline ServiceAccount
 # Tekton uses this SA for all PipelineRun pods in banking-apps</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
@@ -774,7 +774,7 @@ EOF</span>
           # Mounted read-only. Not shared with any other Task.</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">clone</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest</span>
       <span class="yc">      # Always use the Harbor-mirrored UBI image — never pull from registry.access.redhat.com
                 # during pipeline execution. Pipeline steps run on the cluster; the cluster
                 # uses Harbor as its registry mirror (Registry-01 ImageDigestMirrorSet).</span>
@@ -785,7 +785,7 @@ EOF</span>
         <span class="yv">  mkdir -p ~/.ssh</span>
         <span class="yv">  cp $(workspaces.git-credentials.path)/id_rsa ~/.ssh/id_rsa</span>
         <span class="yv">  chmod 600 ~/.ssh/id_rsa</span>
-        <span class="yv">  ssh-keyscan gitlab.novacrestbank.local >> ~/.ssh/known_hosts</span>
+        <span class="yv">  ssh-keyscan gitlab.novacrestbank.internal >> ~/.ssh/known_hosts</span>
         <span class="yv">  # Clone at the exact revision — not HEAD, not a branch, the exact SHA</span>
         <span class="yv">  git clone $(params.REPO_URL) /workspace/source</span>
         <span class="yv">  cd /workspace/source</span>
@@ -842,7 +842,7 @@ EOF</span>
       <span class="yc">  # Version from pom.xml — used as the image tag</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">mvn-build</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9/openjdk-21:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9/openjdk-21:latest</span>
       <span class="yc">      # OpenJDK 21 — mirrored to Harbor platform project.
                 # Banking applications use JDK 21 LTS for its virtual threads
                 # (Project Loom) which improve throughput for high-concurrency payment processing.</span>
@@ -887,7 +887,7 @@ EOF</span>
 <span class="yk">spec</span>:
   <span class="yk">params</span>:
     - <span class="yk">name</span>: <span class="yv">IMAGE</span>
-      <span class="yc">  # Full image reference: harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.2.3</span>
+      <span class="yc">  # Full image reference: harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.2.3</span>
     - <span class="yk">name</span>: <span class="yv">DOCKERFILE</span>
       <span class="yk">default</span>: <span class="yv">./Dockerfile</span>
     - <span class="yk">name</span>: <span class="yv">CONTEXT</span>
@@ -906,7 +906,7 @@ EOF</span>
           # not just the tag. Tags are mutable; digests are immutable.</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">build-and-push</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/buildah:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/buildah:latest</span>
       <span class="yc">      # Buildah image mirrored to Harbor. Red Hat's official Buildah image.</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
@@ -949,10 +949,10 @@ EOF</span>
     <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
       <span class="yaml-label">Dockerfile — payment-service (NovaCrestBank standard)</span></div>
     <div class="yaml-body"><pre><span class="yc"># FROM: always a Harbor-mirrored UBI image — never Docker Hub or external registry</span>
-<span class="ys">FROM</span> <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9/openjdk-21:latest</span>
+<span class="ys">FROM</span> <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9/openjdk-21:latest</span>
 
 <span class="yc"># Build metadata — part of the image OCI manifest</span>
-<span class="ys">LABEL</span> <span class="yk">org.opencontainers.image.source</span>=<span class="yv">"https://gitlab.novacrestbank.local/banking/payment-service"</span>
+<span class="ys">LABEL</span> <span class="yk">org.opencontainers.image.source</span>=<span class="yv">"https://gitlab.novacrestbank.internal/banking/payment-service"</span>
 <span class="ys">LABEL</span> <span class="yk">org.opencontainers.image.vendor</span>=<span class="yv">"NovaCrestBank"</span>
 <span class="ys">LABEL</span> <span class="yk">security.novacrestbank.com/scan-required</span>=<span class="yv">"true"</span>
 
@@ -1017,7 +1017,7 @@ EOF</span>
       <span class="yc">  # Full image reference including digest — passed to ACS scan and GitOps Tasks</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">sign-image</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/cosign:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/cosign:latest</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
         <span class="yv">  set -eux</span>
@@ -1089,7 +1089,7 @@ EOF</span>
       <span class="yc">  # "PASS" or "FAIL" — read by the staging deploy Task to gate deployment</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">scan-image</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
         <span class="yv">  set -eux</span>
@@ -1147,13 +1147,13 @@ EOF</span>
     - <span class="yk">name</span>: <span class="yv">IMAGE_REF</span>
     - <span class="yk">name</span>: <span class="yv">APP_NAME</span>
     - <span class="yk">name</span>: <span class="yv">GITOPS_REPO</span>
-      <span class="yk">default</span>: <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+      <span class="yk">default</span>: <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
   <span class="yk">workspaces</span>:
     - <span class="yk">name</span>: <span class="yv">git-credentials</span>
       <span class="yc">  # SSH key for committing to the GitOps repo</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">update-staging-image</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
         <span class="yv">  set -eux</span>
@@ -1167,7 +1167,7 @@ EOF</span>
         <span class="yv">  # This prevents tag mutation from affecting what is deployed</span>
         <span class="yv">  yq e -i ".images[0].newTag = \"$(params.IMAGE_REF)\"" \</span>
         <span class="yv">    "apps/$(params.APP_NAME)/overlays/staging/kustomization.yaml"</span>
-        <span class="yv">  git config user.email "pipeline@novacrestbank.local"</span>
+        <span class="yv">  git config user.email "pipeline@novacrestbank.internal"</span>
         <span class="yv">  git config user.name "NovaCrestBank Pipeline"</span>
         <span class="yv">  git add -A</span>
         <span class="yv">  git commit -m "[pipeline] staging: update $(params.APP_NAME) to $(params.IMAGE_REF)"</span>
@@ -1213,7 +1213,7 @@ EOF</span>
       <span class="yc">  # Test account credentials for staging environment</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">wait-for-deployment</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
         <span class="yv">  set -eux</span>
@@ -1226,7 +1226,7 @@ EOF</span>
         <span class="yv">  done</span>
         <span class="yv">  echo "Staging deployment healthy ✓"</span>
     - <span class="yk">name</span>: <span class="yv">run-tests</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9/openjdk-21:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9/openjdk-21:latest</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
         <span class="yv">  set -eux</span>
@@ -1277,13 +1277,13 @@ EOF</span>
       <span class="yc">  # GitLab API token for creating the merge request via API</span>
   <span class="yk">steps</span>:
     - <span class="yk">name</span>: <span class="yv">create-production-pr</span>
-      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest</span>
+      <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest</span>
       <span class="yk">script</span>: <span class="yv">|</span>
         <span class="yv">  #!/usr/bin/env bash</span>
         <span class="yv">  set -eux</span>
         <span class="yv">  GITLAB_TOKEN=$(cat $(workspaces.gitlab-api-token.path)/token)</span>
         <span class="yv">  # Clone and create a new branch for the production update</span>
-        <span class="yv">  git clone git@gitlab.novacrestbank.local:gitops/banking-config.git /workspace/gitops</span>
+        <span class="yv">  git clone git@gitlab.novacrestbank.internal:gitops/banking-config.git /workspace/gitops</span>
         <span class="yv">  cd /workspace/gitops</span>
         <span class="yv">  BRANCH="pipeline/promote-$(params.APP_NAME)-$(date +%Y%m%d%H%M%S)"</span>
         <span class="yv">  git checkout -b "${BRANCH}"</span>
@@ -1296,7 +1296,7 @@ EOF</span>
         <span class="yv">  MR_RESPONSE=$(curl -sk \</span>
         <span class="yv">    -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \</span>
         <span class="yv">    -X POST \</span>
-        <span class="yv">    "https://gitlab.novacrestbank.local/api/v4/projects/gitops%2Fbanking-config/merge_requests" \</span>
+        <span class="yv">    "https://gitlab.novacrestbank.internal/api/v4/projects/gitops%2Fbanking-config/merge_requests" \</span>
         <span class="yv">    -d "source_branch=${BRANCH}" \</span>
         <span class="yv">    -d "target_branch=main" \</span>
         <span class="yv">    -d "title=Production: Promote $(params.APP_NAME) to $(params.IMAGE_REF)" \</span>
@@ -1304,7 +1304,7 @@ EOF</span>
         <span class="yv">**App:** $(params.APP_NAME)</span>
         <span class="yv">**Image:** $(params.IMAGE_REF)</span>
         <span class="yv">**Source commit:** $(params.GIT_COMMIT_SHA)</span>
-        <span class="yv">**Pipeline run:** https://console-openshift-console.apps.ocp.novacrestbank.local/k8s/ns/banking-apps/tekton.dev~v1~PipelineRun/$(params.PIPELINE_RUN_NAME)</span>
+        <span class="yv">**Pipeline run:** https://console-openshift-console.apps.ocp.novacrestbank.internal/k8s/ns/banking-apps/tekton.dev~v1~PipelineRun/$(params.PIPELINE_RUN_NAME)</span>
         <span class="yv">ACS scan: PASS ✓  Integration tests: PASS ✓</span>
         <span class="yv">Approver checklist: [ ] ACS scan reviewed [ ] Change window confirmed [ ] Rollback plan documented")</span>
         <span class="yv">  MR_URL=$(echo "$MR_RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['web_url'])")</span>
@@ -1367,7 +1367,7 @@ EOF</span>
           - {<span class="yk">name</span>: <span class="yv">GIT_REVISION</span>, <span class="yk">value</span>: <span class="yv">$(tt.params.GIT_REVISION)</span>}
           - {<span class="yk">name</span>: <span class="yv">GIT_REPO_URL</span>, <span class="yk">value</span>: <span class="yv">$(tt.params.GIT_REPO_URL)</span>}
           - <span class="yk">name</span>: <span class="yv">IMAGE</span>
-            <span class="yk">value</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service</span>
+            <span class="yk">value</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
         <span class="yk">workspaces</span>:
           - <span class="yk">name</span>: <span class="yv">source</span>
             <span class="yk">persistentVolumeClaim</span>: {<span class="yk">claimName</span>: <span class="yv">pipeline-source-pvc</span>}
@@ -1427,10 +1427,10 @@ eventlistener.triggers.tekton.dev/payment-service-listener created</span>
   -n banking-apps \
   -o jsonpath='{.spec.host}')
 echo "GitLab webhook URL: https://${WEBHOOK_URL}"</span>
-<span class="tg">GitLab webhook URL: https://el-payment-service-listener-banking-apps.apps.ocp.novacrestbank.local</span>
+<span class="tg">GitLab webhook URL: https://el-payment-service-listener-banking-apps.apps.ocp.novacrestbank.internal</span>
 <span class="td">  → Configure this URL in GitLab:
     payment-service repository → Settings → Webhooks
-    URL: https://el-payment-service-listener-banking-apps.apps.ocp.novacrestbank.local
+    URL: https://el-payment-service-listener-banking-apps.apps.ocp.novacrestbank.internal
     Secret token: match the gitlab-webhook-secret Secret value
     Trigger: Push events (main branch only)</span>
 
@@ -1439,8 +1439,8 @@ echo "GitLab webhook URL: https://${WEBHOOK_URL}"</span>
   -n banking-apps \
   --serviceaccount pipeline-sa \
   -p GIT_REVISION=main \
-  -p GIT_REPO_URL=git@gitlab.novacrestbank.local:banking/payment-service.git \
-  -p IMAGE=harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service \
+  -p GIT_REPO_URL=git@gitlab.novacrestbank.internal:banking/payment-service.git \
+  -p IMAGE=harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service \
   -w name=source,claimName=pipeline-source-pvc \
   -w name=maven-cache,claimName=maven-cache-pvc \
   -w name=cosign-key,secret=cosign-signing-key \
@@ -1455,7 +1455,7 @@ Waiting for logs to be available...
 [acs-image-scan : scan-image] ACS scan gate PASSED. 0 critical CVEs.
 [gitops-staging-deploy : update-staging-image] GitOps commit pushed.
 [integration-test : run-tests] Integration tests PASSED ✓
-[promote-to-prod : create-production-pr] Production MR opened: https://gitlab.novacrestbank.local/...</span>
+[promote-to-prod : create-production-pr] Production MR opened: https://gitlab.novacrestbank.internal/...</span>
     <div class="tann ok"><span class="tai">✓</span><span>Full 8-stage pipeline run completed. Source cloned → Maven build + tests passed → Buildah image built → pushed to Harbor → cosign signed → ACS gate passed (0 critical CVEs) → staging deployed via GitOps → integration tests passed → production MR opened awaiting approval. Every stage is an auditable TaskRun in etcd.</span></div>
     </pre></div>
   </div>

@@ -278,7 +278,7 @@
 <div class="page" id="page-full-jenkinsfile">
   <div class="ey">GITOPS-03 · Section 02</div>
   <div class="pt">The complete Jenkinsfile — full source before the stage walkthrough</div>
-  <div class="ps">The complete Jenkinsfile for the payment-service pipeline is shown here in its entirety before each stage is analysed in detail. This file lives in <code>gitlab.corp.novacrestbank.com/banking/payment-service</code> at the repository root. Sections 03–10 walk through each stage with full annotation.</div>
+  <div class="ps">The complete Jenkinsfile for the payment-service pipeline is shown here in its entirety before each stage is analysed in detail. This file lives in <code>gitlab.novacrestbank.internal/banking/payment-service</code> at the repository root. Sections 03–10 walk through each stage with full annotation.</div>
 
   <div class="jf">
     <div class="jf-bar"><div class="jf-dot r"></div><div class="jf-dot y"></div><div class="jf-dot g"></div>
@@ -297,12 +297,12 @@
 
   <span class="jk">environment</span> {
     <span class="jv">SERVICE_NAME</span>    = <span class="js">'payment-service'</span>
-    <span class="jv">HARBOR_REGISTRY</span> = <span class="js">'harbor.apps.ocp.corp.novacrestbank.com'</span>
+    <span class="jv">HARBOR_REGISTRY</span> = <span class="js">'harbor.apps.ocp.novacrestbank.internal'</span>
     <span class="jv">HARBOR_PROJECT</span>  = <span class="js">'banking-apps'</span>
     <span class="jv">IMAGE_BASE</span>      = <span class="js">"${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}"</span>
     <span class="jv">IMAGE_TAG</span>       = <span class="js">"${env.GIT_COMMIT[0..7]}"</span>
     <span class="jv">IMAGE_FULL</span>      = <span class="js">"${IMAGE_BASE}:${IMAGE_TAG}"</span>
-    <span class="jv">CONFIG_REPO</span>     = <span class="js">'git@gitlab.corp.novacrestbank.com:gitops/banking-config.git'</span>
+    <span class="jv">CONFIG_REPO</span>     = <span class="js">'git@gitlab.novacrestbank.internal:gitops/banking-config.git'</span>
     <span class="jv">ARGO_APP_STAGING</span>  = <span class="js">'payment-service-staging'</span>
     <span class="jv">ARGO_APP_PROD</span>     = <span class="js">'payment-service-production'</span>
     <span class="jv">SONAR_PROJECT</span>   = <span class="js">'ncb-payment-service'</span>
@@ -348,7 +348,7 @@
           <span class="jb">sh</span> <span class="js">"""
             mvn sonar:sonar \
               -Dsonar.projectKey=${SONAR_PROJECT} \
-              -Dsonar.host.url=https://sonarqube.apps.ocp.corp.novacrestbank.com \
+              -Dsonar.host.url=https://sonarqube.apps.ocp.novacrestbank.internal \
               -Dsonar.qualitygate.wait=true \
               -B -q
           """</span>
@@ -456,7 +456,7 @@
               kustomize edit set image \\
                 ${IMAGE_BASE}=${IMAGE_BASE}@${IMAGE_DIGEST}
 
-              git config user.email "ncb-pipeline@corp.novacrestbank.com"
+              git config user.email "ncb-pipeline@novacrestbank.internal"
               git config user.name  "NovaCrestBank Pipeline"
               git add kustomization.yaml
               git commit -m "staging: promote ${SERVICE_NAME} to ${IMAGE_TAG}
@@ -493,7 +493,7 @@
           <span class="jb">sh</span> <span class="js">"""
             mvn verify \
               -Pintegration-tests \
-              -Dtarget.base.url=https://payment-service-staging.apps.ocp.corp.novacrestbank.com \
+              -Dtarget.base.url=https://payment-service-staging.apps.ocp.novacrestbank.internal \
               -Dmaven.test.failure.ignore=false \
               -B -q
           """</span>
@@ -540,8 +540,8 @@
               git push origin \${BRANCH}
 
               curl -sk -X POST \\
-                "https://gitlab.corp.novacrestbank.com/api/v4/projects/\$(
-                  curl -sk "https://gitlab.corp.novacrestbank.com/api/v4/projects?search=banking-config" \\
+                "https://gitlab.novacrestbank.internal/api/v4/projects/\$(
+                  curl -sk "https://gitlab.novacrestbank.internal/api/v4/projects?search=banking-config" \\
                     -H "PRIVATE-TOKEN: \${GL_TOKEN}" \\
                   | python3 -c "import json,sys; print([p for p in json.load(sys.stdin) \\
                       if 'gitops/banking-config' in p['path_with_namespace']][0]['id'])"
@@ -705,7 +705,7 @@ MRDESC
       <span class="jb">sh</span> <span class="js">"""
         mvn sonar:sonar \
           -Dsonar.projectKey=${SONAR_PROJECT} \
-          -Dsonar.host.url=https://sonarqube.apps.ocp.corp.novacrestbank.com \
+          -Dsonar.host.url=https://sonarqube.apps.ocp.novacrestbank.internal \
           -Dsonar.qualitygate.wait=true \
           -B -q
       """</span>
@@ -1021,7 +1021,7 @@ All policy checks passed. Image approved for staging deployment.</span>
       <span class="jb">sh</span> <span class="js">"""
         mvn verify \
           -Pintegration-tests \
-          -Dtarget.base.url=https://payment-service-staging.apps.ocp.corp.novacrestbank.com \
+          -Dtarget.base.url=https://payment-service-staging.apps.ocp.novacrestbank.internal \
           -Dmaven.test.failure.ignore=false \
           -B -q
       """</span>
@@ -1090,7 +1090,7 @@ All policy checks passed. Image approved for staging deployment.</span>
 
       <p style="font-weight:600;margin-bottom:4px;">Change Summary</p>
       <p style="margin-bottom:8px;">Promoting <code>payment-service</code> to <code>a1b2c3d4</code></p>
-      <p style="margin-bottom:12px;font-family:monospace;font-size:11px;background:var(--bg2);padding:6px 10px;border-radius:4px;">Image digest: harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service@sha256:abc123def456...</p>
+      <p style="margin-bottom:12px;font-family:monospace;font-size:11px;background:var(--bg2);padding:6px 10px;border-radius:4px;">Image digest: harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service@sha256:abc123def456...</p>
 
       <p style="font-weight:600;margin-bottom:8px;">Evidence</p>
       <table style="font-size:12px;margin-bottom:12px;">
@@ -1108,7 +1108,7 @@ All policy checks passed. Image approved for staging deployment.</span>
 
       <p style="font-weight:600;margin-bottom:4px;">Links</p>
       <ul style="font-size:12px;margin-left:16px;margin-bottom:12px;">
-        <li>Jenkins build: <code>https://jenkins.apps.ocp.corp.novacrestbank.com/job/banking/job/payment-service/42/</code></li>
+        <li>Jenkins build: <code>https://jenkins.apps.ocp.novacrestbank.internal/job/banking/job/payment-service/42/</code></li>
         <li>Source commit: <code>a1b2c3d4e5f6...</code> by Alice Smith &lt;alice.smith@novacrestbank.com&gt;</li>
         <li>Commit message: <em>Add NPP payment rail adapter</em></li>
       </ul>
@@ -1306,7 +1306,7 @@ All policy checks passed. Image approved for staging deployment.</span>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--red);">
       <div class="layer-num">Stage 2</div>
       <div class="layer-title">Maven build fails — unit test failure vs compilation failure</div>
-      <div class="layer-desc"><strong>Compilation failure:</strong> <code>BUILD FAILURE ... COMPILATION ERROR</code> — a syntax error in Java code. Fix: review the failing file, the compiler error shows the exact line. <strong>Unit test failure:</strong> <code>Tests run: X, Failures: Y, Errors: Z</code> — check the Surefire report linked in the build. <strong>SonarQube quality gate failure:</strong> <code>ANALYSIS FAILED due to Quality Gate failure</code> — log into SonarQube at <code>sonarqube.apps.ocp.corp.novacrestbank.com</code> and view the project dashboard to see which specific condition failed (security hotspot, coverage below threshold).</div>
+      <div class="layer-desc"><strong>Compilation failure:</strong> <code>BUILD FAILURE ... COMPILATION ERROR</code> — a syntax error in Java code. Fix: review the failing file, the compiler error shows the exact line. <strong>Unit test failure:</strong> <code>Tests run: X, Failures: Y, Errors: Z</code> — check the Surefire report linked in the build. <strong>SonarQube quality gate failure:</strong> <code>ANALYSIS FAILED due to Quality Gate failure</code> — log into SonarQube at <code>sonarqube.apps.ocp.novacrestbank.internal</code> and view the project dashboard to see which specific condition failed (security hotspot, coverage below threshold).</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--amber);">
       <div class="layer-num">Stage 4</div>

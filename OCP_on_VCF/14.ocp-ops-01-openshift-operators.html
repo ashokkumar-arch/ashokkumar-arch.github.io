@@ -249,7 +249,7 @@
     <div class="rc-row">
       <div class="rc-phase">Desired</div>
       <div class="rc-title">Read desired state</div>
-      <div class="rc-desc">When the reconcile function runs, it reads the Custom Resource that triggered it — for example, a <code>Certificate</code> object that says "I want a TLS certificate for harbor.apps.ocp.novacrestbank.local, signed by NovaCrestBank-IssuingCA, renewed 30 days before expiry." This is the <em>desired state</em>.</div>
+      <div class="rc-desc">When the reconcile function runs, it reads the Custom Resource that triggered it — for example, a <code>Certificate</code> object that says "I want a TLS certificate for harbor.apps.ocp.novacrestbank.internal, signed by NovaCrestBank-IssuingCA, renewed 30 days before expiry." This is the <em>desired state</em>.</div>
     </div>
     <div class="rc-row">
       <div class="rc-phase">Actual</div>
@@ -521,7 +521,7 @@ events</span>
 
 <span class="td"># 1. The CatalogSource providing the operator</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get catalogsource -n openshift-marketplace | grep redhat</span>
-<span class="tg">redhat-operators   Red Hat Operators   grpc   harbor.apps.ocp.novacrestbank.local/platform/...</span>
+<span class="tg">redhat-operators   Red Hat Operators   grpc   harbor.apps.ocp.novacrestbank.internal/platform/...</span>
 <span class="td">                                              ↑ pointing at Harbor mirror after Registry-01 ✓</span>
 
 <span class="td"># 2. The Subscription</span>
@@ -772,7 +772,7 @@ install-abc12   openshift-pipelines-operator-rh.v1.14   Manual     true</span>
     <div class="op-name">OpenShift GitOps (Argo CD)</div>
     <div class="op-sub">openshift-gitops-operator · Red Hat · OCP-OPS-05</div>
     <div class="op-body">
-      <strong>What it installs:</strong> An Argo CD instance in the <code>openshift-gitops</code> namespace (managed by the operator), the Argo CD web UI (accessible at <code>openshift-gitops-server.apps.ocp.novacrestbank.local</code>), and an ApplicationSet controller for template-driven multi-environment deployments.<br/><br/>
+      <strong>What it installs:</strong> An Argo CD instance in the <code>openshift-gitops</code> namespace (managed by the operator), the Argo CD web UI (accessible at <code>openshift-gitops-server.apps.ocp.novacrestbank.internal</code>), and an ApplicationSet controller for template-driven multi-environment deployments.<br/><br/>
       <strong>Key CRDs:</strong> <code>ArgoCD</code> (the Argo CD instance configuration), <code>Application</code> (a connection between a Git repository path and a cluster namespace — "deploy what is in this Git folder to this namespace"), <code>ApplicationSet</code> (a template that generates multiple Applications — used for deploying the same application to dev/staging/production from a single definition).<br/><br/>
       <strong>NovaCrestBank deployment model:</strong> Two Git repositories: the application source repo (where developers commit code — read by Jenkins/Pipelines) and the GitOps config repo (where the Kubernetes YAML for each application lives — Argo CD syncs from here to the cluster). Developers never directly edit the cluster — they edit YAML files in the config repo via pull requests.
     </div>

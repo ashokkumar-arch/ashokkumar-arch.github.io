@@ -498,7 +498,7 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify prerequisites and mirror ACS images</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify prerequisites and mirror ACS images</span></div>
     <div class="term-body"><pre><span class="td"># Verify cert-manager ClusterIssuer is Ready</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get clusterissuer novacrestbank-issuer \
   -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</span>
@@ -568,7 +568,7 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply, review InstallPlan, approve</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — apply, review InstallPlan, approve</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f acs-subscription.yaml</span>
 <span class="tg">operatorgroup.operators.coreos.com/rhacs-og created
 subscription.operators.coreos.com/rhacs-operator created</span>
@@ -656,7 +656,7 @@ rhacs-operator.v4.4.x   Red Hat ACS for Kubernetes   4.4.x     Succeeded</span>
       <span class="yk">route</span>:
         <span class="yk">enabled</span>: <span class="yb">true</span>
         <span class="yc">  # enabled: expose Central via an OCP Route at:
-              # central-stackrox.apps.ocp.novacrestbank.local
+              # central-stackrox.apps.ocp.novacrestbank.internal
               # The route is TLS-terminated using cert-manager (Section 09).
               # SOC analysts and ACS admins use this URL to access the ACS console.</span>
   <span class="yk">scanner</span>:
@@ -674,7 +674,7 @@ rhacs-operator.v4.4.x   Red Hat ACS for Kubernetes   4.4.x     Succeeded</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — deploy Central and watch it come up</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — deploy Central and watch it come up</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f central.yaml</span>
 <span class="tg">central.platform.stackrox.io/stackrox-central-services created</span>
 
@@ -694,9 +694,9 @@ echo "ACS admin password: $ACS_PASS"</span>
 <span class="td">  → Store this in CyberArk immediately. This is the break-glass credential.</span>
 
 <span class="td"># Verify Central is reachable</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://central-stackrox.apps.ocp.novacrestbank.local/v1/ping</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://central-stackrox.apps.ocp.novacrestbank.internal/v1/ping</span>
 <span class="tg">{"status":"ok"}</span>    <span class="td">← Central API is responding ✓</span>
-    <div class="tann ok"><span class="tai">✓</span><span>Central deployed. All pods Running. Central DB PVC bound on vsan-gold. Central UI reachable at central-stackrox.apps.ocp.novacrestbank.local. Admin password stored in CyberArk. Proceed to configure TLS certificates.</span></div>
+    <div class="tann ok"><span class="tai">✓</span><span>Central deployed. All pods Running. Central DB PVC bound on vsan-gold. Central UI reachable at central-stackrox.apps.ocp.novacrestbank.internal. Admin password stored in CyberArk. Proceed to configure TLS certificates.</span></div>
     </pre></div>
   </div>
 </div>
@@ -713,7 +713,7 @@ echo "ACS admin password: $ACS_PASS"</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — issue Central TLS certificate</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — issue Central TLS certificate</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
 <span class="tg">apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -722,9 +722,9 @@ metadata:
   namespace: stackrox
 spec:
   secretName: central-tls
-  commonName: central-stackrox.apps.ocp.novacrestbank.local
+  commonName: central-stackrox.apps.ocp.novacrestbank.internal
   dnsNames:
-    - central-stackrox.apps.ocp.novacrestbank.local
+    - central-stackrox.apps.ocp.novacrestbank.internal
     - central.stackrox.svc
     - central.stackrox.svc.cluster.local
     - central.stackrox
@@ -769,10 +769,10 @@ central-tls   True    central-tls   9s</span>
 
 <span class="td"># Verify browser-trusted certificate now served</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect central-stackrox.apps.ocp.novacrestbank.local:443 2>/dev/null \
+  -connect central-stackrox.apps.ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -noout -issuer -subject</span>
 <span class="tg">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
-subject=CN=central-stackrox.apps.ocp.novacrestbank.local</span>
+subject=CN=central-stackrox.apps.ocp.novacrestbank.internal</span>
 <span class="td">         ↑ IssuingCA-signed certificate served — no browser warnings ✓</span>
     <div class="tann ok"><span class="tai">✓</span><span>Central serving NovaCrestBank-IssuingCA-signed certificate. SOC analysts can access the ACS console without browser warnings. roxctl CLI connects without --insecure flag.</span></div>
     </pre></div>
@@ -793,12 +793,12 @@ subject=CN=central-stackrox.apps.ocp.novacrestbank.local</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — generate init bundle and create SecuredCluster</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — generate init bundle and create SecuredCluster</span></div>
     <div class="term-body"><pre><span class="td"># Step 1: Generate the init bundle from Central using roxctl</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl central init-bundles generate ncb-ocp-cluster \
   --insecure-skip-tls-verify=false \
   --ca ~/ocp-kit/certs/chain.pem \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --password "$ACS_PASS" \
   --output ncb-ocp-cluster-init-bundle.yaml</span>
 <span class="tg">Successfully generated cluster init bundle "ncb-ocp-cluster"
@@ -908,7 +908,7 @@ sensor-xxxxxxxxx-yyyyy                 1/1     Running   3m</span>
 
 <span class="td"># Verify cluster registered in Central</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl central cluster list \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS"</span>
 <span class="tg">NAME               STATUS    ADMCTL   SENSOR VERSION   LAST CONTACT
@@ -952,7 +952,7 @@ ncb-ocp-cluster    Healthy   Active   4.4.x            just now</span>
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — view and manage ACS alerts via roxctl</span></div>
     <div class="term-body"><pre><span class="td"># List recent HIGH and CRITICAL alerts from the CLI</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl alert list \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS" \
   --severity HIGH,CRITICAL \
@@ -964,7 +964,7 @@ def456ghi    HIGH      Network Baseline Violation    api-gateway   banking-apps 
 
 <span class="td"># Get full detail on the CRITICAL shell execution alert</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl alert get abc123def \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS"</span>
 <span class="tg">Alert ID: abc123def
@@ -1002,7 +1002,7 @@ Command:  java -jar /app/payment-service.jar</span>
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — query running CVEs across the cluster</span></div>
     <div class="term-body"><pre><span class="td"># List all CRITICAL CVEs in running images across the entire cluster</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl image scan \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS" \
   --cluster ncb-ocp-cluster \
@@ -1018,7 +1018,7 @@ CVE-2024-67890    CRITICAL  log4j-2.14.1    10.0   transaction-svc       banking
 
 <span class="td"># Export full CVE report for PCI-DSS quarterly vulnerability scan evidence</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl image scan \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS" \
   --cluster ncb-ocp-cluster \
@@ -1094,7 +1094,7 @@ networkpolicy.networking.k8s.io/deny-all-banking-apps created</span>
 
 <span class="td"># Find the policy ID for "Privileged Container"</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl policy list \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS" \
   | grep -i "privileged"</span>
@@ -1106,14 +1106,14 @@ networkpolicy.networking.k8s.io/deny-all-banking-apps created</span>
 #
 # Or via API (demonstrated here for automation/GitOps use):
 # ACS policies can be managed via the Central REST API
-# See: https://central-stackrox.apps.ocp.novacrestbank.local/main/apidocs</span>
+# See: https://central-stackrox.apps.ocp.novacrestbank.internal/main/apidocs</span>
 
 <span class="td"># Test enforcement — attempt to deploy a privileged container</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run test-privileged \
-  --image=harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest \
   --overrides='{"spec":{"containers":[{"name":"test-privileged",
     "securityContext":{"privileged":true},
-    "image":"harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest"}]}}' \
+    "image":"harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest"}]}}' \
   -n banking-apps 2>&amp;1</span>
 <span class="tw">Error from server: admission webhook "sensor.stackrox.svc" denied the request:
   Policy "Privileged Container" violated.
@@ -1143,7 +1143,7 @@ networkpolicy.networking.k8s.io/deny-all-banking-apps created</span>
 
 <span class="td"># Check compliance scan results via CLI</span></span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl compliance results \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS" \
   --standard PCI_DSS_3_2 \
@@ -1166,7 +1166,7 @@ PCI_DSS_3_2  11.4          Use IDS to detect intrusion attempts             PASS
 
 <span class="td"># CIS Kubernetes Benchmark results — shows hardening status</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">roxctl compliance results \
-  --endpoint central-stackrox.apps.ocp.novacrestbank.local:443 \
+  --endpoint central-stackrox.apps.ocp.novacrestbank.internal:443 \
   --ca ~/ocp-kit/certs/chain.pem \
   --password "$ACS_PASS" \
   --standard CIS_K8S \
@@ -1291,9 +1291,9 @@ CIS_K8S  5.1.5   Default service accounts not bound   WARN     3 namespaces have
   <h2>What NovaCrestBank's Splunk infrastructure looks like</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">Splunk deployment</span><span class="spec-val">Splunk Enterprise Security — on-premises (not Splunk Cloud) — in NovaCrestBank's security infrastructure VLAN, separate from the OCP cluster network</span></div>
-    <div class="spec-row"><span class="spec-label">Splunk HEC endpoint</span><span class="spec-val"><code>https://splunk-hec.novacrestbank.local:8088</code> — HTTPS only, authenticated with a Splunk HEC token stored in CyberArk</span></div>
+    <div class="spec-row"><span class="spec-label">Splunk HEC endpoint</span><span class="spec-val"><code>https://splunk-hec.novacrestbank.internal:8088</code> — HTTPS only, authenticated with a Splunk HEC token stored in CyberArk</span></div>
     <div class="spec-row"><span class="spec-label">ACS events Splunk index</span><span class="spec-val"><code>ncb_acs_security</code> — dedicated index for ACS events, retained 12 months (3 months on fast storage, 9 months cold) per PCI-DSS Req 10</span></div>
-    <div class="spec-row"><span class="spec-label">NSX-05 DFW connectivity</span><span class="spec-val">NSX-05 DFW policy in NSX-05 guide already allows OCP pods in stackrox namespace to reach splunk-hec.novacrestbank.local:8088 — verify this rule exists before Section 18</span></div>
+    <div class="spec-row"><span class="spec-label">NSX-05 DFW connectivity</span><span class="spec-val">NSX-05 DFW policy in NSX-05 guide already allows OCP pods in stackrox namespace to reach splunk-hec.novacrestbank.internal:8088 — verify this rule exists before Section 18</span></div>
   </div>
 </div>
 
@@ -1305,14 +1305,14 @@ CIS_K8S  5.1.5   Default service accounts not bound   WARN     3 namespaces have
 
   <div class="callout warn">
     <div class="cl">Verify NSX-05 DFW allows ACS Central to reach Splunk HEC before configuring the integration</div>
-    ACS Central sends events from the <code>stackrox</code> namespace to Splunk HEC at <code>splunk-hec.novacrestbank.local:8088</code>. The NSX-05 DFW must have a rule permitting this traffic: source <code>NCB-SG-OCP-Nodes</code> → destination <code>NCB-SG-Infra-Services</code> → port 8088/TCP → Allow. Without this rule, the HEC connection fails silently — ACS continues running but no events reach Splunk. Test before configuring: <code>oc exec -n stackrox deployment/central -- curl -sk https://splunk-hec.novacrestbank.local:8088/services/collector/health</code> should return HTTP 200.
+    ACS Central sends events from the <code>stackrox</code> namespace to Splunk HEC at <code>splunk-hec.novacrestbank.internal:8088</code>. The NSX-05 DFW must have a rule permitting this traffic: source <code>NCB-SG-OCP-Nodes</code> → destination <code>NCB-SG-Infra-Services</code> → port 8088/TCP → Allow. Without this rule, the HEC connection fails silently — ACS continues running but no events reach Splunk. Test before configuring: <code>oc exec -n stackrox deployment/central -- curl -sk https://splunk-hec.novacrestbank.internal:8088/services/collector/health</code> should return HTTP 200.
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify connectivity then configure ACS → Splunk</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify connectivity then configure ACS → Splunk</span></div>
     <div class="term-body"><pre><span class="td"># Step 1: Verify Central can reach Splunk HEC (tests NSX DFW rule)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc exec -n stackrox deployment/central -- \
-  curl -sk https://splunk-hec.novacrestbank.local:8088/services/collector/health</span>
+  curl -sk https://splunk-hec.novacrestbank.internal:8088/services/collector/health</span>
 <span class="tg">{"text":"HEC is healthy","code":17}</span>    <span class="td">← Splunk HEC reachable from Central pod ✓</span>
 
 <span class="td"># Step 2: Store the Splunk HEC token as a Kubernetes Secret
@@ -1333,14 +1333,14 @@ CIS_K8S  5.1.5   Default service accounts not bound   WARN     3 namespaces have
 curl -sk \
   -u "admin:${ACS_PASS}" \
   -X POST \
-  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/notifiers" \
+  "https://central-stackrox.apps.ocp.novacrestbank.internal/v1/notifiers" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"NovaCrestBank-Splunk\",
     \"type\": \"splunk\",
     \"splunk\": {
       \"httpToken\": \"${HEC_TOKEN}\",
-      \"httpEndpoint\": \"https://splunk-hec.novacrestbank.local:8088\",
+      \"httpEndpoint\": \"https://splunk-hec.novacrestbank.internal:8088\",
       \"insecure\": false,
       \"truncate\": 10000,
       \"auditLoggingEnabled\": true,
@@ -1364,7 +1364,7 @@ curl -sk \
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
   -u "admin:${ACS_PASS}" \
   -X POST \
-  "https://central-stackrox.apps.ocp.novacrestbank.local/v1/notifiers/notifier-123/test"</span>
+  "https://central-stackrox.apps.ocp.novacrestbank.internal/v1/notifiers/notifier-123/test"</span>
 <span class="tg">{}</span>    <span class="td">← empty {} response = test succeeded (no error) ✓</span>
 
 <span class="td"># Verify in Splunk that the test event arrived:
@@ -1378,7 +1378,7 @@ curl -sk \
 
 <span class="td"># Step 6: Verify a real ACS alert reaches Splunk
 # Trigger a test policy violation by running a container with a shell:</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run shell-test --image=harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run shell-test --image=harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest \
   --command -- bash -c "echo test" -n banking-apps 2>&amp;1</span>
 <span class="td">  # Wait 30 seconds then check Splunk:
   # index=ncb_acs_security sourcetype=stackrox-alert
@@ -1388,7 +1388,7 @@ curl -sk \
 <span class="td"># What a SOC analyst sees in Splunk for an ACS runtime alert:</span>
 <span class="tg">{
   "time": 1745142000,
-  "host": "central-stackrox.apps.ocp.novacrestbank.local",
+  "host": "central-stackrox.apps.ocp.novacrestbank.internal",
   "sourcetype": "stackrox-alert",
   "index": "ncb_acs_security",
   "event": {
@@ -1420,7 +1420,7 @@ curl -sk \
     to find all Java exploitation attempts across all time.
     Correlation rule example: alert if severity=CRITICAL and same deployment
     generates 2+ violations within 10 minutes → auto-create PagerDuty incident.</span>
-    <div class="tann ok"><span class="tai">✓</span><span>ACS Central forwarding all security events to Splunk Enterprise Security at splunk-hec.novacrestbank.local:8088. Events appear in index ncb_acs_security with sourcetype stackrox-alert. SOC analysts can query, correlate, and alert on ACS events in Splunk immediately.</span></div>
+    <div class="tann ok"><span class="tai">✓</span><span>ACS Central forwarding all security events to Splunk Enterprise Security at splunk-hec.novacrestbank.internal:8088. Events appear in index ncb_acs_security with sourcetype stackrox-alert. SOC analysts can query, correlate, and alert on ACS events in Splunk immediately.</span></div>
     </pre></div>
   </div>
 

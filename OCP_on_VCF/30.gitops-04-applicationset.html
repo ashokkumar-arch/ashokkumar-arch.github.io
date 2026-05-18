@@ -449,13 +449,13 @@
       <span class="yk">project</span>: <span class="yv">banking-apps</span>
       <span class="yc">      # project: the Argo CD AppProject that scopes this Application.
               # banking-apps AppProject (configured in OPS-05) restricts:
-              # - Source repos: only gitlab.corp.novacrestbank.com/gitops/*
+              # - Source repos: only gitlab.novacrestbank.internal/gitops/*
               # - Destination namespaces: only banking-dev, banking-staging, banking-production
               # - Cluster resources: cannot create ClusterRoles or ClusterRoleBindings
               # A misconfigured ApplicationSet cannot accidentally deploy to openshift-monitoring.</span>
 
       <span class="yk">source</span>:
-        <span class="yk">repoURL</span>: <span class="yv">git@gitlab.corp.novacrestbank.com:gitops/banking-config.git</span>
+        <span class="yk">repoURL</span>: <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
         <span class="yk">targetRevision</span>: <span class="yv">HEAD</span>
         <span class="yc">        # HEAD: always use the latest commit on the default branch (main).
                   # The staging overlay is updated by the Jenkins pipeline commit (GITOPS-03 Stage 6).
@@ -603,7 +603,7 @@
     # servicemonitor.yaml: Prometheus ServiceMonitor (identical across all envs)</span>
 
 <span class="yk">images</span>:
-  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
     <span class="yk">newTag</span>: <span class="yv">placeholder</span>
     <span class="yc">  # placeholder tag: the base never references a real image tag.
         # Every overlay uses "kustomize edit set image" to replace this
@@ -629,7 +629,7 @@
   - <span class="yv">../../base</span>
 
 <span class="yk">images</span>:
-  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
     <span class="yk">newTag</span>: <span class="yv">latest</span>
     <span class="yc">  # :latest tag for dev — developers push to this tag directly for quick iteration.
         # ACS vulnerability scan is NOT enforced in the dev namespace —
@@ -680,8 +680,8 @@
   - <span class="yv">../../base</span>
 
 <span class="yk">images</span>:
-  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
-    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
+    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
     <span class="yk">digest</span>: <span class="yv">sha256:abc123def456789...</span>
     <span class="yc">  # This digest line is what the Jenkins pipeline updates (kustomize edit set image).
         # Before pipeline run: sha256:old-digest (the previous build)
@@ -736,8 +736,8 @@
     # but reminds engineers that CODEOWNERS governs this overlay.</span>
 
 <span class="yk">images</span>:
-  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
-    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service</span>
+  - <span class="yk">name</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
+    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
     <span class="yk">digest</span>: <span class="yv">sha256:abc123def456789...</span>
     <span class="yc">  # This digest was set by the Jenkins pipeline in the production promotion MR.
         # It references the exact image that:
@@ -955,7 +955,7 @@
       <span class="yk">restartPolicy</span>: <span class="yv">OnFailure</span>
       <span class="yk">containers</span>:
         - <span class="yk">name</span>: <span class="yv">db-migrate</span>
-          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service@sha256:abc123</span>
+          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service@sha256:abc123</span>
           <span class="yc">          # Same image as the Deployment — the migration is packaged with the application.
                       # Running: java -jar payment-service.jar db migrate (Flyway CLI command)</span>
           <span class="yk">command</span>: [<span class="yv">java</span>, <span class="yv">-jar</span>, <span class="yv">/app/payment-service.jar</span>, <span class="yv">db</span>, <span class="yv">migrate</span>]
@@ -1074,7 +1074,7 @@
     <div class="argo-ui-bar">
       <span class="argo-ui-title">ARGO CD</span>
       <span style="font-size:11px;color:#aaaacc;">Applications</span>
-      <span class="argo-ui-breadcrumb">argocd-server-gitops.apps.ocp.corp.novacrestbank.com</span>
+      <span class="argo-ui-breadcrumb">argocd-server-gitops.apps.ocp.novacrestbank.internal</span>
     </div>
 
     <div style="padding:10px 16px;background:var(--bg3);border-bottom:0.5px solid var(--border);font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;">
@@ -1169,8 +1169,8 @@
 Project:            banking-apps
 Server:             https://kubernetes.default.svc
 Namespace:          banking-production
-URL:                https://argocd-server-gitops.apps.ocp.corp.novacrestbank.com/applications/payment-service-production
-Repo:               git@gitlab.corp.novacrestbank.com:gitops/banking-config.git
+URL:                https://argocd-server-gitops.apps.ocp.novacrestbank.internal/applications/payment-service-production
+Repo:               git@gitlab.novacrestbank.internal:gitops/banking-config.git
 Target:             HEAD
 Path:               apps/payment-service/overlays/production
 Sync Policy:        Manual

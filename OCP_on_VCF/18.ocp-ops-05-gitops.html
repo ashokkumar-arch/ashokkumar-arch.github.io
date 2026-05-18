@@ -299,7 +299,7 @@
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
       <div class="layer-num" style="color:var(--accent);">2</div>
       <div class="layer-title">AppProject</div>
-      <div class="layer-desc"><strong>What it is:</strong> A security boundary that scopes what an Argo CD Application is allowed to do. An AppProject declares: which Git repositories Applications in this project can sync from, which destination clusters and namespaces Applications can deploy to, and which Kubernetes resource types Applications are allowed to create or modify.<br/><br/><strong>Why it matters for NovaCrestBank:</strong> Without AppProject restrictions, an Application could theoretically sync from any Git repository (including an attacker-controlled one) and deploy to any namespace (including kube-system). AppProject enforcement means: the banking-apps AppProject only allows syncing from <code>gitlab.novacrestbank.local/gitops/banking-config</code> and only deploying to <code>banking-dev</code>, <code>banking-staging</code>, and <code>banking-production</code> namespaces.<br/><br/><strong>The default project:</strong> Applications in the <code>default</code> AppProject have no restrictions. Never use the default project for production workloads.</div>
+      <div class="layer-desc"><strong>What it is:</strong> A security boundary that scopes what an Argo CD Application is allowed to do. An AppProject declares: which Git repositories Applications in this project can sync from, which destination clusters and namespaces Applications can deploy to, and which Kubernetes resource types Applications are allowed to create or modify.<br/><br/><strong>Why it matters for NovaCrestBank:</strong> Without AppProject restrictions, an Application could theoretically sync from any Git repository (including an attacker-controlled one) and deploy to any namespace (including kube-system). AppProject enforcement means: the banking-apps AppProject only allows syncing from <code>gitlab.novacrestbank.internal/gitops/banking-config</code> and only deploying to <code>banking-dev</code>, <code>banking-staging</code>, and <code>banking-production</code> namespaces.<br/><br/><strong>The default project:</strong> Applications in the <code>default</code> AppProject have no restrictions. Never use the default project for production workloads.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--purple);">
       <div class="layer-num" style="color:var(--purple);">3</div>
@@ -336,8 +336,8 @@
     <strong>Problem 2 — Different access controls for different teams.</strong> Developers need read-write access to the source code repo to commit features. But developers should not be able to directly commit production deployments — that requires review and approval. With two repos: developers have read-write access to the source code repo. Only senior engineers and the automated pipeline have write access to the production path of the config repo. Environment separation is enforced by Git permissions, not by policy.<br/><br/>
     <strong>Problem 3 — The config repo has a different history purpose.</strong> The source code history tells the story of feature development. The config repo history tells the story of what was deployed and when — this is the change management and rollback record. Mixing these histories makes both less useful. The config repo's git log is the deployment audit trail; it should contain only deployment commits, not feature development commits.<br/><br/>
     <strong>NovaCrestBank's two repositories:</strong><br/>
-    <code>gitlab.novacrestbank.local/banking/payment-service</code> — the application source code. Developers commit here. The pipeline reads from here.<br/>
-    <code>gitlab.novacrestbank.local/gitops/banking-config</code> — the Kubernetes configuration. The pipeline commits here (image tag updates). Engineers open PRs here for configuration changes. Argo CD reads from here.</div>
+    <code>gitlab.novacrestbank.internal/banking/payment-service</code> — the application source code. Developers commit here. The pipeline reads from here.<br/>
+    <code>gitlab.novacrestbank.internal/gitops/banking-config</code> — the Kubernetes configuration. The pipeline commits here (image tag updates). Engineers open PRs here for configuration changes. Argo CD reads from here.</div>
   </div>
 
   <h2>What lives in each repository</h2>
@@ -526,7 +526,7 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — install GitOps operator</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — install GitOps operator</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f gitops-subscription.yaml</span>
 <span class="tg">subscription.operators.coreos.com/openshift-gitops-operator created</span>
 
@@ -649,7 +649,7 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — deploy ArgoCD and verify</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — deploy ArgoCD and verify</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc new-project gitops && oc apply -f argocd.yaml</span>
 <span class="tg">argocd.argoproj.io/ncb-argocd created</span>
 
@@ -664,8 +664,8 @@ ncb-argocd-server                      1/1     Running   3m</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get route ncb-argocd-server -n gitops \
   -o jsonpath='{.spec.host}'</span>
-<span class="tg">ncb-argocd-server-gitops.apps.ocp.novacrestbank.local</span>
-    <div class="tann ok"><span class="tai">✓</span><span>Argo CD deployed. All 6 components Running. UI accessible at ncb-argocd-server-gitops.apps.ocp.novacrestbank.local. Default policy: role:readonly — all authenticated AD users can view but not modify.</span></div>
+<span class="tg">ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal</span>
+    <div class="tann ok"><span class="tai">✓</span><span>Argo CD deployed. All 6 components Running. UI accessible at ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal. Default policy: role:readonly — all authenticated AD users can view but not modify.</span></div>
     </pre></div>
   </div>
 </div>
@@ -677,7 +677,7 @@ ncb-argocd-server                      1/1     Running   3m</span>
   <div class="ps">The Argo CD server, repo-server, and dex all need TLS certificates. cert-manager issues them from NovaCrestBank-IssuingCA — the same pattern used for Harbor (Registry-01) and ACS (OCP-OPS-03).</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — issue Argo CD server certificate</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — issue Argo CD server certificate</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
 <span class="tg">apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -686,9 +686,9 @@ metadata:
   namespace: gitops
 spec:
   secretName: argocd-server-tls
-  commonName: ncb-argocd-server-gitops.apps.ocp.novacrestbank.local
+  commonName: ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal
   dnsNames:
-    - ncb-argocd-server-gitops.apps.ocp.novacrestbank.local
+    - ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal
     - ncb-argocd-server.gitops.svc
     - ncb-argocd-server.gitops.svc.cluster.local
   usages: [digital signature, key encipherment, server auth, client auth]
@@ -709,10 +709,10 @@ argocd-server-tls  True    argocd-server-tls  8s</span>
 
 <span class="td"># Verify the Argo CD UI uses the IssuingCA-signed certificate</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect ncb-argocd-server-gitops.apps.ocp.novacrestbank.local:443 2>/dev/null \
+  -connect ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -noout -issuer -subject</span>
 <span class="tg">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
-subject=CN=ncb-argocd-server-gitops.apps.ocp.novacrestbank.local</span>
+subject=CN=ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal</span>
 <span class="td">         ↑ IssuingCA-signed — no browser warnings for engineers using the UI ✓</span>
     <div class="tann ok"><span class="tai">✓</span><span>Argo CD UI serving NovaCrestBank-IssuingCA-signed certificate. Engineers can access the GitOps dashboard without browser warnings. cert-manager will auto-renew 30 days before expiry.</span></div>
     </pre></div>
@@ -731,7 +731,7 @@ subject=CN=ncb-argocd-server-gitops.apps.ocp.novacrestbank.local</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — configure Dex LDAP connector via ArgoCD CR patch</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — configure Dex LDAP connector via ArgoCD CR patch</span></div>
     <div class="term-body"><pre><span class="td"># Create the LDAP bind password Secret for Dex</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc create secret generic argocd-dex-ldap-secret \
   --from-literal=bindPW='NovaCrest$LDAPsvc2026!' \
@@ -753,21 +753,21 @@ spec:
           id: novacrestbank-ad
           name: NovaCrestBank Active Directory
           config:
-            host: dc01.novacrestbank.local:636
+            host: dc01.novacrestbank.internal:636
             insecureNoSSL: false
             insecureSkipVerify: false
-            bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=local"
+            bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=internal"
             bindPW: "$ARGOCD_DEX_LDAP_BIND_PW"
             usernamePrompt: NovaCrestBank Username
             userSearch:
-              baseDN: "OU=Users,DC=novacrestbank,DC=local"
+              baseDN: "OU=Users,DC=novacrestbank,DC=internal"
               filter: "(objectClass=person)"
               username: sAMAccountName
               idAttr: DN
               emailAttr: mail
               nameAttr: displayName
             groupSearch:
-              baseDN: "OU=Groups,DC=novacrestbank,DC=local"
+              baseDN: "OU=Groups,DC=novacrestbank,DC=internal"
               filter: "(objectClass=group)"
               userMatchers:
                 - userAttr: DN
@@ -781,7 +781,7 @@ spec:
 <span class="tg">deployment "ncb-argocd-dex-server" successfully rolled out</span>
 
 <span class="td"># Test: log in via argocd CLI with an AD account</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">argocd login ncb-argocd-server-gitops.apps.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">argocd login ncb-argocd-server-gitops.apps.ocp.novacrestbank.internal \
   --username alice.smith \
   --password 'ADPassword123!' \
   --grpc-web</span>
@@ -802,7 +802,7 @@ spec:
   <div class="ps">Argo CD must authenticate to the banking-config Git repository to clone it and poll for changes. The repository credential is stored as a Kubernetes Secret in the gitops namespace — never as plain text in the ArgoCD CR.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — register the banking-config repository</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — register the banking-config repository</span></div>
     <div class="term-body"><pre><span class="td"># Create the repository credential Secret in the gitops namespace.
 # Argo CD's repo-server reads Secrets labelled with argocd.argoproj.io/secret-type: repository</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
@@ -816,7 +816,7 @@ metadata:
 type: Opaque
 stringData:
   type: git
-  url: git@gitlab.novacrestbank.local:gitops/banking-config.git
+  url: git@gitlab.novacrestbank.internal:gitops/banking-config.git
   sshPrivateKey: |
     -----BEGIN OPENSSH PRIVATE KEY-----
     (content of the deploy key private key for banking-config repository)
@@ -827,7 +827,7 @@ stringData:
 <span class="td"># Verify Argo CD can reach and clone the repository</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">argocd repo list</span>
 <span class="tg">TYPE  NAME  REPO                                                        INSECURE  STATUS      MESSAGE
-git         git@gitlab.novacrestbank.local:gitops/banking-config.git   false     Successful</span>
+git         git@gitlab.novacrestbank.internal:gitops/banking-config.git   false     Successful</span>
 <span class="td">                                                                                  ↑ Successful ✓
     Argo CD cloned the repo and can read its contents.</span>
     <div class="tann ok"><span class="tai">✓</span><span>banking-config repository registered. Argo CD's repo-server can clone and poll this repository. The SSH deploy key is read-only — the repo-server cannot push to the repository.</span></div>
@@ -845,7 +845,7 @@ git         git@gitlab.novacrestbank.local:gitops/banking-config.git   false    
     <div class="decision-label">Why AppProject restrictions matter — preventing scope creep in Argo CD</div>
     <div class="decision-q">Applications in the default AppProject can deploy to any namespace. Why create a separate banking-apps project with restrictions?</div>
     <div class="decision-a"><strong>Without AppProject restrictions, a misconfigured Application could deploy to kube-system, to the stackrox namespace, or to any other namespace in the cluster. It could also sync from any Git repository — including one controlled by an attacker if the Argo CD API were somehow compromised or a malicious Application object were created.</strong><br/><br/>
-    The banking-apps AppProject declares exactly: Applications in this project may only sync from <code>gitlab.novacrestbank.local/gitops/banking-config</code>. They may only deploy to <code>banking-dev</code>, <code>banking-staging</code>, and <code>banking-production</code> namespaces. They may only create resource types from the approved list — not ClusterRoles, not ClusterRoleBindings, not custom operator CRDs that could elevate privilege.<br/><br/>
+    The banking-apps AppProject declares exactly: Applications in this project may only sync from <code>gitlab.novacrestbank.internal/gitops/banking-config</code>. They may only deploy to <code>banking-dev</code>, <code>banking-staging</code>, and <code>banking-production</code> namespaces. They may only create resource types from the approved list — not ClusterRoles, not ClusterRoleBindings, not custom operator CRDs that could elevate privilege.<br/><br/>
     These restrictions are enforced by Argo CD's admission webhook — an Application that violates them is rejected when created, not when it syncs. This is a preventive control that bounds the blast radius of any misconfiguration or compromise of the GitOps system.</div>
   </div>
 
@@ -863,7 +863,7 @@ git         git@gitlab.novacrestbank.local:gitops/banking-config.git   false    
   <span class="yk">description</span>: <span class="yv">NovaCrestBank banking microservices — dev, staging, and production</span>
 
   <span class="yk">sourceRepos</span>:
-    - <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+    - <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
     <span class="yc">  # ONLY this repository. Applications in this project cannot sync from any
         # other repository — not Docker Hub, not a public GitHub repo, not
         # an attacker-controlled repo. The allowlist is exhaustive.
@@ -992,7 +992,7 @@ git         git@gitlab.novacrestbank.local:gitops/banking-config.git   false    
       <span class="yc">  # All three Applications belong to the banking-apps AppProject.
           # They inherit the source repository and destination restrictions.</span>
       <span class="yk">source</span>:
-        <span class="yk">repoURL</span>: <span class="yv">git@gitlab.novacrestbank.local:gitops/banking-config.git</span>
+        <span class="yk">repoURL</span>: <span class="yv">git@gitlab.novacrestbank.internal:gitops/banking-config.git</span>
         <span class="yk">targetRevision</span>: <span class="yv">HEAD</span>
         <span class="yc">        # HEAD: always track the latest commit on the default branch (main).
                   # Alternative: pin to a specific tag for more controlled production updates.</span>
@@ -1058,7 +1058,7 @@ git         git@gitlab.novacrestbank.local:gitops/banking-config.git   false    
     # Argo CD uses these labels to find and track resources it manages.</span>
 <span class="yk">images</span>:
   - <span class="yk">name</span>: <span class="yv">payment-service</span>
-    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service</span>
+    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
     <span class="yk">newTag</span>: <span class="yv">latest</span>
     <span class="yc">  # Placeholder image tag in the base — always overridden by each overlay.
         # The base Deployment references image: payment-service (just the name).
@@ -1081,7 +1081,7 @@ git         git@gitlab.novacrestbank.local:gitops/banking-config.git   false    
     # Dev and staging do not need a PDB — brief unavailability is acceptable.</span>
 <span class="yk">images</span>:
   - <span class="yk">name</span>: <span class="yv">payment-service</span>
-    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service</span>
+    <span class="yk">newName</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
     <span class="yk">newTag</span>: <span class="yv">v1.2.3@sha256:abc123def456...</span>
     <span class="yc">  # THE LINE THE PIPELINE UPDATES in the Stage 8 PR.
         # This is the only change in the production PR diff — one line, one image reference.

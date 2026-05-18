@@ -257,12 +257,12 @@
     <div class="layer" style="background:var(--bg3);border-color:var(--ocp-red);">
       <div class="layer-num" style="color:var(--ocp-red);">Dom 1</div>
       <div class="layer-title" style="color:var(--ocp-red);">Management Domain</div>
-      <div class="layer-desc">Managed by <strong>vcenter-mgmt.novacrestbank.local</strong>. Contains: SDDC Manager, vcenter-mgmt itself, vcenter-ocp (the OCP Workload Domain vCenter), NSX Manager cluster (nsx-mgr-01/02/03), NSX Edge nodes (edge-01, edge-02), and infra VMs (DC01, DC02, RootCA, IssuingCA). Runs on esxi-mgmt-01 through esxi-mgmt-04. <em>The OCP installer never touches this domain directly.</em></div>
+      <div class="layer-desc">Managed by <strong>vcenter-mgmt.novacrestbank.internal</strong>. Contains: SDDC Manager, vcenter-mgmt itself, vcenter-ocp (the OCP Workload Domain vCenter), NSX Manager cluster (nsx-mgr-01/02/03), NSX Edge nodes (edge-01, edge-02), and infra VMs (DC01, DC02, RootCA, IssuingCA). Runs on esxi-mgmt-01 through esxi-mgmt-04. <em>The OCP installer never touches this domain directly.</em></div>
     </div>
     <div class="layer" style="background:var(--bg3);border-color:var(--purple);">
       <div class="layer-num" style="color:var(--purple);">Dom 2</div>
       <div class="layer-title" style="color:var(--purple);">OCP Workload Domain</div>
-      <div class="layer-desc">Managed by <strong>vcenter-ocp.novacrestbank.local</strong>. Contains: esxi-ocp-01 through esxi-ocp-05 (the cluster that runs OCP VMs), vsanDatastore (the datastore for all OCP node VMDKs), NCB-OCP-Datacenter, NCB-OCP-Cluster. <em>The OCP installer connects only to this vCenter. All VM creation happens here.</em></div>
+      <div class="layer-desc">Managed by <strong>vcenter-ocp.novacrestbank.internal</strong>. Contains: esxi-ocp-01 through esxi-ocp-05 (the cluster that runs OCP VMs), vsanDatastore (the datastore for all OCP node VMDKs), NCB-OCP-Datacenter, NCB-OCP-Cluster. <em>The OCP installer connects only to this vCenter. All VM creation happens here.</em></div>
     </div>
     <div class="layer" style="background:var(--bg3);border-color:var(--accent);">
       <div class="layer-num" style="color:var(--accent);">NSX</div>
@@ -277,7 +277,7 @@
     <tbody>
       <tr>
         <td>OCP VMs are created in the OCP Workload Domain, not the Management Domain</td>
-        <td><code>platform.vsphere.vcenters[0].server: vcenter-ocp.novacrestbank.local</code> — pointing at the Workload Domain vCenter, not vcenter-mgmt</td>
+        <td><code>platform.vsphere.vcenters[0].server: vcenter-ocp.novacrestbank.internal</code> — pointing at the Workload Domain vCenter, not vcenter-mgmt</td>
       </tr>
       <tr>
         <td>vcenter-ocp has a certificate signed by NovaCrestBank-IssuingCA (replaced in WIN-VCF-03)</td>
@@ -316,12 +316,12 @@
   <div class="grid-2">
     <div class="card" style="border-left:4px solid var(--accent);">
       <p style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;">Standalone vSphere</p>
-      <code>vcenter: vcenter.novacrestbank.local</code>
+      <code>vcenter: vcenter.novacrestbank.internal</code>
       <p style="font-size:13px;color:var(--text2);margin-top:8px;">Single vCenter manages everything — ESXi hosts, VMs, storage. The installer connects here for all operations.</p>
     </div>
     <div class="card" style="border-left:4px solid var(--purple);">
       <p style="font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.07em;">VCF + NSX</p>
-      <code>server: vcenter-ocp.novacrestbank.local</code>
+      <code>server: vcenter-ocp.novacrestbank.internal</code>
       <p style="font-size:13px;color:var(--text2);margin-top:8px;">The OCP Workload Domain vCenter. OCP VMs live in this domain. The installer must connect here — not vcenter-mgmt — because esxi-ocp-01 through esxi-ocp-05 are only managed by vcenter-ocp.</p>
     </div>
   </div>
@@ -411,7 +411,7 @@
   </div>
 
   <div class="card">
-    <div class="spec-row"><span class="spec-label">WIN-VCF-01 DNS complete</span><span class="spec-val">api.ocp.novacrestbank.local → 10.50.0.200 · api-int.ocp.novacrestbank.local → 10.50.0.200 · *.apps.ocp.novacrestbank.local → 10.50.0.201 · all node FQDNs with matching PTR records</span></div>
+    <div class="spec-row"><span class="spec-label">WIN-VCF-01 DNS complete</span><span class="spec-val">api.ocp.novacrestbank.internal → 10.50.0.200 · api-int.ocp.novacrestbank.internal → 10.50.0.200 · *.apps.ocp.novacrestbank.internal → 10.50.0.201 · all node FQDNs with matching PTR records</span></div>
     <div class="spec-row"><span class="spec-label">WIN-VCF-03 PKI complete</span><span class="spec-val">vcenter-ocp presents a certificate signed by NovaCrestBank-IssuingCA. The installer validates this certificate using the thumbprint and additionalTrustBundle.</span></div>
     <div class="spec-row"><span class="spec-label">NSX-03 segment exists</span><span class="spec-val">seg-ocp-nodes (10.50.0.0/24) connected to NCB-T1-OCP — visible in vcenter-ocp network inventory as type OPAQUE_NETWORK</span></div>
     <div class="spec-row"><span class="spec-label">NSX-04 VIPs pre-created</span><span class="spec-val">NCB-VS-OCP-API (10.50.0.200:6443) and NCB-VS-OCP-HTTPS (10.50.0.201:443) exist in NSX LB — the installer validates that these IPs are reachable via DNS</span></div>
@@ -430,7 +430,7 @@
   <div class="ps">All install-config work and the subsequent installer run happen from a Linux jump host. This section creates the working directory, installs the tools, and verifies every DNS record before writing a single YAML field.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — bash</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — bash</span></div>
     <div class="term-body"><pre><span class="td"># Create the working directory tree</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">mkdir -p ~/ocp-kit/{install,backups,tools,certs}</span>
 <span class="td">#  ~/ocp-kit/install/   ← install-config.yaml lives here; installer writes here
@@ -451,28 +451,28 @@ release image quay.io/openshift-release-dev/ocp-release:4.16.x-x86_64</span>
 <span class="td"># Verify all DNS records from the jump host — every single one must resolve correctly
 # The installer validates api, api-int, and *.apps before placing any VM</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">for record in \
-  api.ocp.novacrestbank.local \
-  api-int.ocp.novacrestbank.local \
-  master-0.ocp.novacrestbank.local \
-  master-1.ocp.novacrestbank.local \
-  master-2.ocp.novacrestbank.local \
-  worker-0.ocp.novacrestbank.local \
-  test.apps.ocp.novacrestbank.local; do
+  api.ocp.novacrestbank.internal \
+  api-int.ocp.novacrestbank.internal \
+  master-0.ocp.novacrestbank.internal \
+  master-1.ocp.novacrestbank.internal \
+  master-2.ocp.novacrestbank.internal \
+  worker-0.ocp.novacrestbank.internal \
+  test.apps.ocp.novacrestbank.internal; do
     result=$(dig +short $record)
     [ -z "$result" ] && echo "FAIL: $record" || echo "OK:   $record → $result"
 done</span>
-<span class="tg">OK:   api.ocp.novacrestbank.local → 10.50.0.200
-OK:   api-int.ocp.novacrestbank.local → 10.50.0.200
-OK:   master-0.ocp.novacrestbank.local → 10.50.0.11
-OK:   master-1.ocp.novacrestbank.local → 10.50.0.12
-OK:   master-2.ocp.novacrestbank.local → 10.50.0.13
-OK:   worker-0.ocp.novacrestbank.local → 10.50.0.31
-OK:   test.apps.ocp.novacrestbank.local → 10.50.0.201</span>
+<span class="tg">OK:   api.ocp.novacrestbank.internal → 10.50.0.200
+OK:   api-int.ocp.novacrestbank.internal → 10.50.0.200
+OK:   master-0.ocp.novacrestbank.internal → 10.50.0.11
+OK:   master-1.ocp.novacrestbank.internal → 10.50.0.12
+OK:   master-2.ocp.novacrestbank.internal → 10.50.0.13
+OK:   worker-0.ocp.novacrestbank.internal → 10.50.0.31
+OK:   test.apps.ocp.novacrestbank.internal → 10.50.0.201</span>
 
 <span class="td"># Verify vcenter-ocp is reachable and the certificate is trusted
 # (After WIN-VCF-03, vcenter-ocp presents an IssuingCA-signed cert)
 # The -k flag is NOT used here — we want to confirm the cert is actually trusted</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -s https://vcenter-ocp.novacrestbank.local/ \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -s https://vcenter-ocp.novacrestbank.internal/ \
   --cacert ~/ocp-kit/certs/chain.pem \
   -o /dev/null -w "%{http_code}"</span>
 <span class="tg">200</span>
@@ -497,17 +497,17 @@ OK:   test.apps.ocp.novacrestbank.local → 10.50.0.201</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — collect and format the vcenter-ocp thumbprint</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — collect and format the vcenter-ocp thumbprint</span></div>
     <div class="term-body"><pre><span class="td"># Get the SHA-256 fingerprint of vcenter-ocp's current certificate</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect vcenter-ocp.novacrestbank.local:443 2>/dev/null \
+  -connect vcenter-ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -fingerprint -sha256 -noout</span>
 <span class="tg">SHA256 Fingerprint=AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99</span>
 
 <span class="td"># The install-config requires the thumbprint WITHOUT colons
 # Strip the colons and save to an environment variable</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">VCENTER_THUMBPRINT=$(echo | openssl s_client \
-  -connect vcenter-ocp.novacrestbank.local:443 2>/dev/null \
+  -connect vcenter-ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -fingerprint -sha256 -noout \
   | sed 's/SHA256 Fingerprint=//' \
   | tr -d ':')</span>
@@ -538,7 +538,7 @@ OK:   test.apps.ocp.novacrestbank.local → 10.50.0.201</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — build and verify the CA chain</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — build and verify the CA chain</span></div>
     <div class="term-body"><pre><span class="td"># Copy CA certs from WIN-VCF-03 to the jump host
 # (scp or WinSCP from C:\NovaCrest-Certs\ to ~/ocp-kit/certs/)</span>
 
@@ -562,7 +562,7 @@ issuer=CN=NovaCrestBank-RootCA, O=NovaCrestBank, C=AU</span>
 
 <span class="td"># Verify vcenter-ocp's cert validates against this chain</span>
 <span class="tp">[svc-ocp@jumphost certs]$</span> <span class="tc">echo | openssl s_client \
-  -connect vcenter-ocp.novacrestbank.local:443 2>/dev/null \
+  -connect vcenter-ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 | openssl verify -CAfile chain.pem</span>
 <span class="tg">stdin: OK</span>
 <span class="td">      ↑ vcenter-ocp's certificate validates against our CA chain ✓</span>
@@ -590,7 +590,7 @@ issuer=CN=NovaCrestBank-RootCA, O=NovaCrestBank, C=AU</span>
   <div class="ps">The pull secret authenticates the installer against Red Hat image registries. The SSH key provides post-install access to RHCOS nodes for debugging. Both are identical to the standalone vSphere install — nothing VCF-specific here.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — pull secret and SSH key</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — pull secret and SSH key</span></div>
     <div class="term-body"><pre><span class="td"># Pull secret — download from console.redhat.com
 # Verify it contains the expected 4 registries</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">python3 -c "
@@ -603,7 +603,7 @@ print('Registries:', list(d['auths'].keys()))
 
 <span class="td"># Generate a dedicated SSH key pair for this cluster
 # Stored in CyberArk — the only way to SSH into RHCOS nodes</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh-keygen -t ed25519 -C "svc-ocp@novacrestbank.local" \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh-keygen -t ed25519 -C "svc-ocp@novacrestbank.internal" \
   -f ~/.ssh/ocp-vcf-cluster -N ""</span>
 <span class="tg">Your identification has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster
 Your public key has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster.pub</span>
@@ -627,21 +627,21 @@ Your public key has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster.pub</span>
     <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
 <span class="yc"># Always v1 for OCP 4.x. Never change this.</span>
 
-<span class="yk">baseDomain</span>: <span class="yv">novacrestbank.local</span>
+<span class="yk">baseDomain</span>: <span class="yv">novacrestbank.internal</span>
 <span class="yc"># The parent DNS zone. The cluster name is appended to form:
-#   cluster base:  ocp.novacrestbank.local
-#   API FQDN:      api.ocp.novacrestbank.local      ← must match WIN-VCF-01 A record
-#   API-int FQDN:  api-int.ocp.novacrestbank.local   ← must match WIN-VCF-01 A record
-#   Ingress wild:  *.apps.ocp.novacrestbank.local   ← must match WIN-VCF-01 wildcard</span>
+#   cluster base:  ocp.novacrestbank.internal
+#   API FQDN:      api.ocp.novacrestbank.internal      ← must match WIN-VCF-01 A record
+#   API-int FQDN:  api-int.ocp.novacrestbank.internal   ← must match WIN-VCF-01 A record
+#   Ingress wild:  *.apps.ocp.novacrestbank.internal   ← must match WIN-VCF-01 wildcard</span>
 
 <span class="yk">metadata</span>:
   <span class="yk">name</span>: <span class="yv">ocp</span>
 <span class="yc">  # The cluster name.
   # baseDomain + metadata.name together form every DNS endpoint:
-  #   api.{name}.{baseDomain}       → api.ocp.novacrestbank.local
-  #   *.apps.{name}.{baseDomain}    → *.apps.ocp.novacrestbank.local
+  #   api.{name}.{baseDomain}       → api.ocp.novacrestbank.internal
+  #   *.apps.{name}.{baseDomain}    → *.apps.ocp.novacrestbank.internal
   # This value MUST match the sub-label used in WIN-VCF-01 DNS records.
-  # If WIN-VCF-01 created "api.ocp.novacrestbank.local" — this must be "ocp".
+  # If WIN-VCF-01 created "api.ocp.novacrestbank.internal" — this must be "ocp".
   # Changing this to anything else causes an immediate DNS validation failure.</span></pre>
     </div>
   </div>
@@ -656,21 +656,21 @@ Your public key has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster.pub</span>
   <div class="ps">The <code>platform.vsphere</code> section in VCF uses a <code>vcenters</code> list instead of scalar fields. The connection details go here. The topology (datacenter, cluster, segment) goes in <code>failureDomains</code> in Section 11.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify exact object names in vcenter-ocp before writing YAML</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify exact object names in vcenter-ocp before writing YAML</span></div>
     <div class="term-body"><pre><span class="td"># Get the exact datacenter name from vcenter-ocp
 # Names are case-sensitive — a single character difference = installer error</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -u "administrator@vsphere.local:NovaCrest\$vCenter2026!" \
-  "https://vcenter-ocp.novacrestbank.local/rest/vcenter/datacenter" \
+  "https://vcenter-ocp.novacrestbank.internal/rest/vcenter/datacenter" \
   | python3 -c "import json,sys; [print(d['name']) for d in json.load(sys.stdin)['value']]"</span>
 <span class="tg">NCB-OCP-Datacenter</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -u "administrator@vsphere.local:NovaCrest\$vCenter2026!" \
-  "https://vcenter-ocp.novacrestbank.local/rest/vcenter/cluster" \
+  "https://vcenter-ocp.novacrestbank.internal/rest/vcenter/cluster" \
   | python3 -c "import json,sys; [print(d['name']) for d in json.load(sys.stdin)['value']]"</span>
 <span class="tg">NCB-OCP-Cluster</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -u "administrator@vsphere.local:NovaCrest\$vCenter2026!" \
-  "https://vcenter-ocp.novacrestbank.local/rest/vcenter/datastore" \
+  "https://vcenter-ocp.novacrestbank.internal/rest/vcenter/datastore" \
   | python3 -c "import json,sys; [print(d['name']) for d in json.load(sys.stdin)['value']]"</span>
 <span class="tg">vsanDatastore</span>
     <div class="tann ok"><span class="tai">✓</span><span>Exact names confirmed. Use these verbatim — <code>NCB-OCP-Datacenter</code>, <code>NCB-OCP-Cluster</code>, <code>vsanDatastore</code>.</span></div>
@@ -682,7 +682,7 @@ Your public key has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster.pub</span>
     <div class="yaml-body"><pre><span class="yk">platform</span>:
   <span class="yk">vsphere</span>:
     <span class="yk">vcenters</span>:
-      - <span class="yk">server</span>: <span class="yv">vcenter-ocp.novacrestbank.local</span>
+      - <span class="yk">server</span>: <span class="yv">vcenter-ocp.novacrestbank.internal</span>
         <span class="yc">  # THE KEY VCF DIFFERENCE: vcenter-ocp, not vcenter-mgmt
           # vcenter-ocp is the OCP Workload Domain vCenter.
           # esxi-ocp-01 through esxi-ocp-05 are managed here.
@@ -739,7 +739,7 @@ Your public key has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster.pub</span>
         <span class="yk">zone</span>: <span class="yv">ncb-zone-1</span>
         <span class="yc">  # Zone label — arbitrary string for single-cluster deployments.
           # In a multi-cluster VCF setup this would differentiate clusters.</span>
-        <span class="yk">server</span>: <span class="yv">vcenter-ocp.novacrestbank.local</span>
+        <span class="yk">server</span>: <span class="yv">vcenter-ocp.novacrestbank.internal</span>
         <span class="yc">  # MUST exactly match the server value in vcenters[] above.
           # The installer uses this to look up the credentials for this domain.</span>
         <span class="yk">topology</span>:
@@ -782,11 +782,11 @@ Your public key has been saved in /home/svc-ocp/.ssh/ocp-vcf-cluster.pub</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify seg-ocp-nodes is visible in vcenter-ocp</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify seg-ocp-nodes is visible in vcenter-ocp</span></div>
     <div class="term-body"><pre><span class="td"># Confirm the segment exists in vcenter-ocp's network inventory
 # Type must be OPAQUE_NETWORK (= NSX managed) not DISTRIBUTED_PORTGROUP (= vDS)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -u "administrator@vsphere.local:NovaCrest\$vCenter2026!" \
-  "https://vcenter-ocp.novacrestbank.local/rest/vcenter/network" \
+  "https://vcenter-ocp.novacrestbank.internal/rest/vcenter/network" \
   | python3 -c "
 import json, sys
 for n in json.load(sys.stdin)['value']:
@@ -837,7 +837,7 @@ for n in json.load(sys.stdin)['value']:
     <div class="decision-q">In ocp-installation.html the VIPs were served by keepalived inside the OCP nodes. Now NSX LB serves them. What is the practical difference?</div>
     <div class="decision-a"><strong>With keepalived, the VIP is a "floating IP" that lives inside the OCP cluster — it is served by a VRRP instance running on an OCP master or infra node. It requires L2 adjacency: the VIP must be on the same /24 subnet as the OCP nodes because VRRP works by broadcasting to the same L2 segment. The installer waits for a node to boot and advertise the VIP before the API becomes reachable.</strong><br/><br/>
     <strong>With NSX LB, the VIP is a Virtual Server on the NSX Edge nodes. It exists before any OCP node is created. The NSX LB listens on 10.50.0.200:6443 and 10.50.0.201:443/80 from the moment NCB-VS-OCP-API and NCB-VS-OCP-HTTPS were created in NSX-04. No L2 adjacency requirement — the VIP can be on any routable NSX subnet.</strong><br/><br/>
-    For the install-config this means: <code>apiVIPs</code> and <code>ingressVIPs</code> are IPs that the installer can validate via DNS lookup right now, before any VM is created. The installer checks that api.ocp.novacrestbank.local resolves to the apiVIP value. If they don't match, the installer fails immediately.<br/><br/>
+    For the install-config this means: <code>apiVIPs</code> and <code>ingressVIPs</code> are IPs that the installer can validate via DNS lookup right now, before any VM is created. The installer checks that api.ocp.novacrestbank.internal resolves to the apiVIP value. If they don't match, the installer fails immediately.<br/><br/>
     Note: the field names changed from singular to plural between schema versions: <code>apiVIP</code> (old) → <code>apiVIPs</code> (list). Always use the list form for OCP 4.12+.</div>
   </div>
 
@@ -850,7 +850,7 @@ for n in json.load(sys.stdin)['value']:
         # The NSX LB distributes traffic to the 3 master node pool members.
         #
         # The installer validates this by checking:
-        #   api.ocp.novacrestbank.local must resolve to exactly this IP.
+        #   api.ocp.novacrestbank.internal must resolve to exactly this IP.
         # If DNS and apiVIPs disagree, the installer fails before placing any VM.
         #
         # NSX-04 created NCB-Pool-OCP-API with master-0/1/2 as members (port 6443).
@@ -861,13 +861,13 @@ for n in json.load(sys.stdin)['value']:
 
     <span class="yk">ingressVIPs</span>:
       - <span class="yv">10.50.0.201</span>
-      <span class="yc">  # The OCP Ingress Router VIP. All *.apps.ocp.novacrestbank.local traffic.
+      <span class="yc">  # The OCP Ingress Router VIP. All *.apps.ocp.novacrestbank.internal traffic.
         # Served by NSX LB Virtual Server NCB-VS-OCP-HTTPS (port 443) and
         # NCB-VS-OCP-HTTP (port 80) created in NSX-04.
         # The NSX LB distributes traffic to the infra node pool members.
         #
         # The installer validates:
-        #   *.apps.ocp.novacrestbank.local must resolve to exactly this IP.
+        #   *.apps.ocp.novacrestbank.internal must resolve to exactly this IP.
         # The wildcard record in WIN-VCF-01 points to 10.50.0.201 ✓
         #
         # NSX-04 created NCB-Pool-OCP-Ingress with infra-0/1/2 as members.
@@ -1039,13 +1039,13 @@ for n in json.load(sys.stdin)['value']:
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — write and substitute install-config.yaml</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — write and substitute install-config.yaml</span></div>
     <div class="term-body"><pre><span class="td"># Write the file with placeholder tokens (substituted below)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">mkdir -p ~/ocp-kit/install
 cat > ~/ocp-kit/install/install-config.yaml &lt;&lt; 'EOF'</span>
 <span class="tg">apiVersion: v1
 
-baseDomain: novacrestbank.local
+baseDomain: novacrestbank.internal
 
 metadata:
   name: ocp
@@ -1053,7 +1053,7 @@ metadata:
 platform:
   vsphere:
     vcenters:
-      - server: vcenter-ocp.novacrestbank.local
+      - server: vcenter-ocp.novacrestbank.internal
         user: administrator@vsphere.local
         password: 'NovaCrest$vCenter2026!'
         datacenters:
@@ -1063,7 +1063,7 @@ platform:
       - name: ncb-ocp-fd
         region: ncb-region
         zone: ncb-zone-1
-        server: vcenter-ocp.novacrestbank.local
+        server: vcenter-ocp.novacrestbank.internal
         topology:
           datacenter: NCB-OCP-Datacenter
           computeCluster: /NCB-OCP-Datacenter/host/NCB-OCP-Cluster
@@ -1161,7 +1161,7 @@ PYEOF</span>
   <div class="ps">Two levels of validation: YAML syntax (fast, catches indentation errors) then installer manifest generation against a copy (slow, catches semantic errors, connects to vcenter-ocp). Always validate against a copy — the installer deletes what it reads.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — two-level validation</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — two-level validation</span></div>
     <div class="term-body"><pre><span class="td"># Level 1: YAML syntax check — fast, catches indentation errors in CA bundle</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">python3 -c \
   "import yaml; yaml.safe_load(open('ocp-kit/install/install-config.yaml'))" \
@@ -1219,7 +1219,7 @@ INFO Manifests created in: /tmp/validate/manifests and /tmp/validate/openshift</
   <div class="ps">The backup is mandatory — the installer deletes the file on first run. The checklist confirms all six VCF-specific values are in place before passing to OCP-VCF-02.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — backup and final spot-check</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — backup and final spot-check</span></div>
     <div class="term-body"><pre><span class="td"># Timestamped backup — created BEFORE running the installer</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 cp ~/ocp-kit/install/install-config.yaml \
@@ -1237,7 +1237,7 @@ echo "Backed up: install-config.yaml.${TIMESTAMP}.bak"</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">grep -E \
   "server:|certThumb|networks:|apiVIPs:|ingressVIPs:|networkType" \
   ~/ocp-kit/install/install-config.yaml</span>
-<span class="tg">        server: vcenter-ocp.novacrestbank.local</span>       <span class="td">← OCP Workload Domain vCenter ✓</span>
+<span class="tg">        server: vcenter-ocp.novacrestbank.internal</span>       <span class="td">← OCP Workload Domain vCenter ✓</span>
 <span class="tg">        certThumbprint: AABB...7899</span>                    <span class="td">← 64-char thumbprint ✓</span>
 <span class="tg">            - seg-ocp-nodes</span>                              <span class="td">← NSX overlay segment ✓</span>
 <span class="tg">    apiVIPs:
@@ -1251,13 +1251,13 @@ echo "Backed up: install-config.yaml.${TIMESTAMP}.bak"</span>
 
   <h2>Complete checklist — OCP-VCF-01 complete</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">vcenter-ocp (not vcenter-mgmt)</span><span class="spec-val"><span class="badge bg">✓</span> platform.vsphere.vcenters[0].server: vcenter-ocp.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">vcenter-ocp (not vcenter-mgmt)</span><span class="spec-val"><span class="badge bg">✓</span> platform.vsphere.vcenters[0].server: vcenter-ocp.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">certThumbprint — 64 hex chars, no colons</span><span class="spec-val"><span class="badge bg">✓</span> SHA-256 of vcenter-ocp's IssuingCA-signed certificate</span></div>
     <div class="spec-row"><span class="spec-label">NSX segment: seg-ocp-nodes</span><span class="spec-val"><span class="badge bg">✓</span> topology.networks[0]: seg-ocp-nodes — OPAQUE_NETWORK verified in vcenter-ocp</span></div>
     <div class="spec-row"><span class="spec-label">apiVIPs: [10.50.0.200]</span><span class="spec-val"><span class="badge bg">✓</span> Matches NSX LB NCB-VS-OCP-API from NSX-04</span></div>
     <div class="spec-row"><span class="spec-label">ingressVIPs: [10.50.0.201]</span><span class="spec-val"><span class="badge bg">✓</span> Matches NSX LB NCB-VS-OCP-HTTPS from NSX-04</span></div>
     <div class="spec-row"><span class="spec-label">networkType: OVNKubernetes</span><span class="spec-val"><span class="badge bg">✓</span></span></div>
-    <div class="spec-row"><span class="spec-label">baseDomain + metadata.name match DNS</span><span class="spec-val"><span class="badge bg">✓</span> novacrestbank.local + ocp → api.ocp.novacrestbank.local resolves ✓</span></div>
+    <div class="spec-row"><span class="spec-label">baseDomain + metadata.name match DNS</span><span class="spec-val"><span class="badge bg">✓</span> novacrestbank.internal + ocp → api.ocp.novacrestbank.internal resolves ✓</span></div>
     <div class="spec-row"><span class="spec-label">additionalTrustBundle — IssuingCA + RootCA</span><span class="spec-val"><span class="badge bg">✓</span> 2-space indent · openssl verify: OK · vcenter-ocp cert validates ✓</span></div>
     <div class="spec-row"><span class="spec-label">pullSecret — 4 registries, chmod 600</span><span class="spec-val"><span class="badge bg">✓</span></span></div>
     <div class="spec-row"><span class="spec-label">sshKey — ed25519 public key</span><span class="spec-val"><span class="badge bg">✓</span> ~/.ssh/ocp-vcf-cluster.pub · key added to ssh-agent</span></div>

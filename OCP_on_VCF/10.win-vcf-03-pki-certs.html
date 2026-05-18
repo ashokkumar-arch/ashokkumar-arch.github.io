@@ -365,7 +365,7 @@
     The Win-03 and Win-04 guides built the full PKI hierarchy:<br/>
     — <strong>RootCA</strong> (10.70.0.20) — offline Windows Server CA, root of trust for NovaCrestBank<br/>
     — <strong>IssuingCA</strong> (10.70.0.21) — online subordinate CA that signs end-entity certificates; its certificate is signed by the RootCA<br/>
-    — <strong>CA Web Enrollment</strong> — installed on IssuingCA, accessible at <code>http://issuingca.novacrestbank.local/certsrv</code><br/>
+    — <strong>CA Web Enrollment</strong> — installed on IssuingCA, accessible at <code>http://issuingca.novacrestbank.internal/certsrv</code><br/>
     — <strong>Certificate templates</strong> — the "NovaCrestBank-WebServer" template was created in Win-04 for server certificates with custom SANs<br/>
     — <strong>RootCA and IssuingCA certificates</strong> — distributed to all domain-joined machines via Group Policy<br/><br/>
     This guide uses the existing PKI to issue certificates for the four VCF components. No new PKI infrastructure is needed.
@@ -373,10 +373,10 @@
 
   <h2>Prerequisites</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">IssuingCA accessible</span><span class="spec-val">http://issuingca.novacrestbank.local/certsrv reachable from management workstation</span></div>
+    <div class="spec-row"><span class="spec-label">IssuingCA accessible</span><span class="spec-val">http://issuingca.novacrestbank.internal/certsrv reachable from management workstation</span></div>
     <div class="spec-row"><span class="spec-label">NovaCrestBank-WebServer template</span><span class="spec-val">Template configured in Win-04 with Subject Alternative Name (SAN) support enabled</span></div>
-    <div class="spec-row"><span class="spec-label">SDDC Manager deployed</span><span class="spec-val">Accessible at https://sddc-manager.novacrestbank.local — VCF bring-up complete</span></div>
-    <div class="spec-row"><span class="spec-label">NSX Manager deployed</span><span class="spec-val">Accessible at https://nsx-mgr.novacrestbank.local — three-node cluster operational</span></div>
+    <div class="spec-row"><span class="spec-label">SDDC Manager deployed</span><span class="spec-val">Accessible at https://sddc-manager.novacrestbank.internal — VCF bring-up complete</span></div>
+    <div class="spec-row"><span class="spec-label">NSX Manager deployed</span><span class="spec-val">Accessible at https://nsx-mgr.novacrestbank.internal — three-node cluster operational</span></div>
     <div class="spec-row"><span class="spec-label">vcenter-mgmt and vcenter-ocp deployed</span><span class="spec-val">Both vCenters accessible via HTTPS — SDDC Manager has commissioned both domains</span></div>
     <div class="spec-row"><span class="spec-label">Management workstation</span><span class="spec-val">Domain-joined Windows workstation that trusts the NovaCrestBank CA chain (inherited via GPO from Win-03)</span></div>
   </div>
@@ -398,10 +398,10 @@
     <div class="dq">A certificate has a Subject field with a Common Name. Is the Common Name sufficient for VCF components?</div>
     <div class="da"><strong>No. Modern browsers and TLS clients (including NSX Manager, SDDC Manager APIs, and the OCP installer) validate the Subject Alternative Name (SAN) extension — not the Common Name — to verify that the certificate matches the hostname they are connecting to. If the SAN does not include the exact hostname used to connect, certificate validation fails even if the Common Name matches.</strong><br/><br/>
     For VCF components the following SANs are required per certificate:<br/>
-    — The primary FQDN (e.g., sddc-manager.novacrestbank.local)<br/>
+    — The primary FQDN (e.g., sddc-manager.novacrestbank.internal)<br/>
     — The short hostname (e.g., sddc-manager) — some internal tools use unqualified names<br/>
     — The management IP address — some NSX internal API calls use IP addresses<br/><br/>
-    NSX Manager cluster certificate additionally requires the VIP FQDN (nsx-mgr.novacrestbank.local) and all three node FQDNs — because clients may connect to any of the four addresses.
+    NSX Manager cluster certificate additionally requires the VIP FQDN (nsx-mgr.novacrestbank.internal) and all three node FQDNs — because clients may connect to any of the four addresses.
     </div>
   </div>
 
@@ -411,8 +411,8 @@
     <div class="cert-row">
       <div class="cert-component">SDDC Manager</div>
       <div class="cert-detail">
-        <strong>CN:</strong> sddc-manager.novacrestbank.local<br/>
-        <strong>SANs (DNS):</strong> sddc-manager.novacrestbank.local · sddc-manager<br/>
+        <strong>CN:</strong> sddc-manager.novacrestbank.internal<br/>
+        <strong>SANs (DNS):</strong> sddc-manager.novacrestbank.internal · sddc-manager<br/>
         <strong>SANs (IP):</strong> 10.10.0.50<br/>
         <strong>Key size:</strong> RSA 2048<br/>
         <strong>Template:</strong> NovaCrestBank-WebServer<br/>
@@ -422,8 +422,8 @@
     <div class="cert-row">
       <div class="cert-component">NSX Manager cluster</div>
       <div class="cert-detail">
-        <strong>CN:</strong> nsx-mgr.novacrestbank.local (VIP FQDN)<br/>
-        <strong>SANs (DNS):</strong> nsx-mgr.novacrestbank.local · nsx-mgr-01.novacrestbank.local · nsx-mgr-02.novacrestbank.local · nsx-mgr-03.novacrestbank.local · nsx-mgr<br/>
+        <strong>CN:</strong> nsx-mgr.novacrestbank.internal (VIP FQDN)<br/>
+        <strong>SANs (DNS):</strong> nsx-mgr.novacrestbank.internal · nsx-mgr-01.novacrestbank.internal · nsx-mgr-02.novacrestbank.internal · nsx-mgr-03.novacrestbank.internal · nsx-mgr<br/>
         <strong>SANs (IP):</strong> 10.10.0.63 · 10.10.0.60 · 10.10.0.61 · 10.10.0.62<br/>
         <strong>Key size:</strong> RSA 2048<br/>
         <strong>Template:</strong> NovaCrestBank-WebServer<br/>
@@ -434,8 +434,8 @@
     <div class="cert-row">
       <div class="cert-component">vcenter-mgmt</div>
       <div class="cert-detail">
-        <strong>CN:</strong> vcenter-mgmt.novacrestbank.local<br/>
-        <strong>SANs (DNS):</strong> vcenter-mgmt.novacrestbank.local · vcenter-mgmt<br/>
+        <strong>CN:</strong> vcenter-mgmt.novacrestbank.internal<br/>
+        <strong>SANs (DNS):</strong> vcenter-mgmt.novacrestbank.internal · vcenter-mgmt<br/>
         <strong>SANs (IP):</strong> 10.10.0.51<br/>
         <strong>Key size:</strong> RSA 2048<br/>
         <strong>Template:</strong> NovaCrestBank-WebServer<br/>
@@ -445,8 +445,8 @@
     <div class="cert-row">
       <div class="cert-component">vcenter-ocp</div>
       <div class="cert-detail">
-        <strong>CN:</strong> vcenter-ocp.novacrestbank.local<br/>
-        <strong>SANs (DNS):</strong> vcenter-ocp.novacrestbank.local · vcenter-ocp<br/>
+        <strong>CN:</strong> vcenter-ocp.novacrestbank.internal<br/>
+        <strong>SANs (DNS):</strong> vcenter-ocp.novacrestbank.internal · vcenter-ocp<br/>
         <strong>SANs (IP):</strong> 10.10.0.52<br/>
         <strong>Key size:</strong> RSA 2048<br/>
         <strong>Template:</strong> NovaCrestBank-WebServer<br/>
@@ -457,7 +457,7 @@
 
   <div class="callout warn">
     <div class="cl">NSX Manager requires one certificate covering all four addresses — not four separate certificates</div>
-    The NSX Manager cluster operates as a single logical entity. When NSX Manager is upgraded or when SDDC Manager connects to it, it uses the VIP FQDN (nsx-mgr.novacrestbank.local). Internally, components may connect to any individual node FQDN or IP. A single certificate with all four DNS SANs and all four IP SANs covers every access pattern. Applying a separate certificate per node causes cross-node API calls to fail certificate validation.
+    The NSX Manager cluster operates as a single logical entity. When NSX Manager is upgraded or when SDDC Manager connects to it, it uses the VIP FQDN (nsx-mgr.novacrestbank.internal). Internally, components may connect to any individual node FQDN or IP. A single certificate with all four DNS SANs and all four IP SANs covers every access pattern. Applying a separate certificate per node causes cross-node API calls to fail certificate validation.
   </div>
 </div>
 
@@ -477,7 +477,7 @@
       </tr>
       <tr>
         <td><strong>2. Submit to IssuingCA</strong></td>
-        <td>Browser → http://issuingca.novacrestbank.local/certsrv → "Request a certificate" → "Advanced certificate request" → paste the CSR, select the template, submit.</td>
+        <td>Browser → http://issuingca.novacrestbank.internal/certsrv → "Request a certificate" → "Advanced certificate request" → paste the CSR, select the template, submit.</td>
         <td>A pending or immediately issued certificate request</td>
       </tr>
       <tr>
@@ -568,8 +568,8 @@
       <div class="sn">1</div>
       <div class="sc">
         <div class="st2">Log in to SDDC Manager</div>
-        <div class="sp">https://sddc-manager.novacrestbank.local</div>
-        <p style="font-size:13.5px;">Open a browser. Navigate to <strong>https://sddc-manager.novacrestbank.local</strong>. Log in as <strong>administrator@vsphere.local</strong> with the SDDC Manager admin password. The SDDC Manager dashboard appears.</p>
+        <div class="sp">https://sddc-manager.novacrestbank.internal</div>
+        <p style="font-size:13.5px;">Open a browser. Navigate to <strong>https://sddc-manager.novacrestbank.internal</strong>. Log in as <strong>administrator@vsphere.local</strong> with the SDDC Manager admin password. The SDDC Manager dashboard appears.</p>
       </div>
     </li>
     <li class="step-item">
@@ -630,14 +630,14 @@
                 </div>
                 <div class="sddc-fg">
                   <span class="sddc-lbl">Common Name (CN)</span>
-                  <input class="sddc-inp ok" value="sddc-manager.novacrestbank.local" readonly/>
+                  <input class="sddc-inp ok" value="sddc-manager.novacrestbank.internal" readonly/>
                   <div class="sddc-hint">The primary hostname — should match the FQDN used to access this appliance.</div>
                 </div>
               </div>
               <div class="sddc-frow">
                 <div class="sddc-fg">
                   <span class="sddc-lbl">Subject Alternative Names</span>
-                  <textarea class="sddc-inp ok" rows="3" style="font-family:monospace;font-size:12px;" readonly>sddc-manager.novacrestbank.local,sddc-manager,10.10.0.50</textarea>
+                  <textarea class="sddc-inp ok" rows="3" style="font-family:monospace;font-size:12px;" readonly>sddc-manager.novacrestbank.internal,sddc-manager,10.10.0.50</textarea>
                   <div class="sddc-hint">Enter SANs as a comma-separated list. The FQDN, short name, and management IP are all required. Some SDDC Manager versions show separate fields for DNS SANs and IP SANs — enter each in the correct field.</div>
                 </div>
               </div>
@@ -685,7 +685,7 @@
               <div class="browser-dot" style="background:#ffbd2e;"></div>
               <div class="browser-dot" style="background:#28c840;"></div>
             </div>
-            <div class="browser-url">http://issuingca.novacrestbank.local/certsrv</div>
+            <div class="browser-url">http://issuingca.novacrestbank.internal/certsrv</div>
           </div>
           <div class="browser-body">
             <div class="ca-h">Microsoft Active Directory Certificate Services</div>
@@ -700,7 +700,7 @@
           </div>
         </div>
 
-        <p style="font-size:13.5px;margin-top:8px;">Navigate to <strong>http://issuingca.novacrestbank.local/certsrv</strong>. If prompted for credentials, enter <strong>NOVACRESTBANK\Administrator</strong>. Click <strong>"Request a certificate."</strong></p>
+        <p style="font-size:13.5px;margin-top:8px;">Navigate to <strong>http://issuingca.novacrestbank.internal/certsrv</strong>. If prompted for credentials, enter <strong>NOVACRESTBANK\Administrator</strong>. Click <strong>"Request a certificate."</strong></p>
       </div>
     </li>
     <li class="step-item">
@@ -715,7 +715,7 @@
               <div class="browser-dot" style="background:#ffbd2e;"></div>
               <div class="browser-dot" style="background:#28c840;"></div>
             </div>
-            <div class="browser-url">http://issuingca.novacrestbank.local/certsrv/certrqus.asp</div>
+            <div class="browser-url">http://issuingca.novacrestbank.internal/certsrv/certrqus.asp</div>
           </div>
           <div class="browser-body">
             <div class="ca-h">Request a Certificate</div>
@@ -747,7 +747,7 @@
               <div class="browser-dot" style="background:#ffbd2e;"></div>
               <div class="browser-dot" style="background:#28c840;"></div>
             </div>
-            <div class="browser-url">http://issuingca.novacrestbank.local/certsrv/certfnsh.asp</div>
+            <div class="browser-url">http://issuingca.novacrestbank.internal/certsrv/certfnsh.asp</div>
           </div>
           <div class="browser-body">
             <div class="ca-h">Submit a Certificate Request or Renewal Request</div>
@@ -809,7 +809,7 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
               <div class="browser-dot" style="background:#ffbd2e;"></div>
               <div class="browser-dot" style="background:#28c840;"></div>
             </div>
-            <div class="browser-url">http://issuingca.novacrestbank.local/certsrv/certnew.cer?…</div>
+            <div class="browser-url">http://issuingca.novacrestbank.internal/certsrv/certnew.cer?…</div>
           </div>
           <div class="browser-body">
             <div class="ca-h">Certificate Issued</div>
@@ -850,7 +850,7 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
               <div class="browser-dot" style="background:#ffbd2e;"></div>
               <div class="browser-dot" style="background:#28c840;"></div>
             </div>
-            <div class="browser-url">http://issuingca.novacrestbank.local/certsrv/certca.asp</div>
+            <div class="browser-url">http://issuingca.novacrestbank.internal/certsrv/certca.asp</div>
           </div>
           <div class="browser-body">
             <div class="ca-h">Download a CA Certificate, Certificate Chain, or CRL</div>
@@ -893,7 +893,7 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
       <div class="sn">1</div>
       <div class="sc">
         <div class="st2">Return to SDDC Manager → Administration → Security → Certificates → Upload Certificate</div>
-        <div class="sp">https://sddc-manager.novacrestbank.local → Administration → Security → Certificates</div>
+        <div class="sp">https://sddc-manager.novacrestbank.internal → Administration → Security → Certificates</div>
         <p style="font-size:13.5px;">Return to the SDDC Manager Certificates page. Find the <strong>SDDC Manager</strong> component row. Click <strong>"Upload Certificate"</strong> or the certificate action menu (⋯ → Replace Certificate). An upload dialog opens.</p>
       </div>
     </li>
@@ -915,7 +915,7 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
                   <div style="background:#1a2438;border:1.5px dashed #e88030;border-radius:4px;padding:12px;text-align:center;font-size:12.5px;color:#e88030;cursor:pointer;">
                     📄 Click to upload or drag <strong>sddc-manager.cer</strong>
                   </div>
-                  <div class="sddc-hint">Upload the signed certificate downloaded from the CA (sddc-manager.cer). This is the end-entity certificate for sddc-manager.novacrestbank.local — not the CA certificate.</div>
+                  <div class="sddc-hint">Upload the signed certificate downloaded from the CA (sddc-manager.cer). This is the end-entity certificate for sddc-manager.novacrestbank.internal — not the CA certificate.</div>
                 </div>
               </div>
               <div class="sddc-frow">
@@ -955,10 +955,10 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
       <div class="sn">3</div>
       <div class="sc">
         <div class="st2">Verify the new certificate in the browser</div>
-        <p style="font-size:13.5px;">After logging back in, click the padlock icon in the browser address bar → <strong>Certificate</strong>. Verify: Issued To = sddc-manager.novacrestbank.local, Issued By = NovaCrestBank-IssuingCA, SANs include the FQDN, short name, and IP. If a certificate error still appears, the browser cache may need clearing (Ctrl+Shift+Delete → clear SSL state and cookies) or the management workstation does not trust the CA chain — recheck Section 04.</p>
+        <p style="font-size:13.5px;">After logging back in, click the padlock icon in the browser address bar → <strong>Certificate</strong>. Verify: Issued To = sddc-manager.novacrestbank.internal, Issued By = NovaCrestBank-IssuingCA, SANs include the FQDN, short name, and IP. If a certificate error still appears, the browser cache may need clearing (Ctrl+Shift+Delete → clear SSL state and cookies) or the management workstation does not trust the CA chain — recheck Section 04.</p>
         <div class="ann ok" style="margin-top:8px;">
           <span class="ai">✓</span>
-          <span>SDDC Manager certificate replaced. Browser shows padlock. Issued By = NovaCrestBank-IssuingCA. SANs include sddc-manager.novacrestbank.local, sddc-manager, and 10.10.0.50.</span>
+          <span>SDDC Manager certificate replaced. Browser shows padlock. Issued By = NovaCrestBank-IssuingCA. SANs include sddc-manager.novacrestbank.internal, sddc-manager, and 10.10.0.50.</span>
         </div>
       </div>
     </li>
@@ -976,8 +976,8 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
       <div class="sn">1</div>
       <div class="sc">
         <div class="st2">Log in to NSX Manager VIP</div>
-        <div class="sp">https://nsx-mgr.novacrestbank.local</div>
-        <p style="font-size:13.5px;">Navigate to <strong>https://nsx-mgr.novacrestbank.local</strong>. Log in as <strong>admin</strong> with the NSX Manager admin password. The NSX Manager dashboard appears.</p>
+        <div class="sp">https://nsx-mgr.novacrestbank.internal</div>
+        <p style="font-size:13.5px;">Navigate to <strong>https://nsx-mgr.novacrestbank.internal</strong>. Log in as <strong>admin</strong> with the NSX Manager admin password. The NSX Manager dashboard appears.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1002,7 +1002,7 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
               <div class="nsx-frow">
                 <div class="nsx-fg">
                   <span class="nsx-lbl">Common Name</span>
-                  <input class="nsx-inp ok" value="nsx-mgr.novacrestbank.local" readonly/>
+                  <input class="nsx-inp ok" value="nsx-mgr.novacrestbank.internal" readonly/>
                   <div class="nsx-hint">The VIP FQDN — the primary address used to connect to the NSX Manager cluster.</div>
                 </div>
                 <div class="nsx-fg">
@@ -1034,10 +1034,10 @@ Z2VyLm5vdmFjcmVzdGJhbmsubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
               <div class="nsx-frow">
                 <div class="nsx-fg">
                   <span class="nsx-lbl">Subject Alternative Names — DNS</span>
-                  <textarea class="nsx-inp ok" rows="5" style="font-family:monospace;font-size:11.5px;" readonly>nsx-mgr.novacrestbank.local
-nsx-mgr-01.novacrestbank.local
-nsx-mgr-02.novacrestbank.local
-nsx-mgr-03.novacrestbank.local
+                  <textarea class="nsx-inp ok" rows="5" style="font-family:monospace;font-size:11.5px;" readonly>nsx-mgr.novacrestbank.internal
+nsx-mgr-01.novacrestbank.internal
+nsx-mgr-02.novacrestbank.internal
+nsx-mgr-03.novacrestbank.internal
 nsx-mgr</textarea>
                   <div class="nsx-hint">Enter each DNS SAN on a new line. Some NSX versions provide separate fields for DNS and IP SANs — enter DNS names here and IPs in the next field. Others use a combined comma-separated field.</div>
                 </div>
@@ -1086,7 +1086,7 @@ nsx-mgr</textarea>
   <p>Follow the identical process from Sections 06 and 07 with the NSX Manager CSR:</p>
 
   <ol style="font-size:13.5px;">
-    <li>Navigate to <strong>http://issuingca.novacrestbank.local/certsrv</strong></li>
+    <li>Navigate to <strong>http://issuingca.novacrestbank.internal/certsrv</strong></li>
     <li>Request a certificate → Advanced certificate request → Submit a certificate request using a base-64 file</li>
     <li>Paste the contents of <code>C:\NovaCrest-Certs\nsx-mgr.csr</code></li>
     <li>Template: <strong>NovaCrestBank-WebServer</strong></li>
@@ -1187,7 +1187,7 @@ nsx-mgr</textarea>
           <div class="nsx-body">
             <div style="background:#141424;border-radius:6px;padding:14px 18px;border:1px solid #2a2a4e;margin:10px 0;">
               <div style="font-size:13px;color:#e0d0f8;margin-bottom:12px;">Certificate: <strong>NCB-NSX-Cluster-Cert-2026</strong></div>
-              <div style="font-size:12.5px;color:#9080b0;margin-bottom:8px;">CN: nsx-mgr.novacrestbank.local · SANs: 5 DNS + 4 IP · Expires: 2028</div>
+              <div style="font-size:12.5px;color:#9080b0;margin-bottom:8px;">CN: nsx-mgr.novacrestbank.internal · SANs: 5 DNS + 4 IP · Expires: 2028</div>
               <div style="display:flex;flex-direction:column;gap:6px;">
                 <div style="padding:7px 12px;background:#201830;border-radius:4px;border:1px solid var(--nsx);color:#d0b0ff;font-size:13px;cursor:pointer;">
                   ▶ Apply to Cluster Node ← click this
@@ -1239,8 +1239,8 @@ nsx-mgr</textarea>
       <div class="sn">1</div>
       <div class="sc">
         <div class="st2">Log in to vcenter-mgmt vSphere Client</div>
-        <div class="sp">https://vcenter-mgmt.novacrestbank.local/ui</div>
-        <p style="font-size:13.5px;">Navigate to <strong>https://vcenter-mgmt.novacrestbank.local/ui</strong>. Log in as <strong>administrator@vsphere.local</strong>.</p>
+        <div class="sp">https://vcenter-mgmt.novacrestbank.internal/ui</div>
+        <p style="font-size:13.5px;">Navigate to <strong>https://vcenter-mgmt.novacrestbank.internal/ui</strong>. Log in as <strong>administrator@vsphere.local</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1266,7 +1266,7 @@ nsx-mgr</textarea>
               <div class="vc-frow">
                 <div class="vc-fg">
                   <span class="vc-lbl">Common Name (CN)</span>
-                  <input class="vc-inp ok" value="vcenter-mgmt.novacrestbank.local" readonly/>
+                  <input class="vc-inp ok" value="vcenter-mgmt.novacrestbank.internal" readonly/>
                   <div class="vc-hint">Auto-populated with the vCenter FQDN in many versions. Verify it shows the correct FQDN. If it shows the short hostname, change it to the full FQDN.</div>
                 </div>
               </div>
@@ -1303,7 +1303,7 @@ nsx-mgr</textarea>
               <div class="vc-frow">
                 <div class="vc-fg">
                   <span class="vc-lbl">Subject Alternative Names</span>
-                  <textarea class="vc-inp ok" rows="3" style="font-family:monospace;font-size:12px;" readonly>vcenter-mgmt.novacrestbank.local,vcenter-mgmt,10.10.0.51</textarea>
+                  <textarea class="vc-inp ok" rows="3" style="font-family:monospace;font-size:12px;" readonly>vcenter-mgmt.novacrestbank.internal,vcenter-mgmt,10.10.0.51</textarea>
                   <div class="vc-hint">FQDN, short hostname, and management IP. vCenter populates the primary FQDN automatically — add the short name and IP as additional SANs. Format varies by vCenter version — some accept a comma-separated list, others add items one at a time with an "Add" button.</div>
                 </div>
               </div>
@@ -1329,7 +1329,7 @@ nsx-mgr</textarea>
   <div class="pt">Submit vcenter-mgmt CSR to IssuingCA and download</div>
   <div class="ps">Same CA web enrollment process as before — follow the identical steps from Sections 06 and 07</div>
 
-  <p>Navigate to <strong>http://issuingca.novacrestbank.local/certsrv</strong>. Follow the same advanced request process. Paste the contents of <code>vcenter-mgmt.csr</code>. Template: <strong>NovaCrestBank-WebServer</strong>. Download the signed certificate as Base64 → save as <code>C:\NovaCrest-Certs\vcenter-mgmt.cer</code>.</p>
+  <p>Navigate to <strong>http://issuingca.novacrestbank.internal/certsrv</strong>. Follow the same advanced request process. Paste the contents of <code>vcenter-mgmt.csr</code>. Template: <strong>NovaCrestBank-WebServer</strong>. Download the signed certificate as Base64 → save as <code>C:\NovaCrest-Certs\vcenter-mgmt.cer</code>.</p>
 
   <div class="ann ok">
     <span class="ai">✓</span>
@@ -1417,9 +1417,9 @@ nsx-mgr</textarea>
   <p>Repeat Sections 12, 13, and 14 for <strong>vcenter-ocp</strong> with these values:</p>
 
   <div class="card">
-    <div class="spec-row"><span class="spec-label">vCenter URL</span><span class="spec-val">https://vcenter-ocp.novacrestbank.local/ui</span></div>
-    <div class="spec-row"><span class="spec-label">CSR Common Name</span><span class="spec-val">vcenter-ocp.novacrestbank.local</span></div>
-    <div class="spec-row"><span class="spec-label">CSR SANs</span><span class="spec-val">vcenter-ocp.novacrestbank.local · vcenter-ocp · 10.10.0.52</span></div>
+    <div class="spec-row"><span class="spec-label">vCenter URL</span><span class="spec-val">https://vcenter-ocp.novacrestbank.internal/ui</span></div>
+    <div class="spec-row"><span class="spec-label">CSR Common Name</span><span class="spec-val">vcenter-ocp.novacrestbank.internal</span></div>
+    <div class="spec-row"><span class="spec-label">CSR SANs</span><span class="spec-val">vcenter-ocp.novacrestbank.internal · vcenter-ocp · 10.10.0.52</span></div>
     <div class="spec-row"><span class="spec-label">CSR save as</span><span class="spec-val">C:\NovaCrest-Certs\vcenter-ocp.csr</span></div>
     <div class="spec-row"><span class="spec-label">Signed cert save as</span><span class="spec-val">C:\NovaCrest-Certs\vcenter-ocp.cer</span></div>
     <div class="spec-row"><span class="spec-label">CA chain</span><span class="spec-val">Same chain.pem from previous steps (issuingca.cer + rootca.cer)</span></div>
@@ -1428,7 +1428,7 @@ nsx-mgr</textarea>
 
   <div class="callout">
     <div class="cl">Why vcenter-ocp must also have a trusted certificate before OCP installation</div>
-    The OCP IPI installer connects to vcenter-ocp.novacrestbank.local to provision VMs for the master, infra, and worker nodes. The installer validates the vCenter TLS certificate using the CA trust chain in the install-config.yaml file. If vcenter-ocp presents a self-signed certificate, the installer rejects the connection with a "x509: certificate signed by unknown authority" error before deploying a single node. The vcenter-ocp certificate must be trusted before OCP-VCF-01 is run.
+    The OCP IPI installer connects to vcenter-ocp.novacrestbank.internal to provision VMs for the master, infra, and worker nodes. The installer validates the vCenter TLS certificate using the CA trust chain in the install-config.yaml file. If vcenter-ocp presents a self-signed certificate, the installer rejects the connection with a "x509: certificate signed by unknown authority" error before deploying a single node. The vcenter-ocp certificate must be trusted before OCP-VCF-01 is run.
   </div>
 
   <div class="ann ok">
@@ -1459,24 +1459,24 @@ nsx-mgr</textarea>
           <thead><tr><th>Component URL</th><th>Expected Issued By</th><th>Key SANs to verify</th></tr></thead>
           <tbody>
             <tr>
-              <td>https://sddc-manager.novacrestbank.local</td>
+              <td>https://sddc-manager.novacrestbank.internal</td>
               <td>NovaCrestBank-IssuingCA</td>
-              <td>sddc-manager.novacrestbank.local · sddc-manager · 10.10.0.50</td>
+              <td>sddc-manager.novacrestbank.internal · sddc-manager · 10.10.0.50</td>
             </tr>
             <tr>
-              <td>https://nsx-mgr.novacrestbank.local</td>
+              <td>https://nsx-mgr.novacrestbank.internal</td>
               <td>NovaCrestBank-IssuingCA</td>
-              <td>nsx-mgr.novacrestbank.local · nsx-mgr-01/02/03 · 10.10.0.63/60/61/62</td>
+              <td>nsx-mgr.novacrestbank.internal · nsx-mgr-01/02/03 · 10.10.0.63/60/61/62</td>
             </tr>
             <tr>
-              <td>https://vcenter-mgmt.novacrestbank.local</td>
+              <td>https://vcenter-mgmt.novacrestbank.internal</td>
               <td>NovaCrestBank-IssuingCA</td>
-              <td>vcenter-mgmt.novacrestbank.local · vcenter-mgmt · 10.10.0.51</td>
+              <td>vcenter-mgmt.novacrestbank.internal · vcenter-mgmt · 10.10.0.51</td>
             </tr>
             <tr>
-              <td>https://vcenter-ocp.novacrestbank.local</td>
+              <td>https://vcenter-ocp.novacrestbank.internal</td>
               <td>NovaCrestBank-IssuingCA</td>
-              <td>vcenter-ocp.novacrestbank.local · vcenter-ocp · 10.10.0.52</td>
+              <td>vcenter-ocp.novacrestbank.internal · vcenter-ocp · 10.10.0.52</td>
             </tr>
           </tbody>
         </table>
@@ -1506,10 +1506,10 @@ nsx-mgr</textarea>
   <h2>Certificate replacement checklist</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">CA chain trusted on management workstation</span><span class="spec-val badge bg">✓ certmgr.msc — RootCA and IssuingCA present</span></div>
-    <div class="spec-row"><span class="spec-label">SDDC Manager — IssuingCA-signed cert installed</span><span class="spec-val badge bg">✓ SANs: sddc-manager.novacrestbank.local · sddc-manager · 10.10.0.50</span></div>
+    <div class="spec-row"><span class="spec-label">SDDC Manager — IssuingCA-signed cert installed</span><span class="spec-val badge bg">✓ SANs: sddc-manager.novacrestbank.internal · sddc-manager · 10.10.0.50</span></div>
     <div class="spec-row"><span class="spec-label">NSX Manager cluster — IssuingCA-signed cert installed</span><span class="spec-val badge bg">✓ SANs: VIP + 3 nodes FQDNs + VIP + 3 node IPs</span></div>
-    <div class="spec-row"><span class="spec-label">vcenter-mgmt — Machine SSL cert replaced</span><span class="spec-val badge bg">✓ SANs: vcenter-mgmt.novacrestbank.local · vcenter-mgmt · 10.10.0.51</span></div>
-    <div class="spec-row"><span class="spec-label">vcenter-ocp — Machine SSL cert replaced</span><span class="spec-val badge bg">✓ SANs: vcenter-ocp.novacrestbank.local · vcenter-ocp · 10.10.0.52</span></div>
+    <div class="spec-row"><span class="spec-label">vcenter-mgmt — Machine SSL cert replaced</span><span class="spec-val badge bg">✓ SANs: vcenter-mgmt.novacrestbank.internal · vcenter-mgmt · 10.10.0.51</span></div>
+    <div class="spec-row"><span class="spec-label">vcenter-ocp — Machine SSL cert replaced</span><span class="spec-val badge bg">✓ SANs: vcenter-ocp.novacrestbank.internal · vcenter-ocp · 10.10.0.52</span></div>
     <div class="spec-row"><span class="spec-label">All certificates verified — browser padlock with IssuingCA</span><span class="spec-val badge bg">✓ No browser certificate warnings on any component</span></div>
     <div class="spec-row"><span class="spec-label">Certificate files saved in C:\NovaCrest-Certs\</span><span class="spec-val badge bg">✓ All CSRs, signed certs, and CA cert files archived</span></div>
   </div>
@@ -1518,7 +1518,7 @@ nsx-mgr</textarea>
   <div class="card" style="border-left:4px solid var(--pki);">
     <p style="font-size:13.5px;">The Windows Server phase is now complete. OCP-VCF-01 creates the <strong>install-config.yaml</strong> — the configuration file the OCP IPI installer reads to know where to deploy the cluster. For the NovaCrestBank VCF+NSX environment, this file is significantly different from the standalone vSphere deployment used in the previous series:</p>
     <ul style="font-size:13.5px;margin-top:8px;margin-left:20px;">
-      <li><strong>vCenter reference</strong> — points to vcenter-ocp.novacrestbank.local (the OCP Workload Domain vCenter, not the Management Domain vCenter)</li>
+      <li><strong>vCenter reference</strong> — points to vcenter-ocp.novacrestbank.internal (the OCP Workload Domain vCenter, not the Management Domain vCenter)</li>
       <li><strong>Network segment reference</strong> — specifies seg-ocp-nodes (the NSX overlay segment created in NSX-03) instead of a vDS port group</li>
       <li><strong>CA bundle</strong> — includes the NovaCrestBank CA chain (rootca.cer + issuingca.cer concatenated) so the installer trusts vcenter-ocp's certificate</li>
       <li><strong>apiVIPs and ingressVIPs</strong> — 10.50.0.200 and 10.50.0.201 (the NSX LB VIPs created in NSX-04)</li>

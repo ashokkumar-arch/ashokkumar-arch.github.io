@@ -293,12 +293,12 @@
 
   <div class="decision">
     <div class="dl">What is GENEVE and why does NSX use it instead of VXLAN</div>
-    <div class="dq">The previous OCP guide used physical VLANs. NSX uses GENEVE tunnelling. What is GENEVE and what does the candidate need to understand about it operationally?</div>
+    <div class="dq">The previous OCP guide used physical VLANs. NSX uses GENEVE tunneling. What is GENEVE, and what do you need to understand about it operationally?</div>
     <div class="da"><strong>GENEVE (Generic Network Virtualisation Encapsulation) is the tunnel protocol NSX uses to carry overlay traffic across the physical network. A VM's Ethernet frame is wrapped inside a GENEVE header and a UDP packet, sent across the physical network to the destination ESXi host's TEP (Tunnel Endpoint), unwrapped, and delivered to the destination VM — exactly as if the two VMs were on the same physical network segment, even though they may be on different ESXi hosts with no physical VLAN between them.</strong><br/><br/>
-    What the candidate needs to understand operationally:<br/><br/>
+    What you need to understand operationally:<br/><br/>
     1. Every ESXi host that participates in NSX has a TEP (Tunnel Endpoint) — a special VMkernel interface that sends and receives GENEVE packets. This is configured on a dedicated VLAN (the TEP VLAN — covered in Section 10).<br/><br/>
     2. TEP traffic requires MTU 1600 minimum on the physical network (to accommodate the GENEVE encapsulation overhead on top of the inner 1500-byte Ethernet frame). The Cisco fabric must have its MTU configured for at least 1600, ideally 9000 (jumbo frames) end-to-end.<br/><br/>
-    3. The candidate never sees GENEVE packets directly — NSX hides all encapsulation/decapsulation inside the ESXi kernel. From the VM's perspective, it sends and receives normal Ethernet frames.
+    3. You never see GENEVE packets directly — NSX hides all encapsulation/decapsulation inside the ESXi kernel. From the VM's perspective, it sends and receives normal Ethernet frames.
     </div>
   </div>
 </div>
@@ -307,11 +307,11 @@
 <div class="page" id="page-workload-domains">
   <div class="ey">VCF Series · Section 03</div>
   <div class="pt">Workload Domains — correcting and completing the mental model</div>
-  <div class="ps">The candidate's three-domain assumption was close — this section aligns it precisely with VCF reality</div>
+  <div class="ps">Management domain and workload domain — this section aligns it precisely with VCF reality</div>
 
   <div class="callout success">
-    <div class="cl">The candidate's intuition was correct on the important point</div>
-    The candidate correctly identified that there is a management domain and that OpenShift gets its own domain with 5 ESXi hosts. The main correction is that Windows infrastructure VMs (DCs, CAs) live inside the Management Domain as regular VMs — they do not need their own Workload Domain.
+    <div class="cl">Management Domain and Workload Domain</div>
+    In a VCF environment, there is a management domain, and for OpenShift, here, it gets its own domain (workload domain) with 5 ESXi hosts. The main correction is that Windows infrastructure VMs (DCs, CAs) live inside the management domain as regular VMs—they do not need their own workload domain unless there are specific requirements such as large-scale enterprise environments/isolation/or specific security mandates.
   </div>
 
   <h2>NovaCrestBank's VCF topology — two domains</h2>
@@ -323,7 +323,7 @@
       <p style="font-size:13.5px;"><strong>What runs here:</strong></p>
       <ul style="font-size:13px;">
         <li>SDDC Manager (VCF's orchestrator)</li>
-        <li>Management vCenter (vcenter-mgmt.novacrestbank.local)</li>
+        <li>Management vCenter (vcenter-mgmt.novacrestbank.internal)</li>
         <li>NSX Manager cluster (3 NSX Manager VMs)</li>
         <li>NSX Edge cluster (for Tier-0/Tier-1 routing)</li>
         <li><strong>DC01 and DC02 (Active Directory)</strong></li>
@@ -337,7 +337,7 @@
       <p style="font-size:13.5px;"><strong>Created after Management Domain is healthy.</strong> A separate vCenter instance, separate NSX configuration (or shared NSX — NovaCrestBank uses shared NSX from the Management Domain).</p>
       <p style="font-size:13.5px;"><strong>What runs here:</strong></p>
       <ul style="font-size:13px;">
-        <li>Workload vCenter (vcenter-ocp.novacrestbank.local)</li>
+        <li>Workload vCenter (vcenter-ocp.novacrestbank.internal)</li>
         <li>OpenShift master nodes (3)</li>
         <li>OpenShift infrastructure nodes (3)</li>
         <li>OpenShift worker nodes (3+)</li>
@@ -391,8 +391,8 @@
   <h2>NSX Edge nodes — two dedicated VMs</h2>
   <p>NSX requires Edge Nodes — specialised VMs that run the Tier-0 Gateway (BGP routing between NSX overlay and physical network). These are VMs, not physical servers. They run in the Management Domain on esxi-mgmt-01 through esxi-mgmt-04.</p>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">Edge Node 1</span><span class="spec-val">edge-01.novacrestbank.local · 10.10.0.31 · runs on esxi-mgmt-01</span></div>
-    <div class="spec-row"><span class="spec-label">Edge Node 2</span><span class="spec-val">edge-02.novacrestbank.local · 10.10.0.32 · runs on esxi-mgmt-02</span></div>
+    <div class="spec-row"><span class="spec-label">Edge Node 1</span><span class="spec-val">edge-01.novacrestbank.internal · 10.10.0.31 · runs on esxi-mgmt-01</span></div>
+    <div class="spec-row"><span class="spec-label">Edge Node 2</span><span class="spec-val">edge-02.novacrestbank.internal · 10.10.0.32 · runs on esxi-mgmt-02</span></div>
     <div class="spec-row"><span class="spec-label">Edge VM size</span><span class="spec-val">Large: 8 vCPU, 32 GB RAM, 200 GB disk — required for NSX Load Balancer support</span></div>
     <div class="spec-row"><span class="spec-label">Edge cluster name</span><span class="spec-val">NCB-Edge-Cluster</span></div>
   </div>
@@ -604,14 +604,14 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <table>
     <thead><tr><th>Component</th><th>FQDN</th><th>IP (VLAN 10)</th><th>Notes</th></tr></thead>
     <tbody>
-      <tr><td><strong>SDDC Manager</strong></td><td>sddc-manager.novacrestbank.local</td><td>10.10.0.50</td><td>VCF orchestrator — deployed during VCF bring-up</td></tr>
-      <tr><td><strong>Management vCenter</strong></td><td>vcenter-mgmt.novacrestbank.local</td><td>10.10.0.51</td><td>Manages Management Domain ESXi hosts</td></tr>
-      <tr><td><strong>NSX Manager 1</strong></td><td>nsx-mgr-01.novacrestbank.local</td><td>10.10.0.60</td><td>NSX Manager cluster node 1</td></tr>
-      <tr><td><strong>NSX Manager 2</strong></td><td>nsx-mgr-02.novacrestbank.local</td><td>10.10.0.61</td><td>NSX Manager cluster node 2</td></tr>
-      <tr><td><strong>NSX Manager 3</strong></td><td>nsx-mgr-03.novacrestbank.local</td><td>10.10.0.62</td><td>NSX Manager cluster node 3</td></tr>
-      <tr><td><strong>NSX Manager VIP</strong></td><td>nsx-mgr.novacrestbank.local</td><td>10.10.0.63</td><td>Virtual IP — always points to the active NSX Manager. Used for all API/GUI access.</td></tr>
-      <tr><td><strong>Edge Node 1</strong></td><td>edge-01.novacrestbank.local</td><td>10.10.0.31</td><td>NSX Edge VM — runs Tier-0 Gateway</td></tr>
-      <tr><td><strong>Edge Node 2</strong></td><td>edge-02.novacrestbank.local</td><td>10.10.0.32</td><td>NSX Edge VM — runs Tier-0 Gateway</td></tr>
+      <tr><td><strong>SDDC Manager</strong></td><td>sddc-manager.novacrestbank.internal</td><td>10.10.0.50</td><td>VCF orchestrator — deployed during VCF bring-up</td></tr>
+      <tr><td><strong>Management vCenter</strong></td><td>vcenter-mgmt.novacrestbank.internal</td><td>10.10.0.51</td><td>Manages Management Domain ESXi hosts</td></tr>
+      <tr><td><strong>NSX Manager 1</strong></td><td>nsx-mgr-01.novacrestbank.internal</td><td>10.10.0.60</td><td>NSX Manager cluster node 1</td></tr>
+      <tr><td><strong>NSX Manager 2</strong></td><td>nsx-mgr-02.novacrestbank.internal</td><td>10.10.0.61</td><td>NSX Manager cluster node 2</td></tr>
+      <tr><td><strong>NSX Manager 3</strong></td><td>nsx-mgr-03.novacrestbank.internal</td><td>10.10.0.62</td><td>NSX Manager cluster node 3</td></tr>
+      <tr><td><strong>NSX Manager VIP</strong></td><td>nsx-mgr.novacrestbank.internal</td><td>10.10.0.63</td><td>Virtual IP — always points to the active NSX Manager. Used for all API/GUI access.</td></tr>
+      <tr><td><strong>Edge Node 1</strong></td><td>edge-01.novacrestbank.internal</td><td>10.10.0.31</td><td>NSX Edge VM — runs Tier-0 Gateway</td></tr>
+      <tr><td><strong>Edge Node 2</strong></td><td>edge-02.novacrestbank.internal</td><td>10.10.0.32</td><td>NSX Edge VM — runs Tier-0 Gateway</td></tr>
     </tbody>
   </table>
 
@@ -619,13 +619,13 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <table>
     <thead><tr><th>Component</th><th>FQDN</th><th>IP (seg-infra-services 10.70.0.0/24)</th></tr></thead>
     <tbody>
-      <tr><td><strong>DC01</strong></td><td>dc01.novacrestbank.local</td><td>10.70.0.10</td></tr>
-      <tr><td><strong>DC02</strong></td><td>dc02.novacrestbank.local</td><td>10.70.0.11</td></tr>
-      <tr><td><strong>Root CA</strong></td><td>rootca.novacrestbank.local</td><td>10.70.0.20</td></tr>
-      <tr><td><strong>Issuing CA</strong></td><td>issuingca.novacrestbank.local</td><td>10.70.0.21</td></tr>
-      <tr><td><strong>PKI web (pki.)</strong></td><td>pki.novacrestbank.local</td><td>10.70.0.10 (hosted on DC01 IIS)</td></tr>
-      <tr><td><strong>HSM-01</strong></td><td>hsm01.novacrestbank.local</td><td>10.40.0.61 (OOB VLAN — unchanged)</td></tr>
-      <tr><td><strong>HSM-02</strong></td><td>hsm02.novacrestbank.local</td><td>10.40.0.62 (OOB VLAN — unchanged)</td></tr>
+      <tr><td><strong>DC01</strong></td><td>dc01.novacrestbank.internal</td><td>10.70.0.10</td></tr>
+      <tr><td><strong>DC02</strong></td><td>dc02.novacrestbank.internal</td><td>10.70.0.11</td></tr>
+      <tr><td><strong>Root CA</strong></td><td>rootca.novacrestbank.internal</td><td>10.70.0.20</td></tr>
+      <tr><td><strong>Issuing CA</strong></td><td>issuingca.novacrestbank.internal</td><td>10.70.0.21</td></tr>
+      <tr><td><strong>PKI web (pki.)</strong></td><td>pki.novacrestbank.internal</td><td>10.70.0.10 (hosted on DC01 IIS)</td></tr>
+      <tr><td><strong>HSM-01</strong></td><td>hsm01.novacrestbank.internal</td><td>10.40.0.61 (OOB VLAN — unchanged)</td></tr>
+      <tr><td><strong>HSM-02</strong></td><td>hsm02.novacrestbank.internal</td><td>10.40.0.62 (OOB VLAN — unchanged)</td></tr>
     </tbody>
   </table>
 
@@ -655,22 +655,22 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
 
   <h2>OCP Workload Domain — vCenter</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">Workload Domain vCenter</span><span class="spec-val">vcenter-ocp.novacrestbank.local · 10.10.0.52</span></div>
+    <div class="spec-row"><span class="spec-label">Workload Domain vCenter</span><span class="spec-val">vcenter-ocp.novacrestbank.internal · 10.10.0.52</span></div>
   </div>
 
   <h2>OpenShift nodes — on NSX segment seg-ocp-nodes (10.50.0.0/24)</h2>
   <table>
     <thead><tr><th>Node</th><th>FQDN</th><th>IP</th><th>Role</th></tr></thead>
     <tbody>
-      <tr><td>master-0</td><td>master-0.ocp.novacrestbank.local</td><td>10.50.0.11</td><td>OCP Control Plane</td></tr>
-      <tr><td>master-1</td><td>master-1.ocp.novacrestbank.local</td><td>10.50.0.12</td><td>OCP Control Plane</td></tr>
-      <tr><td>master-2</td><td>master-2.ocp.novacrestbank.local</td><td>10.50.0.13</td><td>OCP Control Plane</td></tr>
-      <tr><td>infra-0</td><td>infra-0.ocp.novacrestbank.local</td><td>10.50.0.21</td><td>OCP Infrastructure</td></tr>
-      <tr><td>infra-1</td><td>infra-1.ocp.novacrestbank.local</td><td>10.50.0.22</td><td>OCP Infrastructure</td></tr>
-      <tr><td>infra-2</td><td>infra-2.ocp.novacrestbank.local</td><td>10.50.0.23</td><td>OCP Infrastructure</td></tr>
-      <tr><td>worker-0</td><td>worker-0.ocp.novacrestbank.local</td><td>10.50.0.31</td><td>OCP Worker</td></tr>
-      <tr><td>worker-1</td><td>worker-1.ocp.novacrestbank.local</td><td>10.50.0.32</td><td>OCP Worker</td></tr>
-      <tr><td>worker-2</td><td>worker-2.ocp.novacrestbank.local</td><td>10.50.0.33</td><td>OCP Worker</td></tr>
+      <tr><td>master-0</td><td>master-0.ocp.novacrestbank.internal</td><td>10.50.0.11</td><td>OCP Control Plane</td></tr>
+      <tr><td>master-1</td><td>master-1.ocp.novacrestbank.internal</td><td>10.50.0.12</td><td>OCP Control Plane</td></tr>
+      <tr><td>master-2</td><td>master-2.ocp.novacrestbank.internal</td><td>10.50.0.13</td><td>OCP Control Plane</td></tr>
+      <tr><td>infra-0</td><td>infra-0.ocp.novacrestbank.internal</td><td>10.50.0.21</td><td>OCP Infrastructure</td></tr>
+      <tr><td>infra-1</td><td>infra-1.ocp.novacrestbank.internal</td><td>10.50.0.22</td><td>OCP Infrastructure</td></tr>
+      <tr><td>infra-2</td><td>infra-2.ocp.novacrestbank.internal</td><td>10.50.0.23</td><td>OCP Infrastructure</td></tr>
+      <tr><td>worker-0</td><td>worker-0.ocp.novacrestbank.internal</td><td>10.50.0.31</td><td>OCP Worker</td></tr>
+      <tr><td>worker-1</td><td>worker-1.ocp.novacrestbank.internal</td><td>10.50.0.32</td><td>OCP Worker</td></tr>
+      <tr><td>worker-2</td><td>worker-2.ocp.novacrestbank.internal</td><td>10.50.0.33</td><td>OCP Worker</td></tr>
     </tbody>
   </table>
 
@@ -680,19 +680,19 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
     <tbody>
       <tr>
         <td><strong>OCP API VIP</strong></td>
-        <td>api.ocp.novacrestbank.local</td>
+        <td>api.ocp.novacrestbank.internal</td>
         <td>10.50.0.200</td><td>6443</td>
         <td>master-0, master-1, master-2 on port 6443</td>
       </tr>
       <tr>
         <td><strong>OCP API Internal VIP</strong></td>
-        <td>api-int.ocp.novacrestbank.local</td>
+        <td>api-int.ocp.novacrestbank.internal</td>
         <td>10.50.0.200</td><td>6443</td>
         <td>Same VIP — internal cluster access to API</td>
       </tr>
       <tr>
         <td><strong>OCP Ingress VIP</strong></td>
-        <td>*.apps.ocp.novacrestbank.local</td>
+        <td>*.apps.ocp.novacrestbank.internal</td>
         <td>10.50.0.201</td><td>443, 80</td>
         <td>infra-0, infra-1, infra-2 on ports 443/80</td>
       </tr>
@@ -1001,23 +1001,23 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <div class="ps">The complete DNS plan that the WIN-VCF-01 guide will implement, record by record, in the DNS Manager GUI</div>
 
   <div class="callout">
-    <div class="cl">DNS zone — same as before: novacrestbank.local</div>
-    DC01 and DC02 continue to serve DNS for novacrestbank.local as AD-integrated zones. No new zone is needed. All records below are A records in the existing novacrestbank.local forward lookup zone, plus PTR records in the appropriate reverse zones.
+    <div class="cl">DNS zone — same as before: novacrestbank.internal</div>
+    DC01 and DC02 continue to serve DNS for novacrestbank.internal as AD-integrated zones. No new zone is needed. All records below are A records in the existing novacrestbank.internal forward lookup zone, plus PTR records in the appropriate reverse zones.
   </div>
 
   <h2>VCF Management Plane records</h2>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td>sddc-manager.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.50</td><td>SDDC Manager — required before VCF bring-up can complete</td></tr>
-      <tr><td>vcenter-mgmt.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.51</td><td>Management Domain vCenter</td></tr>
-      <tr><td>vcenter-ocp.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.52</td><td>OCP Workload Domain vCenter</td></tr>
-      <tr><td>nsx-mgr-01.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.60</td><td>NSX Manager node 1</td></tr>
-      <tr><td>nsx-mgr-02.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.61</td><td>NSX Manager node 2</td></tr>
-      <tr><td>nsx-mgr-03.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.62</td><td>NSX Manager node 3</td></tr>
-      <tr><td>nsx-mgr.novacrestbank.local</td><td>A</td><td>10.10.0.63</td><td>NSX Manager VIP — always use this FQDN for NSX Manager access</td></tr>
-      <tr><td>edge-01.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.31</td><td>NSX Edge Node 1</td></tr>
-      <tr><td>edge-02.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.32</td><td>NSX Edge Node 2</td></tr>
+      <tr><td>sddc-manager.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.50</td><td>SDDC Manager — required before VCF bring-up can complete</td></tr>
+      <tr><td>vcenter-mgmt.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.51</td><td>Management Domain vCenter</td></tr>
+      <tr><td>vcenter-ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.52</td><td>OCP Workload Domain vCenter</td></tr>
+      <tr><td>nsx-mgr-01.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.60</td><td>NSX Manager node 1</td></tr>
+      <tr><td>nsx-mgr-02.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.61</td><td>NSX Manager node 2</td></tr>
+      <tr><td>nsx-mgr-03.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.62</td><td>NSX Manager node 3</td></tr>
+      <tr><td>nsx-mgr.novacrestbank.internal</td><td>A</td><td>10.10.0.63</td><td>NSX Manager VIP — always use this FQDN for NSX Manager access</td></tr>
+      <tr><td>edge-01.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.31</td><td>NSX Edge Node 1</td></tr>
+      <tr><td>edge-02.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.32</td><td>NSX Edge Node 2</td></tr>
     </tbody>
   </table>
 
@@ -1025,10 +1025,10 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th></tr></thead>
     <tbody>
-      <tr><td>esxi-mgmt-01.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.11</td></tr>
-      <tr><td>esxi-mgmt-02.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.12</td></tr>
-      <tr><td>esxi-mgmt-03.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.13</td></tr>
-      <tr><td>esxi-mgmt-04.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.14</td></tr>
+      <tr><td>esxi-mgmt-01.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.11</td></tr>
+      <tr><td>esxi-mgmt-02.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.12</td></tr>
+      <tr><td>esxi-mgmt-03.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.13</td></tr>
+      <tr><td>esxi-mgmt-04.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.14</td></tr>
     </tbody>
   </table>
 
@@ -1036,11 +1036,11 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th></tr></thead>
     <tbody>
-      <tr><td>esxi-ocp-01.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.21</td></tr>
-      <tr><td>esxi-ocp-02.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.22</td></tr>
-      <tr><td>esxi-ocp-03.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.23</td></tr>
-      <tr><td>esxi-ocp-04.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.24</td></tr>
-      <tr><td>esxi-ocp-05.novacrestbank.local</td><td>A + PTR</td><td>10.10.0.25</td></tr>
+      <tr><td>esxi-ocp-01.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.21</td></tr>
+      <tr><td>esxi-ocp-02.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.22</td></tr>
+      <tr><td>esxi-ocp-03.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.23</td></tr>
+      <tr><td>esxi-ocp-04.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.24</td></tr>
+      <tr><td>esxi-ocp-05.novacrestbank.internal</td><td>A + PTR</td><td>10.10.0.25</td></tr>
     </tbody>
   </table>
 
@@ -1048,11 +1048,11 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th></tr></thead>
     <tbody>
-      <tr><td>dc01.novacrestbank.local</td><td>A + PTR</td><td>10.70.0.10</td></tr>
-      <tr><td>dc02.novacrestbank.local</td><td>A + PTR</td><td>10.70.0.11</td></tr>
-      <tr><td>rootca.novacrestbank.local</td><td>A + PTR</td><td>10.70.0.20</td></tr>
-      <tr><td>issuingca.novacrestbank.local</td><td>A + PTR</td><td>10.70.0.21</td></tr>
-      <tr><td>pki.novacrestbank.local</td><td>A</td><td>10.70.0.10</td></tr>
+      <tr><td>dc01.novacrestbank.internal</td><td>A + PTR</td><td>10.70.0.10</td></tr>
+      <tr><td>dc02.novacrestbank.internal</td><td>A + PTR</td><td>10.70.0.11</td></tr>
+      <tr><td>rootca.novacrestbank.internal</td><td>A + PTR</td><td>10.70.0.20</td></tr>
+      <tr><td>issuingca.novacrestbank.internal</td><td>A + PTR</td><td>10.70.0.21</td></tr>
+      <tr><td>pki.novacrestbank.internal</td><td>A</td><td>10.70.0.10</td></tr>
     </tbody>
   </table>
 
@@ -1060,18 +1060,18 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
   <table>
     <thead><tr><th>FQDN</th><th>Type</th><th>IP</th><th>Notes</th></tr></thead>
     <tbody>
-      <tr><td>api.ocp.novacrestbank.local</td><td>A</td><td>10.50.0.200</td><td>OCP API — NSX LB VIP. Must resolve before OCP installation begins.</td></tr>
-      <tr><td>api-int.ocp.novacrestbank.local</td><td>A</td><td>10.50.0.200</td><td>OCP internal API — same VIP</td></tr>
-      <tr><td>*.apps.ocp.novacrestbank.local</td><td>A (wildcard)</td><td>10.50.0.201</td><td>OCP Ingress wildcard — all application routes</td></tr>
-      <tr><td>master-0.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.11</td><td></td></tr>
-      <tr><td>master-1.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.12</td><td></td></tr>
-      <tr><td>master-2.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.13</td><td></td></tr>
-      <tr><td>infra-0.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.21</td><td></td></tr>
-      <tr><td>infra-1.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.22</td><td></td></tr>
-      <tr><td>infra-2.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.23</td><td></td></tr>
-      <tr><td>worker-0.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.31</td><td></td></tr>
-      <tr><td>worker-1.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.32</td><td></td></tr>
-      <tr><td>worker-2.ocp.novacrestbank.local</td><td>A + PTR</td><td>10.50.0.33</td><td></td></tr>
+      <tr><td>api.ocp.novacrestbank.internal</td><td>A</td><td>10.50.0.200</td><td>OCP API — NSX LB VIP. Must resolve before OCP installation begins.</td></tr>
+      <tr><td>api-int.ocp.novacrestbank.internal</td><td>A</td><td>10.50.0.200</td><td>OCP internal API — same VIP</td></tr>
+      <tr><td>*.apps.ocp.novacrestbank.internal</td><td>A (wildcard)</td><td>10.50.0.201</td><td>OCP Ingress wildcard — all application routes</td></tr>
+      <tr><td>master-0.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.11</td><td></td></tr>
+      <tr><td>master-1.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.12</td><td></td></tr>
+      <tr><td>master-2.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.13</td><td></td></tr>
+      <tr><td>infra-0.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.21</td><td></td></tr>
+      <tr><td>infra-1.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.22</td><td></td></tr>
+      <tr><td>infra-2.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.23</td><td></td></tr>
+      <tr><td>worker-0.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.31</td><td></td></tr>
+      <tr><td>worker-1.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.32</td><td></td></tr>
+      <tr><td>worker-2.ocp.novacrestbank.internal</td><td>A + PTR</td><td>10.50.0.33</td><td></td></tr>
     </tbody>
   </table>
 </div>
@@ -1092,42 +1092,42 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
     <tbody>
       <tr>
         <td><strong>SDDC Manager</strong></td>
-        <td>sddc-manager.novacrestbank.local</td>
+        <td>sddc-manager.novacrestbank.internal</td>
         <td>Server (single SAN)</td>
         <td>NovaCrestBank-Issuing-CA via SDDC Manager cert replacement UI</td>
         <td><span class="reg pci">PCI Req 4.2.1</span></td>
       </tr>
       <tr>
         <td><strong>Management vCenter</strong></td>
-        <td>vcenter-mgmt.novacrestbank.local</td>
+        <td>vcenter-mgmt.novacrestbank.internal</td>
         <td>Server (single SAN)</td>
         <td>NovaCrestBank-Issuing-CA — same process as previous vSphere-03 guide</td>
         <td><span class="reg pci">PCI Req 4.2.1</span></td>
       </tr>
       <tr>
         <td><strong>OCP Workload vCenter</strong></td>
-        <td>vcenter-ocp.novacrestbank.local</td>
+        <td>vcenter-ocp.novacrestbank.internal</td>
         <td>Server (single SAN)</td>
         <td>NovaCrestBank-Issuing-CA — same process as vSphere-03</td>
         <td><span class="reg pci">PCI Req 4.2.1</span></td>
       </tr>
       <tr>
         <td><strong>NSX Manager VIP</strong></td>
-        <td>nsx-mgr.novacrestbank.local (+ all 3 node FQDNs as SANs)</td>
+        <td>nsx-mgr.novacrestbank.internal (+ all 3 node FQDNs as SANs)</td>
         <td>Server (multi-SAN)</td>
         <td>NovaCrestBank-Issuing-CA via NSX Manager cert replacement in GUI</td>
         <td><span class="reg pci">PCI Req 4.2.1</span></td>
       </tr>
       <tr>
         <td><strong>OCP API endpoint</strong></td>
-        <td>api.ocp.novacrestbank.local</td>
+        <td>api.ocp.novacrestbank.internal</td>
         <td>Server</td>
         <td>NovaCrestBank-Issuing-CA — same process as previous OCP guide</td>
         <td><span class="reg pci">PCI Req 4.2.1</span></td>
       </tr>
       <tr>
         <td><strong>OCP Ingress wildcard</strong></td>
-        <td>*.apps.ocp.novacrestbank.local</td>
+        <td>*.apps.ocp.novacrestbank.internal</td>
         <td>Wildcard server</td>
         <td>NovaCrestBank-Issuing-CA — same process as previous OCP guide</td>
         <td><span class="reg pci">PCI Req 4.2.1</span></td>
@@ -1145,7 +1145,7 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
 <div class="page" id="page-compliance">
   <div class="ey">VCF Series · Section 18</div>
   <div class="pt">How this architecture satisfies PCI-DSS and NIST</div>
-  <div class="ps">A consolidated view of the regulatory controls this design implements — for the compliance team and for the candidate's own understanding</div>
+  <div class="ps">A consolidated view of the regulatory controls this design implements — for the compliance team and for your own understanding</div>
 
   <h2>PCI-DSS v4.0 controls satisfied by this design</h2>
   <table>
@@ -1241,7 +1241,7 @@ VLAN 100 (Host TEP — OCP hosts also participate in NSX overlay)</div>
     <div class="spec-row"><span class="spec-label">NSX Load Balancer VIPs</span><span class="spec-val">API: 10.50.0.200:6443 · Ingress: 10.50.0.201:443/80</span></div>
     <div class="spec-row"><span class="spec-label">DFW policy</span><span class="spec-val">Default-deny. 9 explicit allow rules. Per-zone, per-port.</span></div>
     <div class="spec-row"><span class="spec-label">PKI</span><span class="spec-val">Same Root CA + Issuing CA from previous series. 6 new component certificates needed.</span></div>
-    <div class="spec-row"><span class="spec-label">DNS records</span><span class="spec-val">~35 new A+PTR records plus 1 wildcard — all in novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">DNS records</span><span class="spec-val">~35 new A+PTR records plus 1 wildcard — all in novacrestbank.internal</span></div>
   </div>
 
   <h2>Forward guide sequence</h2>

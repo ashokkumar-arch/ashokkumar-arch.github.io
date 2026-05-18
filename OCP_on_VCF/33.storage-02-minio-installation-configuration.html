@@ -271,13 +271,13 @@
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
       <div class="layer-num">Access</div>
       <div class="layer-title">Two Services — S3 API (ClusterIP) and Console (Route)</div>
-      <div class="layer-desc">Two Kubernetes Services: <code>minio</code> (ClusterIP, port 9000) for internal S3 API access by LokiStack, Tempo, and GitLab, and <code>minio-console</code> (port 9090) exposed via an OCP Route at <code>minio-console.apps.ocp.corp.novacrestbank.com</code> for the web administration UI. Internal workloads use the ClusterIP Service URL (<code>http://minio.minio.svc:9000</code>) — no Route required for S3 API calls within the cluster. TLS is terminated at the OCP Route for the console; S3 API traffic within the cluster is plain HTTP (internal cluster network).</div>
+      <div class="layer-desc">Two Kubernetes Services: <code>minio</code> (ClusterIP, port 9000) for internal S3 API access by LokiStack, Tempo, and GitLab, and <code>minio-console</code> (port 9090) exposed via an OCP Route at <code>minio-console.apps.ocp.novacrestbank.internal</code> for the web administration UI. Internal workloads use the ClusterIP Service URL (<code>http://minio.minio.svc:9000</code>) — no Route required for S3 API calls within the cluster. TLS is terminated at the OCP Route for the console; S3 API traffic within the cluster is plain HTTP (internal cluster network).</div>
     </div>
   </div>
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">MinIO S3 endpoint (internal)</span><span class="spec-val"><code>http://minio.minio.svc:9000</code> — used by all in-cluster S3 clients</span></div>
-    <div class="spec-row"><span class="spec-label">MinIO console URL (external)</span><span class="spec-val"><code>https://minio-console.apps.ocp.corp.novacrestbank.com</code></span></div>
+    <div class="spec-row"><span class="spec-label">MinIO console URL (external)</span><span class="spec-val"><code>https://minio-console.apps.ocp.novacrestbank.internal</code></span></div>
     <div class="spec-row"><span class="spec-label">Namespace</span><span class="spec-val"><code>minio</code></span></div>
     <div class="spec-row"><span class="spec-label">OCP node placement</span><span class="spec-val">Infra nodes — nodeSelector <code>node-role.kubernetes.io/infra: ""</code></span></div>
     <div class="spec-row"><span class="spec-label">StorageClass</span><span class="spec-val"><code>vsan-standard</code> — 200 GiB initial, expandable</span></div>
@@ -361,16 +361,16 @@
 
 <span class="td"># Verify MinIO image is in Harbor (mirrored via oc-mirror)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc image info \
-  harbor.apps.ocp.corp.novacrestbank.com/platform/minio:RELEASE.2025-latest \
+  harbor.apps.ocp.novacrestbank.internal/platform/minio:RELEASE.2025-latest \
   --insecure=false 2>/dev/null | grep "Name:"</span>
-<span class="tg">Name: harbor.apps.ocp.corp.novacrestbank.com/platform/minio:RELEASE.2025-latest</span>
+<span class="tg">Name: harbor.apps.ocp.novacrestbank.internal/platform/minio:RELEASE.2025-latest</span>
 <span class="td">  ↑ MinIO image available in Harbor ✓</td>
 
 <span class="td"># Verify mc CLI image is in Harbor (for bucket management)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc image info \
-  harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   --insecure=false 2>/dev/null | grep "Name:"</span>
-<span class="tg">Name: harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest</span>
+<span class="tg">Name: harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest</span>
 <span class="td">  ↑ mc CLI image in Harbor ✓</td>
 
 <span class="td"># Verify vsan-standard StorageClass available</span>
@@ -387,7 +387,7 @@
 <div class="page" id="page-tls-prereq">
   <div class="ey">STORAGE-02 · Section 05</div>
   <div class="pt">TLS certificate from cert-manager before deployment</div>
-  <div class="ps">The MinIO console is exposed via an OCP Route at <code>minio-console.apps.ocp.corp.novacrestbank.com</code>. The Route requires a TLS certificate. cert-manager (OPS-02) provisions this certificate from the NovaCrestBank IssuingCA. The certificate must exist before the Route is created — cert-manager creates it from a Certificate object applied to the minio namespace.</div>
+  <div class="ps">The MinIO console is exposed via an OCP Route at <code>minio-console.apps.ocp.novacrestbank.internal</code>. The Route requires a TLS certificate. cert-manager (OPS-02) provisions this certificate from the NovaCrestBank IssuingCA. The certificate must exist before the Route is created — cert-manager creates it from a Certificate object applied to the minio namespace.</div>
 
   <div class="yaml">
     <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div>
@@ -403,11 +403,11 @@
     <span class="yk">name</span>: <span class="yv">novacrestbank-issuer</span>
     <span class="yk">kind</span>: <span class="yv">ClusterIssuer</span>
   <span class="yk">dnsNames</span>:
-    - <span class="yv">minio-console.apps.ocp.corp.novacrestbank.com</span>
+    - <span class="yv">minio-console.apps.ocp.novacrestbank.internal</span>
     - <span class="yv">minio.minio.svc</span>
     - <span class="yv">minio.minio.svc.cluster.local</span>
   <span class="yc">  # Three SANs:
-    # minio-console.apps.ocp.corp.novacrestbank.com — the external console Route
+    # minio-console.apps.ocp.novacrestbank.internal — the external console Route
     # minio.minio.svc — the internal ClusterIP Service hostname
     # minio.minio.svc.cluster.local — the fully-qualified internal hostname
     # Including both internal and external SANs in one certificate avoids
@@ -529,7 +529,7 @@ spec:
                   # to the /data volume without permission errors.</span>
       <span class="yk">containers</span>:
         - <span class="yk">name</span>: <span class="yv">minio</span>
-          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/platform/minio:RELEASE.2025-latest</span>
+          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/minio:RELEASE.2025-latest</span>
           <span class="yk">args</span>:
             - <span class="yv">server</span>
             - <span class="yv">/data</span>
@@ -557,7 +557,7 @@ spec:
                               # not accessible outside the cluster. "public" within a private
                               # cluster is acceptable for a metrics endpoint.</span>
             - <span class="yk">name</span>: <span class="yv">MINIO_BROWSER_REDIRECT_URL</span>
-              <span class="yk">value</span>: <span class="yv">https://minio-console.apps.ocp.corp.novacrestbank.com</span>
+              <span class="yk">value</span>: <span class="yv">https://minio-console.apps.ocp.novacrestbank.internal</span>
               <span class="yc">              # BROWSER_REDIRECT_URL: the external console URL.
                               # MinIO uses this for OAuth2 callback URLs and CORS.
                               # Without this, the console may redirect to the internal pod IP.</span>
@@ -669,7 +669,7 @@ spec:
   <span class="yk">annotations</span>:
     <span class="yk">cert-manager.io/cluster-issuer</span>: <span class="yv">novacrestbank-issuer</span>
 <span class="yk">spec</span>:
-  <span class="yk">host</span>: <span class="yv">minio-console.apps.ocp.corp.novacrestbank.com</span>
+  <span class="yk">host</span>: <span class="yv">minio-console.apps.ocp.novacrestbank.internal</span>
   <span class="yk">to</span>:
     <span class="yk">kind</span>: <span class="yv">Service</span>
     <span class="yk">name</span>: <span class="yv">minio-console</span>
@@ -705,7 +705,7 @@ minio   1       map[node-role.kubernetes.io/infra:]</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pod -n minio -l app=minio \
   -o custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName</span>
 <span class="tg">NAME      STATUS    NODE
-minio-0   Running   infra-2.ocp.corp.novacrestbank.com</span>
+minio-0   Running   infra-2.ocp.novacrestbank.internal</span>
 <span class="td">  ↑ minio-0 Running on infra-2 ✓</td>
 
 <span class="td"># Check PVC is Bound</span>
@@ -729,10 +729,10 @@ minio-data-minio-0  Bound    pvc-a1b2c3d4...  200Gi      vsan-standard    5m</sp
 
 <span class="td"># Verify console TLS certificate</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect minio-console.apps.ocp.corp.novacrestbank.com:443 2>/dev/null \
+  -connect minio-console.apps.ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -noout -issuer -subject</span>
 <span class="tg">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
-subject=CN=minio-console.apps.ocp.corp.novacrestbank.com</span>
+subject=CN=minio-console.apps.ocp.novacrestbank.internal</span>
 <span class="td">  ↑ IssuingCA-signed certificate ✓  auto-renew via cert-manager ✓</td>
     <div class="tann ok"><span class="tai">✓</span><span>minio-0 Running on infra-2. PVC Bound (200 GiB vsan-standard). Liveness and readiness endpoints returning 200. Console accessible with IssuingCA-signed certificate. MinIO is fully operational.</span></div>
     </pre></div>
@@ -755,7 +755,7 @@ MINIO_PASS=$(oc get secret minio-root-credentials -n minio \
   -o jsonpath='{.data.MINIO_ROOT_PASSWORD}' | base64 -d)</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-admin --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" \
   --env="MINIO_PASS=$MINIO_PASS" \
@@ -792,7 +792,7 @@ MINIO_PASS=$(oc get secret minio-root-credentials -n minio \
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — create ncb-ocp-logs bucket for LokiStack</span></div>
     <div class="term-body"><pre><span class="td"># Create the ncb-ocp-logs bucket with versioning disabled (logs are append-only)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-setup --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c '
@@ -823,7 +823,7 @@ Access policy: none (private)
 
 <span class="td"># Create a scoped access key for LokiStack (read/write on ncb-ocp-logs only)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-loki-key --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c '
@@ -858,7 +858,7 @@ LokiStack access key created: NCB_LOKI_ACCESS_KEY</span>
   <div class="term">
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — create ncb-ocp-traces bucket for Tempo</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-tempo --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c '
@@ -906,7 +906,7 @@ enabled    NCB_TEMPO_ACCESS_KEY</span>
   <div class="term">
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — create ncb-gitlab bucket and GitLab access key</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-gitlab --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c '
@@ -940,7 +940,7 @@ GitLab access key created: NCB_GITLAB_ACCESS_KEY</span>
 
 <span class="td"># Verify all three buckets now exist</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-list --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c \
@@ -1034,7 +1034,7 @@ GitLab access key created: NCB_GITLAB_ACCESS_KEY</span>
   <div class="term">
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — set lifecycle rules on all three buckets</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-lifecycle --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c '
@@ -1178,7 +1178,7 @@ rule-001  *       ✓        10</span>
 
 <span class="td"># Step 3: Verify MinIO sees the expanded capacity</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run mc-info --rm -i --restart=Never \
-  --image=harbor.apps.ocp.corp.novacrestbank.com/platform/mc:RELEASE.2025-latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/platform/mc:RELEASE.2025-latest \
   -n minio \
   --env="MINIO_USER=$MINIO_USER" --env="MINIO_PASS=$MINIO_PASS" \
   -- /bin/sh -c \
@@ -1198,13 +1198,13 @@ rule-001  *       ✓        10</span>
 
   <div class="callout success">
     <div class="cl">STORAGE-02 complete — the OBS-03 prerequisite is now fully documented</div>
-    MinIO is deployed as a single-node StatefulSet on infra nodes, backed by a 200 GiB vsan-standard PVC. Three buckets are created with scoped access keys for each consuming workload. Lifecycle rules enforce the retention periods referenced in OBS-03 and OBS-04. The deployment sequence that was previously implicit — STORAGE-02 runs before OBS-03, OBS-04, and GITOPS-00 — is now explicit and documented. The MinIO console is accessible at minio-console.apps.ocp.corp.novacrestbank.com with an IssuingCA-signed certificate.
+    MinIO is deployed as a single-node StatefulSet on infra nodes, backed by a 200 GiB vsan-standard PVC. Three buckets are created with scoped access keys for each consuming workload. Lifecycle rules enforce the retention periods referenced in OBS-03 and OBS-04. The deployment sequence that was previously implicit — STORAGE-02 runs before OBS-03, OBS-04, and GITOPS-00 — is now explicit and documented. The MinIO console is accessible at minio-console.apps.ocp.novacrestbank.internal with an IssuingCA-signed certificate.
   </div>
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">MinIO StatefulSet — minio-0 Running on infra node</span><span class="spec-val"><span class="badge bg">✓</span> Running on infra-2 · 200 GiB vsan-standard PVC Bound</span></div>
     <div class="spec-row"><span class="spec-label">Liveness and readiness endpoints — 200 OK</span><span class="spec-val"><span class="badge bg">✓</span> /minio/health/live and /minio/health/ready both 200</span></div>
-    <div class="spec-row"><span class="spec-label">Console Route — TLS certificate from IssuingCA</span><span class="spec-val"><span class="badge bg">✓</span> minio-console.apps.ocp.corp.novacrestbank.com · auto-renew via cert-manager</span></div>
+    <div class="spec-row"><span class="spec-label">Console Route — TLS certificate from IssuingCA</span><span class="spec-val"><span class="badge bg">✓</span> minio-console.apps.ocp.novacrestbank.internal · auto-renew via cert-manager</span></div>
     <div class="spec-row"><span class="spec-label">Root credentials from CyberArk via ESO</span><span class="spec-val"><span class="badge bg">✓</span> ExternalSecret minio-root-credentials synced · no hardcoded credentials</span></div>
     <div class="spec-row"><span class="spec-label">ncb-ocp-logs bucket — LokiStack prerequisite</span><span class="spec-val"><span class="badge bg">✓</span> Created · private · NCB_LOKI_ACCESS_KEY scoped · 35-day lifecycle</span></div>
     <div class="spec-row"><span class="spec-label">ncb-ocp-traces bucket — Tempo prerequisite</span><span class="spec-val"><span class="badge bg">✓</span> Created · private · NCB_TEMPO_ACCESS_KEY scoped · 10-day lifecycle</span></div>

@@ -304,7 +304,7 @@
     LokiStack connects to MinIO at startup and validates the bucket exists and is accessible. If the bucket does not exist or MinIO is unreachable, LokiStack's Ingester pods enter CrashLoopBackOff immediately. Deploy MinIO first, create the <code>ncb-ocp-logs</code> bucket, then deploy LokiStack.
   </div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify prerequisites</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify prerequisites</span></div>
     <div class="term-body"><pre><span class="td"># Verify MinIO is running and the logs bucket exists</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">mc ls minio/ncb-ocp-logs 2>&amp;1 | head -3</span>
 <span class="tg">[2026-04-01 10:00:00 AEST]     0B ncb-ocp-logs/</span>
@@ -319,9 +319,9 @@
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get nodes -l node-role.kubernetes.io/infra \
   -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints[0].effect</span>
 <span class="tg">NAME                              TAINTS
-infra-0.ocp.novacrestbank.local   NoSchedule
-infra-1.ocp.novacrestbank.local   NoSchedule
-infra-2.ocp.novacrestbank.local   NoSchedule</span>
+infra-0.ocp.novacrestbank.internal   NoSchedule
+infra-1.ocp.novacrestbank.internal   NoSchedule
+infra-2.ocp.novacrestbank.internal   NoSchedule</span>
 <span class="td">  ↑ 3 infra nodes with NoSchedule taint ✓
     LokiStack and Vector DaemonSet will be placed here.</span>
 
@@ -330,7 +330,7 @@ infra-2.ocp.novacrestbank.local   NoSchedule</span>
   --from-literal=access_key_id='NCB_MINIO_ACCESS_KEY' \
   --from-literal=access_key_secret='NCB_MINIO_SECRET_KEY' \
   --from-literal=bucketnames='ncb-ocp-logs' \
-  --from-literal=endpoint='https://minio.infra.novacrestbank.local:9000' \
+  --from-literal=endpoint='https://minio.infra.novacrestbank.internal:9000' \
   -n openshift-logging</span>
 <span class="tg">secret/lokistack-minio-creds created</span>
     <div class="tann ok"><span class="tai">✓</span><span>MinIO bucket accessible. cert-manager Ready. Infra nodes available with NoSchedule taint. MinIO credentials Secret created. Ready to install the Logging Operator.</span></div>
@@ -500,7 +500,7 @@ loki-operator.v0.5.x      Loki Operator               0.5.x   Succeeded</span>
   <div class="pt">Verify LokiStack is healthy</div>
   <div class="ps">Six checks confirm LokiStack is fully operational — from pod health through to a live log query returning results.</div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — LokiStack health verification</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — LokiStack health verification</span></div>
     <div class="term-body"><pre><span class="td"># Check 1: All LokiStack pods Running</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-logging | grep logging-loki</span>
 <span class="tg">logging-loki-compactor-0            1/1   Running   infra-0
@@ -639,7 +639,7 @@ collector   9         9         9       kubernetes.io/os=linux</span>
     - <span class="yk">name</span>: <span class="yv">splunk-siem</span>
       <span class="yk">type</span>: <span class="yv">splunk</span>
       <span class="yk">splunk</span>:
-        <span class="yk">url</span>: <span class="yv">https://splunk-hec.novacrestbank.local:8088</span>
+        <span class="yk">url</span>: <span class="yv">https://splunk-hec.novacrestbank.internal:8088</span>
         <span class="yc">  # The Splunk HTTP Event Collector endpoint.
               # Same endpoint as ACS uses (OCP-OPS-03 Section 18).
               # Different HEC token — audit logs go to a separate Splunk index.</span>
@@ -719,7 +719,7 @@ collector   9         9         9       kubernetes.io/os=linux</span>
      "delete" of a production pod is a high-value event for SOC correlation.</span>
 <span class="tg">  "user": {
     "username": "alice.smith",
-    "uid": "alice.smith@novacrestbank.local",
+    "uid": "alice.smith@novacrestbank.internal",
     "groups": ["NovaCrestBank-Banking-Developers", "system:authenticated"]
   },</span>
   <span class="td">  ↑ Who performed the action — their AD username and group memberships.
@@ -1154,7 +1154,7 @@ spec:
   -u admin:$(oc get secret ncb-grafana-admin-credentials \
     -n openshift-monitoring \
     -o jsonpath='{.data.GF_SECURITY_ADMIN_PASSWORD}' | base64 -d) \
-  "https://grafana-monitoring.apps.ocp.novacrestbank.local/api/datasources/name/Loki" \
+  "https://grafana-monitoring.apps.ocp.novacrestbank.internal/api/datasources/name/Loki" \
   | python3 -c "import json,sys; d=json.load(sys.stdin); print('Status:', d.get('type'),'URL:', d.get('url'))"</span>
 <span class="tg">Status: loki  URL: https://logging-loki-gateway-http.openshift-logging.svc:8080</span>
 <span class="td">  ↑ Loki datasource configured in Grafana ✓</span>

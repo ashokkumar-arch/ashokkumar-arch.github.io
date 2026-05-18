@@ -447,7 +447,7 @@
 
   <div class="card">
     <p style="font-size:13.5px;font-weight:600;margin-bottom:10px;">NovaCrestBank ODF node specification — 3 dedicated storage nodes</p>
-    <div class="spec-row"><span class="spec-label">Hostnames</span><span class="spec-val">odf-0.ocp.corp.novacrestbank.com · odf-1.ocp.corp.novacrestbank.com · odf-2.ocp.corp.novacrestbank.com</span></div>
+    <div class="spec-row"><span class="spec-label">Hostnames</span><span class="spec-val">odf-0.ocp.novacrestbank.internal · odf-1.ocp.novacrestbank.internal · odf-2.ocp.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Platform</span><span class="spec-val">HP DL380 Gen11 — same hardware profile as the existing OCP worker nodes</span></div>
     <div class="spec-row"><span class="spec-label">CPU</span><span class="spec-val">2 × 16-core Intel Xeon (32 cores) — OSD and recovery operations are CPU-intensive</span></div>
     <div class="spec-row"><span class="spec-label">RAM</span><span class="spec-val">128 GiB — OSD memory overhead: ~1–2 GiB per OSD × 2 OSDs per node + MON + MGR</span></div>
@@ -472,7 +472,7 @@
 # non-ODF workloads from being scheduled on the storage nodes.</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">for node in odf-0 odf-1 odf-2; do
-  oc label node ${node}.ocp.corp.novacrestbank.com \
+  oc label node ${node}.ocp.novacrestbank.internal \
     cluster.ocs.openshift.io/openshift-storage="" \
     node-role.kubernetes.io/storage="" \
     --overwrite
@@ -484,13 +484,13 @@ Labelled: odf-2</span>
 
 <span class="td"># Taint storage nodes — ODF pods tolerate this taint; application pods do not</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">for node in odf-0 odf-1 odf-2; do
-  oc adm taint node ${node}.ocp.corp.novacrestbank.com \
+  oc adm taint node ${node}.ocp.novacrestbank.internal \
     node.ocs.openshift.io/storage=true:NoSchedule \
     --overwrite
 done</span>
-<span class="tg">node/odf-0.ocp.corp.novacrestbank.com tainted
-node/odf-1.ocp.corp.novacrestbank.com tainted
-node/odf-2.ocp.corp.novacrestbank.com tainted</span>
+<span class="tg">node/odf-0.ocp.novacrestbank.internal tainted
+node/odf-1.ocp.novacrestbank.internal tainted
+node/odf-2.ocp.novacrestbank.internal tainted</span>
 
 <span class="td"># Verify nodes are labelled and tainted correctly</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get nodes -l cluster.ocs.openshift.io/openshift-storage \
@@ -498,13 +498,13 @@ node/odf-2.ocp.corp.novacrestbank.com tainted</span>
 NAME:.metadata.name,\
 TAINTS:.spec.taints[0].key</span>
 <span class="tg">NAME                                   TAINTS
-odf-0.ocp.corp.novacrestbank.com       node.ocs.openshift.io/storage
-odf-1.ocp.corp.novacrestbank.com       node.ocs.openshift.io/storage
-odf-2.ocp.corp.novacrestbank.com       node.ocs.openshift.io/storage</span>
+odf-0.ocp.novacrestbank.internal       node.ocs.openshift.io/storage
+odf-1.ocp.novacrestbank.internal       node.ocs.openshift.io/storage
+odf-2.ocp.novacrestbank.internal       node.ocs.openshift.io/storage</span>
 <span class="td">  ↑ All 3 storage nodes labelled and tainted ✓</td>
 
 <span class="td"># Verify the raw NVMe disks are visible on each storage node (no filesystem, no partition)</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/odf-0.ocp.corp.novacrestbank.com -- \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/odf-0.ocp.novacrestbank.internal -- \
   chroot /host lsblk -d -o NAME,SIZE,TYPE,FSTYPE | grep nvme</span>
 <span class="tg">nvme0n1   3.8T   disk
 nvme1n1   3.8T   disk</span>
@@ -911,13 +911,13 @@ rook-ceph-rgw-ocs-storagecluster-cephobjectstore-b-xxx   2/2   Running   odf-1</
 <span class="tg">rook-ceph-rgw-ocs-storagecluster-cephobjectstore  ClusterIP  10.96.x.x  80/TCP,443/TCP</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get route -n openshift-storage | grep rgw</span>
-<span class="tg">s3-rgw  s3-rgw-openshift-storage.apps.ocp.corp.novacrestbank.com  443  edge/Redirect</span>
+<span class="tg">s3-rgw  s3-rgw-openshift-storage.apps.ocp.novacrestbank.internal  443  edge/Redirect</span>
 <span class="td">  ↑ RGW accessible via OCP Route for workloads outside the cluster ✓
     Internal workloads use the ClusterIP Service URL directly.</td>
 
 <span class="td"># Verify RGW S3 endpoint responds</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
-  https://s3-rgw-openshift-storage.apps.ocp.corp.novacrestbank.com/ \
+  https://s3-rgw-openshift-storage.apps.ocp.novacrestbank.internal/ \
   -o /dev/null -w "%{http_code}"</span>
 <span class="tg">403</span>
 <span class="td">  ↑ HTTP 403 = "Forbidden" — the RGW is responding correctly.
@@ -1042,7 +1042,7 @@ spec:
     spec:
       containers:
       - name: rsync
-        image: harbor.apps.ocp.corp.novacrestbank.com/ubi9/ubi:latest
+        image: harbor.apps.ocp.novacrestbank.internal/ubi9/ubi:latest
         command: [rsync, -av, /old/, /new/]
         volumeMounts:
         - mountPath: /old

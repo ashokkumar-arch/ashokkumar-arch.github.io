@@ -326,14 +326,14 @@
 
   <h2>Prerequisites checklist — verify before proceeding</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">VCF Management Domain</span><span class="spec-val">Deployed and healthy — SDDC Manager accessible at sddc-manager.novacrestbank.local</span></div>
-    <div class="spec-row"><span class="spec-label">NSX Manager cluster</span><span class="spec-val">3-node cluster deployed by VCF bring-up — nsx-mgr.novacrestbank.local (10.10.0.63) accessible on HTTPS</span></div>
+    <div class="spec-row"><span class="spec-label">VCF Management Domain</span><span class="spec-val">Deployed and healthy — SDDC Manager accessible at sddc-manager.novacrestbank.internal</span></div>
+    <div class="spec-row"><span class="spec-label">NSX Manager cluster</span><span class="spec-val">3-node cluster deployed by VCF bring-up — nsx-mgr.novacrestbank.internal (10.10.0.63) accessible on HTTPS</span></div>
     <div class="spec-row"><span class="spec-label">Management Domain ESXi hosts</span><span class="spec-val">esxi-mgmt-01 through esxi-mgmt-04 — added to management vCenter and showing Connected</span></div>
     <div class="spec-row"><span class="spec-label">OCP Workload Domain</span><span class="spec-val">Created in SDDC Manager — esxi-ocp-01 through esxi-ocp-05 added to workload vCenter</span></div>
     <div class="spec-row"><span class="spec-label">VLAN 100 (Host TEP)</span><span class="spec-val">Configured on Cisco fabric — all ESXi host port-channels trunking VLAN 100, MTU 9000</span></div>
     <div class="spec-row"><span class="spec-label">VLAN 101 (Edge TEP)</span><span class="spec-val">Configured on Cisco fabric — Edge Node ports trunking VLAN 101, MTU 9000</span></div>
     <div class="spec-row"><span class="spec-label">VCF-01 IP plan</span><span class="spec-val">TEP pool ranges defined: Host TEP 10.100.0.11–.30, Edge TEP 10.101.0.11–.20</span></div>
-    <div class="spec-row"><span class="spec-label">DNS records</span><span class="spec-val">nsx-mgr.novacrestbank.local resolves to 10.10.0.63 — verify before logging in</span></div>
+    <div class="spec-row"><span class="spec-label">DNS records</span><span class="spec-val">nsx-mgr.novacrestbank.internal resolves to 10.10.0.63 — verify before logging in</span></div>
   </div>
 
   <h2>What this guide builds — in order</h2>
@@ -361,7 +361,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">Open a browser and navigate to the NSX Manager VIP</div>
-        <p style="font-size:13.5px;">On a domain-joined management workstation, open a browser and go to:<br/><strong>https://nsx-mgr.novacrestbank.local</strong></p>
+        <p style="font-size:13.5px;">On a domain-joined management workstation, open a browser and go to:<br/><strong>https://nsx-mgr.novacrestbank.internal</strong></p>
         <p style="font-size:13.5px;">The browser shows the NSX Manager login page. If the certificate has been replaced with a NovaCrestBank-Issuing-CA signed certificate (WIN-VCF-03 guide), there will be no certificate warning. If not yet replaced, the browser shows the default self-signed certificate warning — click through it for now.</p>
       </div>
     </li>
@@ -1196,8 +1196,8 @@
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
                   <div style="font-size:12.5px;color:#9080b0;">Managed by:</div>
                   <select class="nsx-select filled" style="width:320px;pointer-events:none;">
-                    <option selected>vcenter-mgmt.novacrestbank.local</option>
-                    <option>vcenter-ocp.novacrestbank.local</option>
+                    <option selected>vcenter-mgmt.novacrestbank.internal</option>
+                    <option>vcenter-ocp.novacrestbank.internal</option>
                   </select>
                 </div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -1215,7 +1215,7 @@
 
         <div class="scr-ann info" style="margin-top:8px;">
           <span class="scr-icon">ℹ</span>
-          <span>The vCenter server dropdown at the top shows the two vCenters registered with NSX: vcenter-mgmt.novacrestbank.local and vcenter-ocp.novacrestbank.local. Select <strong>vcenter-mgmt.novacrestbank.local</strong> first. The Management Cluster (NCB-Management-Cluster, 4 hosts) appears with status "Not Configured." Click the <strong>CONFIGURE NSX</strong> button on that cluster tile.</span>
+          <span>The vCenter server dropdown at the top shows the two vCenters registered with NSX: vcenter-mgmt.novacrestbank.internal and vcenter-ocp.novacrestbank.internal. Select <strong>vcenter-mgmt.novacrestbank.internal</strong> first. The Management Cluster (NCB-Management-Cluster, 4 hosts) appears with status "Not Configured." Click the <strong>CONFIGURE NSX</strong> button on that cluster tile.</span>
         </div>
       </div>
     </li>
@@ -1344,8 +1344,8 @@
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">Change the vCenter dropdown to vcenter-ocp.novacrestbank.local</div>
-        <p style="font-size:13.5px;">Still on System → Fabric → Transport Nodes → Host Transport Nodes. At the top, change the <strong>Managed by</strong> dropdown from <code>vcenter-mgmt.novacrestbank.local</code> to <code>vcenter-ocp.novacrestbank.local</code>. The OCP cluster tile appears: <strong>NCB-OCP-Cluster</strong> with 5 hosts, status "Not Configured."</p>
+        <div class="step-title">Change the vCenter dropdown to vcenter-ocp.novacrestbank.internal</div>
+        <p style="font-size:13.5px;">Still on System → Fabric → Transport Nodes → Host Transport Nodes. At the top, change the <strong>Managed by</strong> dropdown from <code>vcenter-mgmt.novacrestbank.internal</code> to <code>vcenter-ocp.novacrestbank.internal</code>. The OCP cluster tile appears: <strong>NCB-OCP-Cluster</strong> with 5 hosts, status "Not Configured."</p>
 
         <div class="nsx-shell" style="margin-top:10px;max-width:600px;">
           <div class="nsx-content" style="min-height:0;">
@@ -1353,8 +1353,8 @@
               <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
                 <div style="font-size:12.5px;color:#9080b0;">Managed by:</div>
                 <select class="nsx-select filled" style="width:320px;pointer-events:none;">
-                  <option>vcenter-mgmt.novacrestbank.local</option>
-                  <option selected>vcenter-ocp.novacrestbank.local</option>
+                  <option>vcenter-mgmt.novacrestbank.internal</option>
+                  <option selected>vcenter-ocp.novacrestbank.internal</option>
                 </select>
               </div>
               <div style="display:flex;gap:10px;">

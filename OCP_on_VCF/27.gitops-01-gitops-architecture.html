@@ -382,12 +382,12 @@
 <div class="page" id="page-source-repo">
   <div class="ey">GITOPS-01 · Section 06</div>
   <div class="pt">The source code repository — what lives here and what does not</div>
-  <div class="ps">The source code repository for <code>banking/payment-service</code> on <code>gitlab.corp.novacrestbank.com</code> is where developers spend most of their working day. Its contents are defined by what the CI system (Jenkins) needs to build an image and run tests.</div>
+  <div class="ps">The source code repository for <code>banking/payment-service</code> on <code>gitlab.novacrestbank.internal</code> is where developers spend most of their working day. Its contents are defined by what the CI system (Jenkins) needs to build an image and run tests.</div>
 
   <div class="repo-diagram">
     <div class="repo-box source">
       <div class="repo-title">Source repo</div>
-      <p style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">gitlab.corp.novacrestbank.com/<br/>banking/payment-service</p>
+      <p style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">gitlab.novacrestbank.internal/<br/>banking/payment-service</p>
       <ul style="font-size:12.5px;color:var(--text2);margin-left:16px;">
         <li><code>src/main/java/</code> — Java source</li>
         <li><code>src/test/</code> — Unit tests</li>
@@ -401,7 +401,7 @@
     <div class="repo-arrow">→</div>
     <div class="repo-box config">
       <div class="repo-title">Config repo</div>
-      <p style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">gitlab.corp.novacrestbank.com/<br/>gitops/banking-config</p>
+      <p style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">gitlab.novacrestbank.internal/<br/>gitops/banking-config</p>
       <ul style="font-size:12.5px;color:var(--text2);margin-left:16px;">
         <li><code>apps/payment-service/base/</code> — K8s YAML</li>
         <li><code>apps/payment-service/overlays/dev/</code></li>
@@ -430,7 +430,7 @@
 <div class="page" id="page-config-repo">
   <div class="ey">GITOPS-01 · Section 07</div>
   <div class="pt">The GitOps config repository — the deployment record for the entire banking platform</div>
-  <div class="ps">The config repository at <code>gitlab.corp.novacrestbank.com/gitops/banking-config</code> is the single source of truth for what runs in every environment. Its Git history is the deployment audit trail. Its structure is designed to make the Kustomize base-plus-overlay pattern work cleanly across dev, staging, and production.</div>
+  <div class="ps">The config repository at <code>gitlab.novacrestbank.internal/gitops/banking-config</code> is the single source of truth for what runs in every environment. Its Git history is the deployment audit trail. Its structure is designed to make the Kustomize base-plus-overlay pattern work cleanly across dev, staging, and production.</div>
 
   <div class="callout why">
     <div class="cl">Why the config repo history IS the change management audit trail</div>
@@ -706,7 +706,7 @@
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--gl-orange);">
       <div class="layer-num">Stage 1</div>
       <div class="layer-title">Checkout — clone source repo</div>
-      <div class="layer-desc">Jenkins clones <code>gitlab.corp.novacrestbank.com/banking/payment-service</code> at the commit SHA that triggered the webhook. The checkout verifies the commit is on a protected branch (main) — feature branch pushes do not trigger the production pipeline. The exact commit SHA is recorded in every subsequent artefact for traceability.</div>
+      <div class="layer-desc">Jenkins clones <code>gitlab.novacrestbank.internal/banking/payment-service</code> at the commit SHA that triggered the webhook. The checkout verifies the commit is on a protected branch (main) — feature branch pushes do not trigger the production pipeline. The exact commit SHA is recorded in every subsequent artefact for traceability.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
       <div class="layer-num">Stage 2</div>
@@ -721,7 +721,7 @@
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
       <div class="layer-num">Stage 4</div>
       <div class="layer-title">Push to Harbor and sign with cosign</div>
-      <div class="layer-desc">The image is pushed to <code>harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service:vX.Y.Z</code>. Immediately after push, cosign signs the image using NovaCrestBank's signing key (stored in a Kubernetes Secret in the Jenkins namespace — accessed by the Jenkins ServiceAccount). The signature is pushed to Harbor alongside the image. The image digest (<code>sha256:...</code>) is recorded for all subsequent pipeline stages.</div>
+      <div class="layer-desc">The image is pushed to <code>harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:vX.Y.Z</code>. Immediately after push, cosign signs the image using NovaCrestBank's signing key (stored in a Kubernetes Secret in the Jenkins namespace — accessed by the Jenkins ServiceAccount). The signature is pushed to Harbor alongside the image. The image digest (<code>sha256:...</code>) is recorded for all subsequent pipeline stages.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
       <div class="layer-num">Stage 5–8</div>
@@ -757,7 +757,7 @@
     <div class="decision-label">What cosign signing prevents — the specific attack it closes</div>
     <div class="decision-q">Harbor already has role-based access control — only authorised service accounts can push images. If Harbor access is controlled, what additional security does cosign signing provide?</div>
     <div class="decision-a"><strong>Harbor RBAC controls who can push to Harbor. cosign signing controls which images that were pushed to Harbor are permitted to run in production. These are different controls addressing different attack vectors.</strong><br/><br/>
-    <strong>The attack that RBAC alone does not prevent:</strong> Harbor's <code>ncb-pipeline-svc</code> account has push access to the <code>banking-apps</code> project. If an attacker compromises the Jenkins server (through a vulnerability in Jenkins itself, a malicious Jenkins plugin, or a compromised agent pod), they inherit the <code>ncb-pipeline-svc</code> Harbor credentials. They can push a malicious image to <code>harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service:latest</code>. Without cosign, if that image tag is referenced in the config repo, Argo CD would deploy it to production. With cosign, the malicious image cannot be signed (the signing key is in a Kubernetes Secret that the attacker does not have), so the ACS admission controller rejects the unsigned image when Argo CD attempts to deploy it.<br/><br/>
+    <strong>The attack that RBAC alone does not prevent:</strong> Harbor's <code>ncb-pipeline-svc</code> account has push access to the <code>banking-apps</code> project. If an attacker compromises the Jenkins server (through a vulnerability in Jenkins itself, a malicious Jenkins plugin, or a compromised agent pod), they inherit the <code>ncb-pipeline-svc</code> Harbor credentials. They can push a malicious image to <code>harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:latest</code>. Without cosign, if that image tag is referenced in the config repo, Argo CD would deploy it to production. With cosign, the malicious image cannot be signed (the signing key is in a Kubernetes Secret that the attacker does not have), so the ACS admission controller rejects the unsigned image when Argo CD attempts to deploy it.<br/><br/>
     <strong>The trust chain cosign creates:</strong> Only images signed by the NovaCrestBank signing key can run in production namespaces. The signing key is only accessible to the Jenkins ServiceAccount in the jenkins namespace. An image signed by this key was built by an authorised Jenkins pipeline that ran the full test and scan sequence. An unsigned image — regardless of where it came from — is rejected. This satisfies NIST SI-7 (Software, Firmware, and Information Integrity) and is increasingly referenced in PCI-DSS DSS v4 software supply chain requirements.</div>
   </div>
 
@@ -785,12 +785,12 @@
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
       <div class="layer-num">2</div>
       <div class="layer-title">Watch the pipeline run automatically</div>
-      <div class="layer-desc">Within 30 seconds of merging to main, Jenkins starts the production pipeline (triggered by the GitLab webhook). The developer can watch the pipeline progress in the Jenkins UI (accessible at <code>jenkins.apps.ocp.corp.novacrestbank.com</code>) — each stage showing its status. A failed stage notifies the developer via email. A successful pipeline posts a comment on the GitLab MR with links to the build log and ACS scan result.</div>
+      <div class="layer-desc">Within 30 seconds of merging to main, Jenkins starts the production pipeline (triggered by the GitLab webhook). The developer can watch the pipeline progress in the Jenkins UI (accessible at <code>jenkins.apps.ocp.novacrestbank.internal</code>) — each stage showing its status. A failed stage notifies the developer via email. A successful pipeline posts a comment on the GitLab MR with links to the build log and ACS scan result.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
       <div class="layer-num">3</div>
       <div class="layer-title">Confirm staging deployment via Argo CD</div>
-      <div class="layer-desc">After the pipeline succeeds, the developer can see the staging Application in the Argo CD UI (<code>argocd-server-gitops.apps.ocp.corp.novacrestbank.com</code> — read-only access for developers, as configured in OPS-05 Section 19). The staging Application shows Synced and Healthy with the new image digest. The developer can see their pod running. They can query the payment API in staging to verify the feature works end-to-end.</div>
+      <div class="layer-desc">After the pipeline succeeds, the developer can see the staging Application in the Argo CD UI (<code>argocd-server-gitops.apps.ocp.novacrestbank.internal</code> — read-only access for developers, as configured in OPS-05 Section 19). The staging Application shows Synced and Healthy with the new image digest. The developer can see their pod running. They can query the payment API in staging to verify the feature works end-to-end.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
       <div class="layer-num">4</div>
@@ -841,7 +841,7 @@
   <h2>Architecture decisions confirmed</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">Deployment model</span><span class="spec-val"><span class="badge bg">✓</span> Pull-based (Argo CD inside cluster reads Git) — no external cluster write access required</span></div>
-    <div class="spec-row"><span class="spec-label">Two-repository pattern</span><span class="spec-val"><span class="badge bg">✓</span> banking/payment-service (source) and gitops/banking-config (config) on gitlab.corp.novacrestbank.com</span></div>
+    <div class="spec-row"><span class="spec-label">Two-repository pattern</span><span class="spec-val"><span class="badge bg">✓</span> banking/payment-service (source) and gitops/banking-config (config) on gitlab.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">No direct kubectl in production</span><span class="spec-val"><span class="badge bg">✓</span> Policy established · emergency MR process documented · rollback is git revert</span></div>
     <div class="spec-row"><span class="spec-label">Image signing with cosign</span><span class="spec-val"><span class="badge bg">✓</span> Unsigned images rejected by ACS admission controller · supply chain integrity</span></div>
     <div class="spec-row"><span class="spec-label">PCI-DSS Req 6.4 satisfied</span><span class="spec-val"><span class="badge bg">✓</span> Every production deployment is a reviewed, approved MR with test and scan evidence</span></div>
@@ -852,10 +852,10 @@
 
   <h2>Prerequisites confirmed for GITOPS-02 through GITOPS-05</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">GitLab running at gitlab.corp.novacrestbank.com</span><span class="spec-val"><span class="badge bg">✓</span> GITOPS-00 complete · groups banking/ and gitops/ created · AD auth working</span></div>
+    <div class="spec-row"><span class="spec-label">GitLab running at gitlab.novacrestbank.internal</span><span class="spec-val"><span class="badge bg">✓</span> GITOPS-00 complete · groups banking/ and gitops/ created · AD auth working</span></div>
     <div class="spec-row"><span class="spec-label">Source repos created in banking/ group</span><span class="spec-val"><span class="badge bgr">□ Create</span> payment-service, account-service, fraud-detection-service repos needed before GITOPS-03</span></div>
     <div class="spec-row"><span class="spec-label">Config repo banking-config created in gitops/ group</span><span class="spec-val"><span class="badge bgr">□ Create</span> banking-config repo with base/ and overlays/ structure needed before GITOPS-04</span></div>
-    <div class="spec-row"><span class="spec-label">Harbor accessible at harbor.apps.ocp.corp.novacrestbank.com</span><span class="spec-val"><span class="badge bg">✓</span> Registry-01 deployed · banking-apps project created · ncb-pipeline-svc account configured</span></div>
+    <div class="spec-row"><span class="spec-label">Harbor accessible at harbor.apps.ocp.novacrestbank.internal</span><span class="spec-val"><span class="badge bg">✓</span> Registry-01 deployed · banking-apps project created · ncb-pipeline-svc account configured</span></div>
     <div class="spec-row"><span class="spec-label">Argo CD running in gitops namespace</span><span class="spec-val"><span class="badge bg">✓</span> OPS-05 complete · ncb-argocd deployed · banking-apps AppProject created</span></div>
     <div class="spec-row"><span class="spec-label">ACS running in stackrox namespace</span><span class="spec-val"><span class="badge bg">✓</span> OPS-03 complete · vulnerability scanning active · image signing policy ready to enforce</span></div>
     <div class="spec-row"><span class="spec-label">OCP infra nodes available for Jenkins</span><span class="spec-val"><span class="badge bg">✓</span> 3 infra nodes with NoSchedule taint · Jenkins will deploy here (GITOPS-02)</span></div>

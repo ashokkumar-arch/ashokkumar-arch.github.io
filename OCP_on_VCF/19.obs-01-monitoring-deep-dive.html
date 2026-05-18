@@ -525,17 +525,17 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify monitoring is on infra nodes</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify monitoring is on infra nodes</span></div>
     <div class="term-body"><pre><span class="td"># Confirm all Prometheus pods are on infra nodes — not worker nodes</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-monitoring \
   -o wide | grep prometheus</span>
 <span class="tg">NAME                         READY   STATUS    NODE
-prometheus-k8s-0             6/6     Running   infra-0.ocp.novacrestbank.local
-prometheus-k8s-1             6/6     Running   infra-1.ocp.novacrestbank.local</span>
+prometheus-k8s-0             6/6     Running   infra-0.ocp.novacrestbank.internal
+prometheus-k8s-1             6/6     Running   infra-1.ocp.novacrestbank.internal</span>
 <span class="td">                                              ↑ infra nodes ✓  NOT worker nodes</span>
 
 <span class="td"># Verify the infra node taint is applied — prevents banking app pods landing here</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node infra-0.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node infra-0.ocp.novacrestbank.internal \
   -o jsonpath='{.spec.taints}'</span>
 <span class="tg">[{"effect":"NoSchedule","key":"node-role.kubernetes.io/infra"}]</span>
 <span class="td">  ↑ NoSchedule taint — only pods with matching toleration can run here.
@@ -546,9 +546,9 @@ prometheus-k8s-1             6/6     Running   infra-1.ocp.novacrestbank.local</
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-monitoring \
   -l app=alertmanager -o wide | awk 'NR==1 || {print $1,$7}'</span>
 <span class="tg">NAME                    NODE
-alertmanager-main-0     infra-0.ocp.novacrestbank.local
-alertmanager-main-1     infra-1.ocp.novacrestbank.local
-alertmanager-main-2     infra-2.ocp.novacrestbank.local</span>
+alertmanager-main-0     infra-0.ocp.novacrestbank.internal
+alertmanager-main-1     infra-1.ocp.novacrestbank.internal
+alertmanager-main-2     infra-2.ocp.novacrestbank.internal</span>
 <span class="td">  ↑ All 3 Alertmanager pods on infra nodes ✓</span>
     <div class="tann ok"><span class="tai">✓</span><span>Both Prometheus StatefulSet pods and all 3 Alertmanager pods are on infra nodes. Banking application workloads run exclusively on worker nodes. The monitoring stack has dedicated infra node resources isolated from application load.</span></div>
     </pre></div>
@@ -685,7 +685,7 @@ alertmanager-main-2     infra-2.ocp.novacrestbank.local</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply the ConfigMap and verify CMO reconciliation</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — apply the ConfigMap and verify CMO reconciliation</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f cluster-monitoring-config.yaml</span>
 <span class="tg">configmap/cluster-monitoring-config configured</span>
 
@@ -722,7 +722,7 @@ thanos-ruler-user-workload-0          3/3     Running   2m</span>
   <div class="ps">Seven checks confirm the monitoring stack is fully operational — from Prometheus TSDB health through to Alertmanager cluster status and the platform alert rules being loaded.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — seven-check monitoring verification</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — seven-check monitoring verification</span></div>
     <div class="term-body"><pre><span class="td"># Check 1: Prometheus pods Running and all containers ready (6/6)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-monitoring | grep "prometheus-k8s"</span>
 <span class="tg">prometheus-k8s-0   6/6   Running   0   2d
@@ -1000,7 +1000,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
               <span class="yv">              The Kubernetes API server has stopped accepting write requests.</span>
               <span class="yv">              No deployments, ConfigMap updates, or Secret changes will succeed.</span>
               <span class="yv">              Immediate investigation required.</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-quorum-loss</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/etcd-quorum-loss</span>
             <span class="yc">  # Annotations appear in the notification message.
                   # summary: the one-line description shown in PagerDuty.
                   # description: the full context — tells the on-call engineer exactly
@@ -1052,7 +1052,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">etcd member is down — quorum is at risk</span>
             <span class="yk">description</span>: <span class="yv">"{{ $value }} etcd members are healthy. 1 member is unreachable. Investigate before a second failure causes quorum loss."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-member-down</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/etcd-member-down</span>
 
         - <span class="yk">alert</span>: <span class="yv">NCBEtcdQuorumLost</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1064,7 +1064,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">CRITICAL — etcd quorum lost, Kubernetes API writes failing</span>
             <span class="yk">description</span>: <span class="yv">"{{ $value }} etcd members have no leader. API server write operations are failing. Banking application deployments and OCP operator reconciliation are halted. Restore etcd quorum immediately."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-quorum-loss</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/etcd-quorum-loss</span>
 
         - <span class="yk">alert</span>: <span class="yv">NCBEtcdHighFsyncLatency</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1083,7 +1083,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">etcd WAL fsync latency is elevated</span>
             <span class="yk">description</span>: <span class="yv">"Pod {{ $labels.pod }} etcd WAL fsync P99 latency is {{ $value | humanizeDuration }}. Etcd performance is degrading. Check vSAN health and storage I/O contention."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/etcd-disk-latency</span></pre>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/etcd-disk-latency</span></pre>
     </div>
   </div>
 </div>
@@ -1225,7 +1225,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value | humanizeDuration }}</span>
             <span class="yk">description</span>: <span class="yv">"cert-manager automatic renewal has not succeeded for certificate {{ $labels.name }}. Check the CertificateRequest status and the ADCS issuer pod logs in the cert-manager namespace."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/cert-manager-renewal-failure</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/cert-manager-renewal-failure</span>
 
         - <span class="yk">alert</span>: <span class="yv">NCBCertificateExpiryCritical</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1240,7 +1240,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">CRITICAL — Certificate {{ $labels.name }} expires in {{ $value | humanizeDuration }}</span>
             <span class="yk">description</span>: <span class="yv">"Immediate manual renewal required. Service TLS failures will occur when the certificate expires. Force renewal: oc delete certificate {{ $labels.name }} -n {{ $labels.namespace }} and re-apply the Certificate object."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/cert-emergency-renewal</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/cert-emergency-renewal</span>
 
         - <span class="yk">alert</span>: <span class="yv">NCBCertificateReadyFalse</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1278,8 +1278,8 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
     # sending a "resolved" notification. 5 minutes prevents premature
     # resolution notifications for flapping alerts.</span>
   <span class="yk">pagerduty_url</span>: <span class="yv">https://events.pagerduty.com/v2/enqueue</span>
-  <span class="yk">smtp_smarthost</span>: <span class="yv">smtp-relay.novacrestbank.local:587</span>
-  <span class="yk">smtp_from</span>: <span class="yv">ocp-monitoring@novacrestbank.local</span>
+  <span class="yk">smtp_smarthost</span>: <span class="yv">smtp-relay.novacrestbank.internal:587</span>
+  <span class="yk">smtp_from</span>: <span class="yv">ocp-monitoring@novacrestbank.internal</span>
   <span class="yk">smtp_require_tls</span>: <span class="yb">true</span>
 
 <span class="yk">route</span>:
@@ -1328,7 +1328,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
         <span class="yk">description</span>: <span class="yv">'{{ .CommonAnnotations.summary }}'</span>
         <span class="yk">severity</span>: <span class="yv">critical</span>
         <span class="yk">client</span>: <span class="yv">NovaCrestBank OCP ncb-ocp-cluster</span>
-        <span class="yk">client_url</span>: <span class="yv">https://console-openshift-console.apps.ocp.novacrestbank.local</span>
+        <span class="yk">client_url</span>: <span class="yv">https://console-openshift-console.apps.ocp.novacrestbank.internal</span>
         <span class="yk">details</span>:
           <span class="yk">description</span>: <span class="yv">'{{ .CommonAnnotations.description }}'</span>
           <span class="yk">runbook</span>: <span class="yv">'{{ .CommonAnnotations.runbook }}'</span>
@@ -1337,7 +1337,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
 
   - <span class="yk">name</span>: <span class="yv">platform-email</span>
     <span class="yk">email_configs</span>:
-      - <span class="yk">to</span>: <span class="yv">platform-engineering@novacrestbank.local</span>
+      - <span class="yk">to</span>: <span class="yv">platform-engineering@novacrestbank.internal</span>
         <span class="yk">headers</span>:
           <span class="yk">subject</span>: <span class="yv">'[OCP Alert] {{ .CommonLabels.alertname }} — {{ .Status | toUpper }}'</span>
         <span class="yk">html</span>: <span class="yv">'{{ range .Alerts }}&lt;b&gt;{{ .Annotations.summary }}&lt;/b&gt;&lt;br&gt;{{ .Annotations.description }}&lt;br&gt;Runbook: {{ .Annotations.runbook }}&lt;br&gt;&lt;br&gt;{{ end }}'</span></pre>
@@ -1359,7 +1359,7 @@ jvm_memory_used_bytes{area="heap", pod="payment-service-ghi789", namespace="bank
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — deploy a Grafana instance connected to Thanos Querier</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — deploy a Grafana instance connected to Thanos Querier</span></div>
     <div class="term-body"><pre><span class="td"># Deploy GrafanaOperator (from OperatorHub — already mirrored in Harbor)</span>
 <span class="td"># Create a Grafana CR pointing at the Thanos Querier as data source</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
@@ -1373,7 +1373,7 @@ metadata:
 spec:
   route:
     spec:
-      host: grafana-monitoring.apps.ocp.novacrestbank.local
+      host: grafana-monitoring.apps.ocp.novacrestbank.internal
       tls:
         termination: edge
   config:
@@ -1423,10 +1423,10 @@ spec:
 <span class="tg">grafanadatasource.grafana.integreatly.org/thanos-querier created</span>
 
 <span class="td"># Verify Grafana is Running and accessible</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://grafana-monitoring.apps.ocp.novacrestbank.local/api/health</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://grafana-monitoring.apps.ocp.novacrestbank.internal/api/health</span>
 <span class="tg">{"commit":"abc123","database":"ok","version":"10.x.x"}</span>
 <span class="td">  ↑ Grafana is healthy ✓
-    Access: grafana-monitoring.apps.ocp.novacrestbank.local
+    Access: grafana-monitoring.apps.ocp.novacrestbank.internal
     Authenticate with NovaCrestBank AD credentials (LDAP configured)
     Data source: Thanos Querier — unified platform + app metrics ✓</span>
     <div class="tann info"><span class="tai">ℹ</span><span>With Grafana connected to Thanos Querier, engineers can write PromQL queries against both platform metrics (etcd, node CPU, API server latency) and application metrics (payment-service P99 latency, transaction throughput, error rate) from a single interface. OBS-02 (Custom Application Metrics) covers building banking-specific Grafana dashboards.</span></div>

@@ -228,9 +228,9 @@
     Imagine sitting in front of a car dashboard. You can see buttons, dials, and screens — the "GUI" of the car. Without knowing what a clutch does, what gear ratios are, or what engine braking means, you can still move the car — but you will not understand why it stalls, why it rolls backwards on a hill, or how to use it efficiently. NSX-T is the same. The GUI is the dashboard. This guide is the engineering manual that makes every dashboard interaction meaningful rather than mechanical.
   </div>
 
-  <p>The candidate has deep knowledge of vSphere: ESXi, vCenter, vDS, vSAN, HA, DRS. That knowledge is the foundation. NSX-T builds a complete software-defined network on top of that foundation — and every NSX concept has a vSphere parallel that will make it immediately intuitive.</p>
+  <p>The deep knowledge of vSphere: ESXi, vCenter, vDS, vSAN, HA, and DRS is the foundation. NSX-T builds a complete software-defined network on top of that foundation — and every NSX concept has a vSphere parallel that will make it immediately intuitive.</p>
 
-  <p>This guide explains every NSX-T concept the candidate will encounter in the GUI guides (NSX-01 through NSX-05) from first principles. When the NSX Manager GUI says "Create a Transport Zone," the candidate will already know what a Transport Zone is and why it is being created. When it says "Configure BGP on the Tier-0 Gateway," the candidate will already know why BGP is there and what it is doing.</p>
+  <p>This guide explains every NSX-T concept that you may encounter in the GUI guides (NSX-01 through NSX-05) from first principles. When the NSX Manager GUI says "Create a Transport Zone," you will already know what a Transport Zone is and why it is being created. When it says "Configure BGP on the Tier-0 Gateway," you will already know why BGP is there and what it is doing.</p>
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">Concepts covered in this guide</span><span class="spec-val">TEP · GENEVE · Transport Zone · Segment · Tier-0 · Tier-1 · DFW · Gateway Firewall · NSX Manager · Edge Node · NSX Load Balancer</span></div>
@@ -243,9 +243,9 @@
 <div class="page" id="page-vds-vs-nsx">
   <div class="ey">VCF-02 · Section 02</div>
   <div class="pt">From vDS to NSX — what you already know, and what is genuinely new</div>
-  <div class="ps">The candidate knows vDS well. NSX replaces and extends vDS — but the mental model transfers directly</div>
+  <div class="ps">Assuming you know vDS well. NSX replaces and extends vDS — but the mental model transfers directly</div>
 
-  <h2>What the candidate already knows (vDS) and its NSX equivalent</h2>
+  <h2>What you already know (vDS) and its NSX equivalent</h2>
 
   <table>
     <thead>
@@ -307,8 +307,8 @@
     <p style="font-size:13.5px;">A TEP is a VMkernel interface on an ESXi host that NSX uses exclusively to send and receive GENEVE-encapsulated overlay packets. Every ESXi host that participates in NSX gets one or more TEP VMkernels automatically when NSX "prepares" the host. The TEP is NSX's point of entry and exit on the physical network.</p>
   </div>
 
-  <h2>What the candidate already knows that maps to the TEP</h2>
-  <p>The candidate knows vmk0 (management), vmk1 (vMotion), and vmk2 (vSAN). Each VMkernel has a purpose and a VLAN. The TEP is another VMkernel — with its own purpose and its own VLAN.</p>
+  <h2>Mapping VMkernel (vmk) knowledge to the TEP</h2>
+  <p>Assuming you know vmk0 (management), vmk1 (vMotion), and vmk2 (vSAN). Each VMkernel has a purpose and a VLAN. The TEP is another VMkernel — with its own purpose and its own VLAN.</p>
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">vmk0 (management)</span><span class="spec-val">VLAN 10 · Carries vCenter/SDDC Manager communication with ESXi</span></div>
@@ -831,7 +831,7 @@
     <div class="card" style="border-left:4px solid var(--red);">
       <h3>North-South traffic</h3>
       <p style="font-size:13.5px;">Traffic entering or leaving the data centre — from internet to VMs, from VMs to external services. This passes through the Palo Alto NGFW at the perimeter. The Palo Alto inspects this traffic.</p>
-      <p style="font-size:13.5px;margin-top:6px;font-style:italic;">Example: A user's browser connecting to <code>banking-portal.apps.ocp.novacrestbank.local</code></p>
+      <p style="font-size:13.5px;margin-top:6px;font-style:italic;">Example: A user's browser connecting to <code>banking-portal.apps.ocp.novacrestbank.internal</code></p>
     </div>
     <div class="card" style="border-left:4px solid var(--dfw);">
       <h3>East-West traffic</h3>
@@ -933,11 +933,11 @@
 
   <div class="callout analogy">
     <div class="cl">NSX Manager is to NSX what vCenter is to vSphere</div>
-    The candidate knows vCenter: it is the management plane for ESXi hosts. The ESXi hosts do the actual work (running VMs, vSAN, etc.) — vCenter configures and monitors them. NSX Manager plays the same role for the NSX data plane. The ESXi hosts do the actual networking work (routing, switching, DFW enforcement) — NSX Manager configures and monitors them. Just as vCenter does not run VMs itself, NSX Manager does not forward packets itself.
+    Amusing, you know vCenter: it is the management plane for ESXi hosts. The ESXi hosts do the actual work (running VMs, vSAN, etc.) — vCenter configures and monitors them. NSX Manager plays the same role for the NSX data plane. The ESXi hosts do the actual networking work (routing, switching, DFW enforcement) — NSX Manager configures and monitors them. Just as vCenter does not run VMs itself, NSX Manager does not forward packets itself.
   </div>
 
   <h2>The three-node NSX Manager cluster</h2>
-  <p>NSX Manager is deployed as a cluster of 3 identical VMs. All three run the same active role — there is no primary/standby. Any NSX Manager node can serve the GUI and API. A virtual IP (VIP) — <code>nsx-mgr.novacrestbank.local</code> at 10.10.0.63 — floats between the three nodes and always points to the active node. Administrators always use the VIP, never an individual node IP.</p>
+  <p>NSX Manager is deployed as a cluster of 3 identical VMs. All three run the same active role — there is no primary/standby. Any NSX Manager node can serve the GUI and API. A virtual IP (VIP) — <code>nsx-mgr.novacrestbank.internal</code> at 10.10.0.63 — floats between the three nodes and always points to the active node. Administrators always use the VIP, never an individual node IP.</p>
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">Why 3 nodes (not 1 or 2)</span><span class="spec-val">etcd consensus — NSX Manager uses etcd (same as OCP) internally. etcd requires a majority quorum: 3 nodes = quorum of 2 = tolerates 1 failure. 2 nodes cannot form quorum. 1 node is a single point of failure.</span></div>
@@ -1000,7 +1000,7 @@
     <div class="dq">NSX Edge Nodes come in Small, Medium, Large, and Bare Metal sizes. Why does NovaCrestBank use Large?</div>
     <div class="da"><strong>Because the NSX Load Balancer — required for OCP API VIP and Ingress VIP — is only supported on Large or Bare Metal Edge Nodes. Small and Medium Edge Nodes support basic routing only.</strong><br/><br/>
     Large Edge Node specifications: 8 vCPU, 32 GB RAM, 200 GB disk. These resources are dedicated to: BGP routing (CPU-intensive for large routing tables), NSX Load Balancer processing (maintaining connection state for thousands of concurrent OCP API and application connections), and SNAT/DNAT for any network address translation rules.<br/><br/>
-    For NovaCrestBank with OCP serving banking application traffic: the NSX LB will maintain connection state for all active user sessions to <code>*.apps.ocp.novacrestbank.local</code>. Large Edge sizing provides sufficient memory for the connection table and CPU headroom for TLS processing at the load balancer.
+    For NovaCrestBank with OCP serving banking application traffic: the NSX LB will maintain connection state for all active user sessions to <code>*.apps.ocp.novacrestbank.internal</code>. Large Edge sizing provides sufficient memory for the connection table and CPU headroom for TLS processing at the load balancer.
     </div>
   </div>
 </div>
@@ -1295,7 +1295,7 @@
 <div class="page" id="page-terminology">
   <div class="ey">VCF-02 · Section 19</div>
   <div class="pt">Terminology reference — every NSX term explained in one place</div>
-  <div class="ps">A reference card for the GUI guides that follow — if the candidate encounters an unfamiliar term in NSX Manager, find it here</div>
+  <div class="ps">A reference card for the GUI guides that follow — if you encounter an unfamiliar term in NSX Manager, find it here</div>
 
   <table>
     <thead><tr><th>NSX Term</th><th>Plain language explanation</th><th>vSphere parallel</th></tr></thead>
@@ -1380,7 +1380,7 @@
 
   <div class="callout success">
     <div class="cl">VCF-02 complete — ready for the GUI guides</div>
-    Every concept that will appear in the NSX Manager GUI (NSX-01 through NSX-05) has been explained from first principles. The candidate now knows: what a TEP is and why VLAN 100 exists, what GENEVE encapsulation does and why the Cisco fabric sees only UDP packets, what Transport Zones are and why NovaCrestBank needs two types, what Segments are and why no physical VLAN is needed for them, what T1 and T0 Gateways do and how they connect, what DFW is and why it is different from the Palo Alto NGFW, and what Edge Nodes are and why they need to be Large size. The next guide (NSX-01) opens the NSX Manager GUI and begins creating these components — and every click will now make immediate sense.
+    Every concept that will appear in the NSX Manager GUI (NSX-01 through NSX-05) has been explained from first principles. You now know: what a TEP is and why VLAN 100 exists, what GENEVE encapsulation does and why the Cisco fabric sees only UDP packets, what Transport Zones are and why NovaCrestBank needs two types, what Segments are and why no physical VLAN is needed for them, what T1 and T0 Gateways do and how they connect, what DFW is and why it is different from the Palo Alto NGFW, and what Edge Nodes are and why they need to be Large size. The next guide (NSX-01) opens the NSX Manager GUI and begins creating these components — and every click will now make immediate sense.
   </div>
 </div>
 

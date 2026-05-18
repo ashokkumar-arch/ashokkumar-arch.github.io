@@ -424,7 +424,7 @@
     <div class="spec-row"><span class="spec-label">Lease duration</span><span class="spec-val">8 hours — short because these leases are bootstrap-only; VCF reconfigures to static quickly</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 — Router</span><span class="spec-val">10.10.0.1</span></div>
     <div class="spec-row"><span class="spec-label">Option 006 — DNS Servers</span><span class="spec-val">10.70.0.10, 10.70.0.11</span></div>
-    <div class="spec-row"><span class="spec-label">Option 015 — DNS Domain Name</span><span class="spec-val">novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Option 015 — DNS Domain Name</span><span class="spec-val">novacrestbank.internal</span></div>
   </div>
 
   <h2>VLAN 20 vMotion — 10.20.0.0/24</h2>
@@ -437,7 +437,7 @@
     <div class="spec-row"><span class="spec-label">Effective DHCP pool</span><span class="spec-val"><strong>10.20.0.100 → 10.20.0.199</strong></span></div>
     <div class="spec-row"><span class="spec-label">Lease duration</span><span class="spec-val">8 hours</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 — Router</span><span class="spec-val">10.20.0.1</span></div>
-    <div class="spec-row"><span class="spec-label">Options 006 and 015</span><span class="spec-val">Same as VLAN 10 — DNS servers 10.70.0.10/10.70.0.11, domain novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Options 006 and 015</span><span class="spec-val">Same as VLAN 10 — DNS servers 10.70.0.10/10.70.0.11, domain novacrestbank.internal</span></div>
   </div>
 
   <h2>VLAN 25 vSAN — 10.25.0.0/24</h2>
@@ -459,7 +459,7 @@
     <div class="spec-row"><span class="spec-label">Exclusion 3</span><span class="spec-val">10.100.0.200 → 10.100.0.254</span></div>
     <div class="spec-row"><span class="spec-label">Effective DHCP pool</span><span class="spec-val"><strong>10.100.0.31 → 10.100.0.199</strong> (DHCP available if needed for future expansion)</span></div>
     <div class="spec-row"><span class="spec-label">Lease duration</span><span class="spec-val">8 hours</span></div>
-    <div class="spec-row"><span class="spec-label">Options 003, 006, 015</span><span class="spec-val">Router: 10.100.0.1 · DNS: 10.70.0.10/10.70.0.11 · Domain: novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Options 003, 006, 015</span><span class="spec-val">Router: 10.100.0.1 · DNS: 10.70.0.10/10.70.0.11 · Domain: novacrestbank.internal</span></div>
   </div>
 
   <h2>VLAN 101 Edge TEP — 10.101.0.0/24</h2>
@@ -470,7 +470,7 @@
     <div class="spec-row"><span class="spec-label">Exclusion 3</span><span class="spec-val">10.101.0.200 → 10.101.0.254</span></div>
     <div class="spec-row"><span class="spec-label">Effective DHCP pool</span><span class="spec-val"><strong>10.101.0.21 → 10.101.0.199</strong></span></div>
     <div class="spec-row"><span class="spec-label">Lease duration</span><span class="spec-val">8 hours</span></div>
-    <div class="spec-row"><span class="spec-label">Options 003, 006, 015</span><span class="spec-val">Router: 10.101.0.1 · DNS: 10.70.0.10/10.70.0.11 · Domain: novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Options 003, 006, 015</span><span class="spec-val">Router: 10.101.0.1 · DNS: 10.70.0.10/10.70.0.11 · Domain: novacrestbank.internal</span></div>
   </div>
 </div>
 
@@ -511,30 +511,30 @@
           <div class="dhcp-body">
             <div class="dhcp-tree">
               <div class="dhcp-ti"><span class="dhcp-tri">▶</span><span class="dhcp-ico">🌐</span>DHCP</div>
-              <div class="dhcp-ti i1 sel"><span class="dhcp-tri">▶</span><span class="dhcp-ico">🖥</span>dc01.novacrestbank.local</div>
+              <div class="dhcp-ti i1 sel"><span class="dhcp-tri">▶</span><span class="dhcp-ico">🖥</span>dc01.novacrestbank.internal</div>
               <div class="dhcp-ti i2"><span class="dhcp-ico">📁</span>IPv4</div>
               <div class="dhcp-ti i2"><span class="dhcp-ico">📁</span>IPv6</div>
             </div>
             <div class="dhcp-pane">
-              <div class="dhcp-ph">dc01.novacrestbank.local — DHCP server status</div>
+              <div class="dhcp-ph">dc01.novacrestbank.internal — DHCP server status</div>
               <div style="padding:14px 16px;font-size:13px;">
                 <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#e8f5e8;border:1px solid #c8e6c9;border-radius:4px;margin-bottom:10px;">
                   <span style="font-size:18px;">✅</span>
                   <div>
                     <div style="font-weight:700;color:#1b5e20;">Server is authorised</div>
-                    <div style="font-size:12px;color:#555;margin-top:2px;">dc01.novacrestbank.local is authorised in Active Directory domain novacrestbank.local</div>
+                    <div style="font-size:12px;color:#555;margin-top:2px;">dc01.novacrestbank.internal is authorised in Active Directory domain novacrestbank.internal</div>
                   </div>
                 </div>
                 <div style="font-size:12.5px;color:#555;">The server status shows a green tick indicating the DHCP server is authorised. If a red arrow appears instead, right-click the server name → Authorise → wait for the status to refresh to green.</div>
               </div>
             </div>
           </div>
-          <div class="dhcp-sb">dc01.novacrestbank.local — Authorised</div>
+          <div class="dhcp-sb">dc01.novacrestbank.internal — Authorised</div>
         </div>
 
         <div class="callout warn">
           <div class="cl">If the server shows a red arrow — it is not authorised</div>
-          An unauthorised DHCP server in an Active Directory domain refuses to hand out leases. Right-click <strong>dc01.novacrestbank.local</strong> in the left panel → click <strong>Authorise</strong>. Wait 10–15 seconds then press F5 to refresh. The red arrow should change to a green tick. If DC01 is the domain controller, authorisation should succeed immediately.
+          An unauthorised DHCP server in an Active Directory domain refuses to hand out leases. Right-click <strong>dc01.novacrestbank.internal</strong> in the left panel → click <strong>Authorise</strong>. Wait 10–15 seconds then press F5 to refresh. The red arrow should change to a green tick. If DC01 is the domain controller, authorisation should succeed immediately.
         </div>
       </div>
     </li>
@@ -566,7 +566,7 @@
           </div>
         </div>
 
-        <p style="font-size:13.5px;margin-top:6px;">In the left panel, expand <strong>dc01.novacrestbank.local</strong> → right-click <strong>IPv4</strong> → click <strong>New Scope…</strong> The New Scope Wizard opens.</p>
+        <p style="font-size:13.5px;margin-top:6px;">In the left panel, expand <strong>dc01.novacrestbank.internal</strong> → right-click <strong>IPv4</strong> → click <strong>New Scope…</strong> The New Scope Wizard opens.</p>
       </div>
     </li>
     <li class="step-item">
@@ -760,8 +760,8 @@
               <div class="wiz-h">Domain Name and DNS Servers</div>
               <div class="wiz-field">
                 <label class="wiz-label">Parent domain (Option 015):</label>
-                <input class="wiz-input filled" value="novacrestbank.local" readonly/>
-                <div class="wiz-hint">The DNS suffix appended to unqualified hostnames. Devices with a lease from this scope will search novacrestbank.local for unqualified names.</div>
+                <input class="wiz-input filled" value="novacrestbank.internal" readonly/>
+                <div class="wiz-hint">The DNS suffix appended to unqualified hostnames. Devices with a lease from this scope will search novacrestbank.internal for unqualified names.</div>
               </div>
               <div class="wiz-field">
                 <label class="wiz-label">IP address (Option 006 — DNS Servers):</label>
@@ -993,7 +993,7 @@
               <div class="dhcp-row">
                 <span class="rn">015 DNS Domain Name</span>
                 <span style="font-size:11px;color:#888;">Standard</span>
-                <span style="font-family:monospace;font-size:12px;color:#107c10;font-weight:600;">novacrestbank.local</span>
+                <span style="font-family:monospace;font-size:12px;color:#107c10;font-weight:600;">novacrestbank.internal</span>
               </div>
             </div>
           </div>
@@ -1002,7 +1002,7 @@
 
         <div class="ann ok" style="margin-top:8px;">
           <span class="ai">✓</span>
-          <span>All three scope options correct: Option 003 Router = 10.10.0.1, Option 006 DNS Servers = 10.70.0.10 and 10.70.0.11, Option 015 DNS Domain Name = novacrestbank.local. Any DHCP client on VLAN 10 that receives a lease will be told to use these values.</span>
+          <span>All three scope options correct: Option 003 Router = 10.10.0.1, Option 006 DNS Servers = 10.70.0.10 and 10.70.0.11, Option 015 DNS Domain Name = novacrestbank.internal. Any DHCP client on VLAN 10 that receives a lease will be told to use these values.</span>
         </div>
 
         <div class="callout warn" style="margin-top:10px;">
@@ -1091,7 +1091,7 @@
     <div class="spec-row"><span class="spec-label">Configure Options now</span><span class="spec-val">Yes</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 — Router</span><span class="spec-val">10.20.0.1</span></div>
     <div class="spec-row"><span class="spec-label">Option 006 — DNS Servers</span><span class="spec-val">10.70.0.10, 10.70.0.11</span></div>
-    <div class="spec-row"><span class="spec-label">Option 015 — DNS Domain Name</span><span class="spec-val">novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Option 015 — DNS Domain Name</span><span class="spec-val">novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Activate scope at end of wizard</span><span class="spec-val">No — activate after adding exclusions</span></div>
   </div>
 
@@ -1141,7 +1141,7 @@
     <div class="spec-row"><span class="spec-label">Subnet mask</span><span class="spec-val">255.255.255.0</span></div>
     <div class="spec-row"><span class="spec-label">Lease Duration</span><span class="spec-val">8 hours</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 — Router</span><span class="spec-val">10.25.0.1</span></div>
-    <div class="spec-row"><span class="spec-label">Options 006, 015</span><span class="spec-val">Same as all other scopes (DC01/DC02, novacrestbank.local)</span></div>
+    <div class="spec-row"><span class="spec-label">Options 006, 015</span><span class="spec-val">Same as all other scopes (DC01/DC02, novacrestbank.internal)</span></div>
   </div>
 </div>
 
@@ -1188,7 +1188,7 @@
     <div class="spec-row"><span class="spec-label">Subnet mask</span><span class="spec-val">255.255.255.0</span></div>
     <div class="spec-row"><span class="spec-label">Lease Duration</span><span class="spec-val">8 hours</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 — Router</span><span class="spec-val">10.100.0.1</span></div>
-    <div class="spec-row"><span class="spec-label">Options 006, 015</span><span class="spec-val">DC01/DC02, novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Options 006, 015</span><span class="spec-val">DC01/DC02, novacrestbank.internal</span></div>
   </div>
 </div>
 
@@ -1233,7 +1233,7 @@
     <div class="spec-row"><span class="spec-label">Subnet mask</span><span class="spec-val">255.255.255.0</span></div>
     <div class="spec-row"><span class="spec-label">Lease Duration</span><span class="spec-val">8 hours</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 — Router</span><span class="spec-val">10.101.0.1</span></div>
-    <div class="spec-row"><span class="spec-label">Options 006, 015</span><span class="spec-val">DC01/DC02, novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Options 006, 015</span><span class="spec-val">DC01/DC02, novacrestbank.internal</span></div>
   </div>
 </div>
 
@@ -1299,7 +1299,7 @@
                 <span style="font-size:13px;font-weight:700;">015 DNS Domain Name</span>
               </div>
               <div style="font-size:12px;color:#555;margin-bottom:6px;">Enter string value:</div>
-              <input class="dlg-input filled" value="novacrestbank.local" readonly style="width:100%;"/>
+              <input class="dlg-input filled" value="novacrestbank.internal" readonly style="width:100%;"/>
             </div>
           </div>
           <div class="dlg-footer"><button class="dlg-cancel">Cancel</button><button class="dlg-ok">OK</button></div>
@@ -1322,12 +1322,12 @@
 
   <div class="dhcp-shell" style="margin-top:10px;">
     <div class="dhcp-tb">
-      <span class="dhcp-tb-title"><span>🌐</span>DHCP — dc01.novacrestbank.local — all scopes active</span>
+      <span class="dhcp-tb-title"><span>🌐</span>DHCP — dc01.novacrestbank.internal — all scopes active</span>
       <div class="dhcp-tb-btns"><span class="dhcp-tb-btn">─</span><span class="dhcp-tb-btn">□</span><span class="dhcp-tb-btn">✕</span></div>
     </div>
     <div class="dhcp-body" style="min-height:280px;">
       <div class="dhcp-tree">
-        <div class="dhcp-ti i1"><span class="dhcp-tri">▼</span><span class="dhcp-ico">🖥</span>dc01.novacrestbank.local</div>
+        <div class="dhcp-ti i1"><span class="dhcp-tri">▼</span><span class="dhcp-ico">🖥</span>dc01.novacrestbank.internal</div>
         <div class="dhcp-ti i2"><span class="dhcp-tri">▼</span><span class="dhcp-ico">📁</span>IPv4</div>
         <div class="dhcp-ti i3"><span class="dhcp-tri">▶</span><span class="dhcp-ico">✅</span>NCB-VLAN10-Mgmt</div>
         <div class="dhcp-ti i3"><span class="dhcp-tri">▶</span><span class="dhcp-ico">✅</span>NCB-VLAN20-vMotion</div>
@@ -1367,7 +1367,7 @@
         </div>
       </div>
     </div>
-    <div class="dhcp-sb">5 scopes — all Active — dc01.novacrestbank.local</div>
+    <div class="dhcp-sb">5 scopes — all Active — dc01.novacrestbank.internal</div>
   </div>
 
   <div class="ann ok" style="margin-top:10px;">
@@ -1416,7 +1416,7 @@
           </div>
         </div>
 
-        <p style="font-size:13.5px;margin-top:8px;">Right-click <strong>IPv4</strong> under dc01.novacrestbank.local → click <strong>"Configure Failover…"</strong> The Configure Failover wizard opens.</p>
+        <p style="font-size:13.5px;margin-top:8px;">Right-click <strong>IPv4</strong> under dc01.novacrestbank.internal → click <strong>"Configure Failover…"</strong> The Configure Failover wizard opens.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1475,7 +1475,7 @@
             <div class="wiz-body">
               <div class="wiz-field">
                 <label class="wiz-label">Partner Server:</label>
-                <input class="wiz-input filled" value="dc02.novacrestbank.local" readonly/>
+                <input class="wiz-input filled" value="dc02.novacrestbank.internal" readonly/>
                 <div class="wiz-hint">Enter the FQDN of DC02. Windows Server DHCP Failover communicates directly between the two servers. DC02 must be reachable from DC01 and must also have the DHCP Server role installed. If DC02 does not have DHCP installed, install the role first (Server Manager → Add Roles → DHCP Server) — no scopes need to be created on DC02, the failover wizard replicates them from DC01.</div>
               </div>
             </div>
@@ -1542,13 +1542,13 @@
 
   <h2>DHCP configuration checklist</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">DHCP server authorised in AD</span><span class="spec-val badge bg">✓ dc01.novacrestbank.local — green tick</span></div>
+    <div class="spec-row"><span class="spec-label">DHCP server authorised in AD</span><span class="spec-val badge bg">✓ dc01.novacrestbank.internal — green tick</span></div>
     <div class="spec-row"><span class="spec-label">NCB-VLAN10-Mgmt — Active</span><span class="spec-val badge bg">✓ Pool 10.10.0.100–.199 · Exclusions .1–.10, .11–.99, .200–.254</span></div>
     <div class="spec-row"><span class="spec-label">NCB-VLAN20-vMotion — Active</span><span class="spec-val badge bg">✓ Pool 10.20.0.100–.199 · Exclusions .1–.10, .11–.99, .200–.254</span></div>
     <div class="spec-row"><span class="spec-label">NCB-VLAN25-vSAN — Active</span><span class="spec-val badge bg">✓ Pool 10.25.0.100–.199 · Exclusions .1–.10, .11–.99, .200–.254</span></div>
     <div class="spec-row"><span class="spec-label">NCB-VLAN100-HostTEP — Active</span><span class="spec-val badge bg">✓ Pool 10.100.0.31–.199 · NSX TEP pool .11–.30 excluded</span></div>
     <div class="spec-row"><span class="spec-label">NCB-VLAN101-EdgeTEP — Active</span><span class="spec-val badge bg">✓ Pool 10.101.0.21–.199 · NSX Edge TEP pool .11–.20 excluded</span></div>
-    <div class="spec-row"><span class="spec-label">All scopes — Options 003/006/015</span><span class="spec-val badge bg">✓ Router per scope · DNS DC01+DC02 · Domain novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">All scopes — Options 003/006/015</span><span class="spec-val badge bg">✓ Router per scope · DNS DC01+DC02 · Domain novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Server-level Options 006/015</span><span class="spec-val badge bg">✓ Fallback DNS and domain configured</span></div>
     <div class="spec-row"><span class="spec-label">DHCP Failover to DC02</span><span class="spec-val badge bg">✓ Hot Standby · NCB-DHCP-Failover · all 5 scopes replicated</span></div>
     <div class="spec-row"><span class="spec-label">Cisco ip helper-address on VLANs 10/20/25/100/101</span><span class="spec-val badge ba">⚠ Verify on Cisco fabric — outside Windows Server scope but required</span></div>
@@ -1558,11 +1558,11 @@
   <div class="card" style="border-left:4px solid var(--win);">
     <p style="font-size:13.5px;">WIN-VCF-03 replaces the self-signed certificates on VCF and NSX components with certificates signed by NovaCrestBank's IssuingCA. This is required before VCF bring-up completes because:</p>
     <ul style="font-size:13.5px;margin-top:8px;margin-left:20px;">
-      <li><strong>SDDC Manager</strong> — replace the default self-signed TLS certificate with an IssuingCA-signed cert. SDDC Manager's FQDN (sddc-manager.novacrestbank.local) must match the cert Subject Alternative Name.</li>
+      <li><strong>SDDC Manager</strong> — replace the default self-signed TLS certificate with an IssuingCA-signed cert. SDDC Manager's FQDN (sddc-manager.novacrestbank.internal) must match the cert Subject Alternative Name.</li>
       <li><strong>vCenter (both domains)</strong> — replace the Machine SSL certificate. vCenter certificates affect vSphere Client browser trust and are required for NSX Manager to trust the vCenter API endpoint.</li>
       <li><strong>NSX Manager cluster</strong> — replace the cluster certificate on all three nodes and the cluster VIP. NSX-signed certificates are self-signed by default; browsers and API clients reject them. The IssuingCA-signed certificate is also required for OCP to trust the NSX API during installation.</li>
     </ul>
-    <p style="font-size:13.5px;margin-top:10px;">WIN-VCF-03 covers the IssuingCA web enrollment process (requesting certificates via http://issuingca.novacrestbank.local/certsrv), certificate export from Windows, and the upload-and-replace procedures in the SDDC Manager, vCenter, and NSX Manager GUIs. All GUI only, screen by screen.</p>
+    <p style="font-size:13.5px;margin-top:10px;">WIN-VCF-03 covers the IssuingCA web enrollment process (requesting certificates via http://issuingca.novacrestbank.internal/certsrv), certificate export from Windows, and the upload-and-replace procedures in the SDDC Manager, vCenter, and NSX Manager GUIs. All GUI only, screen by screen.</p>
   </div>
 </div>
 

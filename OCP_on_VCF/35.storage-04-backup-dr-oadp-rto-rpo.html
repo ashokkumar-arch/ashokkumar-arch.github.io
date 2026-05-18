@@ -445,7 +445,7 @@
           <span class="yk">restartPolicy</span>: <span class="yv">OnFailure</span>
           <span class="yk">containers</span>:
             - <span class="yk">name</span>: <span class="yv">etcd-backup</span>
-              <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/ubi9/ubi:latest</span>
+              <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/ubi9/ubi:latest</span>
               <span class="yk">securityContext</span>:
                 <span class="yk">privileged</span>: <span class="yb">true</span>
                 <span class="yc">                # privileged: true required to run cluster-backup.sh.
@@ -567,7 +567,7 @@
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
       <div class="layer-num">Step 6</div>
       <div class="layer-title">Recover the second and third etcd members</div>
-      <div class="layer-desc">Force the remaining master nodes to rejoin the etcd cluster by deleting their existing etcd member pods: <code>oc delete pod -n openshift-etcd etcd-master-02.ocp.corp.novacrestbank.com</code> and <code>etcd-master-03...</code>. The etcd Operator detects the missing members and adds them back as new members, syncing data from master-01's restored state. Monitor: <code>oc get pods -n openshift-etcd -w</code> until all three etcd pods are Running. Expected: 3 etcd members, quorum restored. Time: 15–30 minutes.</div>
+      <div class="layer-desc">Force the remaining master nodes to rejoin the etcd cluster by deleting their existing etcd member pods: <code>oc delete pod -n openshift-etcd etcd-master-02.ocp.novacrestbank.internal</code> and <code>etcd-master-03...</code>. The etcd Operator detects the missing members and adds them back as new members, syncing data from master-01's restored state. Monitor: <code>oc get pods -n openshift-etcd -w</code> until all three etcd pods are Running. Expected: 3 etcd members, quorum restored. Time: 15–30 minutes.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--etcd);">
       <div class="layer-num">Step 7</div>
@@ -956,7 +956,7 @@ velero-banking-redis-data-0-xxxx      true   ocs-storagecluster-rbdplugin-snapcl
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--oadp);">
       <div class="layer-num">Step 5</div>
       <div class="layer-title">Verify application health post-restore</div>
-      <div class="layer-desc">Check all pods are Running: <code>oc get pods -n banking-production</code>. Check ExternalSecrets are synced (they will re-sync from CyberArk after restore): <code>oc get externalsecret -n banking-production</code> — all should show Ready=True within 5 minutes. Check the payment-service responds to health checks: <code>curl -sk https://payment-service-production.apps.ocp.corp.novacrestbank.com/api/v1/payments/health</code>. Expected: <code>{"status":"UP"}</code>. Document the recovery timestamp and the data loss window (time between backup timestamp and incident).</div>
+      <div class="layer-desc">Check all pods are Running: <code>oc get pods -n banking-production</code>. Check ExternalSecrets are synced (they will re-sync from CyberArk after restore): <code>oc get externalsecret -n banking-production</code> — all should show Ready=True within 5 minutes. Check the payment-service responds to health checks: <code>curl -sk https://payment-service-production.apps.ocp.novacrestbank.internal/api/v1/payments/health</code>. Expected: <code>{"status":"UP"}</code>. Document the recovery timestamp and the data loss window (time between backup timestamp and incident).</div>
     </div>
   </div>
 </div>

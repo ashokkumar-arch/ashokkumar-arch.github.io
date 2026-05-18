@@ -303,12 +303,12 @@
     <div class="spec-row"><span class="spec-label">NCB-T1-OCP route advertisement</span><span class="spec-val">"All LB VIP IPs" already enabled (Section 08 of NSX-03) — VIP routes will propagate to BGP automatically</span></div>
     <div class="spec-row"><span class="spec-label">NCB-Edge-Cluster</span><span class="spec-val">Both Edge Nodes Up · Large form factor confirmed — NSX LB requires Large Edge Nodes</span></div>
     <div class="spec-row"><span class="spec-label">OCP node IPs allocated</span><span class="spec-val">master-0/1/2: 10.50.0.11–.13 · infra-0/1/2: 10.50.0.21–.23 · API VIP: 10.50.0.200 · Ingress VIP: 10.50.0.201</span></div>
-    <div class="spec-row"><span class="spec-label">DNS records exist</span><span class="spec-val">api.ocp.novacrestbank.local → 10.50.0.200 · *.apps.ocp.novacrestbank.local → 10.50.0.201</span></div>
+    <div class="spec-row"><span class="spec-label">DNS records exist</span><span class="spec-val">api.ocp.novacrestbank.internal → 10.50.0.200 · *.apps.ocp.novacrestbank.internal → 10.50.0.201</span></div>
   </div>
 
   <div class="callout warn">
     <div class="cl">VIPs must exist before OCP installation begins — not after</div>
-    The OCP IPI installer contacts <code>api.ocp.novacrestbank.local</code> (10.50.0.200:6443) immediately after the first master node boots, to begin bootstrapping the cluster. If the VIP does not exist or is not routable at that moment, the installation fails. Configure the NSX Load Balancer and both VIPs completely in this guide — before the OCP installer is run in OCP-VCF-01.
+    The OCP IPI installer contacts <code>api.ocp.novacrestbank.internal</code> (10.50.0.200:6443) immediately after the first master node boots, to begin bootstrapping the cluster. If the VIP does not exist or is not routable at that moment, the installation fails. Configure the NSX Load Balancer and both VIPs completely in this guide — before the OCP installer is run in OCP-VCF-01.
   </div>
 
   <h2>What this guide builds</h2>
@@ -363,7 +363,7 @@
 <div class="page" id="page-keepalived-vs-nsx">
   <div class="ey">NSX-04 · Section 03</div>
   <div class="pt">NSX LB vs keepalived — what changes for OpenShift</div>
-  <div class="ps">The candidate built OCP with keepalived in the previous vSphere series — understanding what the NSX LB replaces and what stays the same</div>
+  <div class="ps">We built OCP with keepalived in the previous vSphere series — understanding what the NSX LB replaces and what stays the same</div>
 
   <div class="decision">
     <div class="dl">Exactly what keepalived did — and why NSX LB does it better</div>
@@ -1003,7 +1003,7 @@
 <div class="page" id="page-vs-api">
   <div class="ey">NSX-04 · Section 12</div>
   <div class="pt">Create NCB-VS-OCP-API — the OCP API VIP on 10.50.0.200:6443</div>
-  <div class="ps">The Virtual Server that api.ocp.novacrestbank.local resolves to — the most critical VIP in the OCP environment</div>
+  <div class="ps">The Virtual Server that api.ocp.novacrestbank.internal resolves to — the most critical VIP in the OCP environment</div>
 
   <ul class="step-list">
     <li class="step-item">
@@ -1033,7 +1033,7 @@
                   </div>
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Description</span>
-                    <input class="nsx-inp ok" value="OCP API VIP — api.ocp.novacrestbank.local → 10.50.0.200:6443" readonly/>
+                    <input class="nsx-inp ok" value="OCP API VIP — api.ocp.novacrestbank.internal → 10.50.0.200:6443" readonly/>
                   </div>
                 </div>
                 <div class="nsx-frow">
@@ -1059,7 +1059,7 @@
                   <div class="nsx-fg">
                     <span class="nsx-lbl">VIP Address <span class="nsx-req">*</span></span>
                     <input class="nsx-inp ok" value="10.50.0.200" readonly/>
-                    <div class="nsx-hint">The OCP API VIP from VCF-01. api.ocp.novacrestbank.local and api-int.ocp.novacrestbank.local both resolve to this IP. Must not be assigned to any VM — it is a floating IP held by the NSX LB on the Edge Nodes.</div>
+                    <div class="nsx-hint">The OCP API VIP from VCF-01. api.ocp.novacrestbank.internal and api-int.ocp.novacrestbank.internal both resolve to this IP. Must not be assigned to any VM — it is a floating IP held by the NSX LB on the Edge Nodes.</div>
                   </div>
                   <div class="nsx-fg" style="max-width:160px;">
                     <span class="nsx-lbl">Port <span class="nsx-req">*</span></span>
@@ -1115,7 +1115,7 @@
 <div class="page" id="page-vs-ingress-https">
   <div class="ey">NSX-04 · Section 13</div>
   <div class="pt">Create NCB-VS-OCP-HTTPS — Ingress VIP on 10.50.0.201:443</div>
-  <div class="ps">The Virtual Server for HTTPS application traffic — *.apps.ocp.novacrestbank.local resolves here</div>
+  <div class="ps">The Virtual Server for HTTPS application traffic — *.apps.ocp.novacrestbank.internal resolves here</div>
 
   <ul class="step-list">
     <li class="step-item">
@@ -1144,7 +1144,7 @@
                   </div>
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Description</span>
-                    <input class="nsx-inp ok" value="OCP Ingress VIP HTTPS — *.apps.ocp.novacrestbank.local → 10.50.0.201:443" readonly/>
+                    <input class="nsx-inp ok" value="OCP Ingress VIP HTTPS — *.apps.ocp.novacrestbank.internal → 10.50.0.201:443" readonly/>
                   </div>
                 </div>
                 <div class="nsx-frow">
@@ -1161,7 +1161,7 @@
                   <div class="nsx-fg">
                     <span class="nsx-lbl">VIP Address <span class="nsx-req">*</span></span>
                     <input class="nsx-inp ok" value="10.50.0.201" readonly/>
-                    <div class="nsx-hint">The OCP Ingress VIP. The wildcard DNS record *.apps.ocp.novacrestbank.local resolves to this IP. All OCP application Routes resolve to this VIP via DNS.</div>
+                    <div class="nsx-hint">The OCP Ingress VIP. The wildcard DNS record *.apps.ocp.novacrestbank.internal resolves to this IP. All OCP application Routes resolve to this VIP via DNS.</div>
                   </div>
                   <div class="nsx-fg" style="max-width:160px;">
                     <span class="nsx-lbl">Port <span class="nsx-req">*</span></span>
@@ -1236,7 +1236,7 @@
                   </div>
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Description</span>
-                    <input class="nsx-inp ok" value="OCP Ingress VIP HTTP — *.apps.ocp.novacrestbank.local → 10.50.0.201:80" readonly/>
+                    <input class="nsx-inp ok" value="OCP Ingress VIP HTTP — *.apps.ocp.novacrestbank.internal → 10.50.0.201:80" readonly/>
                   </div>
                 </div>
                 <div class="nsx-frow">
@@ -1461,20 +1461,20 @@
 
         <div style="background:#1a1a1a;border-radius:8px;padding:16px 20px;margin:12px 0;font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;line-height:1.7;border:1px solid #333;">
           <div style="color:#9080b0;margin-bottom:6px;"># Test 1 — API VIP</div>
-          <div style="color:#f1c40f;">C:\> nslookup api.ocp.novacrestbank.local</div>
-          <div style="color:#4ccd99;">Server: dc01.novacrestbank.local</div>
+          <div style="color:#f1c40f;">C:\> nslookup api.ocp.novacrestbank.internal</div>
+          <div style="color:#4ccd99;">Server: dc01.novacrestbank.internal</div>
           <div style="color:#4ccd99;">Address: 10.70.0.10</div>
-          <div style="color:#4ccd99;margin-top:4px;">Name: api.ocp.novacrestbank.local</div>
+          <div style="color:#4ccd99;margin-top:4px;">Name: api.ocp.novacrestbank.internal</div>
           <div style="color:#4ccd99;">Address: 10.50.0.200   ✓</div>
 
           <div style="color:#9080b0;margin:12px 0 6px;"># Test 2 — API internal VIP (same result expected)</div>
-          <div style="color:#f1c40f;">C:\> nslookup api-int.ocp.novacrestbank.local</div>
-          <div style="color:#4ccd99;">Name: api-int.ocp.novacrestbank.local</div>
+          <div style="color:#f1c40f;">C:\> nslookup api-int.ocp.novacrestbank.internal</div>
+          <div style="color:#4ccd99;">Name: api-int.ocp.novacrestbank.internal</div>
           <div style="color:#4ccd99;">Address: 10.50.0.200   ✓</div>
 
           <div style="color:#9080b0;margin:12px 0 6px;"># Test 3 — Ingress wildcard (any subdomain of *.apps)</div>
-          <div style="color:#f1c40f;">C:\> nslookup console-openshift-console.apps.ocp.novacrestbank.local</div>
-          <div style="color:#4ccd99;">Name: console-openshift-console.apps.ocp.novacrestbank.local</div>
+          <div style="color:#f1c40f;">C:\> nslookup console-openshift-console.apps.ocp.novacrestbank.internal</div>
+          <div style="color:#4ccd99;">Name: console-openshift-console.apps.ocp.novacrestbank.internal</div>
           <div style="color:#4ccd99;">Address: 10.50.0.201   ✓</div>
 
           <div style="color:#9080b0;margin:12px 0 6px;"># Test 4 — Connectivity to API VIP (port must be open after OCP installs)</div>
@@ -1485,7 +1485,7 @@
 
         <div class="ann ok" style="margin-top:8px;">
           <span class="ai">✓</span>
-          <span>All DNS lookups return correct VIP addresses. api.ocp.novacrestbank.local → 10.50.0.200. *.apps.ocp.novacrestbank.local → 10.50.0.201. TCP connectivity to port 6443 is expected to fail before OCP installation — the master nodes do not exist yet. This is correct behaviour.</span>
+          <span>All DNS lookups return correct VIP addresses. api.ocp.novacrestbank.internal → 10.50.0.200. *.apps.ocp.novacrestbank.internal → 10.50.0.201. TCP connectivity to port 6443 is expected to fail before OCP installation — the master nodes do not exist yet. This is correct behaviour.</span>
         </div>
       </div>
     </li>
@@ -1497,8 +1497,8 @@
     ✓ NSX LB NCB-OCP-LB attached to NCB-T1-OCP, status Enabled<br/>
     ✓ Three Virtual Servers created (10.50.0.200:6443, 10.50.0.201:443, 10.50.0.201:80)<br/>
     ✓ VIP /32 routes appear in T0 route table<br/>
-    ✓ api.ocp.novacrestbank.local resolves to 10.50.0.200 via DNS<br/>
-    ✓ *.apps.ocp.novacrestbank.local resolves to 10.50.0.201 via DNS<br/>
+    ✓ api.ocp.novacrestbank.internal resolves to 10.50.0.200 via DNS<br/>
+    ✓ *.apps.ocp.novacrestbank.internal resolves to 10.50.0.201 via DNS<br/>
     ✓ Pool member status Unknown is acceptable (OCP nodes will be created by the installer)<br/><br/>
     After OCP installation completes, return here and check the Pool member status — all six members (3 masters, 3 infra nodes) should show <span class="badge bg">UP</span> with green health status.
   </div>
@@ -1526,8 +1526,8 @@
     <div class="spec-row"><span class="spec-label">NCB-VS-OCP-HTTPS — 10.50.0.201:443 → NCB-Pool-OCP-Ingress · Enabled</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">NCB-VS-OCP-HTTP — 10.50.0.201:80 → NCB-Pool-OCP-Ingress · Enabled</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">T0 route table: 10.50.0.200/32 and 10.50.0.201/32 as T1 LB VIP</span><span class="spec-val badge bg">✓ Advertised via BGP to Cisco</span></div>
-    <div class="spec-row"><span class="spec-label">DNS: api.ocp.novacrestbank.local → 10.50.0.200</span><span class="spec-val badge bg">✓</span></div>
-    <div class="spec-row"><span class="spec-label">DNS: *.apps.ocp.novacrestbank.local → 10.50.0.201</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DNS: api.ocp.novacrestbank.internal → 10.50.0.200</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">DNS: *.apps.ocp.novacrestbank.internal → 10.50.0.201</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">Pool member health status</span><span class="spec-val badge ba">⏳ Unknown — expected until OCP nodes are created by installer</span></div>
   </div>
 

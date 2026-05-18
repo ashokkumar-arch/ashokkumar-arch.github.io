@@ -366,7 +366,7 @@
   <div class="pt">Prerequisites and operator installation</div>
   <div class="ps">Tempo requires object storage (MinIO — already deployed for LokiStack in OBS-03) and a dedicated bucket. The Tempo Operator and OpenTelemetry Operator are installed separately via OLM.</div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — create trace bucket and install operators</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — create trace bucket and install operators</span></div>
     <div class="term-body"><pre><span class="td"># Create a dedicated MinIO bucket for Tempo trace storage
 # Separate from the logs bucket (ncb-ocp-logs) — independent retention policies</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">mc mb minio/ncb-ocp-traces && mc ls minio/</span>
@@ -379,7 +379,7 @@
   --from-literal=access_key_id='NCB_MINIO_ACCESS_KEY' \
   --from-literal=access_key_secret='NCB_MINIO_SECRET_KEY' \
   --from-literal=bucket='ncb-ocp-traces' \
-  --from-literal=endpoint='https://minio.infra.novacrestbank.local:9000' \
+  --from-literal=endpoint='https://minio.infra.novacrestbank.internal:9000' \
   -n openshift-tempo-operator</span>
 <span class="tg">secret/tempo-minio-creds created</span>
 
@@ -608,10 +608,10 @@ ncb-collector-collector-0         1/1     Running   3m</span>
 
 <span class="td"># Check 3: Jaeger UI Route is accessible</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get route -n openshift-tempo-operator | grep jaeger</span>
-<span class="tg">tempo-banking-jaegerui   tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.local</span>
+<span class="tg">tempo-banking-jaegerui   tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.internal</span>
 
 <span class="td"># Check 4: Send a test trace via OTLP to the Collector and verify it reaches Tempo</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run -it --rm otel-test --image=harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run -it --rm otel-test --image=harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest \
   --restart=Never -n banking-production -- \
   sh -c 'curl -sk -X POST \
     http://ncb-collector-collector.banking-production.svc:4318/v1/traces \
@@ -622,7 +622,7 @@ ncb-collector-collector-0         1/1     Running   3m</span>
 
 <span class="td"># Verify the test trace arrived in Tempo (query by trace ID)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">sleep 10 && curl -sk \
-  "https://tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.local/api/traces/4bf92f3577b34da6a3ce929d0e0e4736" \
+  "https://tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.internal/api/traces/4bf92f3577b34da6a3ce929d0e0e4736" \
   | python3 -c "import json,sys; d=json.load(sys.stdin); print('Trace found:', d['data'][0]['traceID'][:16], '...')"</span>
 <span class="tg">Trace found: 4bf92f3577b34da6 ...</span>
 <span class="td">  ↑ Test trace visible in Tempo via Jaeger API ✓</span>
@@ -651,7 +651,7 @@ ncb-collector-collector-0         1/1     Running   3m</span>
     <span class="yk">spec</span>:
       <span class="yk">initContainers</span>:
         - <span class="yk">name</span>: <span class="yv">copy-otel-agent</span>
-          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/platform/otel-java-agent:2.x.x</span>
+          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/otel-java-agent:2.x.x</span>
           <span class="yc">          # An image containing only the opentelemetry-javaagent.jar.
                       # Built from: FROM scratch COPY opentelemetry-javaagent.jar /agent/
                       # Mirrored to Harbor. Version-pinned — update in Harbor oc-mirror run.</span>
@@ -667,7 +667,7 @@ ncb-collector-collector-0         1/1     Running   3m</span>
                 # without rebuilding the payment-service image.</span>
       <span class="yk">containers</span>:
         - <span class="yk">name</span>: <span class="yv">payment-service</span>
-          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.2.3</span>
+          <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.2.3</span>
           <span class="yk">env</span>:
             - <span class="yk">name</span>: <span class="yv">JAVA_TOOL_OPTIONS</span>
               <span class="yk">value</span>: <span class="yv">"-javaagent:/otel/opentelemetry-javaagent.jar"</span>
@@ -1002,14 +1002,14 @@ ncb-collector-collector-0         1/1     Running   3m</span>
 
 <span class="td"># Find the trace ID from Loki (OBS-03) for the specific payment ID:</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
-  "https://grafana-monitoring.apps.ocp.novacrestbank.local/loki/api/v1/query" \
+  "https://grafana-monitoring.apps.ocp.novacrestbank.internal/loki/api/v1/query" \
   --data-urlencode 'query={namespace="banking-production"} | json | paymentId="NCB-20260420-87654321" | line_format "{{.traceId}}"' \
   | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['data']['result'][0]['values'][0][1])"</span>
 <span class="tg">4bf92f3577b34da6a3ce929d0e0e4736</span>
 <span class="td">  ↑ Trace ID extracted from Loki log query ✓</span>
 
 <span class="td"># Navigate to Jaeger UI with the trace ID:
-# https://tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.local/trace/4bf92f3577b34da6a3ce929d0e0e4736
+# https://tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.internal/trace/4bf92f3577b34da6a3ce929d0e0e4736
 
 # What the analyst sees in Jaeger UI:
 # - Top-level span: api-gateway POST /api/v1/payments/submit  total: 12.3s
@@ -1141,7 +1141,7 @@ spec:
     <div class="spec-row"><span class="spec-label">OTel Operator — CSV Succeeded</span><span class="spec-val"><span class="badge bg">✓</span> opentelemetry-operator.v0.100.x Succeeded · OpenTelemetryCollector CRD registered</span></div>
     <div class="spec-row"><span class="spec-label">MinIO traces bucket — ncb-ocp-traces</span><span class="spec-val"><span class="badge bg">✓</span> Separate from ncb-ocp-logs · 7-day trace retention</span></div>
     <div class="spec-row"><span class="spec-label">TempoStack — 5 pods Running on infra nodes</span><span class="spec-val"><span class="badge bg">✓</span> Compactor, Distributor, Ingester, Querier, Query Frontend — all on infra nodes</span></div>
-    <div class="spec-row"><span class="spec-label">Jaeger UI Route accessible</span><span class="spec-val"><span class="badge bg">✓</span> tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Jaeger UI Route accessible</span><span class="spec-val"><span class="badge bg">✓</span> tempo-banking-jaegerui-openshift-tempo-operator.apps.ocp.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">OTel Collector deployed in banking-production</span><span class="spec-val"><span class="badge bg">✓</span> ncb-collector-collector Running · OTLP gRPC (4317) and HTTP (4318) accepting spans</span></div>
     <div class="spec-row"><span class="spec-label">Sensitive attribute removal in Collector</span><span class="spec-val"><span class="badge bg">✓</span> card.number, cvv, account.password removed from all spans before Tempo storage</span></div>
     <div class="spec-row"><span class="spec-label">payment-service Java agent injected</span><span class="spec-val"><span class="badge bg">✓</span> JAVA_TOOL_OPTIONS with -javaagent set · initContainer copies agent JAR</span></div>

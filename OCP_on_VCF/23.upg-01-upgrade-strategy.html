@@ -268,7 +268,7 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — reading CVO status</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — reading CVO status</span></div>
     <div class="term-body"><pre><span class="td"># The ClusterVersion object is the CVO's primary status object</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get clusterversion version</span>
 <span class="tg">NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
@@ -306,7 +306,7 @@ version   4.16.7    True        False         8d      Cluster version is 4.16.7<
 <span class="td"># Check the upstream server (should be the Harbor mirror in air-gapped mode)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get clusterversion version \
   -o jsonpath='{.spec.upstream}{"\n"}'</span>
-<span class="tg">https://harbor.apps.ocp.novacrestbank.local/openshift-release-dev/ocp-release</span>
+<span class="tg">https://harbor.apps.ocp.novacrestbank.internal/openshift-release-dev/ocp-release</span>
 <span class="td">  ↑ CVO pulls release payloads from Harbor (not the internet) ✓</span>
     <div class="tann info"><span class="tai">ℹ</span><span>In NovaCrestBank's air-gapped environment, the CVO's upstream is set to the Harbor mirror. New OCP releases must be pulled into Harbor using oc-mirror before the CVO can see and apply them. The CVO checks the upstream periodically for new versions — if the upstream is not reachable, the cluster continues operating normally; it simply cannot apply new updates until connectivity is restored.</span></div>
     </pre></div>
@@ -625,7 +625,7 @@ vsphere-problem-detector    4.16.7    True        False         False</span>
   <div class="ps">The target version must appear in the cluster's <code>availableUpdates</code> list and must be in the Harbor mirror. The <code>oc adm upgrade</code> command is the definitive tool for selecting and validating the target.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — query available updates and select target version</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — query available updates and select target version</span></div>
     <div class="term-body"><pre><span class="td"># Check what updates are available from the current version</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm upgrade</span>
 <span class="tg">Cluster version is 4.16.7
@@ -644,9 +644,9 @@ VERSION   IMAGE
 
 <span class="td"># Verify the target image is available in Harbor before committing to the upgrade</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc image info \
-  harbor.apps.ocp.novacrestbank.local/openshift-release-dev/ocp-release:4.16.9-x86_64 \
+  harbor.apps.ocp.novacrestbank.internal/openshift-release-dev/ocp-release:4.16.9-x86_64 \
   --insecure=false 2>/dev/null | head -5</span>
-<span class="tg">Name:          harbor.apps.ocp.novacrestbank.local/openshift-release-dev/ocp-release:4.16.9-x86_64
+<span class="tg">Name:          harbor.apps.ocp.novacrestbank.internal/openshift-release-dev/ocp-release:4.16.9-x86_64
 Digest:        sha256:abc123...
 Content Type:  application/vnd.oci.image.manifest.v1+json
 OS:            linux
@@ -790,22 +790,22 @@ worker   rendered-worker-abc123def456...                 True      False      Fa
     <div class="term-body"><pre><span class="td"># Check 1: All nodes Ready and not cordoned (SchedulingDisabled)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get nodes -o wide</span>
 <span class="tg">NAME                                STATUS   ROLES           AGE   VERSION
-master-0.ocp.novacrestbank.local    Ready    control-plane   45d   v1.29.7
-master-1.ocp.novacrestbank.local    Ready    control-plane   45d   v1.29.7
-master-2.ocp.novacrestbank.local    Ready    control-plane   45d   v1.29.7
-infra-0.ocp.novacrestbank.local     Ready    infra           45d   v1.29.7
-infra-1.ocp.novacrestbank.local     Ready    infra           45d   v1.29.7
-infra-2.ocp.novacrestbank.local     Ready    infra           45d   v1.29.7
-worker-0.ocp.novacrestbank.local    Ready    worker          45d   v1.29.7
-worker-1.ocp.novacrestbank.local    Ready    worker          45d   v1.29.7
-worker-2.ocp.novacrestbank.local    Ready    worker          45d   v1.29.7</span>
+master-0.ocp.novacrestbank.internal    Ready    control-plane   45d   v1.29.7
+master-1.ocp.novacrestbank.internal    Ready    control-plane   45d   v1.29.7
+master-2.ocp.novacrestbank.internal    Ready    control-plane   45d   v1.29.7
+infra-0.ocp.novacrestbank.internal     Ready    infra           45d   v1.29.7
+infra-1.ocp.novacrestbank.internal     Ready    infra           45d   v1.29.7
+infra-2.ocp.novacrestbank.internal     Ready    infra           45d   v1.29.7
+worker-0.ocp.novacrestbank.internal    Ready    worker          45d   v1.29.7
+worker-1.ocp.novacrestbank.internal    Ready    worker          45d   v1.29.7
+worker-2.ocp.novacrestbank.internal    Ready    worker          45d   v1.29.7</span>
 <span class="td">  ↑ All 9 nodes: STATUS=Ready, no SchedulingDisabled ✓
     If any node shows NotReady: do not proceed — investigate and remediate.</span>
 
 <span class="td"># Check 2: Resource headroom on worker nodes
 # During upgrade: one worker node will be drained. The other 2 must absorb all pods.
 # Check that total requested CPU/memory fits within 2 workers' allocatable capacity.</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe nodes worker-0.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe nodes worker-0.ocp.novacrestbank.internal \
   | grep -A5 "Allocated resources:"</span>
 <span class="tg">  Allocated resources:
     (Total limits may be over 100 percent, i.e., overcommitted.)
@@ -972,12 +972,12 @@ master   False     True       False      3              2                   2</s
   -o custom-columns=NAME:.metadata.name,STATUS:.status.conditions[-1].type,\
 READY:.status.conditions[-1].status</span>
 <span class="tg">NAME                               STATUS   READY
-master-0.ocp.novacrestbank.local   Ready    True
-master-1.ocp.novacrestbank.local   Ready    True
-master-2.ocp.novacrestbank.local   Ready    False</span>
+master-0.ocp.novacrestbank.internal   Ready    True
+master-1.ocp.novacrestbank.internal   Ready    True
+master-2.ocp.novacrestbank.internal   Ready    False</span>
 <span class="td">  ↑ master-2 is NotReady after its reboot. Check why:</span>
 
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe node master-2.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe node master-2.ocp.novacrestbank.internal \
   | grep -A10 "Conditions:" | head -15</span>
 <span class="tg">Conditions:
   Type             Status  Reason           Message
@@ -993,11 +993,11 @@ master-2.ocp.novacrestbank.local   Ready    False</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc delete pod -n openshift-ovn-kubernetes \
   -l app=ovnkube-node \
-  --field-selector spec.nodeName=master-2.ocp.novacrestbank.local</span>
+  --field-selector spec.nodeName=master-2.ocp.novacrestbank.internal</span>
 <span class="tg">pod "ovnkube-node-xxxxx" deleted</span>
 
 <span class="td"># Wait 60 seconds for ovnkube-node to restart</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node master-2.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node master-2.ocp.novacrestbank.internal \
   -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'</span>
 <span class="tg">True</span>
 <span class="td">  ↑ master-2 is Ready after restarting the network plugin pod ✓
@@ -1022,7 +1022,7 @@ master-2.ocp.novacrestbank.local   Ready    False</span>
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — take the pre-upgrade etcd backup</span></div>
     <div class="term-body"><pre><span class="td"># The etcd backup script is installed on all master nodes by OCP.
 # Run it on one master node — the backup captures data from that member's TSDB.</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/master-0.ocp.novacrestbank.local -- \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/master-0.ocp.novacrestbank.internal -- \
   chroot /host \
   /usr/local/bin/cluster-backup.sh /home/core/assets/backup 2>&amp;1 | tail -10</span>
 <span class="tg">found latest kube-apiserver: /etc/kubernetes/static-pod-resources/kube-apiserver-pod-8
@@ -1038,7 +1038,7 @@ etcd data backup successful!
   static_kuberesources_2026-04-20_220000.tar.gz  — static pod manifests</span>
 
 <span class="td"># Copy the backup from the master node to the jump host for safekeeping</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh core@master-0.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh core@master-0.ocp.novacrestbank.internal \
   "sudo tar czf - /home/core/assets/backup" \
   > ~/ocp-kit/backups/etcd-backup-pre-upgrade-$(date +%Y%m%d-%H%M).tar.gz
 echo "Backup size: $(du -sh ~/ocp-kit/backups/etcd-backup-pre-upgrade-*.tar.gz | tail -1)"</span>

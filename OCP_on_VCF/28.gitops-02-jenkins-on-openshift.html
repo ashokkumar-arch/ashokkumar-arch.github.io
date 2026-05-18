@@ -263,7 +263,7 @@
   </div>
 
   <div class="card">
-    <div class="spec-row"><span class="spec-label">Jenkins URL</span><span class="spec-val"><code>https://jenkins.apps.ocp.corp.novacrestbank.com</code></span></div>
+    <div class="spec-row"><span class="spec-label">Jenkins URL</span><span class="spec-val"><code>https://jenkins.apps.ocp.novacrestbank.internal</code></span></div>
     <div class="spec-row"><span class="spec-label">OCP namespace</span><span class="spec-val"><code>jenkins</code></span></div>
     <div class="spec-row"><span class="spec-label">Controller deployment</span><span class="spec-val">StatefulSet — 1 replica · infra nodes · 50 Gi vsan-standard PVC</span></div>
     <div class="spec-row"><span class="spec-label">Agent pods</span><span class="spec-val">Ephemeral · created per build · max 5 concurrent · deleted after completion</span></div>
@@ -307,7 +307,7 @@
   <div class="ps">Before installing the Jenkins Operator, three prerequisites must be confirmed: the <code>jenkins</code> namespace with correct labels, the <code>vsan-standard</code> StorageClass for the controller PVC, and the Jenkins Operator and agent images mirrored to Harbor.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — create namespace and verify prerequisites</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — create namespace and verify prerequisites</span></div>
     <div class="term-body"><pre><span class="td"># Create the jenkins namespace</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc new-project jenkins \
   --description="Jenkins CI — NovaCrestBank banking pipeline" \
@@ -327,9 +327,9 @@
 
 <span class="td"># Verify Jenkins Operator image is in Harbor (mirrored via oc-mirror)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc image info \
-  harbor.apps.ocp.corp.novacrestbank.com/jenkins/jenkins-operator:latest \
+  harbor.apps.ocp.novacrestbank.internal/jenkins/jenkins-operator:latest \
   --insecure=false 2>/dev/null | grep "Name:"</span>
-<span class="tg">Name: harbor.apps.ocp.corp.novacrestbank.com/jenkins/jenkins-operator:latest</span>
+<span class="tg">Name: harbor.apps.ocp.novacrestbank.internal/jenkins/jenkins-operator:latest</span>
 <span class="td">  ↑ Jenkins Operator image in Harbor ✓</td>
 
 <span class="td"># Create secrets needed before Jenkins deployment</span>
@@ -535,30 +535,30 @@ install-jk3x9   jenkins-operator.v0.8.x  Manual     false</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n jenkins -l app.kubernetes.io/name=jenkins \
   -o custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName</span>
 <span class="tg">NAME                  STATUS    NODE
-jenkins-ncb-jenkins   Running   infra-1.ocp.corp.novacrestbank.com</span>
+jenkins-ncb-jenkins   Running   infra-1.ocp.novacrestbank.internal</span>
 <span class="td">  ↑ Jenkins controller Running on infra-1 ✓</td>
 
 <span class="td"># Verify the Route and TLS certificate</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get route -n jenkins</span>
 <span class="tg">NAME           HOST                                          PORT   TLS
-jenkins-https  jenkins.apps.ocp.corp.novacrestbank.com   443    edge/Redirect</span>
+jenkins-https  jenkins.apps.ocp.novacrestbank.internal   443    edge/Redirect</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect jenkins.apps.ocp.corp.novacrestbank.com:443 2>/dev/null \
+  -connect jenkins.apps.ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -noout -issuer -subject</span>
 <span class="tg">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
-subject=CN=jenkins.apps.ocp.corp.novacrestbank.com</span>
+subject=CN=jenkins.apps.ocp.novacrestbank.internal</span>
 <span class="td">  ↑ IssuingCA-signed certificate ✓  cert-manager issued ✓</td>
 
 <span class="td"># Check Jenkins health via the API</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
-  https://jenkins.apps.ocp.corp.novacrestbank.com/login \
+  https://jenkins.apps.ocp.novacrestbank.internal/login \
   -o /dev/null -w "%{http_code}"</span>
 <span class="tg">200</span>
 <span class="td">  ↑ Jenkins login page returns HTTP 200 ✓</td>
 
 <span class="td"># Verify all declared plugins are installed</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">JENKINS_URL="https://jenkins.apps.ocp.corp.novacrestbank.com"
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">JENKINS_URL="https://jenkins.apps.ocp.novacrestbank.internal"
 ADMIN_PASS=$(oc get secret jenkins-admin-credentials -n jenkins \
   -o jsonpath='{.data.password}' | base64 -d)
 
@@ -761,7 +761,7 @@ rolebinding.rbac.authorization.k8s.io/jenkins-agent-rolebinding created</span>
   <span class="yk">securityRealm</span>:
     <span class="yk">ldap</span>:
       <span class="yk">configurations</span>:
-        - <span class="yk">server</span>: <span class="yv">ldaps://dc01.corp.novacrestbank.com:636</span>
+        - <span class="yk">server</span>: <span class="yv">ldaps://dc01.novacrestbank.internal:636</span>
           <span class="yc">  # LDAPS: encrypted LDAP over TLS port 636.
                 # Same as Harbor and GitLab configuration.</span>
           <span class="yk">rootDN</span>: <span class="yv">DC=corp,DC=novacrestbank,DC=com</span>
@@ -816,12 +816,12 @@ rolebinding.rbac.authorization.k8s.io/jenkins-agent-rolebinding created</span>
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — verify LDAP authentication and permission matrix</span></div>
     <div class="term-body"><pre><span class="td"># Download the Jenkins CLI JAR</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
-  https://jenkins.apps.ocp.corp.novacrestbank.com/jnlpJars/jenkins-cli.jar \
+  https://jenkins.apps.ocp.novacrestbank.internal/jnlpJars/jenkins-cli.jar \
   -o jenkins-cli.jar</span>
 
 <span class="td"># Test admin login (platform engineer account)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">java -jar jenkins-cli.jar \
-  -s https://jenkins.apps.ocp.corp.novacrestbank.com \
+  -s https://jenkins.apps.ocp.novacrestbank.internal \
   -auth alice.smith:ADPassword123! \
   who-am-i</span>
 <span class="tg">Authenticated as: alice.smith
@@ -835,7 +835,7 @@ Authorities:
 
 <span class="td"># Test developer login (banking developer account — should have restricted permissions)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">java -jar jenkins-cli.jar \
-  -s https://jenkins.apps.ocp.corp.novacrestbank.com \
+  -s https://jenkins.apps.ocp.novacrestbank.internal \
   -auth bob.jones:ADPassword456! \
   who-am-i</span>
 <span class="tg">Authenticated as: bob.jones
@@ -845,7 +845,7 @@ Authorities:
 
 <span class="td"># Verify developer CANNOT access system configuration</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">java -jar jenkins-cli.jar \
-  -s https://jenkins.apps.ocp.corp.novacrestbank.com \
+  -s https://jenkins.apps.ocp.novacrestbank.internal \
   -auth bob.jones:ADPassword456! \
   reload-configuration 2>&amp;1 | head -1</span>
 <span class="tg">ERROR: bob.jones is missing the Overall/Administer permission</span>
@@ -866,7 +866,7 @@ Authorities:
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--gl-orange);">
       <div class="layer-num">→</div>
       <div class="layer-title">GitLab → Jenkins: webhook trigger</div>
-      <div class="layer-desc">When a developer merges a merge request to main in the <code>banking/payment-service</code> repo, GitLab sends an HTTP POST to <code>https://jenkins.apps.ocp.corp.novacrestbank.com/project/banking/payment-service</code>. The GitLab plugin receives the webhook, validates the HMAC secret token (configured in GITOPS-00 Section 14), and triggers the corresponding Jenkins pipeline job. The payload includes the commit SHA, branch name, and author — Jenkins uses these to check out the exact commit that triggered the build.</div>
+      <div class="layer-desc">When a developer merges a merge request to main in the <code>banking/payment-service</code> repo, GitLab sends an HTTP POST to <code>https://jenkins.apps.ocp.novacrestbank.internal/project/banking/payment-service</code>. The GitLab plugin receives the webhook, validates the HMAC secret token (configured in GITOPS-00 Section 14), and triggers the corresponding Jenkins pipeline job. The payload includes the commit SHA, branch name, and author — Jenkins uses these to check out the exact commit that triggered the build.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--jenkins);">
       <div class="layer-num">←</div>
@@ -886,7 +886,7 @@ Authorities:
         <span class="yc">  # ID of the Jenkins credential containing the GitLab API token.
               # The GitLab API token (PAT) is created for a service account user
               # in GitLab with API scope — scoped to the banking and gitops groups only.</span>
-        <span class="yk">url</span>: <span class="yv">https://gitlab.corp.novacrestbank.com</span>
+        <span class="yk">url</span>: <span class="yv">https://gitlab.novacrestbank.internal</span>
         <span class="yk">clientBuilderId</span>: <span class="yv">autodetect</span>
         <span class="yk">connectionTimeout</span>: <span class="yn">20</span>
         <span class="yk">readTimeout</span>: <span class="yn">10</span>
@@ -940,12 +940,12 @@ oc label secret jenkins-harbor-push-credentials \
 
 <span class="td"># Test the GitLab API connection via the Jenkins CLI</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">java -jar jenkins-cli.jar \
-  -s https://jenkins.apps.ocp.corp.novacrestbank.com \
+  -s https://jenkins.apps.ocp.novacrestbank.internal \
   -auth alice.smith:ADPassword123! \
   groovy = &lt;&lt;'EOF'
 import com.dabsquared.gitlabjenkins.gitlab.api.GitLabClientBuilder
 def client = GitLabClientBuilder.buildGitLabClient(
-  "https://gitlab.corp.novacrestbank.com", "glpat-NCBJenkinsPipelineToken2026", 10, 10, false)
+  "https://gitlab.novacrestbank.internal", "glpat-NCBJenkinsPipelineToken2026", 10, 10, false)
 def projects = client.getProjects()
 println "GitLab API connection: OK, ${projects.size()} projects accessible"
 EOF</span>
@@ -999,12 +999,12 @@ EOF</span>
                   # and protected by resource limits.</span>
             <span class="yk">containers</span>:
               - <span class="yk">name</span>: <span class="yv">jnlp</span>
-                <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/jenkins/inbound-agent:latest-jdk21</span>
+                <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/jenkins/inbound-agent:latest-jdk21</span>
                 <span class="yk">resourceRequestCpu</span>: <span class="yv">100m</span>
                 <span class="yk">resourceRequestMemory</span>: <span class="yv">256Mi</span>
 
               - <span class="yk">name</span>: <span class="yv">maven</span>
-                <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/jenkins/maven:3.9-eclipse-temurin-21</span>
+                <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/jenkins/maven:3.9-eclipse-temurin-21</span>
                 <span class="yk">command</span>: <span class="yv">sleep</span>
                 <span class="yk">args</span>: <span class="yv">infinity</span>
                 <span class="yc">  # command: sleep infinity — the container stays alive for the pipeline duration.
@@ -1019,7 +1019,7 @@ EOF</span>
                       # large multi-module builds without OOMKilling the agent.</span>
 
               - <span class="yk">name</span>: <span class="yv">buildah</span>
-                <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/jenkins/buildah:latest</span>
+                <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/jenkins/buildah:latest</span>
                 <span class="yc">  # Buildah image: runs as non-root user. Builds OCI images without
                       # requiring a Docker daemon or a privileged container.
                       # Buildah uses user-namespace isolation for rootless builds.</span>
@@ -1199,7 +1199,7 @@ EOF</span>
   <div class="card">
     <div class="spec-row"><span class="spec-label">Jenkins Operator — CSV Succeeded</span><span class="spec-val"><span class="badge bg">✓</span> jenkins-operator.v0.8.x Succeeded · JenkinsInstance CRD registered</span></div>
     <div class="spec-row"><span class="spec-label">JenkinsInstance CR — ReconcileComplete=True</span><span class="spec-val"><span class="badge bg">✓</span> Controller Running on infra-1 · 50 Gi vsan-standard PVC Bound</span></div>
-    <div class="spec-row"><span class="spec-label">TLS certificate — IssuingCA signed</span><span class="spec-val"><span class="badge bg">✓</span> jenkins.apps.ocp.corp.novacrestbank.com · cert-manager auto-renew</span></div>
+    <div class="spec-row"><span class="spec-label">TLS certificate — IssuingCA signed</span><span class="spec-val"><span class="badge bg">✓</span> jenkins.apps.ocp.novacrestbank.internal · cert-manager auto-renew</span></div>
     <div class="spec-row"><span class="spec-label">RBAC — minimum privilege verified</span><span class="spec-val"><span class="badge bg">✓</span> create pods in jenkins only · no cluster-admin · no cross-namespace access</span></div>
     <div class="spec-row"><span class="spec-label">AD/LDAP authentication working</span><span class="spec-val"><span class="badge bg">✓</span> Platform-Engineers → admin · Banking-Developers → restricted · matrix-based security</span></div>
     <div class="spec-row"><span class="spec-label">GitLab plugin configured — API connection verified</span><span class="spec-val"><span class="badge bg">✓</span> 8 projects accessible · webhook receiver ready · MR status reporting enabled</span></div>

@@ -354,14 +354,14 @@
 
   <div class="callout ref">
     <div class="cl">What carries over from Win-01 — no rework needed</div>
-    The Win-01 guide built the DNS server infrastructure: DC01 (10.70.0.10) and DC02 (10.70.0.11) are Active Directory-integrated DNS servers authoritative for <strong>novacrestbank.local</strong>. The forward zone and the 0.70.10.in-addr.arpa reverse zone already exist. Infrastructure records (dc01, dc02, rootca, issuingca, pki) were created in Win-01.<br/><br/>
-    This guide adds the new VCF-specific records to the existing zone. No new DNS zones need to be created for the forward lookup — everything goes into the existing novacrestbank.local zone. Two new reverse zones are needed for the new subnets (10.10.0.0/24 and 10.50.0.0/24).
+    The Win-01 guide built the DNS server infrastructure: DC01 (10.70.0.10) and DC02 (10.70.0.11) are Active Directory-integrated DNS servers authoritative for <strong>novacrestbank.internal</strong>. The forward zone and the 0.70.10.in-addr.arpa reverse zone already exist. Infrastructure records (dc01, dc02, rootca, issuingca, pki) were created in Win-01.<br/><br/>
+    This guide adds the new VCF-specific records to the existing zone. No new DNS zones need to be created for the forward lookup — everything goes into the existing novacrestbank.internal zone. Two new reverse zones are needed for the new subnets (10.10.0.0/24 and 10.50.0.0/24).
   </div>
 
   <h2>Prerequisites</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">DC01 accessible</span><span class="spec-val">RDP or console to DC01 (10.70.0.10) as NOVACRESTBANK\Administrator</span></div>
-    <div class="spec-row"><span class="spec-label">novacrestbank.local zone exists</span><span class="spec-val">Forward lookup zone visible in DNS Manager from Win-01 work</span></div>
+    <div class="spec-row"><span class="spec-label">novacrestbank.internal zone exists</span><span class="spec-val">Forward lookup zone visible in DNS Manager from Win-01 work</span></div>
     <div class="spec-row"><span class="spec-label">0.70.10.in-addr.arpa exists</span><span class="spec-val">Reverse zone for 10.70.0.x created in Win-01 — do not recreate</span></div>
     <div class="spec-row"><span class="spec-label">VCF-01 IP plan</span><span class="spec-val">Have the IP address plan from VCF-01 open alongside this guide — it is the authoritative source for every IP in this guide</span></div>
   </div>
@@ -412,41 +412,41 @@
       <tr><th>Name in dialog</th><th>Full FQDN</th><th>IP</th><th>PTR?</th><th>Group</th></tr>
     </thead>
     <tbody>
-      <tr class="vcf"><td><code>sddc-manager</code></td><td>sddc-manager.novacrestbank.local</td><td>10.10.0.50</td><td>✓ Yes</td><td>VCF Mgmt</td></tr>
-      <tr class="vcf"><td><code>vcenter-mgmt</code></td><td>vcenter-mgmt.novacrestbank.local</td><td>10.10.0.51</td><td>✓ Yes</td><td>VCF Mgmt</td></tr>
-      <tr class="vcf"><td><code>vcenter-ocp</code></td><td>vcenter-ocp.novacrestbank.local</td><td>10.10.0.52</td><td>✓ Yes</td><td>VCF Mgmt</td></tr>
-      <tr class="nsx"><td><code>nsx-mgr-01</code></td><td>nsx-mgr-01.novacrestbank.local</td><td>10.10.0.60</td><td>✓ Yes</td><td>NSX Node</td></tr>
-      <tr class="nsx"><td><code>nsx-mgr-02</code></td><td>nsx-mgr-02.novacrestbank.local</td><td>10.10.0.61</td><td>✓ Yes</td><td>NSX Node</td></tr>
-      <tr class="nsx"><td><code>nsx-mgr-03</code></td><td>nsx-mgr-03.novacrestbank.local</td><td>10.10.0.62</td><td>✓ Yes</td><td>NSX Node</td></tr>
-      <tr class="nsx"><td><code>nsx-mgr</code></td><td>nsx-mgr.novacrestbank.local</td><td>10.10.0.63</td><td>✗ No — VIP</td><td>NSX VIP</td></tr>
-      <tr class="nsx"><td><code>edge-01</code></td><td>edge-01.novacrestbank.local</td><td>10.10.0.31</td><td>✓ Yes</td><td>NSX Edge</td></tr>
-      <tr class="nsx"><td><code>edge-02</code></td><td>edge-02.novacrestbank.local</td><td>10.10.0.32</td><td>✓ Yes</td><td>NSX Edge</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-01</code></td><td>esxi-mgmt-01.novacrestbank.local</td><td>10.10.0.11</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-02</code></td><td>esxi-mgmt-02.novacrestbank.local</td><td>10.10.0.12</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-03</code></td><td>esxi-mgmt-03.novacrestbank.local</td><td>10.10.0.13</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-04</code></td><td>esxi-mgmt-04.novacrestbank.local</td><td>10.10.0.14</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-01</code></td><td>esxi-ocp-01.novacrestbank.local</td><td>10.10.0.21</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-02</code></td><td>esxi-ocp-02.novacrestbank.local</td><td>10.10.0.22</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-03</code></td><td>esxi-ocp-03.novacrestbank.local</td><td>10.10.0.23</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-04</code></td><td>esxi-ocp-04.novacrestbank.local</td><td>10.10.0.24</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-05</code></td><td>esxi-ocp-05.novacrestbank.local</td><td>10.10.0.25</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
-      <tr class="infra"><td><code>dc01</code></td><td>dc01.novacrestbank.local</td><td>10.70.0.10</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
-      <tr class="infra"><td><code>dc02</code></td><td>dc02.novacrestbank.local</td><td>10.70.0.11</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
-      <tr class="infra"><td><code>rootca</code></td><td>rootca.novacrestbank.local</td><td>10.70.0.20</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
-      <tr class="infra"><td><code>issuingca</code></td><td>issuingca.novacrestbank.local</td><td>10.70.0.21</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
-      <tr class="infra"><td><code>pki</code></td><td>pki.novacrestbank.local</td><td>10.70.0.10</td><td>✗ Alias</td><td>Infra — Win-01 ✓</td></tr>
-      <tr class="ocp"><td><code>api.ocp</code></td><td>api.ocp.novacrestbank.local</td><td>10.50.0.200</td><td>✗ No — VIP</td><td>OCP API VIP</td></tr>
-      <tr class="ocp"><td><code>api-int.ocp</code></td><td>api-int.ocp.novacrestbank.local</td><td>10.50.0.200</td><td>✗ No — VIP</td><td>OCP API-int VIP</td></tr>
-      <tr class="ocp"><td><code>*.apps.ocp</code></td><td>*.apps.ocp.novacrestbank.local</td><td>10.50.0.201</td><td>✗ No — wildcard</td><td>OCP Ingress</td></tr>
-      <tr class="ocp"><td><code>master-0.ocp</code></td><td>master-0.ocp.novacrestbank.local</td><td>10.50.0.11</td><td>✓ Yes</td><td>OCP master</td></tr>
-      <tr class="ocp"><td><code>master-1.ocp</code></td><td>master-1.ocp.novacrestbank.local</td><td>10.50.0.12</td><td>✓ Yes</td><td>OCP master</td></tr>
-      <tr class="ocp"><td><code>master-2.ocp</code></td><td>master-2.ocp.novacrestbank.local</td><td>10.50.0.13</td><td>✓ Yes</td><td>OCP master</td></tr>
-      <tr class="ocp"><td><code>infra-0.ocp</code></td><td>infra-0.ocp.novacrestbank.local</td><td>10.50.0.21</td><td>✓ Yes</td><td>OCP infra</td></tr>
-      <tr class="ocp"><td><code>infra-1.ocp</code></td><td>infra-1.ocp.novacrestbank.local</td><td>10.50.0.22</td><td>✓ Yes</td><td>OCP infra</td></tr>
-      <tr class="ocp"><td><code>infra-2.ocp</code></td><td>infra-2.ocp.novacrestbank.local</td><td>10.50.0.23</td><td>✓ Yes</td><td>OCP infra</td></tr>
-      <tr class="ocp"><td><code>worker-0.ocp</code></td><td>worker-0.ocp.novacrestbank.local</td><td>10.50.0.31</td><td>✓ Yes</td><td>OCP worker</td></tr>
-      <tr class="ocp"><td><code>worker-1.ocp</code></td><td>worker-1.ocp.novacrestbank.local</td><td>10.50.0.32</td><td>✓ Yes</td><td>OCP worker</td></tr>
-      <tr class="ocp"><td><code>worker-2.ocp</code></td><td>worker-2.ocp.novacrestbank.local</td><td>10.50.0.33</td><td>✓ Yes</td><td>OCP worker</td></tr>
+      <tr class="vcf"><td><code>sddc-manager</code></td><td>sddc-manager.novacrestbank.internal</td><td>10.10.0.50</td><td>✓ Yes</td><td>VCF Mgmt</td></tr>
+      <tr class="vcf"><td><code>vcenter-mgmt</code></td><td>vcenter-mgmt.novacrestbank.internal</td><td>10.10.0.51</td><td>✓ Yes</td><td>VCF Mgmt</td></tr>
+      <tr class="vcf"><td><code>vcenter-ocp</code></td><td>vcenter-ocp.novacrestbank.internal</td><td>10.10.0.52</td><td>✓ Yes</td><td>VCF Mgmt</td></tr>
+      <tr class="nsx"><td><code>nsx-mgr-01</code></td><td>nsx-mgr-01.novacrestbank.internal</td><td>10.10.0.60</td><td>✓ Yes</td><td>NSX Node</td></tr>
+      <tr class="nsx"><td><code>nsx-mgr-02</code></td><td>nsx-mgr-02.novacrestbank.internal</td><td>10.10.0.61</td><td>✓ Yes</td><td>NSX Node</td></tr>
+      <tr class="nsx"><td><code>nsx-mgr-03</code></td><td>nsx-mgr-03.novacrestbank.internal</td><td>10.10.0.62</td><td>✓ Yes</td><td>NSX Node</td></tr>
+      <tr class="nsx"><td><code>nsx-mgr</code></td><td>nsx-mgr.novacrestbank.internal</td><td>10.10.0.63</td><td>✗ No — VIP</td><td>NSX VIP</td></tr>
+      <tr class="nsx"><td><code>edge-01</code></td><td>edge-01.novacrestbank.internal</td><td>10.10.0.31</td><td>✓ Yes</td><td>NSX Edge</td></tr>
+      <tr class="nsx"><td><code>edge-02</code></td><td>edge-02.novacrestbank.internal</td><td>10.10.0.32</td><td>✓ Yes</td><td>NSX Edge</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-01</code></td><td>esxi-mgmt-01.novacrestbank.internal</td><td>10.10.0.11</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-02</code></td><td>esxi-mgmt-02.novacrestbank.internal</td><td>10.10.0.12</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-03</code></td><td>esxi-mgmt-03.novacrestbank.internal</td><td>10.10.0.13</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-04</code></td><td>esxi-mgmt-04.novacrestbank.internal</td><td>10.10.0.14</td><td>✓ Yes</td><td>ESXi Mgmt</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-01</code></td><td>esxi-ocp-01.novacrestbank.internal</td><td>10.10.0.21</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-02</code></td><td>esxi-ocp-02.novacrestbank.internal</td><td>10.10.0.22</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-03</code></td><td>esxi-ocp-03.novacrestbank.internal</td><td>10.10.0.23</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-04</code></td><td>esxi-ocp-04.novacrestbank.internal</td><td>10.10.0.24</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-05</code></td><td>esxi-ocp-05.novacrestbank.internal</td><td>10.10.0.25</td><td>✓ Yes</td><td>ESXi OCP</td></tr>
+      <tr class="infra"><td><code>dc01</code></td><td>dc01.novacrestbank.internal</td><td>10.70.0.10</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
+      <tr class="infra"><td><code>dc02</code></td><td>dc02.novacrestbank.internal</td><td>10.70.0.11</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
+      <tr class="infra"><td><code>rootca</code></td><td>rootca.novacrestbank.internal</td><td>10.70.0.20</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
+      <tr class="infra"><td><code>issuingca</code></td><td>issuingca.novacrestbank.internal</td><td>10.70.0.21</td><td>✓ Yes</td><td>Infra — Win-01 ✓</td></tr>
+      <tr class="infra"><td><code>pki</code></td><td>pki.novacrestbank.internal</td><td>10.70.0.10</td><td>✗ Alias</td><td>Infra — Win-01 ✓</td></tr>
+      <tr class="ocp"><td><code>api.ocp</code></td><td>api.ocp.novacrestbank.internal</td><td>10.50.0.200</td><td>✗ No — VIP</td><td>OCP API VIP</td></tr>
+      <tr class="ocp"><td><code>api-int.ocp</code></td><td>api-int.ocp.novacrestbank.internal</td><td>10.50.0.200</td><td>✗ No — VIP</td><td>OCP API-int VIP</td></tr>
+      <tr class="ocp"><td><code>*.apps.ocp</code></td><td>*.apps.ocp.novacrestbank.internal</td><td>10.50.0.201</td><td>✗ No — wildcard</td><td>OCP Ingress</td></tr>
+      <tr class="ocp"><td><code>master-0.ocp</code></td><td>master-0.ocp.novacrestbank.internal</td><td>10.50.0.11</td><td>✓ Yes</td><td>OCP master</td></tr>
+      <tr class="ocp"><td><code>master-1.ocp</code></td><td>master-1.ocp.novacrestbank.internal</td><td>10.50.0.12</td><td>✓ Yes</td><td>OCP master</td></tr>
+      <tr class="ocp"><td><code>master-2.ocp</code></td><td>master-2.ocp.novacrestbank.internal</td><td>10.50.0.13</td><td>✓ Yes</td><td>OCP master</td></tr>
+      <tr class="ocp"><td><code>infra-0.ocp</code></td><td>infra-0.ocp.novacrestbank.internal</td><td>10.50.0.21</td><td>✓ Yes</td><td>OCP infra</td></tr>
+      <tr class="ocp"><td><code>infra-1.ocp</code></td><td>infra-1.ocp.novacrestbank.internal</td><td>10.50.0.22</td><td>✓ Yes</td><td>OCP infra</td></tr>
+      <tr class="ocp"><td><code>infra-2.ocp</code></td><td>infra-2.ocp.novacrestbank.internal</td><td>10.50.0.23</td><td>✓ Yes</td><td>OCP infra</td></tr>
+      <tr class="ocp"><td><code>worker-0.ocp</code></td><td>worker-0.ocp.novacrestbank.internal</td><td>10.50.0.31</td><td>✓ Yes</td><td>OCP worker</td></tr>
+      <tr class="ocp"><td><code>worker-1.ocp</code></td><td>worker-1.ocp.novacrestbank.internal</td><td>10.50.0.32</td><td>✓ Yes</td><td>OCP worker</td></tr>
+      <tr class="ocp"><td><code>worker-2.ocp</code></td><td>worker-2.ocp.novacrestbank.internal</td><td>10.50.0.33</td><td>✓ Yes</td><td>OCP worker</td></tr>
     </tbody>
   </table>
 </div>
@@ -517,16 +517,16 @@
               <div class="dns-ti"><span class="dns-tri">▶</span><span class="ico">🌐</span>DNS</div>
               <div class="dns-ti i1"><span class="dns-tri">▶</span><span class="ico">🖥</span>DC01</div>
               <div class="dns-ti i2"><span class="dns-tri">▼</span><span class="ico">📁</span>Forward Lookup Zones</div>
-              <div class="dns-ti i3 sel"><span class="dns-tri"></span><span class="ico">🌍</span>novacrestbank.local</div>
+              <div class="dns-ti i3 sel"><span class="dns-tri"></span><span class="ico">🌍</span>novacrestbank.internal</div>
               <div class="dns-ti i2"><span class="dns-tri">▼</span><span class="ico">📁</span>Reverse Lookup Zones</div>
               <div class="dns-ti i3"><span class="dns-tri"></span><span class="ico">🔄</span>0.70.10.in-addr.arpa</div>
               <div class="dns-ti i2"><span class="dns-tri"></span><span class="ico">📁</span>Conditional Forwarders</div>
             </div>
             <div class="dns-pane">
-              <div class="dns-ph"><span>📋</span>novacrestbank.local — existing records from Win-01</div>
+              <div class="dns-ph"><span>📋</span>novacrestbank.internal — existing records from Win-01</div>
               <div class="dns-rh"><span>Name</span><span>Type</span><span>Data</span></div>
-              <div class="dns-row"><span class="rn">(same as parent)</span><span class="rt">SOA</span><span class="rd">dc01.novacrestbank.local.</span></div>
-              <div class="dns-row"><span class="rn">(same as parent)</span><span class="rt">NS</span><span class="rd">dc01.novacrestbank.local.</span></div>
+              <div class="dns-row"><span class="rn">(same as parent)</span><span class="rt">SOA</span><span class="rd">dc01.novacrestbank.internal.</span></div>
+              <div class="dns-row"><span class="rn">(same as parent)</span><span class="rt">NS</span><span class="rd">dc01.novacrestbank.internal.</span></div>
               <div class="dns-row grp-esxi"><span class="rn">dc01</span><span class="rt">A</span><span class="rd">10.70.0.10</span></div>
               <div class="dns-row grp-esxi"><span class="rn">dc02</span><span class="rt">A</span><span class="rd">10.70.0.11</span></div>
               <div class="dns-row grp-esxi"><span class="rn">issuingca</span><span class="rt">A</span><span class="rd">10.70.0.21</span></div>
@@ -534,12 +534,12 @@
               <div class="dns-row grp-esxi"><span class="rn">rootca</span><span class="rt">A</span><span class="rd">10.70.0.20</span></div>
             </div>
           </div>
-          <div class="dns-sb">5 records — novacrestbank.local (from Win-01)</div>
+          <div class="dns-sb">5 records — novacrestbank.internal (from Win-01)</div>
         </div>
 
         <div class="ann ok" style="margin-top:8px;">
           <span class="ai">✓</span>
-          <span>DNS Manager open. novacrestbank.local selected in the left panel. Existing records from Win-01 visible in the right panel. One reverse zone (0.70.10.in-addr.arpa) exists. Ready to create new reverse zones and then A records.</span>
+          <span>DNS Manager open. novacrestbank.internal selected in the left panel. Existing records from Win-01 visible in the right panel. One reverse zone (0.70.10.in-addr.arpa) exists. Ready to create new reverse zones and then A records.</span>
         </div>
       </div>
     </li>
@@ -587,7 +587,7 @@
 
         <div class="card" style="margin-top:8px;">
           <div class="spec-row"><span class="spec-label">Zone Type page</span><span class="spec-val"><strong>Primary zone</strong> · tick "Store the zone in Active Directory"</span></div>
-          <div class="spec-row"><span class="spec-label">AD Zone Replication Scope</span><span class="spec-val">"To all DNS servers running on domain controllers in this domain: novacrestbank.local"</span></div>
+          <div class="spec-row"><span class="spec-label">AD Zone Replication Scope</span><span class="spec-val">"To all DNS servers running on domain controllers in this domain: novacrestbank.internal"</span></div>
           <div class="spec-row"><span class="spec-label">Reverse Lookup Zone Name</span><span class="spec-val">Select <strong>IPv4 Reverse Lookup Zone</strong></span></div>
           <div class="spec-row"><span class="spec-label">Network ID field</span><span class="spec-val">Enter <strong>10.10.0</strong> (three octets only — DNS Manager builds the zone name automatically)</span></div>
           <div class="spec-row"><span class="spec-label">Zone file name (auto-filled)</span><span class="spec-val"><strong>0.10.10.in-addr.arpa.dns</strong> — verify this appears before clicking Next</span></div>
@@ -642,8 +642,8 @@
     <li class="step-item">
       <div class="sn">1</div>
       <div class="sc">
-        <div class="st2">Select the novacrestbank.local forward zone in the left panel</div>
-        <p style="font-size:13.5px;">Click <strong>novacrestbank.local</strong> under Forward Lookup Zones in the left panel. The existing records appear in the right panel.</p>
+        <div class="st2">Select the novacrestbank.internal forward zone in the left panel</div>
+        <p style="font-size:13.5px;">Click <strong>novacrestbank.internal</strong> under Forward Lookup Zones in the left panel. The existing records appear in the right panel.</p>
       </div>
     </li>
     <li class="step-item">
@@ -652,7 +652,7 @@
         <div class="st2">Right-click in the right panel (empty space) → New Host (A or AAAA)…</div>
 
         <div class="dns-shell" style="max-width:420px;margin-top:10px;">
-          <div class="dns-tb"><span class="dns-tb-title"><span class="dns-tb-icon">🌍</span>novacrestbank.local — right-click context</span></div>
+          <div class="dns-tb"><span class="dns-tb-title"><span class="dns-tb-icon">🌍</span>novacrestbank.internal — right-click context</span></div>
           <div style="background:#fff;padding:10px 16px;">
             <div class="ctx" style="margin:0;position:static;">
               <div class="ctx-item hl">New Host (A or AAAA)... ← click this</div>
@@ -681,12 +681,12 @@
             <div class="dlg-field">
               <label class="dlg-label">Name (uses parent domain name if blank):</label>
               <input class="dlg-input filled" value="sddc-manager" readonly/>
-              <div class="dlg-hint">Enter <strong>only the hostname</strong> — without the domain. For <code>sddc-manager.novacrestbank.local</code> enter <code>sddc-manager</code>. DNS Manager appends <em>.novacrestbank.local</em> automatically. Do not type the full FQDN here — the period and domain suffix would be interpreted literally and create a wrong record.</div>
+              <div class="dlg-hint">Enter <strong>only the hostname</strong> — without the domain. For <code>sddc-manager.novacrestbank.internal</code> enter <code>sddc-manager</code>. DNS Manager appends <em>.novacrestbank.internal</em> automatically. Do not type the full FQDN here — the period and domain suffix would be interpreted literally and create a wrong record.</div>
             </div>
 
             <div class="dlg-field">
               <label class="dlg-label">Fully qualified domain name (FQDN):</label>
-              <div class="dlg-fqdn">sddc-manager.novacrestbank.local.</div>
+              <div class="dlg-fqdn">sddc-manager.novacrestbank.internal.</div>
               <div class="dlg-hint ok">✓ This auto-populates as you type. Verify it shows the expected FQDN before proceeding. The trailing dot is normal — it denotes the DNS root.</div>
             </div>
 
@@ -705,7 +705,7 @@
             </div>
 
             <div class="dlg-note">
-              After clicking Add Host: a green confirmation dialog appears — "The host record sddc-manager.novacrestbank.local was successfully created." Click OK. The dialog <strong>stays open with empty fields</strong> — ready for the next record. Do not close it. Type the next name and IP directly.
+              After clicking Add Host: a green confirmation dialog appears — "The host record sddc-manager.novacrestbank.internal was successfully created." Click OK. The dialog <strong>stays open with empty fields</strong> — ready for the next record. Do not close it. Type the next name and IP directly.
             </div>
           </div>
           <div class="dlg-footer">
@@ -757,7 +757,7 @@
             </div>
             <div class="dlg-field">
               <label class="dlg-label">Host name:</label>
-              <input class="dlg-input filled" value="sddc-manager.novacrestbank.local" readonly/>
+              <input class="dlg-input filled" value="sddc-manager.novacrestbank.internal" readonly/>
               <div class="dlg-hint"><strong>Enter the full FQDN including the domain suffix</strong> — unlike A records where you enter only the hostname. For a PTR, the record must map the IP to the complete FQDN. If you enter only <code>sddc-manager</code> without the domain, the PTR will point to an incomplete name and reverse lookups will fail.</div>
             </div>
           </div>
@@ -769,7 +769,7 @@
 
         <div class="ann ok" style="margin-top:10px;">
           <span class="ai">✓</span>
-          <span>PTR record created. In the 0.10.10.in-addr.arpa zone, a new record appears: Name = "50", Type = PTR, Data = sddc-manager.novacrestbank.local. A reverse lookup for 10.10.0.50 now returns sddc-manager.novacrestbank.local.</span>
+          <span>PTR record created. In the 0.10.10.in-addr.arpa zone, a new record appears: Name = "50", Type = PTR, Data = sddc-manager.novacrestbank.internal. A reverse lookup for 10.10.0.50 now returns sddc-manager.novacrestbank.internal.</span>
         </div>
       </div>
     </li>
@@ -784,9 +784,9 @@
 
   <div class="decision">
     <div class="dl">What a wildcard DNS record does and why OCP needs one</div>
-    <div class="dq">OCP creates Route objects for every application — banking-portal.apps.ocp.novacrestbank.local, console-openshift-console.apps.ocp.novacrestbank.local, and hundreds more. Is a separate DNS record needed for each?</div>
-    <div class="da"><strong>No — one wildcard record covers all of them. A DNS wildcard record with the name *.apps.ocp.novacrestbank.local matches any query for [anything].apps.ocp.novacrestbank.local that does not have a more specific record. All queries return the Ingress VIP (10.50.0.201).</strong><br/><br/>
-    When a user navigates to banking-portal.apps.ocp.novacrestbank.local: DNS has no specific record for "banking-portal" but finds the wildcard. It returns 10.50.0.201. The request reaches the NSX LB Ingress Virtual Server, which forwards to an OCP infra node HAProxy, which routes to the correct OCP Route for banking-portal.<br/><br/>
+    <div class="dq">OCP creates Route objects for every application — banking-portal.apps.ocp.novacrestbank.internal, console-openshift-console.apps.ocp.novacrestbank.internal, and hundreds more. Is a separate DNS record needed for each?</div>
+    <div class="da"><strong>No — one wildcard record covers all of them. A DNS wildcard record with the name *.apps.ocp.novacrestbank.internal matches any query for [anything].apps.ocp.novacrestbank.internal that does not have a more specific record. All queries return the Ingress VIP (10.50.0.201).</strong><br/><br/>
+    When a user navigates to banking-portal.apps.ocp.novacrestbank.internal: DNS has no specific record for "banking-portal" but finds the wildcard. It returns 10.50.0.201. The request reaches the NSX LB Ingress Virtual Server, which forwards to an OCP infra node HAProxy, which routes to the correct OCP Route for banking-portal.<br/><br/>
     In the DNS Manager New Host dialog, the Name field accepts an asterisk. Enter <code>*.apps.ocp</code> exactly — the asterisk followed by the sub-labels. No PTR record is created for the wildcard because a wildcard is not assigned to a single physical host.
     </div>
   </div>
@@ -795,8 +795,8 @@
     <li class="step-item">
       <div class="sn">1</div>
       <div class="sc">
-        <div class="st2">In novacrestbank.local zone — right-click → New Host (A or AAAA)…</div>
-        <p style="font-size:13.5px;">Same as any other A record — right-click empty space in the novacrestbank.local right panel → <strong>New Host (A or AAAA)…</strong></p>
+        <div class="st2">In novacrestbank.internal zone — right-click → New Host (A or AAAA)…</div>
+        <p style="font-size:13.5px;">Same as any other A record — right-click empty space in the novacrestbank.internal right panel → <strong>New Host (A or AAAA)…</strong></p>
       </div>
     </li>
     <li class="step-item">
@@ -811,13 +811,13 @@
             <div class="dlg-field">
               <label class="dlg-label">Name:</label>
               <input class="dlg-input filled" value="*.apps.ocp" readonly/>
-              <div class="dlg-hint">Enter exactly <code>*.apps.ocp</code> — the asterisk is the wildcard character, and the sub-labels <code>.apps.ocp</code> define the scope. DNS Manager accepts the asterisk in this field. The resulting FQDN will be <code>*.apps.ocp.novacrestbank.local</code>.</div>
+              <div class="dlg-hint">Enter exactly <code>*.apps.ocp</code> — the asterisk is the wildcard character, and the sub-labels <code>.apps.ocp</code> define the scope. DNS Manager accepts the asterisk in this field. The resulting FQDN will be <code>*.apps.ocp.novacrestbank.internal</code>.</div>
             </div>
 
             <div class="dlg-field">
               <label class="dlg-label">FQDN (auto-populated — verify this):</label>
-              <div class="dlg-fqdn">*.apps.ocp.novacrestbank.local.</div>
-              <div class="dlg-hint warn">⚠ The asterisk must appear in the FQDN preview. If it shows <code>apps.ocp.novacrestbank.local.</code> without the asterisk, the Name field was not entered correctly. Clear and retype <code>*.apps.ocp</code>.</div>
+              <div class="dlg-fqdn">*.apps.ocp.novacrestbank.internal.</div>
+              <div class="dlg-hint warn">⚠ The asterisk must appear in the FQDN preview. If it shows <code>apps.ocp.novacrestbank.internal.</code> without the asterisk, the Name field was not entered correctly. Clear and retype <code>*.apps.ocp</code>.</div>
             </div>
 
             <div class="dlg-field">
@@ -840,7 +840,7 @@
 
         <div class="ann ok" style="margin-top:10px;">
           <span class="ai">✓</span>
-          <span>Wildcard record created. In the novacrestbank.local zone, the record appears with Name = *, Type = A, and a wildcard icon. Any subdomain of apps.ocp.novacrestbank.local not explicitly defined now resolves to 10.50.0.201.</span>
+          <span>Wildcard record created. In the novacrestbank.internal zone, the record appears with Name = *, Type = A, and a wildcard icon. Any subdomain of apps.ocp.novacrestbank.internal not explicitly defined now resolves to 10.50.0.201.</span>
         </div>
       </div>
     </li>
@@ -851,7 +851,7 @@
 <div class="page" id="page-vcf-records">
   <div class="ey">WIN-VCF-01 · Section 08</div>
   <div class="pt">VCF Management plane records — SDDC Manager, vCenters, NSX Manager</div>
-  <div class="ps">Seven records covering all VCF management components. Process: right-click novacrestbank.local → New Host (A or AAAA) → enter Name and IP → tick PTR → Add Host → repeat without closing the dialog.</div>
+  <div class="ps">Seven records covering all VCF management components. Process: right-click novacrestbank.internal → New Host (A or AAAA) → enter Name and IP → tick PTR → Add Host → repeat without closing the dialog.</div>
 
   <div class="callout">
     <div class="cl">Keep the dialog open between records — close only when the group is done</div>
@@ -877,10 +877,10 @@
   </div>
 
   <div class="dns-shell" style="margin-top:14px;">
-    <div class="dns-tb"><span class="dns-tb-title"><span class="dns-tb-icon">🌍</span>novacrestbank.local — after Group A VCF records added</span></div>
+    <div class="dns-tb"><span class="dns-tb-title"><span class="dns-tb-icon">🌍</span>novacrestbank.internal — after Group A VCF records added</span></div>
     <div class="dns-body" style="min-height:200px;">
       <div class="dns-tree">
-        <div class="dns-ti i3 sel"><span class="ico">🌍</span>novacrestbank.local</div>
+        <div class="dns-ti i3 sel"><span class="ico">🌍</span>novacrestbank.internal</div>
       </div>
       <div class="dns-pane">
         <div class="dns-rh"><span>Name</span><span>Type</span><span>Data</span></div>
@@ -908,13 +908,13 @@
   <div class="pt">NSX Edge Node records — edge-01 and edge-02</div>
   <div class="ps">Two records for the Edge Node management IPs — NSX Manager uses the FQDN when deploying Edge Nodes, so records must exist before NSX-02 runs</div>
 
-  <p>Right-click empty space in novacrestbank.local → <strong>New Host (A or AAAA)…</strong> Create both records with the PTR checkbox ticked:</p>
+  <p>Right-click empty space in novacrestbank.internal → <strong>New Host (A or AAAA)…</strong> Create both records with the PTR checkbox ticked:</p>
 
   <table>
     <thead><tr><th>Dialog Name field</th><th>Dialog IP field</th><th>PTR checkbox</th><th>Full FQDN</th></tr></thead>
     <tbody>
-      <tr class="nsx"><td><code>edge-01</code></td><td>10.10.0.31</td><td><strong>✓ Ticked</strong></td><td>edge-01.novacrestbank.local</td></tr>
-      <tr class="nsx"><td><code>edge-02</code></td><td>10.10.0.32</td><td><strong>✓ Ticked</strong></td><td>edge-02.novacrestbank.local</td></tr>
+      <tr class="nsx"><td><code>edge-01</code></td><td>10.10.0.31</td><td><strong>✓ Ticked</strong></td><td>edge-01.novacrestbank.internal</td></tr>
+      <tr class="nsx"><td><code>edge-02</code></td><td>10.10.0.32</td><td><strong>✓ Ticked</strong></td><td>edge-02.novacrestbank.internal</td></tr>
     </tbody>
   </table>
 
@@ -924,15 +924,15 @@
       <div class="dns-tree"><div class="dns-ti i3 sel"><span class="ico">🔄</span>0.10.10.in-addr.arpa</div></div>
       <div class="dns-pane">
         <div class="dns-rh"><span>Name</span><span>Type</span><span>Data</span></div>
-        <div class="dns-row grp-ptr"><span class="rn">31</span><span class="rt">PTR</span><span class="rd">edge-01.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ptr"><span class="rn">32</span><span class="rt">PTR</span><span class="rd">edge-02.novacrestbank.local.</span></div>
+        <div class="dns-row grp-ptr"><span class="rn">31</span><span class="rt">PTR</span><span class="rd">edge-01.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ptr"><span class="rn">32</span><span class="rt">PTR</span><span class="rd">edge-02.novacrestbank.internal.</span></div>
       </div>
     </div>
   </div>
 
   <div class="ann ok" style="margin-top:8px;">
     <span class="ai">✓</span>
-    <span>edge-01.novacrestbank.local (10.10.0.31) and edge-02.novacrestbank.local (10.10.0.32) created with PTR records .31 and .32 in 0.10.10.in-addr.arpa.</span>
+    <span>edge-01.novacrestbank.internal (10.10.0.31) and edge-02.novacrestbank.internal (10.10.0.32) created with PTR records .31 and .32 in 0.10.10.in-addr.arpa.</span>
   </div>
 </div>
 
@@ -942,15 +942,15 @@
   <div class="pt">Management Domain ESXi host records — esxi-mgmt-01 through 04</div>
   <div class="ps">Four A+PTR records for the Management Domain compute hosts — SDDC Manager validates these during VCF bring-up pre-checks</div>
 
-  <p>Right-click empty space in novacrestbank.local → <strong>New Host (A or AAAA)…</strong> Create all four with the PTR checkbox ticked:</p>
+  <p>Right-click empty space in novacrestbank.internal → <strong>New Host (A or AAAA)…</strong> Create all four with the PTR checkbox ticked:</p>
 
   <table>
     <thead><tr><th>Dialog Name field</th><th>Dialog IP field</th><th>PTR checkbox</th><th>Full FQDN</th></tr></thead>
     <tbody>
-      <tr class="esxi"><td><code>esxi-mgmt-01</code></td><td>10.10.0.11</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-01.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-02</code></td><td>10.10.0.12</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-02.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-03</code></td><td>10.10.0.13</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-03.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-mgmt-04</code></td><td>10.10.0.14</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-04.novacrestbank.local</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-01</code></td><td>10.10.0.11</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-01.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-02</code></td><td>10.10.0.12</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-02.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-03</code></td><td>10.10.0.13</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-03.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-mgmt-04</code></td><td>10.10.0.14</td><td><strong>✓ Ticked</strong></td><td>esxi-mgmt-04.novacrestbank.internal</td></tr>
     </tbody>
   </table>
 
@@ -960,12 +960,12 @@
       <div class="dns-tree"><div class="dns-ti i3 sel"><span class="ico">🔄</span>0.10.10.in-addr.arpa</div></div>
       <div class="dns-pane">
         <div class="dns-rh"><span>Name</span><span>Type</span><span>Data</span></div>
-        <div class="dns-row grp-ptr"><span class="rn">11</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-01.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ptr"><span class="rn">12</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-02.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ptr"><span class="rn">13</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-03.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ptr"><span class="rn">14</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-04.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ptr" style="opacity:.5;"><span class="rn">31</span><span class="rt">PTR</span><span class="rd">edge-01.novacrestbank.local. (from Section 09)</span></div>
-        <div class="dns-row grp-ptr" style="opacity:.5;"><span class="rn">32</span><span class="rt">PTR</span><span class="rd">edge-02.novacrestbank.local. (from Section 09)</span></div>
+        <div class="dns-row grp-ptr"><span class="rn">11</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-01.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ptr"><span class="rn">12</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-02.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ptr"><span class="rn">13</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-03.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ptr"><span class="rn">14</span><span class="rt">PTR</span><span class="rd">esxi-mgmt-04.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ptr" style="opacity:.5;"><span class="rn">31</span><span class="rt">PTR</span><span class="rd">edge-01.novacrestbank.internal. (from Section 09)</span></div>
+        <div class="dns-row grp-ptr" style="opacity:.5;"><span class="rn">32</span><span class="rt">PTR</span><span class="rd">edge-02.novacrestbank.internal. (from Section 09)</span></div>
       </div>
     </div>
   </div>
@@ -982,16 +982,16 @@
   <div class="pt">OCP Workload Domain ESXi host records — esxi-ocp-01 through 05</div>
   <div class="ps">Five A+PTR records for the OCP Workload Domain compute hosts — same process, different names and IPs</div>
 
-  <p>Continue in novacrestbank.local with the New Host dialog open. Create all five with PTR checkbox ticked:</p>
+  <p>Continue in novacrestbank.internal with the New Host dialog open. Create all five with PTR checkbox ticked:</p>
 
   <table>
     <thead><tr><th>Dialog Name field</th><th>Dialog IP field</th><th>PTR checkbox</th><th>Full FQDN</th></tr></thead>
     <tbody>
-      <tr class="esxi"><td><code>esxi-ocp-01</code></td><td>10.10.0.21</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-01.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-02</code></td><td>10.10.0.22</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-02.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-03</code></td><td>10.10.0.23</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-03.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-04</code></td><td>10.10.0.24</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-04.novacrestbank.local</td></tr>
-      <tr class="esxi"><td><code>esxi-ocp-05</code></td><td>10.10.0.25</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-05.novacrestbank.local</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-01</code></td><td>10.10.0.21</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-01.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-02</code></td><td>10.10.0.22</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-02.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-03</code></td><td>10.10.0.23</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-03.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-04</code></td><td>10.10.0.24</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-04.novacrestbank.internal</td></tr>
+      <tr class="esxi"><td><code>esxi-ocp-05</code></td><td>10.10.0.25</td><td><strong>✓ Ticked</strong></td><td>esxi-ocp-05.novacrestbank.internal</td></tr>
     </tbody>
   </table>
 
@@ -1013,9 +1013,9 @@
   </div>
 
   <div class="dns-shell" style="margin-top:12px;">
-    <div class="dns-tb"><span class="dns-tb-title"><span class="dns-tb-icon">🌍</span>novacrestbank.local — verify infrastructure records from Win-01</span></div>
+    <div class="dns-tb"><span class="dns-tb-title"><span class="dns-tb-icon">🌍</span>novacrestbank.internal — verify infrastructure records from Win-01</span></div>
     <div class="dns-body" style="min-height:160px;">
-      <div class="dns-tree"><div class="dns-ti i3 sel"><span class="ico">🌍</span>novacrestbank.local</div></div>
+      <div class="dns-tree"><div class="dns-ti i3 sel"><span class="ico">🌍</span>novacrestbank.internal</div></div>
       <div class="dns-pane">
         <div class="dns-rh"><span>Name</span><span>Type</span><span>Data</span></div>
         <div class="dns-row"><span class="rn">dc01</span><span class="rt">A</span><span class="rd">10.70.0.10 ✓</span></div>
@@ -1042,15 +1042,15 @@
 
   <div class="callout ocp">
     <div class="cl">These three records are the minimum DNS required before OCP installation begins</div>
-    The OCP IPI installer performs DNS validation during its pre-flight checks. It resolves api.ocp.novacrestbank.local, api-int.ocp.novacrestbank.local, and a test subdomain under apps.ocp.novacrestbank.local. If any of these fail to resolve, the installer exits before placing any VM. These records are the gate that must be cleared before OCP-VCF-01.
+    The OCP IPI installer performs DNS validation during its pre-flight checks. It resolves api.ocp.novacrestbank.internal, api-int.ocp.novacrestbank.internal, and a test subdomain under apps.ocp.novacrestbank.internal. If any of these fail to resolve, the installer exits before placing any VM. These records are the gate that must be cleared before OCP-VCF-01.
   </div>
 
   <div class="callout warn">
     <div class="cl">Critical naming rule — OCP records use sub-labels, not just a hostname</div>
-    OCP records live under <code>ocp.novacrestbank.local</code>. In the DNS Manager Name field, enter the sub-label and the <code>ocp</code> label together, separated by a dot:<br/><br/>
-    ✓ Correct: <code>api.ocp</code> → creates <code>api.ocp.novacrestbank.local</code><br/>
-    ✗ Wrong: <code>api</code> → creates <code>api.novacrestbank.local</code> (wrong — OCP cannot find this)<br/>
-    ✗ Wrong: <code>api.ocp.novacrestbank.local</code> → DNS Manager treats the full FQDN as the literal name and creates a broken record<br/><br/>
+    OCP records live under <code>ocp.novacrestbank.internal</code>. In the DNS Manager Name field, enter the sub-label and the <code>ocp</code> label together, separated by a dot:<br/><br/>
+    ✓ Correct: <code>api.ocp</code> → creates <code>api.ocp.novacrestbank.internal</code><br/>
+    ✗ Wrong: <code>api</code> → creates <code>api.novacrestbank.internal</code> (wrong — OCP cannot find this)<br/>
+    ✗ Wrong: <code>api.ocp.novacrestbank.internal</code> → DNS Manager treats the full FQDN as the literal name and creates a broken record<br/><br/>
     Always verify the FQDN preview field shows the full correct FQDN before clicking Add Host.
   </div>
 
@@ -1069,8 +1069,8 @@
             </div>
             <div class="dlg-field">
               <label class="dlg-label">FQDN (verify before clicking Add Host):</label>
-              <div class="dlg-fqdn">api.ocp.novacrestbank.local.</div>
-              <div class="dlg-hint ok">✓ Verify this shows api.ocp.novacrestbank.local. — not api.novacrestbank.local.</div>
+              <div class="dlg-fqdn">api.ocp.novacrestbank.internal.</div>
+              <div class="dlg-hint ok">✓ Verify this shows api.ocp.novacrestbank.internal. — not api.novacrestbank.internal.</div>
             </div>
             <div class="dlg-field">
               <label class="dlg-label">IP address:</label>
@@ -1101,7 +1101,7 @@
             </div>
             <div class="dlg-field">
               <label class="dlg-label">FQDN (verify):</label>
-              <div class="dlg-fqdn">api-int.ocp.novacrestbank.local.</div>
+              <div class="dlg-fqdn">api-int.ocp.novacrestbank.internal.</div>
             </div>
             <div class="dlg-field">
               <label class="dlg-label">IP address:</label>
@@ -1132,7 +1132,7 @@
             </div>
             <div class="dlg-field">
               <label class="dlg-label">FQDN (verify — asterisk must be present):</label>
-              <div class="dlg-fqdn">*.apps.ocp.novacrestbank.local.</div>
+              <div class="dlg-fqdn">*.apps.ocp.novacrestbank.internal.</div>
               <div class="dlg-hint warn">⚠ The asterisk must appear here. If it is missing, the Name was entered incorrectly.</div>
             </div>
             <div class="dlg-field">
@@ -1168,20 +1168,20 @@
     The OCP IPI installer creates node VMs with the names defined in install-config.yaml. During bootstrapping, each node performs a DNS self-lookup — it resolves its own FQDN and verifies the returned IP matches its configured network interface. If the A record does not exist at that moment, bootstrapping fails with "machine DNS validation failed." Creating all node records now prevents this failure.
   </div>
 
-  <p>Continue in novacrestbank.local with the New Host dialog. All 9 records use the <code>.ocp</code> sub-label. PTR records go into <strong>0.50.10.in-addr.arpa</strong> automatically (DNS Manager selects the reverse zone by IP).</p>
+  <p>Continue in novacrestbank.internal with the New Host dialog. All 9 records use the <code>.ocp</code> sub-label. PTR records go into <strong>0.50.10.in-addr.arpa</strong> automatically (DNS Manager selects the reverse zone by IP).</p>
 
   <table>
     <thead><tr><th>Dialog Name field</th><th>Dialog IP field</th><th>PTR checkbox</th><th>Full FQDN</th></tr></thead>
     <tbody>
-      <tr class="ocp"><td><code>master-0.ocp</code></td><td>10.50.0.11</td><td><strong>✓ Ticked</strong></td><td>master-0.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>master-1.ocp</code></td><td>10.50.0.12</td><td><strong>✓ Ticked</strong></td><td>master-1.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>master-2.ocp</code></td><td>10.50.0.13</td><td><strong>✓ Ticked</strong></td><td>master-2.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>infra-0.ocp</code></td><td>10.50.0.21</td><td><strong>✓ Ticked</strong></td><td>infra-0.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>infra-1.ocp</code></td><td>10.50.0.22</td><td><strong>✓ Ticked</strong></td><td>infra-1.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>infra-2.ocp</code></td><td>10.50.0.23</td><td><strong>✓ Ticked</strong></td><td>infra-2.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>worker-0.ocp</code></td><td>10.50.0.31</td><td><strong>✓ Ticked</strong></td><td>worker-0.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>worker-1.ocp</code></td><td>10.50.0.32</td><td><strong>✓ Ticked</strong></td><td>worker-1.ocp.novacrestbank.local</td></tr>
-      <tr class="ocp"><td><code>worker-2.ocp</code></td><td>10.50.0.33</td><td><strong>✓ Ticked</strong></td><td>worker-2.ocp.novacrestbank.local</td></tr>
+      <tr class="ocp"><td><code>master-0.ocp</code></td><td>10.50.0.11</td><td><strong>✓ Ticked</strong></td><td>master-0.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>master-1.ocp</code></td><td>10.50.0.12</td><td><strong>✓ Ticked</strong></td><td>master-1.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>master-2.ocp</code></td><td>10.50.0.13</td><td><strong>✓ Ticked</strong></td><td>master-2.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>infra-0.ocp</code></td><td>10.50.0.21</td><td><strong>✓ Ticked</strong></td><td>infra-0.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>infra-1.ocp</code></td><td>10.50.0.22</td><td><strong>✓ Ticked</strong></td><td>infra-1.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>infra-2.ocp</code></td><td>10.50.0.23</td><td><strong>✓ Ticked</strong></td><td>infra-2.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>worker-0.ocp</code></td><td>10.50.0.31</td><td><strong>✓ Ticked</strong></td><td>worker-0.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>worker-1.ocp</code></td><td>10.50.0.32</td><td><strong>✓ Ticked</strong></td><td>worker-1.ocp.novacrestbank.internal</td></tr>
+      <tr class="ocp"><td><code>worker-2.ocp</code></td><td>10.50.0.33</td><td><strong>✓ Ticked</strong></td><td>worker-2.ocp.novacrestbank.internal</td></tr>
     </tbody>
   </table>
 
@@ -1191,15 +1191,15 @@
       <div class="dns-tree"><div class="dns-ti i3 sel"><span class="ico">🔄</span>0.50.10.in-addr.arpa</div></div>
       <div class="dns-pane">
         <div class="dns-rh"><span>Name</span><span>Type</span><span>Data</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">11</span><span class="rt">PTR</span><span class="rd">master-0.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">12</span><span class="rt">PTR</span><span class="rd">master-1.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">13</span><span class="rt">PTR</span><span class="rd">master-2.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">21</span><span class="rt">PTR</span><span class="rd">infra-0.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">22</span><span class="rt">PTR</span><span class="rd">infra-1.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">23</span><span class="rt">PTR</span><span class="rd">infra-2.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">31</span><span class="rt">PTR</span><span class="rd">worker-0.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">32</span><span class="rt">PTR</span><span class="rd">worker-1.ocp.novacrestbank.local.</span></div>
-        <div class="dns-row grp-ocp"><span class="rn">33</span><span class="rt">PTR</span><span class="rd">worker-2.ocp.novacrestbank.local.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">11</span><span class="rt">PTR</span><span class="rd">master-0.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">12</span><span class="rt">PTR</span><span class="rd">master-1.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">13</span><span class="rt">PTR</span><span class="rd">master-2.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">21</span><span class="rt">PTR</span><span class="rd">infra-0.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">22</span><span class="rt">PTR</span><span class="rd">infra-1.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">23</span><span class="rt">PTR</span><span class="rd">infra-2.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">31</span><span class="rt">PTR</span><span class="rd">worker-0.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">32</span><span class="rt">PTR</span><span class="rd">worker-1.ocp.novacrestbank.internal.</span></div>
+        <div class="dns-row grp-ocp"><span class="rn">33</span><span class="rt">PTR</span><span class="rd">worker-2.ocp.novacrestbank.internal.</span></div>
       </div>
     </div>
     <div class="dns-sb">9 OCP node PTR records in 0.50.10.in-addr.arpa</div>
@@ -1232,36 +1232,36 @@
 
         <div class="term">
           <div class="term-dim"># VCF management — forward lookups</div>
-          <div class="term-cmd">C:\> nslookup sddc-manager.novacrestbank.local</div>
-          <div class="term-ok">Server: dc01.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup sddc-manager.novacrestbank.internal</div>
+          <div class="term-ok">Server: dc01.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.70.0.10</div>
-          <div class="term-ok">Name: sddc-manager.novacrestbank.local</div>
+          <div class="term-ok">Name: sddc-manager.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.10.0.50 ✓</div>
           <div class="term-gap"></div>
-          <div class="term-cmd">C:\> nslookup vcenter-mgmt.novacrestbank.local</div>
-          <div class="term-ok">Name: vcenter-mgmt.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup vcenter-mgmt.novacrestbank.internal</div>
+          <div class="term-ok">Name: vcenter-mgmt.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.10.0.51 ✓</div>
           <div class="term-gap"></div>
-          <div class="term-cmd">C:\> nslookup vcenter-ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: vcenter-ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup vcenter-ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: vcenter-ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.10.0.52 ✓</div>
           <div class="term-gap"></div>
           <div class="term-dim"># NSX Manager nodes and VIP</div>
-          <div class="term-cmd">C:\> nslookup nsx-mgr-01.novacrestbank.local</div>
-          <div class="term-ok">Name: nsx-mgr-01.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup nsx-mgr-01.novacrestbank.internal</div>
+          <div class="term-ok">Name: nsx-mgr-01.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.10.0.60 ✓</div>
           <div class="term-gap"></div>
-          <div class="term-cmd">C:\> nslookup nsx-mgr.novacrestbank.local</div>
-          <div class="term-ok">Name: nsx-mgr.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup nsx-mgr.novacrestbank.internal</div>
+          <div class="term-ok">Name: nsx-mgr.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.10.0.63 ✓</div>
           <div class="term-gap"></div>
           <div class="term-dim"># Reverse lookup — PTR verification for SDDC Manager</div>
           <div class="term-cmd">C:\> nslookup 10.10.0.50</div>
-          <div class="term-ok">Name: sddc-manager.novacrestbank.local ✓</div>
+          <div class="term-ok">Name: sddc-manager.novacrestbank.internal ✓</div>
           <div class="term-gap"></div>
           <div class="term-dim"># Reverse lookup for ESXi host — VCF bring-up validates these</div>
           <div class="term-cmd">C:\> nslookup 10.10.0.11</div>
-          <div class="term-ok">Name: esxi-mgmt-01.novacrestbank.local ✓</div>
+          <div class="term-ok">Name: esxi-mgmt-01.novacrestbank.internal ✓</div>
         </div>
       </div>
     </li>
@@ -1272,22 +1272,22 @@
 
         <div class="term">
           <div class="term-dim"># OCP API VIP — forward only</div>
-          <div class="term-cmd">C:\> nslookup api.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: api.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup api.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: api.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.200 ✓</div>
           <div class="term-gap"></div>
-          <div class="term-cmd">C:\> nslookup api-int.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: api-int.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup api-int.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: api-int.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.200 ✓</div>
           <div class="term-gap"></div>
           <div class="term-dim"># Ingress wildcard — test with a sample app FQDN</div>
-          <div class="term-cmd">C:\> nslookup console-openshift-console.apps.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: console-openshift-console.apps.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup console-openshift-console.apps.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: console-openshift-console.apps.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.201 ✓</div>
           <div class="term-gap"></div>
           <div class="term-dim"># Test a second wildcard subdomain to confirm wildcard coverage</div>
-          <div class="term-cmd">C:\> nslookup banking-portal.apps.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: banking-portal.apps.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup banking-portal.apps.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: banking-portal.apps.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.201 ✓</div>
         </div>
       </div>
@@ -1299,29 +1299,29 @@
 
         <div class="term">
           <div class="term-dim"># OCP master node — forward and reverse</div>
-          <div class="term-cmd">C:\> nslookup master-0.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: master-0.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup master-0.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: master-0.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.11 ✓</div>
           <div class="term-gap"></div>
           <div class="term-cmd">C:\> nslookup 10.50.0.11</div>
-          <div class="term-ok">Name: master-0.ocp.novacrestbank.local ✓</div>
+          <div class="term-ok">Name: master-0.ocp.novacrestbank.internal ✓</div>
           <div class="term-gap"></div>
           <div class="term-dim"># OCP infra and worker spot-checks</div>
-          <div class="term-cmd">C:\> nslookup infra-0.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: infra-0.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup infra-0.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: infra-0.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.21 ✓</div>
           <div class="term-gap"></div>
           <div class="term-cmd">C:\> nslookup 10.50.0.21</div>
-          <div class="term-ok">Name: infra-0.ocp.novacrestbank.local ✓</div>
+          <div class="term-ok">Name: infra-0.ocp.novacrestbank.internal ✓</div>
           <div class="term-gap"></div>
-          <div class="term-cmd">C:\> nslookup worker-2.ocp.novacrestbank.local</div>
-          <div class="term-ok">Name: worker-2.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup worker-2.ocp.novacrestbank.internal</div>
+          <div class="term-ok">Name: worker-2.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.33 ✓</div>
         </div>
 
         <div class="ann ok" style="margin-top:10px;">
           <span class="ai">✓</span>
-          <span>All critical DNS lookups return correct results. Forward and reverse lookups match. Wildcard covers any subdomain of apps.ocp.novacrestbank.local. All OCP node FQDNs resolve correctly with matching PTR records. DNS is ready for VCF bring-up and OCP installation.</span>
+          <span>All critical DNS lookups return correct results. Forward and reverse lookups match. Wildcard covers any subdomain of apps.ocp.novacrestbank.internal. All OCP node FQDNs resolve correctly with matching PTR records. DNS is ready for VCF bring-up and OCP installation.</span>
         </div>
       </div>
     </li>
@@ -1331,8 +1331,8 @@
         <div class="st2">If any nslookup fails — how to diagnose</div>
         <div class="term">
           <div class="term-dim"># If a forward lookup fails — "Non-existent domain"</div>
-          <div class="term-err">** server can't find sddc-manager.novacrestbank.local: NXDOMAIN</div>
-          <div class="term-dim"># → Go back to DNS Manager → novacrestbank.local → look for the record</div>
+          <div class="term-err">** server can't find sddc-manager.novacrestbank.internal: NXDOMAIN</div>
+          <div class="term-dim"># → Go back to DNS Manager → novacrestbank.internal → look for the record</div>
           <div class="term-dim"># → If missing: right-click → New Host → recreate it</div>
           <div class="term-gap"></div>
           <div class="term-dim"># If a reverse lookup fails — "Can't find 10.10.0.50: Non-existent domain"</div>
@@ -1340,8 +1340,8 @@
           <div class="term-dim"># → Go to DNS Manager → Reverse Lookup Zones → 0.10.10.in-addr.arpa</div>
           <div class="term-dim"># → Right-click → New Pointer (PTR) → enter IP and full FQDN</div>
           <div class="term-gap"></div>
-          <div class="term-dim"># If api.ocp returns api.novacrestbank.local instead of api.ocp.novacrestbank.local</div>
-          <div class="term-err">Name: api.novacrestbank.local ← wrong zone level</div>
+          <div class="term-dim"># If api.ocp returns api.novacrestbank.internal instead of api.ocp.novacrestbank.internal</div>
+          <div class="term-err">Name: api.novacrestbank.internal ← wrong zone level</div>
           <div class="term-dim"># → The Name field had "api" not "api.ocp"</div>
           <div class="term-dim"># → Delete the wrong record, recreate with Name = "api.ocp"</div>
         </div>
@@ -1402,7 +1402,7 @@
         <div class="term">
           <div class="term-cmd">C:\> repadmin /syncall /AdeP</div>
           <div class="term-ok">Syncing all NC's held on DC01.</div>
-          <div class="term-ok">Syncing partition: DC=novacrestbank,DC=local</div>
+          <div class="term-ok">Syncing partition: DC=novacrestbank,DC=internal</div>
           <div class="term-ok">CALLBACK MESSAGE: Sync from DC02 to DC01 completed successfully.</div>
           <div class="term-ok">CALLBACK MESSAGE: Sync from DC01 to DC02 completed successfully.</div>
           <div class="term-gap"></div>
@@ -1417,18 +1417,18 @@
         <div class="st2">Verify DC02 has the records — nslookup pointing at DC02</div>
         <div class="term">
           <div class="term-dim"># Query DC02 directly (10.70.0.11) to verify replication</div>
-          <div class="term-cmd">C:\> nslookup sddc-manager.novacrestbank.local 10.70.0.11</div>
-          <div class="term-ok">Server: dc02.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup sddc-manager.novacrestbank.internal 10.70.0.11</div>
+          <div class="term-ok">Server: dc02.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.70.0.11</div>
-          <div class="term-ok">Name: sddc-manager.novacrestbank.local</div>
+          <div class="term-ok">Name: sddc-manager.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.10.0.50 ✓</div>
           <div class="term-gap"></div>
-          <div class="term-cmd">C:\> nslookup api.ocp.novacrestbank.local 10.70.0.11</div>
-          <div class="term-ok">Name: api.ocp.novacrestbank.local</div>
+          <div class="term-cmd">C:\> nslookup api.ocp.novacrestbank.internal 10.70.0.11</div>
+          <div class="term-ok">Name: api.ocp.novacrestbank.internal</div>
           <div class="term-ok">Address: 10.50.0.200 ✓</div>
           <div class="term-gap"></div>
           <div class="term-cmd">C:\> nslookup 10.10.0.11 10.70.0.11</div>
-          <div class="term-ok">Name: esxi-mgmt-01.novacrestbank.local ✓</div>
+          <div class="term-ok">Name: esxi-mgmt-01.novacrestbank.internal ✓</div>
         </div>
 
         <div class="ann ok" style="margin-top:10px;">
@@ -1448,16 +1448,16 @@
 
   <div class="callout success">
     <div class="cl">WIN-VCF-01 complete — DNS foundation ready for VCF bring-up and OCP installation</div>
-    Two new reverse zones created (0.10.10.in-addr.arpa and 0.50.10.in-addr.arpa). 30 new A records and 1 wildcard A record created in novacrestbank.local. PTR records created for all hosts (ESXi, VCF management, NSX nodes, Edge Nodes, OCP nodes). VIP and wildcard records created without PTR. 5 existing Win-01 infrastructure records verified. All records replicated to DC02. All critical lookups verified with nslookup from DC01 and from DC02.
+    Two new reverse zones created (0.10.10.in-addr.arpa and 0.50.10.in-addr.arpa). 30 new A records and 1 wildcard A record created in novacrestbank.internal. PTR records created for all hosts (ESXi, VCF management, NSX nodes, Edge Nodes, OCP nodes). VIP and wildcard records created without PTR. 5 existing Win-01 infrastructure records verified. All records replicated to DC02. All critical lookups verified with nslookup from DC01 and from DC02.
   </div>
 
   <h2>Complete DNS checklist</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">0.10.10.in-addr.arpa reverse zone</span><span class="spec-val badge bg">✓ Created</span></div>
     <div class="spec-row"><span class="spec-label">0.50.10.in-addr.arpa reverse zone</span><span class="spec-val badge bg">✓ Created</span></div>
-    <div class="spec-row"><span class="spec-label">sddc-manager.novacrestbank.local → 10.10.0.50 + PTR .50</span><span class="spec-val badge bg">✓</span></div>
-    <div class="spec-row"><span class="spec-label">vcenter-mgmt.novacrestbank.local → 10.10.0.51 + PTR .51</span><span class="spec-val badge bg">✓</span></div>
-    <div class="spec-row"><span class="spec-label">vcenter-ocp.novacrestbank.local → 10.10.0.52 + PTR .52</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">sddc-manager.novacrestbank.internal → 10.10.0.50 + PTR .50</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">vcenter-mgmt.novacrestbank.internal → 10.10.0.51 + PTR .51</span><span class="spec-val badge bg">✓</span></div>
+    <div class="spec-row"><span class="spec-label">vcenter-ocp.novacrestbank.internal → 10.10.0.52 + PTR .52</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">nsx-mgr-01/02/03 → 10.10.0.60/61/62 + PTRs .60/.61/.62</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">nsx-mgr (VIP) → 10.10.0.63 — no PTR</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">edge-01 → 10.10.0.31 + PTR .31 · edge-02 → 10.10.0.32 + PTR .32</span><span class="spec-val badge bg">✓</span></div>

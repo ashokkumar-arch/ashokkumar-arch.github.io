@@ -249,7 +249,7 @@
         <td>Pull secret</td>
       </tr>
       <tr>
-        <td><strong>harbor.novacrestbank.local</strong></td>
+        <td><strong>harbor.novacrestbank.internal</strong></td>
         <td>NovaCrestBank (internal)</td>
         <td>All NovaCrestBank application images. Optionally: mirrors of all of the above</td>
         <td>Robot accounts (service-to-service) or AD accounts (human access)</td>
@@ -319,7 +319,7 @@
     <div class="decision-label">Harbor's object model — the four things you need to understand</div>
     <div class="decision-q">Harbor has projects, repositories, robot accounts, and replication rules. What is each one and how do they relate?</div>
     <div class="decision-a"><strong>Harbor organises images in a hierarchy: Registry → Project → Repository → Image Tag. Each level has its own access controls and policies.</strong><br/><br/>
-    <strong>Registry</strong> is the Harbor instance itself — harbor.novacrestbank.local. One registry per environment in NovaCrestBank's case. Everything below is contained within it.<br/><br/>
+    <strong>Registry</strong> is the Harbor instance itself — harbor.novacrestbank.internal. One registry per environment in NovaCrestBank's case. Everything below is contained within it.<br/><br/>
     <strong>Project</strong> is a namespace within the registry — analogous to an organisation on Docker Hub. Projects are the primary unit of access control and policy in Harbor. NovaCrestBank will have three: <code>banking-apps</code> (application images built by development teams), <code>base-images</code> (approved UBI and other foundation images), and <code>platform</code> (mirrored Red Hat images). Each project has its own visibility (public or private), CVE scan policy, signing policy, and member permissions.<br/><br/>
     <strong>Repository</strong> is a named image within a project — for example, <code>banking-apps/payment-service</code>. A repository contains multiple tagged versions of the same image: <code>:latest</code>, <code>:v1.2.3</code>, <code>:sha256-abc123</code>.<br/><br/>
     <strong>Robot account</strong> is a service account — not a human identity — used for machine-to-machine authentication. Jenkins uses a robot account with push permission to push images to <code>banking-apps</code>. OCP nodes use a separate robot account with pull-only permission to pull images. Robot accounts have minimal, specific permissions and their tokens can be rotated without affecting human accounts.<br/><br/>
@@ -346,7 +346,7 @@
     <div class="layer" style="background:var(--bg3);">
       <div class="layer-num">GW</div>
       <div class="layer-title">harbor-nginx (ingress)</div>
-      <div class="layer-desc">TLS termination and reverse proxy fronting the Harbor UI and registry API. In NovaCrestBank's deployment, the OCP Ingress Router replaces this — Harbor is exposed via an OCP Route with the IssuingCA-signed wildcard certificate. The URL becomes <code>harbor.apps.ocp.novacrestbank.local</code>.</div>
+      <div class="layer-desc">TLS termination and reverse proxy fronting the Harbor UI and registry API. In NovaCrestBank's deployment, the OCP Ingress Router replaces this — Harbor is exposed via an OCP Route with the IssuingCA-signed wildcard certificate. The URL becomes <code>harbor.apps.ocp.novacrestbank.internal</code>.</div>
     </div>
     <div class="layer" style="background:var(--bg3);">
       <div class="layer-num">Rep</div>
@@ -363,10 +363,10 @@
   <div class="ps">Harbor requires two PVCs, one DNS record, and one certificate before any Helm values are written. All three are created from existing NovaCrestBank infrastructure.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — namespace, DNS, and storage verification</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — namespace, DNS, and storage verification</span></div>
     <div class="term-body"><pre><span class="td"># Create the harbor namespace</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc new-project harbor</span>
-<span class="tg">Now using project "harbor" on server "https://api.ocp.novacrestbank.local:6443"</span>
+<span class="tg">Now using project "harbor" on server "https://api.ocp.novacrestbank.internal:6443"</span>
 
 <span class="td"># Verify the two StorageClasses from OCP-VCF-02 are available
 # harbor-registry PVC (image layers) → vsan-gold (Retain, thick, RAID-6)
@@ -377,21 +377,21 @@ vsan-gold        csi.vsphere.volume    Retain          WaitForFirstConsumer
 vsan-standard    csi.vsphere.volume    Delete          WaitForFirstConsumer</span>
 
 <span class="td"># DNS — add this A record to WIN-VCF-01 (DC01) before deploying
-# harbor.apps.ocp.novacrestbank.local → 10.50.0.201
-# This works because *.apps.ocp.novacrestbank.local already wildcards to 10.50.0.201
-# The OCP Ingress Router will route harbor.apps.ocp.novacrestbank.local to the Harbor pods
+# harbor.apps.ocp.novacrestbank.internal → 10.50.0.201
+# This works because *.apps.ocp.novacrestbank.internal already wildcards to 10.50.0.201
+# The OCP Ingress Router will route harbor.apps.ocp.novacrestbank.internal to the Harbor pods
 # Verify the wildcard covers it:</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">dig +short harbor.apps.ocp.novacrestbank.local</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">dig +short harbor.apps.ocp.novacrestbank.internal</span>
 <span class="tg">10.50.0.201</span>
 <span class="td">           ↑ wildcard *.apps resolves — no new DNS record needed ✓</span>
 
 <span class="td"># The certificate is already handled by the OCP wildcard Ingress cert from OCP-VCF-02
-# harbor.apps.ocp.novacrestbank.local is covered by *.apps.ocp.novacrestbank.local
+# harbor.apps.ocp.novacrestbank.internal is covered by *.apps.ocp.novacrestbank.internal
 # Verify the wildcard cert covers it:</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect harbor.apps.ocp.novacrestbank.local:443 2>/dev/null \
+  -connect harbor.apps.ocp.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -noout -subject 2>/dev/null</span>
-<span class="tg">subject=CN=*.apps.ocp.novacrestbank.local</span>
+<span class="tg">subject=CN=*.apps.ocp.novacrestbank.internal</span>
 <span class="td">       ↑ OCP wildcard cert covers harbor.apps.* ✓ No separate cert needed.</span>
 
 <span class="td"># Add infra node toleration to harbor namespace so Harbor pods can schedule on infra nodes</span>
@@ -414,7 +414,7 @@ vsan-standard    csi.vsphere.volume    Delete          WaitForFirstConsumer</spa
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — add Helm repo and write values file</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — add Helm repo and write values file</span></div>
     <div class="term-body"><pre><span class="td"># Add the official Harbor Helm repository</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">helm repo add harbor https://helm.goharbor.io && helm repo update</span>
 <span class="tg">"harbor" has been added to your repositories
@@ -433,16 +433,16 @@ Update Complete. Happy Helming!</span>
     # "clusterIP" or "nodePort" would bypass the NSX LB — not appropriate here</span>
   <span class="yk">ingress</span>:
     <span class="yk">hosts</span>:
-      <span class="yk">core</span>: <span class="yv">harbor.apps.ocp.novacrestbank.local</span>
+      <span class="yk">core</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal</span>
       <span class="yc">  # The UI and API hostname. Covered by *.apps wildcard cert.
-          # Developers push to: docker push harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.0</span>
+          # Developers push to: docker push harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.0</span>
     <span class="yk">annotations</span>:
       <span class="yk">route.openshift.io/termination</span>: <span class="yv">"edge"</span>
       <span class="yc">  # edge: TLS terminated at the OCP router (HAProxy on infra nodes)
           # Traffic between router and Harbor pods is plain HTTP inside the cluster
           # This is the standard OCP pattern — TLS at the edge, plain HTTP internally</span>
 
-<span class="yk">externalURL</span>: <span class="yv">https://harbor.apps.ocp.novacrestbank.local</span>
+<span class="yk">externalURL</span>: <span class="yv">https://harbor.apps.ocp.novacrestbank.internal</span>
 <span class="yc"># externalURL: Harbor uses this in replication rules, webhook notifications,
 # and in the Docker login instructions shown in the UI.
 # Must match the hostname above exactly including the scheme.</span>
@@ -521,7 +521,7 @@ Update Complete. Happy Helming!</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — deploy Harbor and verify</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — deploy Harbor and verify</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">helm install harbor harbor/harbor \
   --namespace harbor \
   --version 1.14.x \
@@ -544,9 +544,9 @@ harbor-registry-xxxxxxxxx           1/1     Running   0          3m
 harbor-trivy-0                      1/1     Running   0          3m</span>
 
 <span class="td"># Verify the Harbor UI is reachable via NSX LB → OCP Ingress Router → Harbor pods</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://harbor.apps.ocp.novacrestbank.local/api/v2.0/ping</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://harbor.apps.ocp.novacrestbank.internal/api/v2.0/ping</span>
 <span class="tg">"Pong"</span>
-    <div class="tann ok"><span class="tai">✓</span><span>Harbor running. UI reachable at https://harbor.apps.ocp.novacrestbank.local with a trusted IssuingCA-signed certificate. All 6 pods Running. The API returns "Pong". Log in with admin / NovaCrest$HarborAdmin2026! for initial configuration.</span></div>
+    <div class="tann ok"><span class="tai">✓</span><span>Harbor running. UI reachable at https://harbor.apps.ocp.novacrestbank.internal with a trusted IssuingCA-signed certificate. All 6 pods Running. The API returns "Pong". Log in with admin / NovaCrest$HarborAdmin2026! for initial configuration.</span></div>
     </pre></div>
   </div>
 </div>
@@ -560,16 +560,16 @@ harbor-trivy-0                      1/1     Running   0          3m</span>
   <div class="decision">
     <div class="decision-label">Why nodes need to trust Harbor's certificate separately from OCP</div>
     <div class="decision-q">The additionalTrustBundle in OCP-VCF-01 already added our IssuingCA to every RHCOS node. Does that mean nodes already trust Harbor's certificate?</div>
-    <div class="decision-a"><strong>Yes — and this is one of the major benefits of having already done the PKI work in WIN-VCF-03. Because harbor.apps.ocp.novacrestbank.local is served by the OCP wildcard certificate (signed by NovaCrestBank-IssuingCA), and because every RHCOS node already trusts NovaCrestBank-IssuingCA via additionalTrustBundle, every node in the cluster can pull from Harbor without any additional certificate configuration.</strong><br/><br/>
+    <div class="decision-a"><strong>Yes — and this is one of the major benefits of having already done the PKI work in WIN-VCF-03. Because harbor.apps.ocp.novacrestbank.internal is served by the OCP wildcard certificate (signed by NovaCrestBank-IssuingCA), and because every RHCOS node already trusts NovaCrestBank-IssuingCA via additionalTrustBundle, every node in the cluster can pull from Harbor without any additional certificate configuration.</strong><br/><br/>
     What does require action: developer workstations and the Jenkins pod. Any host that was not provisioned with the additionalTrustBundle — such as a developer's laptop or a Jenkins agent that runs outside OCP — will see a certificate error when pushing to Harbor. Those machines need the chain.pem installed into their system trust store. On RHEL/Fedora: <code>cp chain.pem /etc/pki/ca-trust/source/anchors/ && update-ca-trust</code>. On Ubuntu/Debian: <code>cp chain.pem /usr/local/share/ca-certificates/ && update-ca-certificates</code>. On macOS: add to Keychain.</div>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — verify certificate trust end-to-end</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — verify certificate trust end-to-end</span></div>
     <div class="term-body"><pre><span class="td"># Verify the certificate chain from OCP node perspective
 # SSH to a worker node (core user, ocp-vcf-cluster key)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh -i ~/.ssh/ocp-vcf-cluster core@10.50.0.31</span>
-<span class="tp">[core@worker-0 ~]$</span> <span class="tc">curl -s https://harbor.apps.ocp.novacrestbank.local/api/v2.0/ping</span>
+<span class="tp">[core@worker-0 ~]$</span> <span class="tc">curl -s https://harbor.apps.ocp.novacrestbank.internal/api/v2.0/ping</span>
 <span class="tg">"Pong"</span>
 <span class="td">       ↑ No -k flag — node trusts Harbor's cert via additionalTrustBundle ✓</span>
 
@@ -577,7 +577,7 @@ harbor-trivy-0                      1/1     Running   0          3m</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">sudo cp ~/ocp-kit/certs/chain.pem \
   /etc/pki/ca-trust/source/anchors/novacrestbank-chain.pem
 sudo update-ca-trust extract</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -s https://harbor.apps.ocp.novacrestbank.local/api/v2.0/ping</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -s https://harbor.apps.ocp.novacrestbank.internal/api/v2.0/ping</span>
 <span class="tg">"Pong"</span>
 <span class="td">       ↑ jump host trusts Harbor cert ✓ Docker push/pull will work from here</span>
     </pre></div>
@@ -598,13 +598,13 @@ sudo update-ca-trust extract</span>
   <p>Configure in Harbor UI: <strong>Administration → Configuration → Authentication</strong></p>
   <div class="card">
     <div class="spec-row"><span class="spec-label">Auth Mode</span><span class="spec-val">LDAP</span></div>
-    <div class="spec-row"><span class="spec-label">LDAP URL</span><span class="spec-val"><code>ldaps://dc01.novacrestbank.local:636</code> — LDAPS (TLS), not plain LDAP</span></div>
-    <div class="spec-row"><span class="spec-label">LDAP Search DN</span><span class="spec-val"><code>CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=local</code> — same service account used by OCP OAuth</span></div>
+    <div class="spec-row"><span class="spec-label">LDAP URL</span><span class="spec-val"><code>ldaps://dc01.novacrestbank.internal:636</code> — LDAPS (TLS), not plain LDAP</span></div>
+    <div class="spec-row"><span class="spec-label">LDAP Search DN</span><span class="spec-val"><code>CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=internal</code> — same service account used by OCP OAuth</span></div>
     <div class="spec-row"><span class="spec-label">LDAP Search Password</span><span class="spec-val"><code>NovaCrest$LDAPsvc2026!</code> — from CyberArk</span></div>
-    <div class="spec-row"><span class="spec-label">LDAP Base DN</span><span class="spec-val"><code>OU=Users,DC=novacrestbank,DC=local</code></span></div>
+    <div class="spec-row"><span class="spec-label">LDAP Base DN</span><span class="spec-val"><code>OU=Users,DC=novacrestbank,DC=internal</code></span></div>
     <div class="spec-row"><span class="spec-label">LDAP Filter</span><span class="spec-val"><code>(objectClass=person)</code></span></div>
     <div class="spec-row"><span class="spec-label">LDAP UID</span><span class="spec-val"><code>sAMAccountName</code> — AD login name used as Harbor username</span></div>
-    <div class="spec-row"><span class="spec-label">LDAP Group Base DN</span><span class="spec-val"><code>OU=Groups,DC=novacrestbank,DC=local</code></span></div>
+    <div class="spec-row"><span class="spec-label">LDAP Group Base DN</span><span class="spec-val"><code>OU=Groups,DC=novacrestbank,DC=internal</code></span></div>
     <div class="spec-row"><span class="spec-label">LDAP Group Filter</span><span class="spec-val"><code>(objectClass=group)</code></span></div>
     <div class="spec-row"><span class="spec-label">LDAP Group GID</span><span class="spec-val"><code>cn</code> — group common name used as Harbor group identifier</span></div>
     <div class="spec-row"><span class="spec-label">LDAP Verify Certificate</span><span class="spec-val">Enabled — Harbor trusts NovaCrestBank-IssuingCA from its system trust store</span></div>
@@ -639,10 +639,10 @@ sudo update-ca-trust extract</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — create all three projects via Harbor API</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — create all three projects via Harbor API</span></div>
     <div class="term-body"><pre><span class="td"># Use the Harbor API for repeatable, documented configuration
 # GUI equivalent: Projects → New Project (but API is auditable and scriptable)</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">HARBOR="https://harbor.apps.ocp.novacrestbank.local"
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">HARBOR="https://harbor.apps.ocp.novacrestbank.internal"
 HARBOR_AUTH="admin:NovaCrest\$HarborAdmin2026!"</span>
 
 <span class="td"># Project 1: banking-apps — private, scan on push, CVE critical blocks pull</span>
@@ -716,7 +716,7 @@ platform     true</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — create robot accounts via Harbor API</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — create robot accounts via Harbor API</span></div>
     <div class="term-body"><pre><span class="td"># Robot Account 1: robot-jenkins — push+pull to banking-apps and base-images</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -u "$HARBOR_AUTH" \
   -X POST "$HARBOR/api/v2.0/robots" \
@@ -787,7 +787,7 @@ Secret: OCP_ROBOT_TOKEN_HERE</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — add Harbor to the OCP global pull secret</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — add Harbor to the OCP global pull secret</span></div>
     <div class="term-body"><pre><span class="td"># Export the current pull secret from the cluster</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get secret pull-secret -n openshift-config \
   -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d \
@@ -799,7 +799,7 @@ import json, base64
 
 harbor_user = "robot$robot-ocp"
 harbor_token = "OCP_ROBOT_TOKEN_HERE"    # replace with actual token from CyberArk
-harbor_host = "harbor.apps.ocp.novacrestbank.local"
+harbor_host = "harbor.apps.ocp.novacrestbank.internal"
 
 auth_string = base64.b64encode(f"{harbor_user}:{harbor_token}".encode()).decode()
 
@@ -808,7 +808,7 @@ with open("/home/svc-ocp/ocp-kit/pull-secret-current.json") as f:
 
 ps["auths"][harbor_host] = {
     "auth": auth_string,
-    "email": "ocp-robot@novacrestbank.local"
+    "email": "ocp-robot@novacrestbank.internal"
 }
 
 with open("/home/svc-ocp/ocp-kit/pull-secret-updated.json", "w") as f:
@@ -818,7 +818,7 @@ print("Registries in updated pull secret:", list(ps["auths"].keys()))
 PYEOF</span>
 <span class="tg">Registries in updated pull secret: ['cloud.openshift.com', 'quay.io',
   'registry.connect.redhat.com', 'registry.redhat.io',
-  'harbor.apps.ocp.novacrestbank.local']</span>
+  'harbor.apps.ocp.novacrestbank.internal']</span>
 <span class="td">                                         ↑ Harbor added as 5th registry ✓</span>
 
 <span class="td"># Apply the updated pull secret — this triggers a rolling node reboot
@@ -840,10 +840,10 @@ worker   rendered-worker-xxx     True      False      False</span>
 <span class="td">         ↑ all nodes updated ✓</span>
 
 <span class="td"># Test: pull an image from Harbor on a node (the ultimate proof)</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/worker-0.ocp.novacrestbank.local -- \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/worker-0.ocp.novacrestbank.internal -- \
   chroot /host crictl pull \
-  harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest 2>&amp;1 | tail -3</span>
-<span class="tg">Image is up to date for harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest</span>
+  harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest 2>&amp;1 | tail -3</span>
+<span class="tg">Image is up to date for harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest</span>
     <div class="tann ok"><span class="tai">✓</span><span>Harbor added to OCP global pull secret. All nodes updated. Node pull from Harbor succeeds without specifying credentials — robot-ocp credentials are baked into CRI-O on every node.</span></div>
     </pre></div>
   </div>
@@ -876,7 +876,7 @@ worker   rendered-worker-xxx     True      False      False</span>
   </table>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — trigger a manual scan and read results via API</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — trigger a manual scan and read results via API</span></div>
     <div class="term-body"><pre><span class="td"># Trigger a scan of a specific image tag via API</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -u "$HARBOR_AUTH" \
   -X POST "$HARBOR/api/v2.0/projects/banking-apps/repositories/payment-service/artifacts/v1.0.0/scan"</span>
@@ -920,9 +920,9 @@ for scanner, result in scan.items():
 
   <p>The Harbor project vulnerability blocking is already configured in Section 08 (<code>"prevent_vul": "true"</code>, <code>"severity": "critical"</code>). Verify it is active:</p>
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — verify CVE block policy is enforced</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — verify CVE block policy is enforced</span></div>
     <div class="term-body"><pre><span class="td"># Pull an image with a known critical CVE — Harbor should reject the pull</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker pull harbor.apps.ocp.novacrestbank.local/banking-apps/test-vulnerable:latest</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker pull harbor.apps.ocp.novacrestbank.internal/banking-apps/test-vulnerable:latest</span>
 <span class="tw">Error response from daemon: unauthorized: current image with 2 vulnerabilities
 cannot be pulled due to configured policy in project 'banking-apps'</span>
 <span class="td">         ↑ Harbor blocked the pull — prevent_vul policy is active ✓
@@ -943,7 +943,7 @@ cannot be pulled due to configured policy in project 'banking-apps'</span>
     <div class="decision-q">OCP already has a pull secret for Red Hat's registries. Why go through the effort of mirroring everything into Harbor?</div>
     <div class="decision-a"><strong>Three independent reasons — any one of them alone justifies the effort in a banking environment.</strong><br/><br/>
     <strong>Reason 1 — Operational resilience.</strong> Right now, OCP node bootstrapping, operator updates, and cluster upgrades all depend on connectivity to registry.redhat.io and quay.io. If Red Hat's CDN has an outage — which has happened — those operations stall. With mirroring, every pull happens on the LAN. An OCP upgrade proceeds whether the internet is up or not. In banking, "we couldn't upgrade because Red Hat's CDN was down during our change window" is not acceptable.<br/><br/>
-    <strong>Reason 2 — Network security compliance.</strong> PCI-DSS Req 1.3.2 requires that outbound internet connections from the cardholder data environment are restricted to those necessary for the cardholder data environment to function. OCP nodes pulling images from the internet on every pod restart is hard to justify as "necessary." With Harbor mirroring, the firewall rule allowing OCP nodes to reach registry.redhat.io can be removed — nodes only need to reach harbor.novacrestbank.local, which is internal. This reduces the attack surface significantly.<br/><br/>
+    <strong>Reason 2 — Network security compliance.</strong> PCI-DSS Req 1.3.2 requires that outbound internet connections from the cardholder data environment are restricted to those necessary for the cardholder data environment to function. OCP nodes pulling images from the internet on every pod restart is hard to justify as "necessary." With Harbor mirroring, the firewall rule allowing OCP nodes to reach registry.redhat.io can be removed — nodes only need to reach harbor.novacrestbank.internal, which is internal. This reduces the attack surface significantly.<br/><br/>
     <strong>Reason 3 — Image provenance and auditing.</strong> Red Hat's images change over time — an operator image tagged <code>:latest</code> pulled today is not the same image as the same tag pulled last month. With mirroring, NovaCrestBank controls exactly which versions of Red Hat images are in the environment. A specific Red Hat advisory is only applied when NovaCrestBank's operations team deliberately updates the mirror — not automatically because a node happened to pull a new tag. Every change to the platform image inventory is a deliberate, audited action.</div>
   </div>
 
@@ -1027,7 +1027,7 @@ cannot be pulled due to configured policy in project 'banking-apps'</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — run oc-mirror to push into Harbor platform project</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — run oc-mirror to push into Harbor platform project</span></div>
     <div class="term-body"><pre><span class="td"># Login to both registries before running oc-mirror</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker login registry.redhat.io \
   -u $(python3 -c "import json; d=json.load(open('ocp-kit/pull-secret.json')); \
@@ -1036,7 +1036,7 @@ cannot be pulled due to configured policy in project 'banking-apps'</span>
   print(d['auths']['registry.redhat.io']['auth'])" | base64 -d | cut -d: -f2-)</span>
 <span class="tg">Login Succeeded</span>
 
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker login harbor.apps.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker login harbor.apps.ocp.novacrestbank.internal \
   -u "robot\$robot-jenkins" -p "JENKINS_ROBOT_TOKEN_HERE"</span>
 <span class="tg">Login Succeeded</span>
 
@@ -1044,11 +1044,11 @@ cannot be pulled due to configured policy in project 'banking-apps'</span>
 # Subsequent runs only pull the delta</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc mirror \
   --config=~/ocp-kit/imageset-config.yaml \
-  docker://harbor.apps.ocp.novacrestbank.local/platform \
+  docker://harbor.apps.ocp.novacrestbank.internal/platform \
   --dest-skip-tls=false \
   2>&amp;1 | tee ~/ocp-kit/mirror.log</span>
 <span class="tg">INFO Mirroring 4.16.x release images...
-INFO Pushing quay.io/openshift-release-dev/ocp-v4.0-art-dev → harbor.apps.ocp.novacrestbank.local/platform/...
+INFO Pushing quay.io/openshift-release-dev/ocp-v4.0-art-dev → harbor.apps.ocp.novacrestbank.internal/platform/...
 INFO [============================>] 100%  ocp-v4.0-art-dev:sha256-abc123
 INFO Mirroring operator catalog: redhat-operator-index
 INFO Mirroring UBI base images...
@@ -1075,12 +1075,12 @@ catalogSource.yaml</span>
     <div class="decision-label">How image redirection works in OCP — IDMS vs the old ICSP</div>
     <div class="decision-q">What is an ImageDigestMirrorSet and how is it different from ImageContentSourcePolicy?</div>
     <div class="decision-a"><strong>ImageDigestMirrorSet (IDMS) is the modern OCP 4.13+ replacement for the deprecated ImageContentSourcePolicy (ICSP). Both do the same thing: they configure CRI-O on every node to check a mirror registry before the original source registry when pulling an image by digest.</strong><br/><br/>
-    The mechanism: CRI-O has a <code>registries.conf</code> file that can specify mirrors for source registries. When a pod spec says <code>image: registry.redhat.io/ubi9/ubi-minimal@sha256:abc123</code>, CRI-O first tries <code>harbor.apps.ocp.novacrestbank.local/platform</code>. If it finds the image there by digest (sha256:abc123), it pulls from Harbor. If not, it falls through to the original source. The IDMS applies this config cluster-wide via the MCO — a rolling node restart applies the CRI-O configuration.<br/><br/>
+    The mechanism: CRI-O has a <code>registries.conf</code> file that can specify mirrors for source registries. When a pod spec says <code>image: registry.redhat.io/ubi9/ubi-minimal@sha256:abc123</code>, CRI-O first tries <code>harbor.apps.ocp.novacrestbank.internal/platform</code>. If it finds the image there by digest (sha256:abc123), it pulls from Harbor. If not, it falls through to the original source. The IDMS applies this config cluster-wide via the MCO — a rolling node restart applies the CRI-O configuration.<br/><br/>
     Critical: redirection works by digest, not by tag. <code>:latest</code> tags are not reliably redirectable — two different machines may resolve <code>:latest</code> to different sha256 digests. oc-mirror automatically pins all image references to their sha256 digest in the generated manifests.</div>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — apply the IDMS generated by oc-mirror</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — apply the IDMS generated by oc-mirror</span></div>
     <div class="term-body"><pre><span class="td"># The IDMS was generated by oc-mirror in the results directory
 # Review it first — it contains the exact mirror mappings</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat ~/ocp-kit/mirror-metadata/oc-mirror-workspace/results-*/imageContentSourcePolicy.yaml \
@@ -1093,13 +1093,13 @@ metadata:
 spec:
   imageDigestMirrors:
     - mirrors:
-        - harbor.apps.ocp.novacrestbank.local/platform
+        - harbor.apps.ocp.novacrestbank.internal/platform
       source: quay.io/openshift-release-dev
     - mirrors:
-        - harbor.apps.ocp.novacrestbank.local/platform
+        - harbor.apps.ocp.novacrestbank.internal/platform
       source: registry.redhat.io/openshift4
     - mirrors:
-        - harbor.apps.ocp.novacrestbank.local/platform
+        - harbor.apps.ocp.novacrestbank.internal/platform
       source: registry.access.redhat.com/ubi9</span>
 
 <span class="td"># Apply the IDMS — triggers a rolling node restart (same as pull secret update)
@@ -1122,10 +1122,10 @@ worker   rendered-worker-yyy   True      False      False</span>
 <span class="td">         ↑ All nodes updated with new CRI-O mirror configuration ✓</span>
 
 <span class="td"># Verify: pull an OCP component image and confirm it came from Harbor, not Red Hat</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/worker-0.ocp.novacrestbank.local -- \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/worker-0.ocp.novacrestbank.internal -- \
   chroot /host crictl pull \
   registry.redhat.io/ubi9/ubi-minimal:latest 2>&amp;1</span>
-<span class="tg">Pulling from harbor.apps.ocp.novacrestbank.local/platform (mirror)</span>
+<span class="tg">Pulling from harbor.apps.ocp.novacrestbank.internal/platform (mirror)</span>
 <span class="td">         ↑ "mirror" in the output confirms CRI-O redirected to Harbor ✓
            registry.redhat.io was not contacted</span>
     <div class="tann ok"><span class="tai">✓</span><span>ImageDigestMirrorSet applied. OCP nodes now pull all mirrored images from Harbor. registry.redhat.io and quay.io are no longer contacted for OCP platform images. The firewall rule allowing OCP nodes outbound to Red Hat registries can now be removed for full air-gap compliance.</span></div>
@@ -1171,7 +1171,7 @@ worker   rendered-worker-yyy   True      False      False</span>
   <div class="ps">Generate the NovaCrestBank signing key, sign images after push, and create the OCP ClusterImagePolicy that enforces signature verification before any pod starts.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — generate the signing key pair</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — generate the signing key pair</span></div>
     <div class="term-body"><pre><span class="td"># Generate the NovaCrestBank image signing key pair
 # cosign generates an ECDSA P-256 key pair — the industry standard for OCI signing</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cosign generate-key-pair \
@@ -1196,10 +1196,10 @@ Public key written to novacrestbank-signing.pub</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — sign an image after push (what Jenkins does in the pipeline)</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — sign an image after push (what Jenkins does in the pipeline)</span></div>
     <div class="term-body"><pre><span class="td"># In the Jenkins pipeline (Phase 9), this command runs after every successful push
 # Here we demonstrate it manually for the payment-service image</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">IMAGE="harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.0.0"</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">IMAGE="harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.0.0"</span>
 
 <span class="td"># Sign by digest — cosign pins the signature to the exact image content,
 # not just the tag. A tag can be reused; a sha256 digest is immutable.</span>
@@ -1209,18 +1209,18 @@ cosign sign \
   --tlog-upload=false \
   ${IMAGE}@${IMAGE_DIGEST}</span>
 <span class="tg">Enter password for private key:
-Pushing signature to: harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service</span>
+Pushing signature to: harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service</span>
 
 <span class="td"># Verify the signature — this is what OCP's admission controller does</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cosign verify \
   --key novacrestbank-signing.pub \
   --insecure-ignore-tlog \
   ${IMAGE}@${IMAGE_DIGEST}</span>
-<span class="tg">Verification for harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.0.0 --
+<span class="tg">Verification for harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.0.0 --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - The signatures were verified against the specified public key
-[{"critical":{"identity":{"docker-reference":"harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service"},"image":{"docker-manifest-digest":"sha256:..."},"type":"cosign container image signature"},"optional":null}]</span>
+[{"critical":{"identity":{"docker-reference":"harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service"},"image":{"docker-manifest-digest":"sha256:..."},"type":"cosign container image signature"},"optional":null}]</span>
 <span class="td">         ↑ signature valid ✓</span>
     </pre></div>
   </div>
@@ -1233,7 +1233,7 @@ The following checks were performed on each of these signatures:
   <span class="yk">name</span>: <span class="yv">novacrestbank-signing-policy</span>
 <span class="yk">spec</span>:
   <span class="yk">scopes</span>:
-    - <span class="yv">harbor.apps.ocp.novacrestbank.local/banking-apps</span>
+    - <span class="yv">harbor.apps.ocp.novacrestbank.internal/banking-apps</span>
     <span class="yc">  # Apply this policy to ALL images from the banking-apps project.
         # Any pod attempting to run an image from this scope must pass
         # cosign signature verification or it will be rejected at admission.
@@ -1255,22 +1255,22 @@ The following checks were performed on each of these signatures:
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — apply policy and test enforcement</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — apply policy and test enforcement</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f cluster-image-policy.yaml</span>
 <span class="tg">clusterimagepolicy.config.openshift.io/novacrestbank-signing-policy created</span>
 
 <span class="td"># Test: deploy a SIGNED image → should succeed</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run signed-test \
-  --image=harbor.apps.ocp.novacrestbank.local/banking-apps/payment-service:v1.0.0 \
+  --image=harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:v1.0.0 \
   --restart=Never -n default</span>
 <span class="tg">pod/signed-test created</span>
 
 <span class="td"># Test: deploy an UNSIGNED image from the same scope → must be rejected</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run unsigned-test \
-  --image=harbor.apps.ocp.novacrestbank.local/banking-apps/test-unsigned:latest \
+  --image=harbor.apps.ocp.novacrestbank.internal/banking-apps/test-unsigned:latest \
   --restart=Never -n default</span>
 <span class="tw">Error from server: admission webhook "image-policy.openshift.io" denied the request:
-  image harbor.apps.ocp.novacrestbank.local/banking-apps/test-unsigned:latest
+  image harbor.apps.ocp.novacrestbank.internal/banking-apps/test-unsigned:latest
   failed signature verification: no valid signatures found</span>
 <span class="td">         ↑ Unsigned image rejected at admission ✓ Policy is active.</span>
     <div class="tann ok"><span class="tai">✓</span><span>ClusterImagePolicy enforcing signature verification on banking-apps scope. Signed images deploy. Unsigned images are rejected before the pod is even scheduled. Supply chain integrity enforced at the cluster admission layer.</span></div>
@@ -1297,7 +1297,7 @@ The following checks were performed on each of these signatures:
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — create tag retention policy for banking-apps via API</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — create tag retention policy for banking-apps via API</span></div>
     <div class="term-body"><pre><span class="td"># Get the project ID for banking-apps</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">PROJ_ID=$(curl -sk -u "$HARBOR_AUTH" \
   "$HARBOR/api/v2.0/projects?name=banking-apps" \
@@ -1332,20 +1332,20 @@ The following checks were performed on each of these signatures:
   <div class="ps">The complete Harbor deployment verified end-to-end — from developer push through CVE scan, signature, OCP pull, and pod admission. Every component confirmed before handover to the development teams.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.local — complete end-to-end smoke test</span></div>
+    <div class="term-bar"><div class="yd g"></div><span class="term-label">jumphost.novacrestbank.internal — complete end-to-end smoke test</span></div>
     <div class="term-body"><pre><span class="td"># Full pipeline smoke test: build → push → scan → sign → OCP deploy</span>
 
 <span class="td"># Step 1: Build a test image and push to Harbor banking-apps</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | docker build -t payment-smoke:v1.0.0 -
-FROM harbor.apps.ocp.novacrestbank.local/platform/ubi9-minimal:latest
+FROM harbor.apps.ocp.novacrestbank.internal/platform/ubi9-minimal:latest
 RUN echo "NovaCrestBank smoke test" > /app.txt
 CMD ["cat", "/app.txt"]
 EOF</span>
 <span class="tg">Successfully built abc123def456</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker tag payment-smoke:v1.0.0 \
-  harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke:v1.0.0
-docker push harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke:v1.0.0</span>
+  harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-smoke:v1.0.0
+docker push harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-smoke:v1.0.0</span>
 <span class="tg">v1.0.0: digest: sha256:abc123 size: 1234</span>
 
 <span class="td"># Step 2: Trivy scan triggers automatically — wait 30–60 seconds then check</span>
@@ -1357,14 +1357,14 @@ docker push harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke:v1.0.
 <span class="tg">Scan status: Success</span>
 
 <span class="td"># Step 3: cosign sign the image</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">DIGEST=$(crane digest harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke:v1.0.0)
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">DIGEST=$(crane digest harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-smoke:v1.0.0)
 cosign sign --key novacrestbank-signing.key --tlog-upload=false \
-  harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke:v1.0.0@${DIGEST}</span>
-<span class="tg">Pushing signature to: harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke</span>
+  harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-smoke:v1.0.0@${DIGEST}</span>
+<span class="tg">Pushing signature to: harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-smoke</span>
 
 <span class="td"># Step 4: Deploy in OCP — should succeed (signed, no critical CVEs)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc run smoke-test \
-  --image=harbor.apps.ocp.novacrestbank.local/banking-apps/payment-smoke:v1.0.0 \
+  --image=harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-smoke:v1.0.0 \
   --restart=Never -n default</span>
 <span class="tg">pod/smoke-test created</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pod smoke-test -n default</span>
@@ -1381,7 +1381,7 @@ smoke-test    0/1     Completed   0          12s</span>
 
   <h2>Complete handover checklist — Registry-01</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">Harbor deployed on OCP infra nodes</span><span class="spec-val"><span class="badge bg">✓</span> harbor.apps.ocp.novacrestbank.local — all 6 pods Running</span></div>
+    <div class="spec-row"><span class="spec-label">Harbor deployed on OCP infra nodes</span><span class="spec-val"><span class="badge bg">✓</span> harbor.apps.ocp.novacrestbank.internal — all 6 pods Running</span></div>
     <div class="spec-row"><span class="spec-label">Storage: registry on vsan-gold 500Gi (Retain)</span><span class="spec-val"><span class="badge bg">✓</span> Image layers on vsan-gold — survives PVC deletion accidentally</span></div>
     <div class="spec-row"><span class="spec-label">IssuingCA certificate trusted by all OCP nodes</span><span class="spec-val"><span class="badge bg">✓</span> additionalTrustBundle from OCP-VCF-01 covers Harbor's cert</span></div>
     <div class="spec-row"><span class="spec-label">AD authentication configured</span><span class="spec-val"><span class="badge bg">✓</span> LDAPS to DC01:636 — NovaCrestBank domain accounts log in to Harbor</span></div>

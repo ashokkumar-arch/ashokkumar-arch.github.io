@@ -216,7 +216,7 @@
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — final go/no-go gates (run at T-0, in the maintenance window)</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — final go/no-go gates (run at T-0, in the maintenance window)</span></div>
     <div class="term-body"><pre><span class="td"># Gate 1: No cluster operator Degraded</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get clusteroperators \
   --no-headers | grep -v "True.*False.*False" | wc -l</span>
@@ -270,7 +270,7 @@ PASS</span>
   </div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — pause worker and infra MCPs</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — pause worker and infra MCPs</span></div>
     <div class="term-body"><pre><span class="td"># Pause the worker MachineConfigPool</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc patch machineconfigpool worker \
   --type merge \
@@ -304,7 +304,7 @@ worker   rendered-worker-abc123    True      False      False      3            
   <div class="ps">The upgrade is triggered with a single <code>oc adm upgrade</code> command. This tells the CVO to begin applying the new release payload. The command returns immediately — the upgrade runs asynchronously and is monitored separately.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — trigger the upgrade to 4.16.9</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — trigger the upgrade to 4.16.9</span></div>
     <div class="term-body"><pre><span class="td"># Record the exact time the upgrade was triggered — for the change record</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">date -u && echo "Triggering upgrade to 4.16.9"</span>
 <span class="tg">Sat Apr 20 22:15:00 UTC 2026
@@ -353,7 +353,7 @@ oc get machineconfigpools --no-headers
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--ocp-red);">
       <div class="layer-num">1</div>
       <div class="layer-title">Navigate to Cluster Settings</div>
-      <div class="layer-desc">In the OCP web console (console-openshift-console.apps.ocp.novacrestbank.local), log in as a cluster-admin account. Navigate to: <strong>Administration → Cluster Settings</strong>. The current version (4.16.7) is displayed prominently. If updates are available, an "Update" button appears next to the version. If the button is greyed out, the CVO has not yet discovered available updates from the Harbor mirror.</div>
+      <div class="layer-desc">In the OCP web console (console-openshift-console.apps.ocp.novacrestbank.internal), log in as a cluster-admin account. Navigate to: <strong>Administration → Cluster Settings</strong>. The current version (4.16.7) is displayed prominently. If updates are available, an "Update" button appears next to the version. If the button is greyed out, the CVO has not yet discovered available updates from the Harbor mirror.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
       <div class="layer-num">2</div>
@@ -465,7 +465,7 @@ oc exec -n openshift-etcd \
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pods -n openshift-etcd -l app=etcd \
   -o custom-columns=NAME:.metadata.name,IMAGE:.spec.containers[0].image | head -5</span>
 <span class="tg">NAME                          IMAGE
-etcd-master-0.ocp.novacrestbank.local   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:new456...</span>
+etcd-master-0.ocp.novacrestbank.internal   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:new456...</span>
 <span class="td">  ↑ etcd pods now running the new image from the 4.16.9 release payload ✓</td>
     </pre></div>
   </div>
@@ -485,30 +485,30 @@ etcd-master-0.ocp.novacrestbank.local   quay.io/openshift-release-dev/ocp-v4.0-a
 READY:.status.conditions[-1].status,VERSION:.status.nodeInfo.osImage"</span>
 
 <span class="tg">NAME                              STATUS   READY   VERSION
-master-0.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0
-master-1.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0
-master-2.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0</span>
+master-0.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0
+master-1.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0
+master-2.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0</span>
 <span class="td">  ↑ All 3 masters at current RHCOS version — update beginning on master-0</span>
 
 <span class="tg">NAME                              STATUS    READY
-master-0.ocp.novacrestbank.local  NotReady  False    ← master-0 is rebooting
-master-1.ocp.novacrestbank.local  Ready     True
-master-2.ocp.novacrestbank.local  Ready     True</span>
+master-0.ocp.novacrestbank.internal  NotReady  False    ← master-0 is rebooting
+master-1.ocp.novacrestbank.internal  Ready     True
+master-2.ocp.novacrestbank.internal  Ready     True</span>
 <span class="td">  ↑ master-0 has been drained and rebooted. master-1 and master-2 maintain etcd quorum.
     API server continues operating via the remaining 2 masters.
     master-0 will be NotReady for approximately 3–5 minutes during reboot.</td>
 
 <span class="tg">NAME                              STATUS   READY   VERSION
-master-0.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ← NEW
-master-1.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0
-master-2.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0</span>
+master-0.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ← NEW
+master-1.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0
+master-2.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202601150045-0</span>
 <span class="td">  ↑ master-0 rejoined at NEW RHCOS version (202604200045 vs 202601150045).
     MCO now draining master-1. Same pattern repeats.</td>
 
 <span class="tg">NAME                              STATUS   READY   VERSION
-master-0.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ✓ NEW
-master-1.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ✓ NEW
-master-2.ocp.novacrestbank.local  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ✓ NEW</span>
+master-0.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ✓ NEW
+master-1.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ✓ NEW
+master-2.ocp.novacrestbank.internal  Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0  ✓ NEW</span>
 <span class="td">  ↑ All 3 masters at new RHCOS version ✓ — master MCP update complete.
     MCP status should show UPDATED=True, UPDATING=False, DEGRADED=False.
     Time taken: approximately 45 minutes for 3 masters.</td>
@@ -542,7 +542,7 @@ master   True      False      False      3              3                   3</s
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">SSH to a master node during its update — observe the MCO in action</span></div>
     <div class="term-body"><pre><span class="td"># SSH to master-0 while it is being updated (before the reboot)
 # The MCO uses a dedicated service account — observe via journal</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh core@master-0.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh core@master-0.ocp.novacrestbank.internal \
   "sudo journalctl -u machine-config-daemon --since '5 min ago' -f"</span>
 <span class="tg">Apr 20 22:35:12 master-0 machine-config-daemon[1234]: Starting MachineConfigDaemon...
 Apr 20 22:35:14 master-0 machine-config-daemon[1234]: Applying new MachineConfig: rendered-master-newversion
@@ -560,19 +560,19 @@ Apr 20 22:36:25 master-0 machine-config-daemon[1234]: Rebooting to apply new OS 
     After reboot: the node boots the new RHCOS, kubelet starts, node re-registers.</td>
 
 <span class="td"># After the node reboots — verify the new RHCOS version</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh core@master-0.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh core@master-0.ocp.novacrestbank.internal \
   "sudo rpm-ostree status"</span>
 <span class="tg">State: idle
 AutomaticUpdatesDriver: none
   Deployments:
-● ostree-unverified-registry:harbor.apps.ocp.novacrestbank.local/openshift/release:4.16.9-x86_64
+● ostree-unverified-registry:harbor.apps.ocp.novacrestbank.internal/openshift/release:4.16.9-x86_64
                    Timestamp: 2026-04-20T10:15:00Z
                       Commit: abc123def456...newcommit
                  LayersDiff: +3 pkgs, -1 pkg, 2 modified
          BootedAt: 2026-04-20T22:47:33Z
                       ↑ This is the ACTIVE (booted) deployment — the new 4.16.9 RHCOS
 
-  ostree-unverified-registry:harbor.apps.ocp.novacrestbank.local/openshift/release:4.16.7-x86_64
+  ostree-unverified-registry:harbor.apps.ocp.novacrestbank.internal/openshift/release:4.16.7-x86_64
                    Timestamp: 2026-01-15T10:15:00Z
                       Commit: def456abc123...oldcommit
                  Rollback: previous deployment — the old 4.16.7 RHCOS
@@ -663,9 +663,9 @@ oc get deployments -n banking-production \
 
 <span class="tg">=== WORKER NODES ===
 NAME                              STATUS    READY   SCHEDULABLE
-worker-0.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
-worker-1.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
-worker-2.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
+worker-0.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
+worker-1.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
+worker-2.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
 
 === BANKING APPS (replicas) ===
 payment-service         3/3
@@ -676,9 +676,9 @@ fraud-detection-service 2/2</span>
 
 <span class="tg">=== WORKER NODES ===
 NAME                              STATUS    READY   SCHEDULABLE
-worker-0.ocp.novacrestbank.local  Ready     True    true  ← CORDONED (unschedulable=true)
-worker-1.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
-worker-2.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
+worker-0.ocp.novacrestbank.internal  Ready     True    true  ← CORDONED (unschedulable=true)
+worker-1.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
+worker-2.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
 
 === BANKING APPS (replicas) ===
 payment-service         3/3  ← still 3/3 during drain (pods moving to worker-1/2)
@@ -687,9 +687,9 @@ fraud-detection-service 2/2</span>
 
 <span class="tg">=== WORKER NODES ===
 NAME                              STATUS    READY   SCHEDULABLE
-worker-0.ocp.novacrestbank.local  NotReady  False   true  ← rebooting
-worker-1.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
-worker-2.ocp.novacrestbank.local  Ready     True    &lt;none&gt;
+worker-0.ocp.novacrestbank.internal  NotReady  False   true  ← rebooting
+worker-1.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
+worker-2.ocp.novacrestbank.internal  Ready     True    &lt;none&gt;
 
 === BANKING APPS (replicas) ===
 payment-service         2/3  ← briefly 2/3 during pod reschedule (normal, PDB allows)
@@ -698,9 +698,9 @@ fraud-detection-service 2/2  ← 1 pod min, maintained ✓</span>
 
 <span class="tg">=== WORKER NODES ===
 NAME                              STATUS   READY   SCHEDULABLE
-worker-0.ocp.novacrestbank.local  Ready    True    &lt;none&gt;  ← REJOINED, back to schedulable
-worker-1.ocp.novacrestbank.local  Ready    True    &lt;none&gt;
-worker-2.ocp.novacrestbank.local  Ready    True    &lt;none&gt;
+worker-0.ocp.novacrestbank.internal  Ready    True    &lt;none&gt;  ← REJOINED, back to schedulable
+worker-1.ocp.novacrestbank.internal  Ready    True    &lt;none&gt;
+worker-2.ocp.novacrestbank.internal  Ready    True    &lt;none&gt;
 
 === BANKING APPS (replicas) ===
 payment-service         3/3  ← all pods rescheduled and Running ✓
@@ -866,15 +866,15 @@ STATUS:.status.conditions[-1].type,\
 READY:.status.conditions[-1].status,\
 RHCOS:.status.nodeInfo.osImage</span>
 <span class="tg">NAME                               STATUS   READY   RHCOS
-master-0.ocp.novacrestbank.local   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-master-1.ocp.novacrestbank.local   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-master-2.ocp.novacrestbank.local   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-infra-0.ocp.novacrestbank.local    Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-infra-1.ocp.novacrestbank.local    Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-infra-2.ocp.novacrestbank.local    Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-worker-0.ocp.novacrestbank.local   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-worker-1.ocp.novacrestbank.local   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
-worker-2.ocp.novacrestbank.local   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0</span>
+master-0.ocp.novacrestbank.internal   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+master-1.ocp.novacrestbank.internal   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+master-2.ocp.novacrestbank.internal   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+infra-0.ocp.novacrestbank.internal    Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+infra-1.ocp.novacrestbank.internal    Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+infra-2.ocp.novacrestbank.internal    Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+worker-0.ocp.novacrestbank.internal   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+worker-1.ocp.novacrestbank.internal   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0
+worker-2.ocp.novacrestbank.internal   Ready    True    Red Hat Enterprise Linux CoreOS 416.94.202604200045-0</span>
 <span class="td">  ↑ All 9 nodes: STATUS=Ready, READY=True ✓
     All 9 nodes: RHCOS=416.94.202604200045-0 (new version) ✓
     No node is on the old RHCOS version (202601150045-0) ✓
@@ -927,7 +927,7 @@ account-service-production  Synced   Healthy</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
   -H "Authorization: Bearer $TEST_TOKEN" \
   -H "Content-Type: application/json" \
-  https://payment-portal.apps.ocp.novacrestbank.local/api/v1/payments/health \
+  https://payment-portal.apps.ocp.novacrestbank.internal/api/v1/payments/health \
   | python3 -c "import json,sys; d=json.load(sys.stdin); print('Status:', d['status'])"</span>
 <span class="tg">Status: UP</span>
 <span class="td">  ↑ Payment service API responding and healthy post-upgrade ✓</td>
@@ -976,7 +976,7 @@ prometheus-k8s-1   6/6   Running   0   12m</span>
 
 <span class="td"># Check 4: Grafana is accessible and showing post-upgrade metrics</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
-  "https://grafana-monitoring.apps.ocp.novacrestbank.local/api/health" \
+  "https://grafana-monitoring.apps.ocp.novacrestbank.internal/api/health" \
   | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['database'])"</span>
 <span class="tg">ok</span>
 <span class="td">  ↑ Grafana is healthy ✓</td>

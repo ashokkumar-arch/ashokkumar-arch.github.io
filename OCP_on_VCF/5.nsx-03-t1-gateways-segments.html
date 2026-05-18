@@ -1188,7 +1188,7 @@
       <div class="sn">1</div>
       <div class="sc">
         <div class="st2">In vCenter (vcenter-mgmt) — right-click DC01 → Edit Settings</div>
-        <p style="font-size:13.5px;">Open the vSphere Client connected to <strong>vcenter-mgmt.novacrestbank.local</strong>. In the Hosts and Clusters or VMs and Templates view, right-click <strong>DC01</strong>. Click <strong>Edit Settings</strong>. The VM hardware dialog opens.</p>
+        <p style="font-size:13.5px;">Open the vSphere Client connected to <strong>vcenter-mgmt.novacrestbank.internal</strong>. In the Hosts and Clusters or VMs and Templates view, right-click <strong>DC01</strong>. Click <strong>Edit Settings</strong>. The VM hardware dialog opens.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1254,7 +1254,7 @@
       <div class="sn">1</div>
       <div class="sc">
         <div class="st2">Right-click IssuingCA → Edit Settings → Network Adapter 1 → seg-infra-services → OK</div>
-        <p style="font-size:13.5px;">Right-click <strong>issuingca.novacrestbank.local</strong> (10.70.0.21). Click <strong>Edit Settings</strong>. Network Adapter 1: change to <strong>seg-infra-services</strong>. Click <strong>OK</strong>.</p>
+        <p style="font-size:13.5px;">Right-click <strong>issuingca.novacrestbank.internal</strong> (10.70.0.21). Click <strong>Edit Settings</strong>. Network Adapter 1: change to <strong>seg-infra-services</strong>. Click <strong>OK</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1273,10 +1273,10 @@
 
   <div class="card" style="border-top:3px solid var(--win);">
     <h3 style="color:var(--win);">Infrastructure VMs on seg-infra-services — complete inventory</h3>
-    <div class="spec-row"><span class="spec-label">DC01 (dc01.novacrestbank.local)</span><span class="spec-val">10.70.0.10 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
-    <div class="spec-row"><span class="spec-label">DC02 (dc02.novacrestbank.local)</span><span class="spec-val">10.70.0.11 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
-    <div class="spec-row"><span class="spec-label">IssuingCA (issuingca.novacrestbank.local)</span><span class="spec-val">10.70.0.21 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
-    <div class="spec-row"><span class="spec-label">RootCA (rootca.novacrestbank.local)</span><span class="spec-val">10.70.0.20 · Powered off (offline CA) — migrate NIC while powered off, same process</span></div>
+    <div class="spec-row"><span class="spec-label">DC01 (dc01.novacrestbank.internal)</span><span class="spec-val">10.70.0.10 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
+    <div class="spec-row"><span class="spec-label">DC02 (dc02.novacrestbank.internal)</span><span class="spec-val">10.70.0.11 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
+    <div class="spec-row"><span class="spec-label">IssuingCA (issuingca.novacrestbank.internal)</span><span class="spec-val">10.70.0.21 · GW 10.70.0.1 (NCB-T1-Infra) · <span class="badge bg">Migrated ✓</span></span></div>
+    <div class="spec-row"><span class="spec-label">RootCA (rootca.novacrestbank.internal)</span><span class="spec-val">10.70.0.20 · Powered off (offline CA) — migrate NIC while powered off, same process</span></div>
   </div>
 
   <div class="callout">
@@ -1506,8 +1506,8 @@
   <div class="card" style="border-left:4px solid var(--nsx);">
     <p style="font-size:13.5px;">NSX-03 built the tenant networks — VMs can now communicate through the NSX overlay. NSX-04 builds the <strong>load balancing</strong> — the two Virtual IPs (VIPs) that OCP requires:</p>
     <ul style="font-size:13.5px;margin-top:8px;margin-left:20px;">
-      <li><strong>OCP API VIP</strong> — 10.50.0.200 on port 6443. Load balances across the 3 OCP master nodes. The VIP that <code>api.ocp.novacrestbank.local</code> resolves to in DNS.</li>
-      <li><strong>OCP Ingress VIP</strong> — 10.50.0.201 on ports 443 and 80. Load balances across the 3 OCP infrastructure nodes. The VIP that <code>*.apps.ocp.novacrestbank.local</code> resolves to.</li>
+      <li><strong>OCP API VIP</strong> — 10.50.0.200 on port 6443. Load balances across the 3 OCP master nodes. The VIP that <code>api.ocp.novacrestbank.internal</code> resolves to in DNS.</li>
+      <li><strong>OCP Ingress VIP</strong> — 10.50.0.201 on ports 443 and 80. Load balances across the 3 OCP infrastructure nodes. The VIP that <code>*.apps.ocp.novacrestbank.internal</code> resolves to.</li>
     </ul>
     <p style="font-size:13.5px;margin-top:10px;">NSX-04 configures these as NSX Load Balancer Virtual Servers attached to NCB-T1-OCP on NCB-Edge-Cluster. Both VIPs are created <em>before</em> OCP installation begins — the OCP installer expects them to already be reachable at the VIP addresses specified in <code>install-config.yaml</code>.</p>
     <p style="font-size:13.5px;margin-top:8px;">Because "All LB VIP IPs" advertisement was already enabled on NCB-T1-OCP in Section 08, the VIP /32 host routes (10.50.0.200/32 and 10.50.0.201/32) will automatically be advertised to Cisco via BGP as soon as the Virtual Servers are created in NSX-04.</p>

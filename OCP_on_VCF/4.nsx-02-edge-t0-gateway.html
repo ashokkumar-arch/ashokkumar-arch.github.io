@@ -312,7 +312,7 @@
     <div class="spec-row"><span class="spec-label">VLAN 102 — Cisco Leaf-01 configured</span><span class="spec-val">10.102.0.0/29 · Leaf-01 IP: 10.102.0.1 · BGP ASN 65001 expecting peer 65010</span></div>
     <div class="spec-row"><span class="spec-label">VLAN 103 — Cisco Leaf-02 configured</span><span class="spec-val">10.103.0.0/29 · Leaf-02 IP: 10.103.0.1 · BGP ASN 65002 expecting peer 65010</span></div>
     <div class="spec-row"><span class="spec-label">vsanDatastore available in Management Domain</span><span class="spec-val">Edge Node VMs (200 GB each) deploy here</span></div>
-    <div class="spec-row"><span class="spec-label">DNS records created</span><span class="spec-val">edge-01.novacrestbank.local → 10.10.0.31 · edge-02.novacrestbank.local → 10.10.0.32</span></div>
+    <div class="spec-row"><span class="spec-label">DNS records created</span><span class="spec-val">edge-01.novacrestbank.internal → 10.10.0.31 · edge-02.novacrestbank.internal → 10.10.0.32</span></div>
   </div>
 
   <h2>What this guide builds — in order</h2>
@@ -340,7 +340,7 @@
       <tr>
         <td><strong>Step 1</strong><br/>Name &amp; Credentials</td>
         <td>The Edge Node's identity — hostname, form factor (VM size), and CLI passwords for admin and audit access.</td>
-        <td>edge-01.novacrestbank.local · Large · admin password · audit password</td>
+        <td>edge-01.novacrestbank.internal · Large · admin password · audit password</td>
       </tr>
       <tr>
         <td><strong>Step 2</strong><br/>Compute &amp; Storage</td>
@@ -413,7 +413,7 @@
                   </div>
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Host Name / FQDN <span class="nsx-req">*</span></span>
-                    <input class="nsx-inp ok" value="edge-01.novacrestbank.local" readonly/>
+                    <input class="nsx-inp ok" value="edge-01.novacrestbank.internal" readonly/>
                     <div class="nsx-hint">Must resolve to 10.10.0.31 in DNS. The DNS A record was created in WIN-VCF-01.</div>
                   </div>
                 </div>
@@ -494,8 +494,8 @@
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Compute Manager <span class="nsx-req">*</span></span>
                     <select class="nsx-sel ok" style="pointer-events:none;">
-                      <option selected>vcenter-mgmt.novacrestbank.local ← select this</option>
-                      <option>vcenter-ocp.novacrestbank.local</option>
+                      <option selected>vcenter-mgmt.novacrestbank.internal ← select this</option>
+                      <option>vcenter-ocp.novacrestbank.internal</option>
                     </select>
                     <div class="nsx-hint">Always <strong>vcenter-mgmt</strong>. Edge Nodes are management infrastructure — they always deploy in the Management Domain, regardless of which Workload Domains they serve.</div>
                   </div>
@@ -511,8 +511,8 @@
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Host <span class="nsx-req">*</span></span>
                     <select class="nsx-sel ok" style="pointer-events:none;">
-                      <option selected>esxi-mgmt-01.novacrestbank.local ← edge-01 goes here</option>
-                      <option>esxi-mgmt-02.novacrestbank.local</option>
+                      <option selected>esxi-mgmt-01.novacrestbank.internal ← edge-01 goes here</option>
+                      <option>esxi-mgmt-02.novacrestbank.internal</option>
                     </select>
                     <div class="nsx-hint">Select <strong>esxi-mgmt-01</strong> for edge-01. edge-02 will be placed on esxi-mgmt-02. Different hosts = no shared failure point. <span class="reg nist">NIST SP 800-53 CP-7</span></div>
                   </div>
@@ -575,7 +575,7 @@
                   <div class="nsx-fg">
                     <span class="nsx-lbl">IP Address / Prefix Length <span class="nsx-req">*</span></span>
                     <input class="nsx-inp ok" value="10.10.0.31/24" readonly/>
-                    <div class="nsx-hint">The Edge Node's management IP on VLAN 10. NSX Manager connects here to push configuration and monitor the Edge Node. Matches edge-01.novacrestbank.local DNS record.</div>
+                    <div class="nsx-hint">The Edge Node's management IP on VLAN 10. NSX Manager connects here to push configuration and monitor the Edge Node. Matches edge-01.novacrestbank.internal DNS record.</div>
                   </div>
                   <div class="nsx-fg">
                     <span class="nsx-lbl">Default Gateway <span class="nsx-req">*</span></span>
@@ -733,7 +733,7 @@
 
               <div class="ann" style="margin-top:12px;">
                 <span class="ai">⚠</span>
-                <span><strong>Review the summary before clicking FINISH.</strong> Check: Name = edge-01, FQDN = edge-01.novacrestbank.local, Form Factor = Large, Host = esxi-mgmt-01, Datastore = vsanDatastore, Mgmt IP = 10.10.0.31/24, Gateway = 10.10.0.1, Overlay TZ = NCB-Overlay-TZ, Uplink Profile = NCB-Edge-Uplink-Profile, TEP Pool = NCB-Edge-TEP-Pool, VLAN TZ = NCB-VLAN-TZ, fp-eth1 = uplink-1, fp-eth2 = uplink-2.</span>
+                <span><strong>Review the summary before clicking FINISH.</strong> Check: Name = edge-01, FQDN = edge-01.novacrestbank.internal, Form Factor = Large, Host = esxi-mgmt-01, Datastore = vsanDatastore, Mgmt IP = 10.10.0.31/24, Gateway = 10.10.0.1, Overlay TZ = NCB-Overlay-TZ, Uplink Profile = NCB-Edge-Uplink-Profile, TEP Pool = NCB-Edge-TEP-Pool, VLAN TZ = NCB-VLAN-TZ, fp-eth1 = uplink-1, fp-eth2 = uplink-2.</span>
               </div>
             </div>
             <div class="nsx-footer">
@@ -767,7 +767,7 @@
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">Name</span><span class="spec-val">edge-02</span></div>
-    <div class="spec-row"><span class="spec-label">Host Name / FQDN</span><span class="spec-val">edge-02.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Host Name / FQDN</span><span class="spec-val">edge-02.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Form Factor</span><span class="spec-val">Large (same as edge-01)</span></div>
     <div class="spec-row"><span class="spec-label">Step 2 — Host</span><span class="spec-val"><strong>esxi-mgmt-02</strong> ← different host. Anti-affinity: edge-01 on esxi-mgmt-01, edge-02 on esxi-mgmt-02.</span></div>
     <div class="spec-row"><span class="spec-label">Step 3 — Management IP</span><span class="spec-val"><strong>10.10.0.32/24</strong> · Gateway 10.10.0.1 (same)</span></div>

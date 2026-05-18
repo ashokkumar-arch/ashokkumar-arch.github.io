@@ -171,7 +171,7 @@
   <div class="ngl">Concepts and planning</div>
   <div class="ni active" onclick="show('why-gitlab')"><div class="nd"></div>01 — Why GitLab self-managed — the banking VCS decision</div>
   <div class="ni" onclick="show('architecture')"><div class="nd"></div>02 — GitLab architecture on OCP — components and storage</div>
-  <div class="ni" onclick="show('domain-decision')"><div class="nd"></div>03 — Domain and naming — corp.novacrestbank.com <span class="pbadge bp">Decision</span></div>
+  <div class="ni" onclick="show('domain-decision')"><div class="nd"></div>03 — Domain and naming — novacrestbank.internal <span class="pbadge bp">Decision</span></div>
 
   <div class="ngl">Installation</div>
   <div class="ni" onclick="show('prereqs')"><div class="nd"></div>04 — Prerequisites — storage, cert-manager, namespace</div>
@@ -246,7 +246,7 @@
     <div class="card" style="border-top:3px solid var(--accent2);">
       <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent2);margin-bottom:10px;">After GitLab</p>
       <ul style="font-size:13px;color:var(--text2);">
-        <li>Internal Git hosting at <code>gitlab.corp.novacrestbank.com</code> — no traffic leaves the network</li>
+        <li>Internal Git hosting at <code>gitlab.novacrestbank.internal</code> — no traffic leaves the network</li>
         <li>Merge request workflow with mandatory peer review and approval gates</li>
         <li>Protected branches — direct push to <code>main</code> blocked; all changes require MR</li>
         <li>Webhooks trigger Jenkins pipeline on every push or MR merge</li>
@@ -298,7 +298,7 @@
 
   <h2>NovaCrestBank GitLab deployment specification</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">GitLab URL</span><span class="spec-val"><code>https://gitlab.corp.novacrestbank.com</code></span></div>
+    <div class="spec-row"><span class="spec-label">GitLab URL</span><span class="spec-val"><code>https://gitlab.novacrestbank.internal</code></span></div>
     <div class="spec-row"><span class="spec-label">OCP namespace</span><span class="spec-val"><code>gitlab</code></span></div>
     <div class="spec-row"><span class="spec-label">GitLab edition</span><span class="spec-val">GitLab Enterprise Edition (EE) — required for LDAP group sync and branch protection approval rules</span></div>
     <div class="spec-row"><span class="spec-label">Gitaly PVC</span><span class="spec-val">200 Gi on <code>vsan-gold</code> — source code repositories</span></div>
@@ -314,31 +314,31 @@
 <!-- ══ 03 DOMAIN DECISION ══ -->
 <div class="page" id="page-domain-decision">
   <div class="ey">GITOPS-00 · Section 03</div>
-  <div class="pt">Domain and naming — moving to corp.novacrestbank.com</div>
-  <div class="ps">Phase 9 introduces the domain change from <code>novacrestbank.local</code> to <code>corp.novacrestbank.com</code>. This section explains the architectural reason for the change and the naming conventions that apply from this guide forward.</div>
+  <div class="pt">Domain and naming — moving to novacrestbank.internal</div>
+  <div class="ps">Phase 9 introduces the domain change from <code>novacrestbank.internal</code> to <code>novacrestbank.internal</code>. This section explains the architectural reason for the change and the naming conventions that apply from this guide forward.</div>
 
   <div class="decision">
-    <div class="decision-label">Why corp.novacrestbank.com — the Microsoft recommendation and its banking implications</div>
-    <div class="decision-q">The earlier guides in this series used <code>novacrestbank.local</code> for the internal AD domain and service hostnames. Why move to <code>corp.novacrestbank.com</code> for Phase 9?</div>
+    <div class="decision-label">Why novacrestbank.internal — the Microsoft recommendation and its banking implications</div>
+    <div class="decision-q">The earlier guides in this series used <code>novacrestbank.internal</code> for the internal AD domain and service hostnames. Why move to <code>novacrestbank.internal</code> for Phase 9?</div>
     <div class="decision-a"><strong>The <code>.local</code> suffix conflicts with mDNS (Multicast DNS / Bonjour, RFC 6762), which reserves the <code>.local</code> domain for link-local service discovery. In modern enterprise environments, three specific problems arise from using <code>.local</code> for Active Directory.</strong><br/><br/>
-    <strong>1. mDNS resolution conflicts.</strong> macOS and Linux workstations using Bonjour/Avahi will attempt mDNS resolution before DNS for any <code>.local</code> hostname. A developer's laptop trying to reach <code>gitlab.novacrestbank.local</code> may send mDNS queries that never reach the corporate DNS server, resulting in intermittent resolution failures. This is not a theoretical problem — it causes real support tickets in enterprise environments where engineers use macOS.<br/><br/>
+    <strong>1. mDNS resolution conflicts.</strong> macOS and Linux workstations using Bonjour/Avahi will attempt mDNS resolution before DNS for any <code>.local</code> hostname. A developer's laptop trying to reach <code>gitlab.novacrestbank.internal</code> may send mDNS queries that never reach the corporate DNS server, resulting in intermittent resolution failures. This is not a theoretical problem — it causes real support tickets in enterprise environments where engineers use macOS.<br/><br/>
     <strong>2. TLS certificate complications.</strong> Public CAs will not issue certificates for <code>.local</code> domain names (per CA/Browser Forum Baseline Requirements since 2015). NovaCrestBank's internal CA (NovaCrestBank-IssuingCA) can still issue them, but if NovaCrestBank ever needs a publicly trusted certificate for any internal service (for regulatory reporting tools, for partner access, for auditor-facing portals), <code>.local</code> certificates are categorically invalid.<br/><br/>
-    <strong>3. Microsoft's own recommendation.</strong> Microsoft has deprecated <code>.local</code> for Active Directory since Windows Server 2008 documentation and formally recommends a subdomain of a registered public domain — <code>corp.novacrestbank.com</code> where <code>novacrestbank.com</code> is NovaCrestBank's registered public domain. The <code>corp</code> subdomain is the most common enterprise convention (alternatives: <code>internal</code>, <code>ad</code>, <code>intranet</code>).<br/><br/>
-    <strong>Practical approach for this guide series:</strong> Guides 1 through UPG-03 used <code>novacrestbank.local</code> — those guides are internally consistent and reflect real historical enterprise practice. Phase 9 onward uses <code>corp.novacrestbank.com</code> — the modern correct pattern. When the portfolio website references the series, both conventions are acknowledged as deliberate: the classic guides use the convention that was standard when those environments were built; the GitOps guides reflect current best practice.</div>
+    <strong>3. Microsoft's own recommendation.</strong> Microsoft has deprecated <code>.local</code> for Active Directory since Windows Server 2008 documentation and formally recommends a subdomain of a registered public domain — <code>novacrestbank.internal</code> where <code>novacrestbank.com</code> is NovaCrestBank's registered public domain. The <code>corp</code> subdomain is the most common enterprise convention (alternatives: <code>internal</code>, <code>ad</code>, <code>intranet</code>).<br/><br/>
+    <strong>Practical approach for this guide series:</strong> Guides 1 through UPG-03 used <code>novacrestbank.internal</code> — those guides are internally consistent and reflect real historical enterprise practice. Phase 9 onward uses <code>novacrestbank.internal</code> — the modern correct pattern. When the portfolio website references the series, both conventions are acknowledged as deliberate: the classic guides use the convention that was standard when those environments were built; the GitOps guides reflect current best practice.</div>
   </div>
 
   <h2>Naming conventions for Phase 9 onward</h2>
   <table>
     <thead><tr><th>Service</th><th>FQDN</th><th>Notes</th></tr></thead>
     <tbody>
-      <tr><td>Active Directory (internal)</td><td><code>corp.novacrestbank.com</code></td><td>AD domain, replacing <code>novacrestbank.local</code></td></tr>
-      <tr><td>Domain Controllers</td><td><code>dc01.corp.novacrestbank.com</code> / <code>dc02.corp.novacrestbank.com</code></td><td>Same VMs, new FQDN</td></tr>
-      <tr><td>GitLab</td><td><code>gitlab.corp.novacrestbank.com</code></td><td>New service in Phase 9</td></tr>
-      <tr><td>OCP console</td><td><code>console-openshift-console.apps.ocp.corp.novacrestbank.com</code></td><td>OCP wildcard apps domain</td></tr>
-      <tr><td>Harbor</td><td><code>harbor.apps.ocp.corp.novacrestbank.com</code></td><td>Container registry</td></tr>
-      <tr><td>Grafana</td><td><code>grafana-monitoring.apps.ocp.corp.novacrestbank.com</code></td><td>Monitoring dashboard</td></tr>
-      <tr><td>Argo CD</td><td><code>argocd-server-gitops.apps.ocp.corp.novacrestbank.com</code></td><td>GitOps UI</td></tr>
-      <tr><td>Jenkins</td><td><code>jenkins.apps.ocp.corp.novacrestbank.com</code></td><td>New service in GITOPS-02</td></tr>
+      <tr><td>Active Directory (internal)</td><td><code>novacrestbank.internal</code></td><td>AD domain, replacing <code>novacrestbank.internal</code></td></tr>
+      <tr><td>Domain Controllers</td><td><code>dc01.novacrestbank.internal</code> / <code>dc02.novacrestbank.internal</code></td><td>Same VMs, new FQDN</td></tr>
+      <tr><td>GitLab</td><td><code>gitlab.novacrestbank.internal</code></td><td>New service in Phase 9</td></tr>
+      <tr><td>OCP console</td><td><code>console-openshift-console.apps.ocp.novacrestbank.internal</code></td><td>OCP wildcard apps domain</td></tr>
+      <tr><td>Harbor</td><td><code>harbor.apps.ocp.novacrestbank.internal</code></td><td>Container registry</td></tr>
+      <tr><td>Grafana</td><td><code>grafana-monitoring.apps.ocp.novacrestbank.internal</code></td><td>Monitoring dashboard</td></tr>
+      <tr><td>Argo CD</td><td><code>argocd-server-gitops.apps.ocp.novacrestbank.internal</code></td><td>GitOps UI</td></tr>
+      <tr><td>Jenkins</td><td><code>jenkins.apps.ocp.novacrestbank.internal</code></td><td>New service in GITOPS-02</td></tr>
     </tbody>
   </table>
 </div>
@@ -350,7 +350,7 @@
   <div class="ps">Before installing the GitLab Operator, three prerequisites must be satisfied: the MinIO bucket for GitLab object storage, the Kubernetes namespace with the correct labels, and the storage classes on vSAN. All three are verified here.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — verify prerequisites and create namespace</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — verify prerequisites and create namespace</span></div>
     <div class="term-body"><pre><span class="td"># Create the GitLab MinIO bucket (reusing the MinIO instance from OBS-03)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">mc mb minio/ncb-gitlab
 mc ls minio/</span>
@@ -379,7 +379,7 @@ Scoped to bucket: ncb-gitlab only ✓</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc new-project gitlab \
   --description="GitLab self-managed — NovaCrestBank internal VCS" \
   --display-name="GitLab"</span>
-<span class="tg">Now using project "gitlab" on server "https://api.ocp.corp.novacrestbank.com:6443".</span>
+<span class="tg">Now using project "gitlab" on server "https://api.ocp.novacrestbank.internal:6443".</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc label namespace gitlab \
   openshift.io/cluster-monitoring="true" \
@@ -499,15 +499,15 @@ install-gl7k2   gitlab-operator-kubernetes.v0.30.x    Manual     false</span>
     <span class="yk">values</span>:
       <span class="yk">global</span>:
         <span class="yk">hosts</span>:
-          <span class="yk">domain</span>: <span class="yv">corp.novacrestbank.com</span>
+          <span class="yk">domain</span>: <span class="yv">novacrestbank.internal</span>
           <span class="yc">  # The base domain. GitLab generates subdomains from this:
-                # gitlab.corp.novacrestbank.com  (main GitLab UI)
-                # registry.corp.novacrestbank.com  (GitLab container registry — NOT used;
+                # gitlab.novacrestbank.internal  (main GitLab UI)
+                # registry.novacrestbank.internal  (GitLab container registry — NOT used;
                 #   Harbor is the container registry. Disable below.)
-                # pages.corp.novacrestbank.com  (GitLab Pages — disabled for banking)</span>
+                # pages.novacrestbank.internal  (GitLab Pages — disabled for banking)</span>
           <span class="yk">https</span>: <span class="yb">true</span>
           <span class="yk">gitlab</span>:
-            <span class="yk">name</span>: <span class="yv">gitlab.corp.novacrestbank.com</span>
+            <span class="yk">name</span>: <span class="yv">gitlab.novacrestbank.internal</span>
           <span class="yk">registry</span>:
             <span class="yk">enabled</span>: <span class="yb">false</span>
             <span class="yc">  # false: disable the built-in GitLab container registry.
@@ -521,7 +521,7 @@ install-gl7k2   gitlab-operator-kubernetes.v0.30.x    Manual     false</span>
           <span class="yk">annotations</span>:
             <span class="yk">cert-manager.io/cluster-issuer</span>: <span class="yv">novacrestbank-issuer</span>
             <span class="yc">  # cert-manager will automatically provision a TLS certificate
-                  # for gitlab.corp.novacrestbank.com from the NovaCrestBank-IssuingCA.
+                  # for gitlab.novacrestbank.internal from the NovaCrestBank-IssuingCA.
                   # The same pattern used for Harbor, Argo CD, and Grafana.</span>
 
         <span class="yk">edition</span>: <span class="yv">ee</span>
@@ -646,20 +646,20 @@ gitlab-migrations-xxx                  0/1     Completed   5m</span>
 
 <span class="td"># Verify the Route and TLS certificate</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get route -n gitlab | grep gitlab</span>
-<span class="tg">gitlab-webservice-default   gitlab.corp.novacrestbank.com   443   edge/Redirect   30m</span>
+<span class="tg">gitlab-webservice-default   gitlab.novacrestbank.internal   443   edge/Redirect   30m</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">echo | openssl s_client \
-  -connect gitlab.corp.novacrestbank.com:443 2>/dev/null \
+  -connect gitlab.novacrestbank.internal:443 2>/dev/null \
   | openssl x509 -noout -issuer -subject -dates</span>
 <span class="tg">issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
-subject=CN=gitlab.corp.novacrestbank.com
+subject=CN=gitlab.novacrestbank.internal
 notBefore=Apr 21 10:00:00 2026 GMT
 notAfter=Apr 21 10:00:00 2027 GMT</span>
 <span class="td">  ↑ IssuingCA-signed certificate ✓  1-year validity ✓  cert-manager will auto-renew ✓</td>
 
 <span class="td"># Verify GitLab application health via the readiness endpoint</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk \
-  https://gitlab.corp.novacrestbank.com/-/readiness | python3 -c \
+  https://gitlab.novacrestbank.internal/-/readiness | python3 -c \
   "import json,sys; d=json.load(sys.stdin); print('Status:', d.get('status','unknown'))"</span>
 <span class="tg">Status: ok</span>
 <span class="td">  ↑ GitLab readiness endpoint returns ok ✓  All internal checks passing.</td>
@@ -697,7 +697,7 @@ gitlab-corp-novacrestbank-com-tls   True    gitlab-corp-novacrestbank-com-tls   
     Auto-renewal ensures GitLab never presents an expired certificate without human intervention.</td>
 
 <span class="td"># Verify Git SSH access is working (SSH port 22 on the GitLab service)</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh -T git@gitlab.corp.novacrestbank.com \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">ssh -T git@gitlab.novacrestbank.internal \
   -o StrictHostKeyChecking=no 2>&amp;1 | head -1</span>
 <span class="tg">Welcome to GitLab, @Anonymous!</span>
 <span class="td">  ↑ SSH connectivity to GitLab confirmed ✓
@@ -743,7 +743,7 @@ spec:
             servers:
               main:
                 label: "NovaCrestBank Active Directory"
-                host: "dc01.corp.novacrestbank.com"
+                host: "dc01.novacrestbank.internal"
                 port: 636
                 uid: "sAMAccountName"
                 bind_dn: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=corp,DC=novacrestbank,DC=com"
@@ -843,7 +843,7 @@ LDAP group sync completed</span>
   </div>
 
   <div class="repo-tree">
-<span class="rt-dir">gitlab.corp.novacrestbank.com/</span>
+<span class="rt-dir">gitlab.novacrestbank.internal/</span>
 ├── <span class="rt-dir">banking/</span>                               <span class="rt-comment">← Top-level group: application source code</span>
 │   ├── <span class="rt-dir">payment-service/</span>                    <span class="rt-comment">← Java microservice source repo</span>
 │   │   ├── <span class="rt-file">src/</span>                             <span class="rt-comment">← Java source code</span>
@@ -878,7 +878,7 @@ LDAP group sync completed</span>
     <div class="term-body"><pre><span class="td"># Set the GitLab admin token (created via UI on first login)</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">export GL_TOKEN="$(oc get secret gitlab-admin-pat \
   -n gitlab -o jsonpath='{.data.token}' | base64 -d)"
-export GL_URL="https://gitlab.corp.novacrestbank.com"</span>
+export GL_URL="https://gitlab.novacrestbank.internal"</span>
 
 <span class="td"># Create the banking top-level group</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk -X POST "$GL_URL/api/v4/groups" \
@@ -999,7 +999,7 @@ curl -sk -X POST "$GL_URL/api/v4/projects/$PROJECT_ID/deploy_keys" \
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc create secret generic banking-config-repo \
   -n gitops \
   --from-literal=type=git \
-  --from-literal=url=git@gitlab.corp.novacrestbank.com:gitops/banking-config.git \
+  --from-literal=url=git@gitlab.novacrestbank.internal:gitops/banking-config.git \
   --from-file=sshPrivateKey=~/ocp-kit/keys/argocd-deploy-key</span>
 <span class="tg">secret/banking-config-repo created</span>
 
@@ -1024,7 +1024,7 @@ curl -sk -X POST "$GL_URL/api/v4/projects/$PROJECT_ID/deploy_keys" \
     <div class="term-body"><pre><span class="td"># The Jenkins webhook URL for GitLab integration
 # Pattern: https://&lt;jenkins-url&gt;/project/&lt;job-name&gt;
 # Jenkins must have the GitLab Plugin installed (covered in GITOPS-02)</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">JENKINS_WEBHOOK_URL="https://jenkins.apps.ocp.corp.novacrestbank.com/project/banking/payment-service"
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">JENKINS_WEBHOOK_URL="https://jenkins.apps.ocp.novacrestbank.internal/project/banking/payment-service"
 WEBHOOK_SECRET="NovaCrest\$JenkinsWebhook2026!"  # shared secret for HMAC validation
 
 PROJECT_ID=$(curl -sk "$GL_URL/api/v4/projects?search=payment-service" \
@@ -1045,7 +1045,7 @@ curl -sk -X POST "$GL_URL/api/v4/projects/$PROJECT_ID/hooks" \
     \"enable_ssl_verification\": true,
     \"push_events_branch_filter\": \"main\"
   }" | python3 -c "import json,sys; d=json.load(sys.stdin); print('Webhook ID:', d['id'], 'URL:', d['url'])"</span>
-<span class="tg">Webhook ID: 1  URL: https://jenkins.apps.ocp.corp.novacrestbank.com/project/banking/payment-service</span>
+<span class="tg">Webhook ID: 1  URL: https://jenkins.apps.ocp.novacrestbank.internal/project/banking/payment-service</span>
 <span class="td">  push_events_branch_filter: "main" — only trigger Jenkins on pushes to main branch.
   Feature branch pushes do NOT trigger the production pipeline (they may trigger
   a lighter-weight branch pipeline if configured separately in GITOPS-03).
@@ -1076,8 +1076,8 @@ curl -sk -X POST "$GL_URL/api/v4/projects/$PROJECT_ID/hooks" \
 # Settings → CI/CD → Variables → Add variable
 
 # These variables are available in every CI/CD job in the banking group:
-CI_REGISTRY: harbor.apps.ocp.corp.novacrestbank.com
-CI_REGISTRY_IMAGE: harbor.apps.ocp.corp.novacrestbank.com/banking-apps/${CI_PROJECT_NAME}
+CI_REGISTRY: harbor.apps.ocp.novacrestbank.internal
+CI_REGISTRY_IMAGE: harbor.apps.ocp.novacrestbank.internal/banking-apps/${CI_PROJECT_NAME}
 
 # These are masked (not visible in logs) and protected (only available on protected branches):
 HARBOR_USERNAME: ncb-pipeline-svc
@@ -1088,7 +1088,7 @@ HARBOR_PASSWORD: (stored as masked variable — value from CyberArk)</span>
   <span class="yk">IMAGE_TAG</span>: <span class="yv">${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}</span>
   <span class="yc">  # ${CI_COMMIT_SHORT_SHA}: GitLab injects the 8-character commit SHA as an env var.
     # Image tag = harbor URL / project / service-name : commit-SHA
-    # Example: harbor.apps.ocp.corp.novacrestbank.com/banking-apps/payment-service:a1b2c3d4</span></pre>
+    # Example: harbor.apps.ocp.novacrestbank.internal/banking-apps/payment-service:a1b2c3d4</span></pre>
     </div>
   </div>
 
@@ -1171,7 +1171,7 @@ HARBOR_PASSWORD: (stored as masked variable — value from CyberArk)</span>
   -H "Content-Type: application/json" \
   -d '{
     "name": "Splunk HEC - NovaCrestBank SIEM",
-    "destination_url": "https://splunk-hec.corp.novacrestbank.com:8088/services/collector",
+    "destination_url": "https://splunk-hec.novacrestbank.internal:8088/services/collector",
     "verification_token": "NovaCrest$SplunkHEC2026!",
     "config": {
       "splunk_token": "SPLUNK_HEC_TOKEN_FOR_GITLAB_AUDIT"
@@ -1225,7 +1225,7 @@ for e in json.load(sys.stdin):
         <span class="yk">spec</span>:
           <span class="yk">containers</span>:
             - <span class="yk">name</span>: <span class="yv">gitlab-backup</span>
-              <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.corp.novacrestbank.com/platform/gitlab-toolbox:17.x</span>
+              <span class="yk">image</span>: <span class="yv">harbor.apps.ocp.novacrestbank.internal/platform/gitlab-toolbox:17.x</span>
               <span class="yc">  # The gitlab-toolbox image contains the gitlab-backup-cli and rake tasks.</span>
               <span class="yk">command</span>:
                 - <span class="yv">/bin/bash</span>
@@ -1257,20 +1257,20 @@ for e in json.load(sys.stdin):
 <div class="page" id="page-checklist">
   <div class="ey">GITOPS-00 · Section 19</div>
   <div class="pt">Handover checklist — GitLab fully operational</div>
-  <div class="ps">GitLab self-managed is deployed, secured, integrated with Active Directory, connected to Argo CD and Jenkins, and backed up. All subsequent Phase 9 guides assume GitLab is running at <code>gitlab.corp.novacrestbank.com</code> with the group structure and integrations confirmed below.</div>
+  <div class="ps">GitLab self-managed is deployed, secured, integrated with Active Directory, connected to Argo CD and Jenkins, and backed up. All subsequent Phase 9 guides assume GitLab is running at <code>gitlab.novacrestbank.internal</code> with the group structure and integrations confirmed below.</div>
 
   <div class="callout success">
     <div class="cl">GITOPS-00 complete — NovaCrestBank has an internal Git platform</div>
-    Source code, GitOps configuration, and infrastructure-as-code all live in GitLab at <code>gitlab.corp.novacrestbank.com</code>. No code or configuration ever transits a public SaaS platform. AD authentication means GitLab access is managed through the same identity lifecycle as every other NovaCrestBank system. Branch protection and push rules enforce PCI-DSS Req 6.4 change management requirements. Audit events flow to Splunk. Daily backups go to MinIO. GITOPS-01 through GITOPS-05 build the complete GitOps pipeline on top of this foundation.
+    Source code, GitOps configuration, and infrastructure-as-code all live in GitLab at <code>gitlab.novacrestbank.internal</code>. No code or configuration ever transits a public SaaS platform. AD authentication means GitLab access is managed through the same identity lifecycle as every other NovaCrestBank system. Branch protection and push rules enforce PCI-DSS Req 6.4 change management requirements. Audit events flow to Splunk. Daily backups go to MinIO. GITOPS-01 through GITOPS-05 build the complete GitOps pipeline on top of this foundation.
   </div>
 
   <div class="card">
     <div class="spec-row"><span class="spec-label">GitLab Operator — CSV Succeeded</span><span class="spec-val"><span class="badge bg">✓</span> gitlab-operator-kubernetes.v0.30.x Succeeded</span></div>
     <div class="spec-row"><span class="spec-label">GitLab CR — Available=True</span><span class="spec-val"><span class="badge bg">✓</span> All pods Running on infra nodes · readiness endpoint returns ok</span></div>
-    <div class="spec-row"><span class="spec-label">TLS certificate — IssuingCA signed</span><span class="spec-val"><span class="badge bg">✓</span> gitlab.corp.novacrestbank.com · 1-year validity · cert-manager auto-renew</span></div>
+    <div class="spec-row"><span class="spec-label">TLS certificate — IssuingCA signed</span><span class="spec-val"><span class="badge bg">✓</span> gitlab.novacrestbank.internal · 1-year validity · cert-manager auto-renew</span></div>
     <div class="spec-row"><span class="spec-label">Storage — Gitaly on vsan-gold (200 Gi)</span><span class="spec-val"><span class="badge bg">✓</span> High-durability RAID-6 FTT:2 for source code</span></div>
     <div class="spec-row"><span class="spec-label">Storage — PostgreSQL on vsan-gold (50 Gi)</span><span class="spec-val"><span class="badge bg">✓</span> GitLab metadata and audit events</span></div>
-    <div class="spec-row"><span class="spec-label">AD/LDAP authentication — 24 users accessible</span><span class="spec-val"><span class="badge bg">✓</span> dc01.corp.novacrestbank.com LDAPS:636 · svc-ocp-ldap bind account</span></div>
+    <div class="spec-row"><span class="spec-label">AD/LDAP authentication — 24 users accessible</span><span class="spec-val"><span class="badge bg">✓</span> dc01.novacrestbank.internal LDAPS:636 · svc-ocp-ldap bind account</span></div>
     <div class="spec-row"><span class="spec-label">LDAP group sync — hourly via Sidekiq</span><span class="spec-val"><span class="badge bg">✓</span> banking-developers, platform-engineers, gitlab-admins synced from AD</span></div>
     <div class="spec-row"><span class="spec-label">Group structure created — 4 top-level groups</span><span class="spec-val"><span class="badge bg">✓</span> banking · gitops · platform · security groups created with correct access levels</span></div>
     <div class="spec-row"><span class="spec-label">Branch protection on banking-config main</span><span class="spec-val"><span class="badge bg">✓</span> No direct push (push_access_level=0) · code owner approval required</span></div>
@@ -1286,10 +1286,10 @@ for e in json.load(sys.stdin):
   <table>
     <thead><tr><th>Guide</th><th>Depends on GITOPS-00 for</th></tr></thead>
     <tbody>
-      <tr><td>GITOPS-01 — GitOps architecture</td><td>The two-repository pattern is concrete: <code>gitlab.corp.novacrestbank.com/banking/payment-service</code> (source) and <code>gitlab.corp.novacrestbank.com/gitops/banking-config</code> (config). The mental model has a real VCS behind it.</td></tr>
+      <tr><td>GITOPS-01 — GitOps architecture</td><td>The two-repository pattern is concrete: <code>gitlab.novacrestbank.internal/banking/payment-service</code> (source) and <code>gitlab.novacrestbank.internal/gitops/banking-config</code> (config). The mental model has a real VCS behind it.</td></tr>
       <tr><td>GITOPS-02 — Jenkins on OCP</td><td>Jenkins integrates with GitLab via the GitLab Plugin and the webhook configured in Section 14. The Jenkins URL referenced in the webhook is the same URL used for the Jenkins Route in GITOPS-02.</td></tr>
-      <tr><td>GITOPS-03 — Jenkinsfile walkthrough</td><td>The Jenkinsfile checks out from <code>gitlab.corp.novacrestbank.com/banking/payment-service</code>. The Stage 8 merge request opens against <code>gitlab.corp.novacrestbank.com/gitops/banking-config</code>. Both repos exist and are configured.</td></tr>
-      <tr><td>GITOPS-04 — Argo CD ApplicationSet</td><td>The ApplicationSet <code>source.repoURL</code> points to <code>git@gitlab.corp.novacrestbank.com:gitops/banking-config.git</code>. The deploy key from Section 13 is what Argo CD uses to authenticate.</td></tr>
+      <tr><td>GITOPS-03 — Jenkinsfile walkthrough</td><td>The Jenkinsfile checks out from <code>gitlab.novacrestbank.internal/banking/payment-service</code>. The Stage 8 merge request opens against <code>gitlab.novacrestbank.internal/gitops/banking-config</code>. Both repos exist and are configured.</td></tr>
+      <tr><td>GITOPS-04 — Argo CD ApplicationSet</td><td>The ApplicationSet <code>source.repoURL</code> points to <code>git@gitlab.novacrestbank.internal:gitops/banking-config.git</code>. The deploy key from Section 13 is what Argo CD uses to authenticate.</td></tr>
       <tr><td>GITOPS-05 — External Secrets and CyberArk</td><td>The ExternalSecret objects are stored in GitLab under <code>gitops/banking-config</code>. The pipeline service account's GitLab credentials (used in GITOPS-03) are themselves managed by External Secrets Operator.</td></tr>
     </tbody>
   </table>

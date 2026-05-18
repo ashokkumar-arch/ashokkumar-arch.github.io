@@ -258,7 +258,7 @@
     2. cert-manager's controller detects the new Certificate and checks whether the named Secret already exists with a valid, non-expiring certificate. It does not — no Secret exists yet.<br/>
     3. cert-manager generates a private key and a CSR for the requested hostname.<br/>
     4. cert-manager creates a <code>CertificateRequest</code> object containing the CSR and a reference to the ClusterIssuer.<br/>
-    5. The ADCS issuer plugin reads the CertificateRequest, authenticates to <code>issuingca.novacrestbank.local</code> using the stored credential Secret, and submits the CSR to the IssuingCA's web enrollment endpoint (<code>/certsrv</code>).<br/>
+    5. The ADCS issuer plugin reads the CertificateRequest, authenticates to <code>issuingca.novacrestbank.internal</code> using the stored credential Secret, and submits the CSR to the IssuingCA's web enrollment endpoint (<code>/certsrv</code>).<br/>
     6. The IssuingCA signs the certificate using the NovaCrestBank-WebServer template and returns it.<br/>
     7. cert-manager stores the signed certificate and private key together as a Kubernetes TLS Secret (<code>payment-service-tls</code>) in the correct namespace.<br/>
     8. cert-manager updates the Certificate's <code>.status.conditions</code> to <code>Ready: True</code> with the expiry date and renewal time.<br/>
@@ -336,14 +336,14 @@
     The cert-manager operator image comes from the Red Hat catalog (mirrored to Harbor in Registry-01). The ADCS issuer plugin is a separate community image from <code>ghcr.io/djkormo/adcs-issuer</code> — not in the Red Hat catalog — and must be explicitly pulled into Harbor's <code>platform</code> project before cert-manager can use it. Skipping this step causes the ADCS issuer pod to fail with <code>ImagePullBackOff</code>.
   </div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — pull ADCS issuer into Harbor and verify catalog</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — pull ADCS issuer into Harbor and verify catalog</span></div>
     <div class="term-body"><pre><span class="td"># Pull the ADCS issuer image from ghcr.io into Harbor platform project</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker pull ghcr.io/djkormo/adcs-issuer:2.x.x</span>
 <span class="tg">2.x.x: Pulling from djkormo/adcs-issuer
 Status: Downloaded newer image</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">docker tag ghcr.io/djkormo/adcs-issuer:2.x.x \
-  harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x
-docker push harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x</span>
+  harbor.apps.ocp.novacrestbank.internal/platform/adcs-issuer:2.x.x
+docker push harbor.apps.ocp.novacrestbank.internal/platform/adcs-issuer:2.x.x</span>
 <span class="tg">2.x.x: digest: sha256:abc123 size: 12345</span>
 
 <span class="td"># Verify the cert-manager operator is in the mirrored catalog</span>
@@ -352,7 +352,7 @@ docker push harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x</span
 <span class="tg">1.14.x</span>
 
 <span class="td"># Confirm IssuingCA web enrollment is reachable — cert-manager will contact this URL</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://issuingca.novacrestbank.local/certsrv/ \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">curl -sk https://issuingca.novacrestbank.internal/certsrv/ \
   --cacert ~/ocp-kit/certs/chain.pem -o /dev/null -w "%{http_code}"</span>
 <span class="tg">200</span>
     <div class="tann ok"><span class="tai">✓</span><span>ADCS issuer image in Harbor. cert-manager 1.14.x in mirrored catalog. IssuingCA /certsrv reachable with trusted cert. Ready to install.</span></div>
@@ -399,7 +399,7 @@ docker push harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x</span
   <span class="yc">  # Package name exactly as it appears in the catalog packagemanifest.</span>
   <span class="yk">source</span>: <span class="yv">redhat-operators</span>
   <span class="yc">  # The Harbor-mirrored CatalogSource from Registry-01.
-    # Points at harbor.apps.ocp.novacrestbank.local/platform — not the internet.</span>
+    # Points at harbor.apps.ocp.novacrestbank.internal/platform — not the internet.</span>
   <span class="yk">sourceNamespace</span>: <span class="yv">openshift-marketplace</span>
   <span class="yk">installPlanApproval</span>: <span class="yv">Manual</span>
   <span class="yc">  # Manual: OLM creates an InstallPlan but does NOT apply it until an admin
@@ -410,7 +410,7 @@ docker push harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x</span
     </div>
   </div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply, review InstallPlan, approve</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — apply, review InstallPlan, approve</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f cert-manager-subscription.yaml</span>
 <span class="tg">namespace/cert-manager created
 operatorgroup.operators.coreos.com/cert-manager-og created
@@ -448,7 +448,7 @@ install-xyz12   cert-manager.v1.14.x  Manual     false</span>
   <div class="pt">Verify installation — CSV, pods, CRDs, and webhook</div>
   <div class="ps">Four checks confirm cert-manager is fully operational. The webhook check is critical — cert-manager's admission webhook validates Certificate and ClusterIssuer objects. If the webhook is not ready, every Certificate creation fails with a timeout error.</div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — four-part verification</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — four-part verification</span></div>
     <div class="term-body"><pre><span class="td"># Check 1: CSV — the definitive health signal</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get csv -n cert-manager</span>
 <span class="tg">NAME                   DISPLAY        VERSION   PHASE
@@ -495,7 +495,7 @@ issuers.cert-manager.io</span>
     <div class="decision-label">What ADCS is and how the plugin bridges cert-manager to it</div>
     <div class="decision-q">cert-manager has built-in issuers for Vault and ACME. Why does NovaCrestBank need a separate ADCS issuer plugin, and how does it work?</div>
     <div class="decision-a"><strong>cert-manager's built-in issuers speak ACME, CFSSL, Vault, and Venafi. None of them speak the Microsoft ADCS protocol. NovaCrestBank's PKI runs on Windows Server ADCS — the same infrastructure used in WIN-VCF-03. ADCS exposes certificate enrollment through its web enrollment interface (<code>/certsrv</code>). The ADCS issuer plugin is a separate controller that bridges cert-manager's CertificateRequest objects to the ADCS web enrollment interface.</strong><br/><br/>
-    When the ADCS issuer plugin receives a CertificateRequest, it does exactly what a human engineer did in WIN-VCF-03: it authenticates to <code>https://issuingca.novacrestbank.local/certsrv</code> using stored credentials, submits the CSR using the <code>NovaCrestBank-WebServer</code> certificate template, receives the signed certificate, and returns it to cert-manager. The plugin runs as a separate Deployment alongside the main cert-manager controller — they communicate via the CertificateRequest API.<br/><br/>
+    When the ADCS issuer plugin receives a CertificateRequest, it does exactly what a human engineer did in WIN-VCF-03: it authenticates to <code>https://issuingca.novacrestbank.internal/certsrv</code> using stored credentials, submits the CSR using the <code>NovaCrestBank-WebServer</code> certificate template, receives the signed certificate, and returns it to cert-manager. The plugin runs as a separate Deployment alongside the main cert-manager controller — they communicate via the CertificateRequest API.<br/><br/>
     <strong>The credential model:</strong> The ADCS plugin needs to authenticate to the IssuingCA web enrollment. It reads credentials from a Kubernetes Secret in the <code>cert-manager</code> namespace. This Secret contains the username and password for <code>svc-certmanager-enroll</code> — a dedicated AD service account with permission to enroll certificates from the IssuingCA and no other rights.</div>
   </div>
   <div class="flow-row">
@@ -532,7 +532,7 @@ issuers.cert-manager.io</span>
     The ADCS issuer plugin pod runs in <code>cert-manager</code> and reads its credential Secret from that namespace. A Secret in any other namespace causes the ClusterIssuer to fail with <code>secret "adcs-credentials" not found</code>. The plugin's ServiceAccount RBAC only allows reading Secrets in <code>cert-manager</code>.
   </div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — create the credential Secret</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — create the credential Secret</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc create secret generic adcs-credentials \
   --from-literal=username='NOVACRESTBANK\svc-certmanager-enroll' \
   --from-literal=password='NovaCrest$CertEnroll2026!' \
@@ -563,7 +563,7 @@ spec:
     spec:
       containers:
         - name: adcs-issuer
-          image: harbor.apps.ocp.novacrestbank.local/platform/adcs-issuer:2.x.x
+          image: harbor.apps.ocp.novacrestbank.internal/platform/adcs-issuer:2.x.x
           args: ["--leader-elect=false"]
           env:
             - name: WATCH_NAMESPACE
@@ -623,12 +623,12 @@ EOF</span>
     <span class="yc">  # How long to wait before retrying a failed request.
       # If the IssuingCA is temporarily unreachable, the plugin retries every 1h —
       # well within the 30-day renewal window.</span>
-    <span class="yk">url</span>: <span class="yv">https://issuingca.novacrestbank.local/certsrv</span>
+    <span class="yk">url</span>: <span class="yv">https://issuingca.novacrestbank.internal/certsrv</span>
     <span class="yc">  # The IssuingCA web enrollment URL.
       # Must use HTTPS — credentials are sent in the request body.
       # Must be reachable from inside the cluster. Test from a pod if uncertain:
       # oc run -it --rm curl-test --image=curlimages/curl -- \
-      #   curl -sk https://issuingca.novacrestbank.local/certsrv/</span>
+      #   curl -sk https://issuingca.novacrestbank.internal/certsrv/</span>
     <span class="yk">templateName</span>: <span class="yv">NovaCrestBank-WebServer</span>
     <span class="yc">  # The ADCS certificate template used for all requests.
       # Must exist on the IssuingCA and be configured to:
@@ -640,7 +640,7 @@ EOF</span>
     </div>
   </div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — encode CA bundle and apply ClusterIssuer</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — encode CA bundle and apply ClusterIssuer</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">CA_BUNDLE=$(base64 -w0 ~/ocp-kit/certs/chain.pem)
 sed "s|BASE64_ENCODED_CHAIN_PEM|${CA_BUNDLE}|" \
   cluster-issuer.yaml | oc apply -f -</span>
@@ -656,7 +656,7 @@ sed "s|BASE64_ENCODED_CHAIN_PEM|${CA_BUNDLE}|" \
   Status:                True
   Type:                  Ready</span>
 <span class="td">         ↑ Ready: True — ADCS plugin authenticated to IssuingCA ✓</span>
-    <div class="tann ok"><span class="tai">✓</span><span>ClusterIssuer novacrestbank-issuer is Ready. The ADCS plugin authenticated to issuingca.novacrestbank.local using svc-certmanager-enroll credentials and verified the NovaCrestBank-WebServer template is available.</span></div>
+    <div class="tann ok"><span class="tai">✓</span><span>ClusterIssuer novacrestbank-issuer is Ready. The ADCS plugin authenticated to issuingca.novacrestbank.internal using svc-certmanager-enroll credentials and verified the NovaCrestBank-WebServer template is available.</span></div>
     </pre></div>
   </div>
 </div>
@@ -667,7 +667,7 @@ sed "s|BASE64_ENCODED_CHAIN_PEM|${CA_BUNDLE}|" \
   <div class="pt">Verify the ClusterIssuer — end-to-end connectivity test</div>
   <div class="ps">A Ready status on the ClusterIssuer means the plugin connected to the IssuingCA. The deeper verification is issuing an actual test certificate and confirming it was signed by NovaCrestBank-IssuingCA.</div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — issue a test certificate and verify the chain</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — issue a test certificate and verify the chain</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -677,7 +677,7 @@ metadata:
 spec:
   secretName: test-certificate-tls
   dnsNames:
-    - test.apps.ocp.novacrestbank.local
+    - test.apps.ocp.novacrestbank.internal
   issuerRef:
     name: novacrestbank-issuer
     kind: ClusterIssuer
@@ -697,7 +697,7 @@ test-certificate   True    test-certificate-tls    11s</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get secret test-certificate-tls -n cert-manager \
   -o jsonpath='{.data.tls\.crt}' | base64 -d \
   | openssl x509 -noout -subject -issuer -dates</span>
-<span class="tg">subject=CN=test.apps.ocp.novacrestbank.local
+<span class="tg">subject=CN=test.apps.ocp.novacrestbank.internal
 issuer=CN=NovaCrestBank-IssuingCA, O=NovaCrestBank, C=AU
 notBefore=Apr 20 10:15:12 2026 GMT
 notAfter=Apr 21 10:15:12 2026 GMT</span>
@@ -815,7 +815,7 @@ secret "test-certificate-tls" deleted</span>
   <div class="pt">Issue the first production certificate — Harbor internal service</div>
   <div class="ps">The first real certificate issued by cert-manager is for Harbor's internal service communication. Harbor core communicates with its registry over HTTPS — this certificate replaces the self-signed cert Harbor generated at install time with an IssuingCA-signed one.</div>
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — Harbor internal certificate</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — Harbor internal certificate</span></div>
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">cat &lt;&lt; 'EOF' | oc apply -f -</span>
 <span class="tg">apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -913,7 +913,7 @@ X509v3 Subject Alternative Name:
           # Use cert-manager.io/cluster-issuer for ClusterIssuers (correct for NovaCrestBank).
           # Use cert-manager.io/issuer only for namespace-scoped Issuers.</span>
 <span class="yk">spec</span>:
-  <span class="yk">host</span>: <span class="yv">payment-portal.apps.ocp.novacrestbank.local</span>
+  <span class="yk">host</span>: <span class="yv">payment-portal.apps.ocp.novacrestbank.internal</span>
   <span class="yc">  # This hostname becomes the certificate's CN and SAN automatically.</span>
   <span class="yk">to</span>:
     <span class="yk">kind</span>: <span class="yv">Service</span>
@@ -1008,7 +1008,7 @@ X509v3 Subject Alternative Name:
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent);">
       <div class="layer-num" style="color:var(--accent);">3</div>
       <div class="layer-title">CertificateRequest created and fulfilled</div>
-      <div class="layer-desc">cert-manager creates a new CertificateRequest with the fresh CSR. The ADCS issuer plugin picks it up, authenticates to <code>issuingca.novacrestbank.local</code> using the <code>adcs-credentials</code> Secret, submits the CSR with the NovaCrestBank-WebServer template, receives the newly signed certificate, and marks the CertificateRequest Issued. The complete ADCS round-trip typically takes under 10 seconds.</div>
+      <div class="layer-desc">cert-manager creates a new CertificateRequest with the fresh CSR. The ADCS issuer plugin picks it up, authenticates to <code>issuingca.novacrestbank.internal</code> using the <code>adcs-credentials</code> Secret, submits the CSR with the NovaCrestBank-WebServer template, receives the newly signed certificate, and marks the CertificateRequest Issued. The complete ADCS round-trip typically takes under 10 seconds.</div>
     </div>
     <div class="layer" style="background:var(--bg3);border-left:4px solid var(--accent2);">
       <div class="layer-num" style="color:var(--accent2);">4</div>
@@ -1069,7 +1069,7 @@ X509v3 Subject Alternative Name:
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">"Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value | humanizeDuration }}"</span>
             <span class="yk">description</span>: <span class="yv">"Automatic renewal has not succeeded. Check CertificateRequest status and ADCS issuer pod logs in the cert-manager namespace."</span>
-            <span class="yk">runbook</span>: <span class="yv">"https://wiki.novacrestbank.local/runbooks/cert-manager-renewal-failure"</span>
+            <span class="yk">runbook</span>: <span class="yv">"https://wiki.novacrestbank.internal/runbooks/cert-manager-renewal-failure"</span>
 
         - <span class="yk">alert</span>: <span class="yv">CertificateExpiryCritical</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1083,7 +1083,7 @@ X509v3 Subject Alternative Name:
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">"CRITICAL: Certificate {{ $labels.name }} expires in {{ $value | humanizeDuration }}"</span>
             <span class="yk">description</span>: <span class="yv">"TLS failure is imminent. Delete and recreate the Certificate object to force immediate re-issuance."</span>
-            <span class="yk">runbook</span>: <span class="yv">"https://wiki.novacrestbank.local/runbooks/cert-emergency-renewal"</span></pre>
+            <span class="yk">runbook</span>: <span class="yv">"https://wiki.novacrestbank.internal/runbooks/cert-emergency-renewal"</span></pre>
     </div>
   </div>
 </div>
@@ -1155,7 +1155,7 @@ payment-service-mtls-xxxxx1   True       False   2m</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc describe certificaterequest payment-service-mtls-xxxxx1 \
   -n banking-apps | grep -A5 "Message:"</span>
 <span class="tg">  Message:  Failed to request certificate from ADCS:
-            POST https://issuingca.novacrestbank.local/certsrv returned 403 Forbidden.
+            POST https://issuingca.novacrestbank.internal/certsrv returned 403 Forbidden.
             Template 'NovaCrestBank-WebServer' not found or enrollment not permitted.</span>
 <span class="td">  ↑ "403 Forbidden" → template doesn't exist OR svc-certmanager-enroll lacks permission</span>
 
@@ -1187,7 +1187,7 @@ payment-service-mtls-xxxxx1   True       False   2m</span>
   <table>
     <thead><tr><th>Symptom</th><th>Root cause</th><th>Fix</th></tr></thead>
     <tbody>
-      <tr><td>Certificate <code>Ready: False</code> — <code>401 Unauthorized</code></td><td>Wrong credentials in <code>adcs-credentials</code> Secret. Password changed in AD, or username typo (must include domain: <code>NOVACRESTBANK\svc-certmanager-enroll</code>).</td><td>Verify manually: <code>curl -u NOVACRESTBANK\\svc-certmanager-enroll:password https://issuingca.novacrestbank.local/certsrv/</code>. Update Secret. Delete failed CertificateRequest to force retry.</td></tr>
+      <tr><td>Certificate <code>Ready: False</code> — <code>401 Unauthorized</code></td><td>Wrong credentials in <code>adcs-credentials</code> Secret. Password changed in AD, or username typo (must include domain: <code>NOVACRESTBANK\svc-certmanager-enroll</code>).</td><td>Verify manually: <code>curl -u NOVACRESTBANK\\svc-certmanager-enroll:password https://issuingca.novacrestbank.internal/certsrv/</code>. Update Secret. Delete failed CertificateRequest to force retry.</td></tr>
       <tr><td>Certificate <code>Ready: False</code> — <code>template not found</code></td><td><code>templateName</code> in ClusterIssuer does not match the template display name on the IssuingCA. Case-sensitive exact match required.</td><td>Open IssuingCA certificate authority console → Certificate Templates → verify the exact display name including capitalisation.</td></tr>
       <tr><td>Certificate <code>Ready: False</code> — <code>x509: certificate signed by unknown authority</code></td><td><code>caBundle</code> in ClusterIssuer is wrong — missing RootCA, or chain.pem was not base64-encoded correctly.</td><td>Re-run: <code>base64 -w0 ~/ocp-kit/certs/chain.pem</code>. Verify chain: <code>openssl verify -CAfile rootca.cer issuingca.cer</code>. Update ClusterIssuer with fresh base64 value.</td></tr>
       <tr><td>Certificate stays <code>Pending</code> — no CertificateRequest appears</td><td>cert-manager webhook is down. All Certificate creation operations time out waiting for the webhook admission response.</td><td><code>cmctl check api --wait=1m</code>. If it fails: <code>oc get pods -n cert-manager</code> — restart the webhook pod. Check cainjector logs for cert injection failures into the webhook configuration.</td></tr>
@@ -1211,7 +1211,7 @@ payment-service-mtls-xxxxx1   True       False   2m</span>
     <div class="spec-row"><span class="spec-label">Webhook API ready</span><span class="spec-val"><span class="badge bg">✓</span> <code>cmctl check api</code> returns "The cert-manager API is ready"</span></div>
     <div class="spec-row"><span class="spec-label">ADCS issuer plugin deployed</span><span class="spec-val"><span class="badge bg">✓</span> adcs-issuer-controller pod Running · image from Harbor platform project</span></div>
     <div class="spec-row"><span class="spec-label">adcs-credentials Secret in cert-manager namespace</span><span class="spec-val"><span class="badge bg">✓</span> NOVACRESTBANK\svc-certmanager-enroll · password-never-expires set in AD · CyberArk</span></div>
-    <div class="spec-row"><span class="spec-label">ClusterIssuer novacrestbank-issuer Ready</span><span class="spec-val"><span class="badge bg">✓</span> ADCS plugin authenticated to issuingca.novacrestbank.local · NovaCrestBank-WebServer template confirmed</span></div>
+    <div class="spec-row"><span class="spec-label">ClusterIssuer novacrestbank-issuer Ready</span><span class="spec-val"><span class="badge bg">✓</span> ADCS plugin authenticated to issuingca.novacrestbank.internal · NovaCrestBank-WebServer template confirmed</span></div>
     <div class="spec-row"><span class="spec-label">End-to-end test certificate issued and verified</span><span class="spec-val"><span class="badge bg">✓</span> subject signed by NovaCrestBank-IssuingCA · correct SANs · correct validity period · test cert cleaned up</span></div>
     <div class="spec-row"><span class="spec-label">First production certificate — Harbor internal TLS</span><span class="spec-val"><span class="badge bg">✓</span> harbor-internal-tls Secret in harbor namespace · 8 DNS SANs · 1-year validity</span></div>
     <div class="spec-row"><span class="spec-label">PrometheusRule for expiry alerts applied</span><span class="spec-val"><span class="badge bg">✓</span> CertificateExpiringSoon (14d warning) · CertificateExpiryCritical (3d critical) active in Prometheus</span></div>

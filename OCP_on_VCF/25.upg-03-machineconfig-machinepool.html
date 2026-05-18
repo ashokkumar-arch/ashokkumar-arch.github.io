@@ -394,13 +394,13 @@ rendered-worker-789abc123def               4.16.9    ← rendered (merged)</span
     <div class="term-body"><pre><span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get pod -n openshift-machine-config-operator \
   -l k8s-app=machine-config-daemon \
   -o wide | grep worker-0</span>
-<span class="tg">machine-config-daemon-xxxxx   2/2   Running   worker-0.ocp.novacrestbank.local</span>
+<span class="tg">machine-config-daemon-xxxxx   2/2   Running   worker-0.ocp.novacrestbank.internal</span>
 
 <span class="td"># View the MCD logs on a specific node — useful when a config change is stalling</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc logs -n openshift-machine-config-operator \
   $(oc get pods -n openshift-machine-config-operator \
     -l k8s-app=machine-config-daemon \
-    --field-selector spec.nodeName=worker-0.ocp.novacrestbank.local \
+    --field-selector spec.nodeName=worker-0.ocp.novacrestbank.internal \
     -o name) \
   -c machine-config-daemon --tail=30</span>
 <span class="tg">I0420 22:35:01 applied machineconfig rendered-worker-789abc123def
@@ -496,9 +496,9 @@ oc get nodes -l "node-role.kubernetes.io/worker,!node-role.kubernetes.io/master"
   -o custom-columns=NODE:.metadata.name,MC:.metadata.annotations."machineconfiguration\.openshift\.io/currentConfig"</span>
 <span class="tg">3
 NODE                               MC
-worker-0.ocp.novacrestbank.local   rendered-worker-789abc123def
-worker-1.ocp.novacrestbank.local   rendered-worker-789abc123def
-worker-2.ocp.novacrestbank.local   rendered-worker-789abc123def</span>
+worker-0.ocp.novacrestbank.internal   rendered-worker-789abc123def
+worker-1.ocp.novacrestbank.internal   rendered-worker-789abc123def
+worker-2.ocp.novacrestbank.internal   rendered-worker-789abc123def</span>
 <span class="td">  ↑ All 3 worker nodes are running rendered-worker-789abc123def — the current desired config ✓
     During an update: one node would show the OLD hash while the others show the NEW hash.
     A node that shows a DIFFERENT hash from what machineconfigpool reports as CONFIG is
@@ -614,7 +614,7 @@ infra  rendered-infra-NEW789   True     False     False     3        3      3</s
 <span class="td">  ↑ UPDATED=True, all 3 infra nodes running the new rendered MC ✓
     Sysctl applied. Verify on one node:</td>
 
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/infra-0.ocp.novacrestbank.local -- \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/infra-0.ocp.novacrestbank.internal -- \
   chroot /host sysctl fs.inotify.max_user_instances fs.inotify.max_user_watches vm.max_map_count</span>
 <span class="tg">fs.inotify.max_user_instances = 8192
 fs.inotify.max_user_watches = 524288
@@ -705,12 +705,12 @@ vm.max_map_count = 262144</span>
             <span class="yk">inline</span>: <span class="yv">|</span>
               <span class="yv">              [[registry]]</span>
               <span class="yv">              prefix = "quay.io/openshift-release-dev"</span>
-              <span class="yv">              location = "harbor.apps.ocp.novacrestbank.local/openshift-release-dev"</span>
+              <span class="yv">              location = "harbor.apps.ocp.novacrestbank.internal/openshift-release-dev"</span>
               <span class="yv">              insecure = false</span>
 
               <span class="yv">              [[registry]]</span>
               <span class="yv">              prefix = "registry.redhat.io"</span>
-              <span class="yv">              location = "harbor.apps.ocp.novacrestbank.local/redhat"</span>
+              <span class="yv">              location = "harbor.apps.ocp.novacrestbank.internal/redhat"</span>
               <span class="yv">              insecure = false</span>
               <span class="yc">              # Mirror registry.redhat.io pulls through Harbor.
                               # In air-gapped environments this is required —
@@ -783,7 +783,7 @@ vm.max_map_count = 262144</span>
                     # configuration for remote forwarding is added.</span>
               <span class="yk">contents</span>: <span class="yv">|</span>
                 <span class="yv">                [Service]</span>
-                <span class="yv">                Environment=REMOTE_SERVER=splunk-syslog.novacrestbank.local</span>
+                <span class="yv">                Environment=REMOTE_SERVER=splunk-syslog.novacrestbank.internal</span>
                 <span class="yv">                Environment=REMOTE_PORT=514</span>
                 <span class="yv">                ExecStartPost=/usr/sbin/service auditsp restart</span></pre>
     </div>
@@ -810,18 +810,18 @@ worker   rendered-worker-NEWHASH    False    True      False     3        2     
     READY=2 — worker-0 is being drained (down from 3).</td>
 
 <span class="td"># T+3m: worker-0 drain complete, node cordoned, MCO applying new config</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node worker-0.ocp.novacrestbank.local</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get node worker-0.ocp.novacrestbank.internal</span>
 <span class="tg">NAME                              STATUS                     ROLES    AGE
-worker-0.ocp.novacrestbank.local  Ready,SchedulingDisabled   worker   45d</span>
+worker-0.ocp.novacrestbank.internal  Ready,SchedulingDisabled   worker   45d</span>
 <span class="td">  ↑ SchedulingDisabled = cordoned. Drain complete. MCD is applying kernel args + rebooting.</td>
 
 <span class="td"># T+5m: worker-0 rebooting (NotReady)</span>
-<span class="tg">worker-0.ocp.novacrestbank.local  NotReady   worker   45d</span>
+<span class="tg">worker-0.ocp.novacrestbank.internal  NotReady   worker   45d</span>
 <span class="td">  ↑ Node is rebooting into the new kernel args. Expected. Not an error.
     Payment service pods are running on worker-1 and worker-2 (PDB minAvailable=2 satisfied).</td>
 
 <span class="td"># T+8m: worker-0 back, new config applied</span>
-<span class="tg">worker-0.ocp.novacrestbank.local  Ready   worker   45d</span>
+<span class="tg">worker-0.ocp.novacrestbank.internal  Ready   worker   45d</span>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get machineconfigpool worker</span>
 <span class="tg">NAME     CONFIG                     UPDATED  UPDATING  DEGRADED  MACHINE  READY  UPDATED
@@ -836,7 +836,7 @@ worker   rendered-worker-NEWHASH    True     False     False     3        3     
 <span class="td">  ↑ UPDATED=True, all 3 workers at new rendered MC ✓</td>
 
 <span class="td"># Verify the kernel argument is active on a worker node</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/worker-0.ocp.novacrestbank.local -- \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/worker-0.ocp.novacrestbank.internal -- \
   chroot /host cat /proc/cmdline | tr ' ' '\n' | grep hugepage</span>
 <span class="tg">transparent_hugepage=madvise</span>
 <span class="td">  ↑ Kernel argument confirmed in the running kernel's command line ✓</td>
@@ -934,7 +934,7 @@ worker-2    rendered-worker-OLD123     rendered-worker-NEW789     Working</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc logs -n openshift-machine-config-operator \
   $(oc get pods -n openshift-machine-config-operator \
     -l k8s-app=machine-config-daemon \
-    --field-selector spec.nodeName=worker-1.ocp.novacrestbank.local \
+    --field-selector spec.nodeName=worker-1.ocp.novacrestbank.internal \
     -o name) \
   -c machine-config-daemon --tail=20</span>
 <span class="tg">E0420 22:41:15 applying new MachineConfig rendered-worker-NEW789
@@ -977,11 +977,11 @@ fraud-detection-pdb     1</span>
     If any PDB shows ALLOWED=0: do NOT drain. Investigate why replicas are reduced first.</td>
 
 <span class="td"># Step 2: Drain the node</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm drain worker-2.ocp.novacrestbank.local \
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm drain worker-2.ocp.novacrestbank.internal \
   --ignore-daemonsets \
   --delete-emptydir-data \
   --timeout=300s</span>
-<span class="tg">node/worker-2.ocp.novacrestbank.local cordoned
+<span class="tg">node/worker-2.ocp.novacrestbank.internal cordoned
 WARNING: ignoring DaemonSet-managed Pods: openshift-machine-config-operator/machine-config-daemon-xxxxx,
   openshift-monitoring/node-exporter-xxxxx, openshift-ovn-kubernetes/ovnkube-node-xxxxx
 evicting pod banking-production/payment-service-ghi789
@@ -990,7 +990,7 @@ evicting pod openshift-monitoring/prometheus-adapter-xxxxx
 pod/payment-service-ghi789 evicted
 pod/account-service-zzz123 evicted
 pod/prometheus-adapter-xxxxx evicted
-node/worker-2.ocp.novacrestbank.local drained</span>
+node/worker-2.ocp.novacrestbank.internal drained</span>
 <span class="td">  ↑ Drain complete. Node cordoned (SchedulingDisabled). All non-DaemonSet pods evicted.
     Payment service pod on worker-2 evicted — rescheduled to worker-0 or worker-1.
     DaemonSets still running on worker-2 (expected — they will stop on node shutdown).</td>
@@ -998,8 +998,8 @@ node/worker-2.ocp.novacrestbank.local drained</span>
 <span class="td"># Step 3: Perform the maintenance (hardware replacement, storage expansion, etc.)
 # Then return the node to service:</td>
 
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm uncordon worker-2.ocp.novacrestbank.local</span>
-<span class="tg">node/worker-2.ocp.novacrestbank.local uncordoned</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc adm uncordon worker-2.ocp.novacrestbank.internal</span>
+<span class="tg">node/worker-2.ocp.novacrestbank.internal uncordoned</span>
 <span class="td">  ↑ Node is schedulable again. Pods will be rescheduled to worker-2 at the scheduler's
     discretion (not immediately — the scheduler only places new pods on uncordoned nodes;
     existing running pods do not automatically migrate back). ✓</td>
@@ -1056,7 +1056,7 @@ node/worker-2.ocp.novacrestbank.local drained</span>
   <div class="term">
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost — access a node for post-MachineConfig verification</span></div>
     <div class="term-body"><pre><span class="td"># Open a debug session on infra-0 to verify the sysctl values applied</span>
-<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/infra-0.ocp.novacrestbank.local</span>
+<span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc debug node/infra-0.ocp.novacrestbank.internal</span>
 <span class="tg">Starting pod/infra-0ocpnovacrestbanklocal-debug ...
 To use host binaries, run `chroot /host`
 Pod IP: 10.10.0.21
@@ -1080,7 +1080,7 @@ vm.max_map_count = 262144</span>
 <span class="tg">sh-5.1#</span> <span class="tc">rpm-ostree status | head -5</span>
 <span class="tg">State: idle
   Deployments:
-● harbor.apps.ocp.novacrestbank.local/openshift/release:4.16.9-x86_64
+● harbor.apps.ocp.novacrestbank.internal/openshift/release:4.16.9-x86_64
          Booted: 2026-04-20T22:47:33Z</span>
 <span class="td">  ↑ Node is booted on OCP 4.16.9 RHCOS ✓</td>
 
@@ -1138,10 +1138,10 @@ ncb-ocp-cluster-worker-ocp-01-p9q   Running   9m</span>
 <span class="td">  ↑ Machine Phase=Running — node has joined the cluster ✓</td>
 
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc get nodes | grep worker</span>
-<span class="tg">worker-0.ocp.novacrestbank.local   Ready   worker   45d   v1.29.7
-worker-1.ocp.novacrestbank.local   Ready   worker   45d   v1.29.7
-worker-2.ocp.novacrestbank.local   Ready   worker   45d   v1.29.7
-worker-3.ocp.novacrestbank.local   Ready   worker   2m    v1.29.7  ← NEW</span>
+<span class="tg">worker-0.ocp.novacrestbank.internal   Ready   worker   45d   v1.29.7
+worker-1.ocp.novacrestbank.internal   Ready   worker   45d   v1.29.7
+worker-2.ocp.novacrestbank.internal   Ready   worker   45d   v1.29.7
+worker-3.ocp.novacrestbank.internal   Ready   worker   2m    v1.29.7  ← NEW</span>
 <span class="td">  ↑ worker-3 joined and is Ready ✓
     The MachineConfigPool will automatically apply the current rendered worker MC
     to worker-3 — including NovaCrestBank's custom kernel args and sysctl.</td>

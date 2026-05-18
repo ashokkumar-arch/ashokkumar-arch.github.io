@@ -725,7 +725,7 @@ http_server_requests_seconds_count{application="payment-service",method="GET",
   <div class="ps">The ServiceMonitor from OBS-01 Section 10 is applied to banking-production. This section verifies the complete chain: ServiceMonitor → Service → Endpoints → Pod scrape → metric stored in Prometheus.</div>
 
   <div class="term">
-    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.local — apply ServiceMonitor and trace the discovery chain</span></div>
+    <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">jumphost.novacrestbank.internal — apply ServiceMonitor and trace the discovery chain</span></div>
     <div class="term-body"><pre><span class="td"># Apply the payment-service ServiceMonitor</span>
 <span class="tp">[svc-ocp@jumphost ~]$</span> <span class="tc">oc apply -f payment-service-servicemonitor.yaml \
   -n banking-production</span>
@@ -978,8 +978,8 @@ payment_outcomes_total{namespace="banking-production",outcome="insufficient_fund
               <span class="yv">              2. JVM GC pressure (jvm_gc_pause_seconds)</span>
               <span class="yv">              3. Downstream payment rail latency (payment_authorise_duration)</span>
               <span class="yv">              4. Node memory pressure on payment-service pods</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-latency-high</span>
-            <span class="yk">grafana_dashboard</span>: <span class="yv">https://grafana-monitoring.apps.ocp.novacrestbank.local/d/payment-service</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/payment-latency-high</span>
+            <span class="yk">grafana_dashboard</span>: <span class="yv">https://grafana-monitoring.apps.ocp.novacrestbank.internal/d/payment-service</span>
 
         - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceLatencyCritical</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1000,7 +1000,7 @@ payment_outcomes_total{namespace="banking-production",outcome="insufficient_fund
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">CRITICAL — payment-service P99 latency {{ $value | humanizeDuration }} — customers experiencing payment failures</span>
             <span class="yk">description</span>: <span class="yv">"Payment API P99 latency is {{ $value | humanizeDuration }}. This is 2× the SLO threshold. Customers are experiencing payment timeouts. Immediate investigation and possible rollback required."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-latency-critical</span></pre>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/payment-latency-critical</span></pre>
     </div>
   </div>
 </div>
@@ -1051,7 +1051,7 @@ payment_outcomes_total{namespace="banking-production",outcome="insufficient_fund
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">payment-service 5xx error rate {{ $value | humanizePercentage }} — approaching SLO threshold</span>
             <span class="yk">description</span>: <span class="yv">"Payment submission endpoint is returning {{ $value | humanizePercentage }} 5xx errors. SLO breach at 0.1%. Investigate: pod logs for exceptions, database connection errors, downstream service health."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-error-rate</span>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/payment-error-rate</span>
 
         - <span class="yk">alert</span>: <span class="yv">NCBPaymentServiceErrorRateCritical</span>
           <span class="yk">expr</span>: <span class="yv">|</span>
@@ -1075,7 +1075,7 @@ payment_outcomes_total{namespace="banking-production",outcome="insufficient_fund
           <span class="yk">annotations</span>:
             <span class="yk">summary</span>: <span class="yv">CRITICAL — payment-service SLO BREACH: {{ $value | humanizePercentage }} error rate</span>
             <span class="yk">description</span>: <span class="yv">"SLO BREACHED. Payment API 5xx error rate is {{ $value | humanizePercentage }}. Customers are experiencing payment failures. Consider immediate rollback to the previous version."</span>
-            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.local/runbooks/payment-slo-breach</span></pre>
+            <span class="yk">runbook</span>: <span class="yv">https://wiki.novacrestbank.internal/runbooks/payment-slo-breach</span></pre>
     </div>
   </div>
 </div>
