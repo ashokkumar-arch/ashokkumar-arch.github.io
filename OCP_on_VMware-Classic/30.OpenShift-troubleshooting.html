@@ -288,7 +288,7 @@
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — universal 5-minute triage sequence</span>
+      <span class="ttt">jumphost.novacrestbank.internal — universal 5-minute triage sequence</span>
     </div>
     <div class="tb"><pre><span class="td">══════════════════════════════════════════════════════════════
   INCIDENT TRIAGE — Run this every time, in this order
@@ -297,7 +297,7 @@
 <span class="td"># Step 1: Can I even talk to the cluster?</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc whoami</span>
 <span class="tg">system:admin</span>           <span class="td">← API is reachable. Go to step 2.</span>
-<span class="tr">error: dial tcp api.ocp.novacrestbank.local:6443: connect: connection refused</span>
+<span class="tr">error: dial tcp api.ocp.novacrestbank.internal:6443: connect: connection refused</span>
 <span class="td">                       ← API is DOWN. Jump to Scenario B (etcd) or Scenario C (cert).</span>
 <span class="tr">error: x509: certificate has expired</span>
 <span class="td">                       ← Cert expired. Jump to Scenario C immediately.</span>
@@ -305,10 +305,10 @@
 <span class="td"># Step 2: Cluster-wide node health</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get nodes</span>
 <span class="tw">NAME                              STATUS     ROLES</span>
-<span class="tg">master01.ocp.novacrestbank.local  Ready      master</span>
-<span class="tg">master02.ocp.novacrestbank.local  Ready      master</span>
-<span class="tr">master03.ocp.novacrestbank.local  NotReady   master</span>   <span class="td">← problem node found</span>
-<span class="tg">worker01.ocp.novacrestbank.local  Ready      worker</span>
+<span class="tg">master01.ocp.novacrestbank.internal  Ready      master</span>
+<span class="tg">master02.ocp.novacrestbank.internal  Ready      master</span>
+<span class="tr">master03.ocp.novacrestbank.internal  NotReady   master</span>   <span class="td">← problem node found</span>
+<span class="tg">worker01.ocp.novacrestbank.internal  Ready      worker</span>
 <span class="td">          ↑ NotReady on ONE master → not a quorum issue (2 of 3 still alive)
             → Go to Scenario A (node failure)</span>
 
@@ -351,7 +351,7 @@
 
   <div class="incident-header">
     <div class="ih-sev p1">P1 — Severity 1</div>
-    <div class="ih-title">master03.ocp.novacrestbank.local is NotReady</div>
+    <div class="ih-title">master03.ocp.novacrestbank.internal is NotReady</div>
     <div class="ih-meta">
       <span><strong>Alert:</strong> NodeNotReady fired at 02:14 UTC</span>
       <span><strong>Impact:</strong> etcd has 2 of 3 members — still quorate but no redundancy</span>
@@ -370,7 +370,7 @@
       <span class="ttt">jumphost + master03 — full NotReady diagnosis and recovery</span>
     </div>
     <div class="tb"><pre><span class="td"># ── Phase 1: Understand the node's condition ─────────────────────</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe node master03.ocp.novacrestbank.local | \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe node master03.ocp.novacrestbank.internal | \
   grep -A 30 "Conditions:"</span>
 <span class="tw">Conditions:</span>
 <span class="tw">  Type                Status  LastHeartbeatTime    Reason           Message</span>
@@ -381,7 +381,7 @@
 <span class="td">                                                                     ↑ Memory pressure AND network not ready
                                                                        Memory pressure evicted something critical</span>
 
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe node master03.ocp.novacrestbank.local | \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe node master03.ocp.novacrestbank.internal | \
   grep -A 5 "Events:"</span>
 <span class="tr">  Warning  OOMKilling  2m  kernel-monitor  Memory cgroup out of memory:
            Kill process 12847 (kubelet) score 892 or sacrifice child</span>
@@ -391,7 +391,7 @@
 <span class="td"># iLO IP for master03 is 10.40.0.33 (OOB management network)</span>
 <span class="td"># OR if network is intact, SSH directly:</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master03.ocp.novacrestbank.local</span>
+  core@master03.ocp.novacrestbank.internal</span>
 <span class="tg">Red Hat Enterprise Linux CoreOS 415.92...</span>
 <span class="tpr">[core@master03 ~]$</span>   <span class="td">← SSH works = network is alive, just kubelet died</span>
 
@@ -425,10 +425,10 @@
 <span class="tg">     Active: active (running) since Mon 2026-04-13 02:21:45 UTC; 10s ago</span>
 
 <span class="td"># Back on jump host — watch master03 recover</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n5 'oc get node master03.ocp.novacrestbank.local'</span>
-<span class="ty">master03.ocp.novacrestbank.local  NotReady   master   45d</span>   <span class="td">← still registering</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n5 'oc get node master03.ocp.novacrestbank.internal'</span>
+<span class="ty">master03.ocp.novacrestbank.internal  NotReady   master   45d</span>   <span class="td">← still registering</span>
 <span class="td">... wait 60-90 seconds ...</span>
-<span class="tg">master03.ocp.novacrestbank.local  Ready      master   45d</span>   <span class="td">← RECOVERED ✓</span>
+<span class="tg">master03.ocp.novacrestbank.internal  Ready      master   45d</span>   <span class="td">← RECOVERED ✓</span>
 
 <span class="td"># Fix the root cause: etcd compaction is too slow</span>
 <span class="td"># Trigger manual compaction to clean up accumulated revisions</span>
@@ -453,13 +453,13 @@
       <span class="ttt">jumphost + node — memory and disk pressure diagnosis</span>
     </div>
     <div class="tb"><pre><span class="td"># Alert: NodeMemoryPressure on worker02</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe node worker02.ocp.novacrestbank.local | \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe node worker02.ocp.novacrestbank.internal | \
   grep -A 3 "MemoryPressure"</span>
 <span class="tr">  MemoryPressure  True  2026-04-13 03:10:00  KubeletHasInsufficientMemory  node has insufficient memory available</span>
 
 <span class="td"># Find the memory hogs on this node</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm top pods -A \
-  --field-selector spec.nodeName=worker02.ocp.novacrestbank.local \
+  --field-selector spec.nodeName=worker02.ocp.novacrestbank.internal \
   --sort-by=memory | head -10</span>
 <span class="tw">NAMESPACE         NAME                                CPU    MEMORY</span>
 <span class="tr">banking-backend   payment-processor-6d4b9f8c7-a3k8m  2400m  58Gi</span>   <span class="td">← using 58 GB!</span>
@@ -482,7 +482,7 @@
 <span class="td">         ← Deployment immediately creates a new replacement pod (healthy state)
            Node memory returns to normal within 60 seconds</span>
 
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n5 'oc describe node worker02.ocp.novacrestbank.local | grep MemoryPressure'</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n5 'oc describe node worker02.ocp.novacrestbank.internal | grep MemoryPressure'</span>
 <span class="td">... 60 seconds ...</span>
 <span class="tg">  MemoryPressure  False  2026-04-13 03:12:30  KubeletHasSufficientMemory</span>   <span class="td">← pressure gone ✓</span>
 
@@ -519,8 +519,8 @@
     <div class="tb"><pre><span class="td"># SSH fails completely</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
   -o ConnectTimeout=10 \
-  core@worker01.ocp.novacrestbank.local</span>
-<span class="tr">ssh: connect to host worker01.ocp.novacrestbank.local port 22: No route to host</span>
+  core@worker01.ocp.novacrestbank.internal</span>
+<span class="tr">ssh: connect to host worker01.ocp.novacrestbank.internal port 22: No route to host</span>
 <span class="td">              ↑ "No route to host" = network-level issue, not just SSH
                 The node is not responding at all on the IP level</span>
 
@@ -557,11 +557,11 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 <span class="tg">Server powering on...</span>
 
 <span class="td"># Back on jump host — watch the node come back</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n10 'oc get node worker01.ocp.novacrestbank.local'</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n10 'oc get node worker01.ocp.novacrestbank.internal'</span>
 <span class="td">... 3-5 minutes for RHCOS to boot ...</span>
-<span class="ty">worker01.ocp.novacrestbank.local  NotReady  worker  45d</span>   <span class="td">← booting</span>
+<span class="ty">worker01.ocp.novacrestbank.internal  NotReady  worker  45d</span>   <span class="td">← booting</span>
 <span class="td">... 2 more minutes ...</span>
-<span class="tg">worker01.ocp.novacrestbank.local  Ready     worker  45d</span>   <span class="td">← RECOVERED ✓</span>
+<span class="tg">worker01.ocp.novacrestbank.internal  Ready     worker  45d</span>   <span class="td">← RECOVERED ✓</span>
 
 <span class="td"># ACTION REQUIRED: Escalate thermal event to data center operations team
 # Check rack cooling, replace failed fans, review temperature monitoring alerts
@@ -601,9 +601,9 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 <span class="tr">2 of 3 members are unavailable. master02, master03 are not responding</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get nodes | grep master</span>
-<span class="tg">master01.ocp.novacrestbank.local  Ready    master</span>
-<span class="tr">master02.ocp.novacrestbank.local  NotReady master</span>
-<span class="tr">master03.ocp.novacrestbank.local  NotReady master</span>
+<span class="tg">master01.ocp.novacrestbank.internal  Ready    master</span>
+<span class="tr">master02.ocp.novacrestbank.internal  NotReady master</span>
+<span class="tr">master03.ocp.novacrestbank.internal  NotReady master</span>
 
 <span class="td"># Try a write — confirms read-only mode</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc create configmap test-write -n default --from-literal=key=value</span>
@@ -652,13 +652,13 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 
 <span class="td"># Step 1: Check etcd health and peer latency</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd \
-  etcd-master01.ocp.novacrestbank.local \
+  etcd-master01.ocp.novacrestbank.internal \
   etcdctl endpoint health \
   --cluster \
   --endpoints=https://localhost:2379 \
   --cacert=/etc/kubernetes/static-pod-certs/configmaps/etcd-all-bundles/server-ca-bundle.crt \
-  --cert=/etc/kubernetes/static-pod-certs/secrets/etcd-all-certs/etcd-serving-master01.ocp.novacrestbank.local.crt \
-  --key=/etc/kubernetes/static-pod-certs/secrets/etcd-all-certs/etcd-serving-master01.ocp.novacrestbank.local.key</span>
+  --cert=/etc/kubernetes/static-pod-certs/secrets/etcd-all-certs/etcd-serving-master01.ocp.novacrestbank.internal.crt \
+  --key=/etc/kubernetes/static-pod-certs/secrets/etcd-all-certs/etcd-serving-master01.ocp.novacrestbank.internal.key</span>
 <span class="tg">https://10.50.0.11:2379 is healthy: committed proposal: took = 18.4ms</span>
 <span class="ty">https://10.50.0.12:2379 is healthy: committed proposal: took = 847ms</span>   <span class="td">← master02 is SLOW</span>
 <span class="tg">https://10.50.0.13:2379 is healthy: committed proposal: took = 22.1ms</span>
@@ -681,7 +681,7 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 <span class="td"># etcd disk I/O saturated because vSAN is overloaded or the VMDK has I/O limits
 # Short-term fix: trigger etcd compaction to reduce WAL size</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd \
-  etcd-master02.ocp.novacrestbank.local \
+  etcd-master02.ocp.novacrestbank.internal \
   etcdctl compact \
   $(etcdctl endpoint status --cluster --write-out=json | \
     python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['Status']['header']['revision'])") \
@@ -689,7 +689,7 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 <span class="tg">compacted revision 184723</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd \
-  etcd-master02.ocp.novacrestbank.local \
+  etcd-master02.ocp.novacrestbank.internal \
   etcdctl defrag --endpoints=https://localhost:2379</span>
 <span class="tg">Finished defragmenting etcd member[https://10.50.0.12:2379]</span>
 
@@ -697,7 +697,7 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 # Consider moving etcd VMs to a dedicated vSAN storage policy with higher IOPS reservation</span>
 
 <span class="td"># Verify etcd latency returned to normal</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd etcd-master01.ocp.novacrestbank.local \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd etcd-master01.ocp.novacrestbank.internal \
   etcdctl endpoint health --cluster ...</span>
 <span class="tg">https://10.50.0.11:2379 is healthy: committed proposal: took = 16.2ms</span>
 <span class="tg">https://10.50.0.12:2379 is healthy: committed proposal: took = 31.8ms</span>   <span class="td">← master02 back to normal ✓</span>
@@ -722,7 +722,7 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 <span class="tr">2 of 3 members are available, master03 is unstarted</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc logs -n openshift-etcd \
-  etcd-master03.ocp.novacrestbank.local \
+  etcd-master03.ocp.novacrestbank.internal \
   --tail=20 2>/dev/null | grep -i "error\|fail"</span>
 <span class="tr">{"level":"fatal","msg":"error validating peerURLs","error":"member count is unequal"}</span>
 <span class="tr">{"level":"fatal","msg":"etcd member data directory is corrupted"}</span>
@@ -731,7 +731,7 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 
 <span class="td"># Step 1: Get the etcd member ID for master03</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd \
-  etcd-master01.ocp.novacrestbank.local \
+  etcd-master01.ocp.novacrestbank.internal \
   etcdctl member list \
   --endpoints=https://localhost:2379 \
   --cacert=... --cert=... --key=... \
@@ -739,13 +739,13 @@ From 10.50.0.1 icmp_seq=1 Destination Host Unreachable</span>
 <span class="tw">+------------------+---------+-------------------------------------------+</span>
 <span class="tw">|        ID        | STATUS  |                   NAME                    |</span>
 <span class="tw">+------------------+---------+-------------------------------------------+</span>
-<span class="tg">| 5c3d4e5f6a7b8c9d | started | master01.ocp.novacrestbank.local           |</span>
-<span class="tg">| 7a8b9c0d1e2f3a4b | started | master02.ocp.novacrestbank.local           |</span>
-<span class="tr">| 9c0d1e2f3a4b5c6d | unstarted | master03.ocp.novacrestbank.local         |</span>
+<span class="tg">| 5c3d4e5f6a7b8c9d | started | master01.ocp.novacrestbank.internal           |</span>
+<span class="tg">| 7a8b9c0d1e2f3a4b | started | master02.ocp.novacrestbank.internal           |</span>
+<span class="tr">| 9c0d1e2f3a4b5c6d | unstarted | master03.ocp.novacrestbank.internal         |</span>
 
 <span class="td"># Step 2: Remove the failed member</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc rsh -n openshift-etcd \
-  etcd-master01.ocp.novacrestbank.local \
+  etcd-master01.ocp.novacrestbank.internal \
   etcdctl member remove 9c0d1e2f3a4b5c6d \
   --endpoints=https://localhost:2379 ...</span>
 <span class="tg">Member 9c0d1e2f3a4b5c6d removed from cluster 1a2b3c4d5e6f7a8b</span>
@@ -788,11 +788,11 @@ sudo mkdir /var/lib/etcd</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — emergency API cert replacement</span>
+      <span class="ttt">jumphost.novacrestbank.internal — emergency API cert replacement</span>
     </div>
     <div class="tb"><pre><span class="td"># Confirm the cert is expired</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">echo | openssl s_client \
-  -connect api.ocp.novacrestbank.local:6443 2>/dev/null | \
+  -connect api.ocp.novacrestbank.internal:6443 2>/dev/null | \
   openssl x509 -noout -enddate</span>
 <span class="tr">notAfter=Apr 13 09:00:00 2026 GMT</span>   <span class="td">← today's date IS the expiry date → EXPIRED</span>
 
@@ -804,23 +804,23 @@ sudo mkdir /var/lib/etcd</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig
 oc get nodes</span>
 <span class="tg">NAME                              STATUS   ROLES   AGE</span>
-<span class="tg">master01.ocp.novacrestbank.local  Ready    master  366d</span>   <span class="td">← kubeconfig works ✓ cluster is fine, just cert expired</span>
+<span class="tg">master01.ocp.novacrestbank.internal  Ready    master  366d</span>   <span class="td">← kubeconfig works ✓ cluster is fine, just cert expired</span>
 
 <span class="td"># Generate new cert and replace — same as Guide 6 Section 13</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cd ~/ocp-kit/certs/api-server-$(date +%Y)-emergency
 openssl req -newkey rsa:4096 -nodes \
-  -keyout api.ocp.novacrestbank.local.key \
-  -out api.ocp.novacrestbank.local.csr \
-  -subj "/CN=api.ocp.novacrestbank.local/O=NovaCrestBank/C=US" \
-  -addext "subjectAltName=DNS:api.ocp.novacrestbank.local,DNS:api-int.ocp.novacrestbank.local"</span>
+  -keyout api.ocp.novacrestbank.internal.key \
+  -out api.ocp.novacrestbank.internal.csr \
+  -subj "/CN=api.ocp.novacrestbank.internal/O=NovaCrestBank/C=US" \
+  -addext "subjectAltName=DNS:api.ocp.novacrestbank.internal,DNS:api-int.ocp.novacrestbank.internal"</span>
 <span class="tg">writing RSA key</span>
 
 <span class="td"># Sign with AD CS (Windows — certreq — see Guide 3 Task 2)
 # Copy signed .crt back to jump host, then:</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc create secret tls api-server-custom-cert \
-  --cert=api.ocp.novacrestbank.local.crt \
-  --key=api.ocp.novacrestbank.local.key \
+  --cert=api.ocp.novacrestbank.internal.crt \
+  --key=api.ocp.novacrestbank.internal.key \
   -n openshift-config \
   --dry-run=client -o yaml | oc apply -f -</span>
 <span class="tg">secret/api-server-custom-cert configured</span>
@@ -831,7 +831,7 @@ openssl req -newkey rsa:4096 -nodes \
 
 <span class="td"># Confirm oc works again without kubeconfig workaround</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">unset KUBECONFIG
-oc login https://api.ocp.novacrestbank.local:6443 -u jsmith -p 'ADpassword123!'</span>
+oc login https://api.ocp.novacrestbank.internal:6443 -u jsmith -p 'ADpassword123!'</span>
 <span class="tg">Login successful.</span>   <span class="td">← normal operations restored ✓</span>
 
 <span class="td"># Root cause: cert expiry alert was not configured or ignored
@@ -851,12 +851,12 @@ oc login https://api.ocp.novacrestbank.local:6443 -u jsmith -p 'ADpassword123!'<
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — emergency ingress cert replacement</span>
+      <span class="ttt">jumphost.novacrestbank.internal — emergency ingress cert replacement</span>
     </div>
     <div class="tb"><pre><span class="td"># Confirm ingress cert expired</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">echo | openssl s_client \
-  -connect console-openshift-console.apps.ocp.novacrestbank.local:443 \
-  -servername console-openshift-console.apps.ocp.novacrestbank.local 2>/dev/null | \
+  -connect console-openshift-console.apps.ocp.novacrestbank.internal:443 \
+  -servername console-openshift-console.apps.ocp.novacrestbank.internal 2>/dev/null | \
   openssl x509 -noout -enddate</span>
 <span class="tr">notAfter=Apr 13 09:00:00 2026 GMT</span>   <span class="td">← expired ✓ diagnosis confirmed</span>
 
@@ -865,8 +865,8 @@ oc login https://api.ocp.novacrestbank.local:6443 -u jsmith -p 'ADpassword123!'<
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">openssl req -newkey rsa:4096 -nodes \
   -keyout wildcard.apps.key \
   -out wildcard.apps.csr \
-  -subj "/CN=*.apps.ocp.novacrestbank.local/O=NovaCrestBank/C=US" \
-  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.local"</span>
+  -subj "/CN=*.apps.ocp.novacrestbank.internal/O=NovaCrestBank/C=US" \
+  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.internal"</span>
 <span class="tg">writing RSA key</span>
 
 <span class="td"># Sign with AD CS → copy .crt back, then update the secret</span>
@@ -884,8 +884,8 @@ oc login https://api.ocp.novacrestbank.local:6443 -u jsmith -p 'ADpassword123!'<
 
 <span class="td"># Verify: console now shows valid cert in browser</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">echo | openssl s_client \
-  -connect console-openshift-console.apps.ocp.novacrestbank.local:443 \
-  -servername console-openshift-console.apps.ocp.novacrestbank.local 2>/dev/null | \
+  -connect console-openshift-console.apps.ocp.novacrestbank.internal:443 \
+  -servername console-openshift-console.apps.ocp.novacrestbank.internal 2>/dev/null | \
   openssl x509 -noout -enddate</span>
 <span class="tg">notAfter=Apr 13 09:00:00 2027 GMT</span>   <span class="td">← new cert, valid for 1 year ✓</span></pre>
     </div>
@@ -909,7 +909,7 @@ oc login https://api.ocp.novacrestbank.local:6443 -u jsmith -p 'ADpassword123!'<
     </div>
     <div class="tb"><pre><span class="td"># The cluster-wide symptom: etcd pods crashlooping with x509 errors</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc logs -n openshift-etcd \
-  etcd-master01.ocp.novacrestbank.local \
+  etcd-master01.ocp.novacrestbank.internal \
   --tail=10</span>
 <span class="tr">{"level":"fatal","msg":"failed to obtain lease","error":"x509: certificate has expired"}</span>
 
@@ -926,11 +926,11 @@ oc patch etcd cluster \
 
 <span class="td"># Watch etcd operator regenerate all certs and roll out fresh pods</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n15 'oc get pods -n openshift-etcd'</span>
-<span class="ty">etcd-master01.ocp.novacrestbank.local  0/4  Init:0/3  0  30s</span>   <span class="td">← new pod starting</span>
+<span class="ty">etcd-master01.ocp.novacrestbank.internal  0/4  Init:0/3  0  30s</span>   <span class="td">← new pod starting</span>
 <span class="td">... 10-15 minutes ...</span>
-<span class="tg">etcd-master01.ocp.novacrestbank.local  4/4  Running   0  8m</span>
-<span class="tg">etcd-master02.ocp.novacrestbank.local  4/4  Running   0  5m</span>
-<span class="tg">etcd-master03.ocp.novacrestbank.local  4/4  Running   0  2m</span>   <span class="td">← all healthy ✓</span>
+<span class="tg">etcd-master01.ocp.novacrestbank.internal  4/4  Running   0  8m</span>
+<span class="tg">etcd-master02.ocp.novacrestbank.internal  4/4  Running   0  5m</span>
+<span class="tg">etcd-master03.ocp.novacrestbank.internal  4/4  Running   0  2m</span>   <span class="td">← all healthy ✓</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get etcd cluster \
   -o jsonpath='{.status.conditions[?(@.type=="EtcdMembersAvailable")].message}'</span>
@@ -947,7 +947,7 @@ oc patch etcd cluster \
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — operator degraded diagnosis pattern</span>
+      <span class="ttt">jumphost.novacrestbank.internal — operator degraded diagnosis pattern</span>
     </div>
     <div class="tb"><pre><span class="td"># Generic pattern for ANY degraded operator — substitute your operator name</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get co</span>
@@ -957,7 +957,7 @@ oc patch etcd cluster \
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get co authentication \
   -o jsonpath='{.status.conditions[?(@.type=="Degraded")].message}'</span>
 <span class="tr">OAuthServerRouteEndpointAccessibleControllerDegraded: Get
-"https://oauth-openshift.apps.ocp.novacrestbank.local/healthz":
+"https://oauth-openshift.apps.ocp.novacrestbank.internal/healthz":
 dial tcp 10.50.0.201:443: connect: connection refused
 OAuthServerDeploymentAvailable: no running pod found for component "oauth-openshift"</span>
 <span class="td">                                 ↑ The OAuth route is not accessible
@@ -985,7 +985,7 @@ dial tcp 10.10.0.10:636: connect: connection refused</span>
                But the DC might have a new firewall rule that blocks 636 from OCP nodes
                Test from the crashlooping pod's node</span>
 
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc debug node/infra01.ocp.novacrestbank.local -- \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc debug node/infra01.ocp.novacrestbank.internal -- \
   chroot /host nc -zw3 10.10.0.10 636 &amp;&amp; echo "LDAPS REACHABLE" || echo "BLOCKED"</span>
 <span class="tr">BLOCKED</span>   <span class="td">← LDAPS port 636 is blocked from infra01
              Cause: Palo Alto rule change blocked DC access from infra nodes
@@ -1011,7 +1011,7 @@ dial tcp 10.10.0.10:636: connect: connection refused</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — stuck operator rollout diagnosis</span>
+      <span class="ttt">jumphost.novacrestbank.internal — stuck operator rollout diagnosis</span>
     </div>
     <div class="tb"><pre><span class="td"># machine-config operator has been Progressing=True for 2 hours</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get co machine-config</span>
@@ -1031,9 +1031,9 @@ dial tcp 10.10.0.10:636: connect: connection refused</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node -l node-role.kubernetes.io/worker \
   -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.machineconfiguration\.openshift\.io/currentConfig}{"\n"}{end}'</span>
-<span class="tg">worker01.ocp.novacrestbank.local	rendered-worker-a4f9b2c1</span>  <span class="td">← updated ✓</span>
-<span class="tr">worker02.ocp.novacrestbank.local	rendered-worker-9c8d7e6f</span>   <span class="td">← OLD config — stuck!</span>
-<span class="tg">worker03.ocp.novacrestbank.local	rendered-worker-a4f9b2c1</span>  <span class="td">← updated ✓</span>
+<span class="tg">worker01.ocp.novacrestbank.internal	rendered-worker-a4f9b2c1</span>  <span class="td">← updated ✓</span>
+<span class="tr">worker02.ocp.novacrestbank.internal	rendered-worker-9c8d7e6f</span>   <span class="td">← OLD config — stuck!</span>
+<span class="tg">worker03.ocp.novacrestbank.internal	rendered-worker-a4f9b2c1</span>  <span class="td">← updated ✓</span>
 
 <span class="td"># Investigate worker02 — why is its MCO update stuck?</span>
 <span class="tpr">[core@worker02 ~]$</span> <span class="tcmd">sudo journalctl -u machine-config-daemon --since "2 hours ago" | \
@@ -1058,9 +1058,9 @@ Apr 13 04:15:22 machine-config-daemon[8234]: PodDisruptionBudget "postgres-pdb" 
                                     Fix: free memory on workers first, then MCO will proceed</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm top nodes --sort-by=memory | grep worker</span>
-<span class="tr">worker01.ocp.novacrestbank.local  14203m  88%  61847Mi  96%</span>
-<span class="tr">worker02.ocp.novacrestbank.local  12891m  80%  56234Mi  87%</span>
-<span class="tr">worker03.ocp.novacrestbank.local  11203m  70%  52871Mi  82%</span>
+<span class="tr">worker01.ocp.novacrestbank.internal  14203m  88%  61847Mi  96%</span>
+<span class="tr">worker02.ocp.novacrestbank.internal  12891m  80%  56234Mi  87%</span>
+<span class="tr">worker03.ocp.novacrestbank.internal  11203m  70%  52871Mi  82%</span>
 <span class="td">         ↑ All workers are memory-saturated — postgres-replica (needs 16Gi) cannot fit
            The correct fix: add a worker node (Guide 6 Section 09)
            Temporary fix: scale down a non-critical deployment to free 16Gi</span></pre>
@@ -1081,14 +1081,14 @@ Apr 13 04:15:22 machine-config-daemon[8234]: PodDisruptionBudget "postgres-pdb" 
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — force MCO to proceed with node update</span>
+      <span class="ttt">jumphost.novacrestbank.internal — force MCO to proceed with node update</span>
     </div>
     <div class="tb"><pre><span class="td"># Option A: Approve force drain via the MCO annotation (safest — MCO controls it)</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc annotate node worker02.ocp.novacrestbank.local \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc annotate node worker02.ocp.novacrestbank.internal \
   machineconfiguration.openshift.io/ctrl-plane-topology=HighlyAvailable \
   machineconfiguration.openshift.io/force-drain="" \
   --overwrite</span>
-<span class="tg">node/worker02.ocp.novacrestbank.local annotated</span>
+<span class="tg">node/worker02.ocp.novacrestbank.internal annotated</span>
 <span class="td">         ← MCO will now attempt drain ignoring PDB violations
            watch MCO proceed:</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n15 'oc get machineconfigpool worker'</span>
@@ -1373,7 +1373,7 @@ REACHED</span>   <span class="td">← external payment gateway now reachable ✓
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — OVN crashloop recovery</span>
+      <span class="ttt">jumphost.novacrestbank.internal — OVN crashloop recovery</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get pods -n openshift-ovn-kubernetes | grep -v Running</span>
 <span class="tr">ovnkube-master-7d4b9f8c2-a3k8m  0/1  CrashLoopBackOff  12  1h</span>
@@ -1431,7 +1431,7 @@ REACHED</span>   <span class="td">← external payment gateway now reachable ✓
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — CrashLoopBackOff full diagnosis</span>
+      <span class="ttt">jumphost.novacrestbank.internal — CrashLoopBackOff full diagnosis</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get pod payment-api-6d4b9f8c7-a3k8m -n banking-backend</span>
 <span class="tr">payment-api-6d4b9f8c7-a3k8m   0/1   CrashLoopBackOff   7   25m</span>
@@ -1495,7 +1495,7 @@ REACHED</span>   <span class="td">← external payment gateway now reachable ✓
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — OOMKilled diagnosis</span>
+      <span class="ttt">jumphost.novacrestbank.internal — OOMKilled diagnosis</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe pod kyc-processor-7d4b9f8c2-a3k8m \
   -n kyc-service | grep -A 5 "Last State"</span>
@@ -1550,16 +1550,16 @@ REACHED</span>   <span class="td">← external payment gateway now reachable ✓
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — ImagePullBackOff diagnosis</span>
+      <span class="ttt">jumphost.novacrestbank.internal — ImagePullBackOff diagnosis</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe pod new-service-6d4b9f8c7-a3k8m \
   -n banking-backend | grep -A 10 Events</span>
 <span class="tw">Events:</span>
 <span class="tr">  Warning  Failed     3m   kubelet  Failed to pull image
-           "registry.novacrestbank.local/banking/new-service:v1.0.0":
+           "registry.novacrestbank.internal/banking/new-service:v1.0.0":
            rpc error: code = Unknown
            desc = failed to pull and unpack image: failed to resolve reference
-           "registry.novacrestbank.local/banking/new-service:v1.0.0":
+           "registry.novacrestbank.internal/banking/new-service:v1.0.0":
            unexpected status code 401 Unauthorized</span>
 <span class="td">                    ↑ 401 Unauthorized = authentication failure to the internal registry</td>
 
@@ -1578,7 +1578,7 @@ REACHED</span>   <span class="td">← external payment gateway now reachable ✓
   -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d | \
   python3 -c "import json,sys; d=json.load(sys.stdin); print(list(d['auths'].keys()))"</span>
 <span class="tg">['cloud.openshift.com', 'quay.io', 'registry.connect.redhat.com', 'registry.redhat.io']</span>
-<span class="tr">                     ↑ registry.novacrestbank.local is NOT in the pull secret!
+<span class="tr">                     ↑ registry.novacrestbank.internal is NOT in the pull secret!
                        The internal registry needs a separate image pull secret in the namespace</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get secret -n banking-backend | grep dockerconfig</span>
@@ -1586,7 +1586,7 @@ REACHED</span>   <span class="td">← external payment gateway now reachable ✓
 
 <span class="td"># Create a pull secret for the internal registry in this namespace</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc create secret docker-registry internal-registry-pull \
-  --docker-server=registry.novacrestbank.local \
+  --docker-server=registry.novacrestbank.internal \
   --docker-username=svc-ocp-pull \
   --docker-password='Pull$Secret2026!' \
   -n banking-backend</span>

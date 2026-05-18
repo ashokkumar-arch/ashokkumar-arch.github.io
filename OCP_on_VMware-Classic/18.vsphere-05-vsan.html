@@ -1034,9 +1034,9 @@
   <h2>Apply policies to existing VMs immediately</h2>
   <p>Now that policies exist, apply the Banking-Critical policy to the most important VMs. In the VM Storage Policies list, select NovaCrestBank-Banking-Critical → <strong>Apply to VMs</strong>. Select the VMs to apply it to. Apply it to:</p>
   <ul>
-    <li>dc01.novacrestbank.local (before this, its disk is on the local datastore — wait until after vCenter migration in Section 15)</li>
-    <li>dc02.novacrestbank.local</li>
-    <li>issuingca.novacrestbank.local</li>
+    <li>dc01.novacrestbank.internal (before this, its disk is on the local datastore — wait until after vCenter migration in Section 15)</li>
+    <li>dc02.novacrestbank.internal</li>
+    <li>issuingca.novacrestbank.internal</li>
     <li>Any future database-tier VMs</li>
   </ul>
   <p>Apply NovaCrestBank-Standard to all other VMs once they are on vSAN storage.</p>
@@ -1058,8 +1058,8 @@
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">Right-click vcenter.novacrestbank.local → Migrate</div>
-        <p style="font-size:13.5px">In the Hosts and Clusters inventory, right-click <strong>vcenter.novacrestbank.local</strong>. Click <strong>Migrate</strong>. The Migrate wizard opens.</p>
+        <div class="step-title">Right-click vcenter.novacrestbank.internal → Migrate</div>
+        <p style="font-size:13.5px">In the Hosts and Clusters inventory, right-click <strong>vcenter.novacrestbank.internal</strong>. Click <strong>Migrate</strong>. The Migrate wizard opens.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1080,7 +1080,7 @@
       <div class="step-num">4</div>
       <div class="step-content">
         <div class="step-title">Click Finish — Storage vMotion begins</div>
-        <p style="font-size:13.5px">Click <strong>Finish</strong>. The Storage vMotion begins. The Tasks panel shows "Relocating vcenter.novacrestbank.local" with a percentage progress bar. For the vCenter VM (approximately 80–100 GB VMDK), migration takes 5–15 minutes depending on disk I/O. vCenter remains fully accessible throughout — the storage migration is transparent to users.</p>
+        <p style="font-size:13.5px">Click <strong>Finish</strong>. The Storage vMotion begins. The Tasks panel shows "Relocating vcenter.novacrestbank.internal" with a percentage progress bar. For the vCenter VM (approximately 80–100 GB VMDK), migration takes 5–15 minutes depending on disk I/O. vCenter remains fully accessible throughout — the storage migration is transparent to users.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1100,9 +1100,9 @@
   <h2>Also migrate DC01, DC02, and CA VMs to vSAN</h2>
   <p>After vCenter is migrated, perform Storage vMotion for the remaining critical VMs that are currently on local datastores. Migrate each with the Banking-Critical policy:</p>
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
-    <div>dc01.novacrestbank.local   → vsanDatastore  (NovaCrestBank-Banking-Critical)</div>
-    <div style="margin-top:4px;">dc02.novacrestbank.local   → vsanDatastore  (NovaCrestBank-Banking-Critical)</div>
-    <div style="margin-top:4px;">issuingca.novacrestbank.local → vsanDatastore (NovaCrestBank-Banking-Critical)</div>
+    <div>dc01.novacrestbank.internal   → vsanDatastore  (NovaCrestBank-Banking-Critical)</div>
+    <div style="margin-top:4px;">dc02.novacrestbank.internal   → vsanDatastore  (NovaCrestBank-Banking-Critical)</div>
+    <div style="margin-top:4px;">issuingca.novacrestbank.internal → vsanDatastore (NovaCrestBank-Banking-Critical)</div>
     <div style="margin-top:8px;color:#8090a0;"># rootca VM remains on local datastore — it is powered off and does not benefit from vSAN HA
 # (HA only helps running VMs — a powered-off Root CA needs no HA protection)</div>
   </div>
@@ -1256,7 +1256,7 @@
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — vCenter — vSAN health check via PowerCLI</span></div>
     <div class="psh-body"><pre><span class="pd"># Optional: run health checks via PowerCLI from a Windows management workstation
 # Requires: Install-Module -Name VMware.PowerCLI</span>
-<span class="pp">PS C:\></span> <span class="pc">Connect-VIServer -Server vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+<span class="pp">PS C:\></span> <span class="pc">Connect-VIServer -Server vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 <span class="pd"># Enter NOVACRESTBANK\Administrator credentials</span>
 
 <span class="pp">PS C:\></span> <span class="pc">Get-VsanView -Id "VsanVcClusterHealthSystem-vsan-cluster-health-system" |

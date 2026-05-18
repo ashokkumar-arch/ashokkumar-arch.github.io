@@ -281,17 +281,17 @@
     <tbody>
       <tr>
         <td><strong>Default Domain Policy</strong></td>
-        <td>novacrestbank.local (domain root)</td>
+        <td>novacrestbank.internal (domain root)</td>
         <td>Password complexity, minimum length, lockout settings — applied to all domain accounts</td>
       </tr>
       <tr>
         <td><strong>NovaCrestBank-SecurityBaseline</strong></td>
-        <td>novacrestbank.local (domain root)</td>
+        <td>novacrestbank.internal (domain root)</td>
         <td>User Rights Assignments, audit policy, SMB signing, NTLMv2 enforcement, UAC, screen lock — applied to all domain computers</td>
       </tr>
       <tr>
         <td><strong>NovaCrestBank-PKI-AutoEnrollment</strong></td>
-        <td>novacrestbank.local (domain root)</td>
+        <td>novacrestbank.internal (domain root)</td>
         <td>Certificate auto-enrolment and Root CA trust distribution — created in Win-04, extended here</td>
       </tr>
       <tr>
@@ -325,7 +325,7 @@
     <div class="decision-a"><strong>Group Policy applies in LSDOU order: Local → Site → Domain → Organizational Unit. Higher levels (OU) override lower levels (Domain) when they conflict. Within a level, GPOs are processed in link order with higher-numbered links applied last (and therefore winning).</strong><br/><br/>
     <strong>Local:</strong> Settings in the local Group Policy on each machine. Applied first — lowest precedence.<br/>
     <strong>Site:</strong> GPOs linked to the AD site. Applied second. (NovaCrestBank has one site — NovaCrestBank-London-DC1 — so site GPOs affect all machines.)<br/>
-    <strong>Domain:</strong> GPOs linked to novacrestbank.local. Applied third. The Default Domain Policy lives here.<br/>
+    <strong>Domain:</strong> GPOs linked to novacrestbank.internal. Applied third. The Default Domain Policy lives here.<br/>
     <strong>Organizational Unit:</strong> GPOs linked to the specific OU containing the computer or user. Applied last — highest precedence. A GPO on OU=Domain Controllers overrides the same setting in a Domain-level GPO.<br/><br/>
     The practical implication for NovaCrestBank: the security baseline GPO at the domain level sets the default for everything. Server-specific settings in the Servers OU GPO override domain-level settings for server machines. DC-specific settings in the Domain Controllers OU GPO override domain-level settings for DCs. This layering allows a single consistent baseline with targeted overrides — no duplication needed.</div>
   </div>
@@ -351,11 +351,11 @@
   <div class="psh">
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01 — create the OU structure</span></div>
     <div class="psh-body"><pre><span class="pd"># Create the top-level NovaCrestBank OU hierarchy</span>
-<span class="pp">PS C:\></span> <span class="pc">$base = "DC=novacrestbank,DC=local"</span>
+<span class="pp">PS C:\></span> <span class="pc">$base = "DC=novacrestbank,DC=internal"</span>
 
 <span class="pd"># Top-level NovaCrestBank OU (parent of all custom OUs)</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADOrganizationalUnit -Name "NovaCrestBank" -Path $base -ProtectedFromAccidentalDeletion $true</span>
-<span class="pg">OU created: OU=NovaCrestBank,DC=novacrestbank,DC=local ✓</span>
+<span class="pg">OU created: OU=NovaCrestBank,DC=novacrestbank,DC=internal ✓</span>
 
 <span class="pd"># Infrastructure Servers OU — for all server VMs</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADOrganizationalUnit -Name "Servers" -Path "OU=NovaCrestBank,$base" -ProtectedFromAccidentalDeletion $true</span>
@@ -395,17 +395,17 @@ $mgmt  = @("VCENTER")</span>
 
 <span class="pd"># Verify the OU structure</span>
 <span class="pp">PS C:\></span> <span class="pc">Get-ADOrganizationalUnit -Filter * | Select-Object DistinguishedName | Sort-Object DistinguishedName</span>
-<span class="pg">OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Infrastructure,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=PKI,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Application,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Management,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Users,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Groups,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=local
-OU=Domain Controllers,DC=novacrestbank,DC=local   ← built-in, not moved</span></pre>
+<span class="pg">OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Infrastructure,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=PKI,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Application,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Management,OU=Servers,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Users,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Groups,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=internal
+OU=Domain Controllers,DC=novacrestbank,DC=internal   ← built-in, not moved</span></pre>
     </div>
   </div>
 </div>
@@ -414,14 +414,14 @@ OU=Domain Controllers,DC=novacrestbank,DC=local   ← built-in, not moved</span>
 <div class="page" id="page-password-policy">
   <div class="ey">Windows Server · Win-05 · Section 04</div>
   <div class="pt">Domain password policy — Default Domain Policy</div>
-  <div class="ps">The password policy that applies to all user accounts in novacrestbank.local — hardened to meet UK financial services regulatory expectations</div>
+  <div class="ps">The password policy that applies to all user accounts in novacrestbank.internal — hardened to meet UK financial services regulatory expectations</div>
 
   <ul class="step-list">
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">On DC01: open Group Policy Management</div>
-        <p style="font-size:13.5px">Server Manager → Tools → <strong>Group Policy Management</strong>. Expand: Forest: novacrestbank.local → Domains → novacrestbank.local. Right-click <strong>Default Domain Policy</strong> → <strong>Edit</strong>.</p>
+        <p style="font-size:13.5px">Server Manager → Tools → <strong>Group Policy Management</strong>. Expand: Forest: novacrestbank.internal → Domains → novacrestbank.internal. Right-click <strong>Default Domain Policy</strong> → <strong>Edit</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -532,7 +532,7 @@ OU=Domain Controllers,DC=novacrestbank,DC=local   ← built-in, not moved</span>
 <span class="pd"># Create a security group to hold all service accounts</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADGroup -Name "NovaCrestBank-ServiceAccounts" `
     -GroupScope Global -GroupCategory Security `
-    -Path "OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=local" `
+    -Path "OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=internal" `
     -Description "All service accounts — subject to NovaCrestBank-ServiceAccount-Policy"</span>
 
 <span class="pd"># Apply the FGPP to the service accounts group</span>
@@ -593,8 +593,8 @@ LockoutThreshold            : 5</span>
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">On DC01: Group Policy Management → right-click novacrestbank.local → Create a GPO in this domain</div>
-        <p style="font-size:13.5px">In Group Policy Management, right-click <strong>novacrestbank.local</strong>. Click <strong>Create a GPO in this domain, and Link it here</strong>. Name it <strong>NovaCrestBank-SecurityBaseline</strong>. Click <strong>OK</strong>. Right-click it → <strong>Edit</strong>.</p>
+        <div class="step-title">On DC01: Group Policy Management → right-click novacrestbank.internal → Create a GPO in this domain</div>
+        <p style="font-size:13.5px">In Group Policy Management, right-click <strong>novacrestbank.internal</strong>. Click <strong>Create a GPO in this domain, and Link it here</strong>. Name it <strong>NovaCrestBank-SecurityBaseline</strong>. Click <strong>OK</strong>. Right-click it → <strong>Edit</strong>.</p>
       </div>
     </li>
   </ul>
@@ -1092,7 +1092,7 @@ ISSUINGCA   YES ✓        A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B</span>
   <div class="psh">
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01 — create all OCP accounts and groups</span></div>
     <div class="psh-body"><pre><span class="pd"># ── OCP-specific OU under Security Groups ────────────────────────────</span>
-<span class="pp">PS C:\></span> <span class="pc">$base = "DC=novacrestbank,DC=local"
+<span class="pp">PS C:\></span> <span class="pc">$base = "DC=novacrestbank,DC=internal"
 New-ADOrganizationalUnit -Name "OpenShift" -Path "OU=Security Groups,OU=NovaCrestBank,$base"</span>
 <span class="pg">OU created: OU=OpenShift,OU=Security Groups,OU=NovaCrestBank ✓</span>
 
@@ -1100,7 +1100,7 @@ New-ADOrganizationalUnit -Name "OpenShift" -Path "OU=Security Groups,OU=NovaCres
 <span class="pp">PS C:\></span> <span class="pc">New-ADUser `
     -Name "svc-ocp-ldap" `
     -SamAccountName "svc-ocp-ldap" `
-    -UserPrincipalName "svc-ocp-ldap@novacrestbank.local" `
+    -UserPrincipalName "svc-ocp-ldap@novacrestbank.internal" `
     -Path "OU=Service Accounts,OU=NovaCrestBank,$base" `
     -AccountPassword (ConvertTo-SecureString "NovaCrest`$SvcOCP2026!" -AsPlainText -Force) `
     -Enabled $true -PasswordNeverExpires $true -CannotChangePassword $true `
@@ -1114,7 +1114,7 @@ New-ADOrganizationalUnit -Name "OpenShift" -Path "OU=Security Groups,OU=NovaCres
 <span class="pp">PS C:\></span> <span class="pc">New-ADUser `
     -Name "svc-ocp-registry" `
     -SamAccountName "svc-ocp-registry" `
-    -UserPrincipalName "svc-ocp-registry@novacrestbank.local" `
+    -UserPrincipalName "svc-ocp-registry@novacrestbank.internal" `
     -Path "OU=Service Accounts,OU=NovaCrestBank,$base" `
     -AccountPassword (ConvertTo-SecureString "NovaCrest`$SvcOCPReg2026!" -AsPlainText -Force) `
     -Enabled $true -PasswordNeverExpires $true -CannotChangePassword $true `
@@ -1157,18 +1157,18 @@ Created group: OCP-Viewers ✓</span>
 
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
     <div style="color:var(--text2);margin-bottom:8px;"># OCP OAuth LDAP Identity Provider configuration values</div>
-    <div>LDAP URL:          <strong style="color:var(--gpo-blue);">ldaps://dc01.novacrestbank.local:636</strong></div>
-    <div style="margin-top:4px;">Backup LDAP URL:   <strong style="color:var(--gpo-blue);">ldaps://dc02.novacrestbank.local:636</strong></div>
-    <div style="margin-top:4px;">Bind DN:           <strong style="color:var(--gpo-blue);">CN=svc-ocp-ldap,OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=local</strong></div>
+    <div>LDAP URL:          <strong style="color:var(--gpo-blue);">ldaps://dc01.novacrestbank.internal:636</strong></div>
+    <div style="margin-top:4px;">Backup LDAP URL:   <strong style="color:var(--gpo-blue);">ldaps://dc02.novacrestbank.internal:636</strong></div>
+    <div style="margin-top:4px;">Bind DN:           <strong style="color:var(--gpo-blue);">CN=svc-ocp-ldap,OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=internal</strong></div>
     <div style="margin-top:4px;">Bind password:     <strong style="color:var(--gpo-blue);">NovaCrest$SvcOCP2026! (from CyberArk)</strong></div>
-    <div style="margin-top:4px;">Base DN (users):   <strong style="color:var(--gpo-blue);">OU=NovaCrestBank,DC=novacrestbank,DC=local</strong></div>
+    <div style="margin-top:4px;">Base DN (users):   <strong style="color:var(--gpo-blue);">OU=NovaCrestBank,DC=novacrestbank,DC=internal</strong></div>
     <div style="margin-top:4px;">User filter:       <strong style="color:var(--gpo-blue);">(&(objectClass=user)(sAMAccountName=%s))</strong></div>
     <div style="margin-top:4px;">Username attr:     <strong style="color:var(--gpo-blue);">sAMAccountName</strong></div>
     <div style="margin-top:4px;">Email attr:        <strong style="color:var(--gpo-blue);">mail</strong></div>
     <div style="margin-top:4px;">Name attr:         <strong style="color:var(--gpo-blue);">cn</strong></div>
     <div style="margin-top:8px;color:#8090a0;"># CA certificate for LDAPS validation:</div>
-    <div style="color:#8090a0;"># http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</div>
-    <div style="margin-top:8px;color:var(--text2);">Group sync base DN: <strong style="color:var(--gpo-blue);">OU=OpenShift,OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=local</strong></div>
+    <div style="color:#8090a0;"># http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt</div>
+    <div style="margin-top:8px;color:var(--text2);">Group sync base DN: <strong style="color:var(--gpo-blue);">OU=OpenShift,OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=internal</strong></div>
   </div>
 
   <div class="callout">
@@ -1249,9 +1249,9 @@ Created group: OCP-Viewers ✓</span>
 # Run on the target machine to see exactly which GPOs applied</span>
 <span class="pp">C:\></span> <span class="pc">gpresult /R</span>
 <span class="pg">COMPUTER SETTINGS
-    CN=DC01,OU=Domain Controllers,DC=novacrestbank,DC=local
+    CN=DC01,OU=Domain Controllers,DC=novacrestbank,DC=internal
     Last time Group Policy was applied: 18/04/2026 at 11:30:22
-    Group Policy was applied from: DC01.novacrestbank.local
+    Group Policy was applied from: DC01.novacrestbank.internal
     Domain Name: NOVACRESTBANK
     Domain Type: Windows 2016
 
@@ -1277,7 +1277,7 @@ Created group: OCP-Viewers ✓</span>
 <span class="pg">Created C:\GPO-Report-DC01.html ✓  (open in browser for a full visual report)</span>
 
 <span class="pd"># ── Method 3: Remote verification — check another machine's GPO ─────</span>
-<span class="pp">PS C:\></span> <span class="pc">gpresult /S issuingca.novacrestbank.local /R /SCOPE COMPUTER</span>
+<span class="pp">PS C:\></span> <span class="pc">gpresult /S issuingca.novacrestbank.internal /R /SCOPE COMPUTER</span>
 <span class="pg">Applied GPOs: NovaCrestBank-PKI-AutoEnrollment, NovaCrestBank-SecurityBaseline,
               NovaCrestBank-Servers-Baseline, Default Domain Policy ✓
               (ISSUINGCA is in Servers OU — receives Servers-Baseline correctly)</span>
@@ -1288,7 +1288,7 @@ Created group: OCP-Viewers ✓</span>
 # Useful for tracing which GPO enforced a specific setting</span>
 
 <span class="pd"># ── Method 5: Group Policy Modeling (in Group Policy Management) ────
-# GPMC → Group Policy Management → Forest → Domains → novacrestbank.local
+# GPMC → Group Policy Management → Forest → Domains → novacrestbank.internal
 #   → right-click Group Policy Modeling → Group Policy Modeling Wizard
 # Simulates GPO application for a specific user + computer combination
 # Useful for testing "what would happen if this user logs into this machine"</span></pre>

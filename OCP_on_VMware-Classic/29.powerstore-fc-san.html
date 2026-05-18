@@ -370,7 +370,7 @@
   <div class="term">
     <div class="term-bar"><div class="td2 r"></div><div class="td2 y"></div><div class="td2 g"></div><span class="term-label">PowerCLI — collect HBA WWPNs from all ESXi hosts</span></div>
     <div class="term-body"><pre><span class="td"># Connect to vCenter and retrieve HBA information from all hosts</span>
-<span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+<span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 
 <span class="tp">PS C:\></span> <span class="tc">Get-VMHost | Sort-Object Name | ForEach-Object {
     $host = $_
@@ -388,16 +388,16 @@
 
 <span class="tg">Host                              HBA    WWPN                      Status  Speed
 ----                              ---    ----                      ------  -----
-esxi01.novacrestbank.local        vmhba3  21:00:00:24:ff:8a:1b:2c  Online  32 Gbps
-esxi01.novacrestbank.local        vmhba4  21:00:00:24:ff:8a:1b:2d  Online  32 Gbps
-esxi02.novacrestbank.local        vmhba3  21:00:00:24:ff:8a:2c:3d  Online  32 Gbps
-esxi02.novacrestbank.local        vmhba4  21:00:00:24:ff:8a:2c:3e  Online  32 Gbps
-esxi03.novacrestbank.local        vmhba3  21:00:00:24:ff:8a:3d:4e  Online  32 Gbps
-esxi03.novacrestbank.local        vmhba4  21:00:00:24:ff:8a:3d:4f  Online  32 Gbps
-esxi04.novacrestbank.local        vmhba3  21:00:00:24:ff:8a:4e:5f  Online  32 Gbps
-esxi04.novacrestbank.local        vmhba4  21:00:00:24:ff:8a:4e:60  Online  32 Gbps
-esxi05.novacrestbank.local        vmhba3  21:00:00:24:ff:8a:5f:71  Online  32 Gbps
-esxi05.novacrestbank.local        vmhba4  21:00:00:24:ff:8a:5f:72  Online  32 Gbps</span>
+esxi01.novacrestbank.internal        vmhba3  21:00:00:24:ff:8a:1b:2c  Online  32 Gbps
+esxi01.novacrestbank.internal        vmhba4  21:00:00:24:ff:8a:1b:2d  Online  32 Gbps
+esxi02.novacrestbank.internal        vmhba3  21:00:00:24:ff:8a:2c:3d  Online  32 Gbps
+esxi02.novacrestbank.internal        vmhba4  21:00:00:24:ff:8a:2c:3e  Online  32 Gbps
+esxi03.novacrestbank.internal        vmhba3  21:00:00:24:ff:8a:3d:4e  Online  32 Gbps
+esxi03.novacrestbank.internal        vmhba4  21:00:00:24:ff:8a:3d:4f  Online  32 Gbps
+esxi04.novacrestbank.internal        vmhba3  21:00:00:24:ff:8a:4e:5f  Online  32 Gbps
+esxi04.novacrestbank.internal        vmhba4  21:00:00:24:ff:8a:4e:60  Online  32 Gbps
+esxi05.novacrestbank.internal        vmhba3  21:00:00:24:ff:8a:5f:71  Online  32 Gbps
+esxi05.novacrestbank.internal        vmhba4  21:00:00:24:ff:8a:5f:72  Online  32 Gbps</span>
 
 <span class="td">↑ 10 FC HBA ports total across 5 hosts — 2 per host (vmhba3=Fabric A, vmhba4=Fabric B)
   All showing Online and 32 Gbps ✓
@@ -580,7 +580,7 @@ fc1/11           100   0x010600  50:06:01:60:xx:xx:xx:xx  50:06:01:60:xx:xx:xx:x
               <div class="ps-title">Add Host</div>
               <div class="ps-field">
                 <div class="ps-label">Host name:</div>
-                <div class="ps-input filled">esxi01.novacrestbank.local</div>
+                <div class="ps-input filled">esxi01.novacrestbank.internal</div>
               </div>
               <div class="ps-field">
                 <div class="ps-label">OS type:</div>
@@ -844,7 +844,7 @@ Runtime Name: vmhba4:C0:T1:L1
 
   <div class="term">
     <div class="term-bar"><div class="td2 r"></div><div class="td2 y"></div><div class="td2 g"></div><span class="term-label">PowerCLI — set Round Robin PSP for all PowerStore FC LUNs on all hosts</span></div>
-    <div class="term-body"><pre><span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+    <div class="term-body"><pre><span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 
 <span class="td"># Set Round Robin PSP for all PowerStore (Dell EMC) LUNs on all hosts</span>
 <span class="tp">PS C:\></span> <span class="tc">$hosts = Get-VMHost
@@ -858,9 +858,9 @@ foreach ($esxiHost in $hosts) {
         Write-Host "Set RR: $($esxiHost.Name) → $($lun.CanonicalName)"
     }
 }</span>
-<span class="tg">Set RR: esxi01.novacrestbank.local → naa.6006016085a12345...01
-Set RR: esxi01.novacrestbank.local → naa.6006016085a12345...02
-Set RR: esxi01.novacrestbank.local → naa.6006016085a12345...03
+<span class="tg">Set RR: esxi01.novacrestbank.internal → naa.6006016085a12345...01
+Set RR: esxi01.novacrestbank.internal → naa.6006016085a12345...02
+Set RR: esxi01.novacrestbank.internal → naa.6006016085a12345...03
 [... all hosts and all LUNs ...]</span>
 
 <span class="td"># Verify the PSP is set correctly</span>

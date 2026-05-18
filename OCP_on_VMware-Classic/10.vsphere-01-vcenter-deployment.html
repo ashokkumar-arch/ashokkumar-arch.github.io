@@ -706,8 +706,8 @@
           <strong>The authenticity of the host 10.10.0.11 cannot be established.</strong><br/><br/>
           The installer has received the following certificate from 10.10.0.11:<br/><br/>
           SHA1 Fingerprint: A4:B2:3C:1D:5E:8F:22:44:67:89:AB:CD:EF:01:23:45:67:89:AB:CD<br/><br/>
-          Subject: C=US, O=VMware, OU=VMware ESXi, CN=esxi01.novacrestbank.local<br/>
-          Issued by: C=US, O=VMware, OU=VMware ESXi, CN=esxi01.novacrestbank.local<br/><br/>
+          Subject: C=US, O=VMware, OU=VMware ESXi, CN=esxi01.novacrestbank.internal<br/>
+          Issued by: C=US, O=VMware, OU=VMware ESXi, CN=esxi01.novacrestbank.internal<br/><br/>
           This is a self-signed certificate from the ESXi host. It has not been verified by a certificate authority.
         </div>
         <div style="display:flex;gap:14px;margin-top:16px;">
@@ -754,7 +754,7 @@
         <div class="wiz-subtitle">Set the appliance VM name and root password</div>
         <div class="wiz-field">
           <div class="wiz-label">VM name <span class="wiz-required">*</span></div>
-          <div class="wiz-input filled">vcenter.novacrestbank.local</div>
+          <div class="wiz-input filled">vcenter.novacrestbank.internal</div>
           <div class="wiz-hint">This is the name of the VM in the ESXi host inventory. Use the FQDN so it is self-describing.</div>
         </div>
         <div class="wiz-field">
@@ -777,7 +777,7 @@
 
   <h2>What to type</h2>
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
-    <div>VM name:           <strong style="color:var(--accent);">vcenter.novacrestbank.local</strong></div>
+    <div>VM name:           <strong style="color:var(--accent);">vcenter.novacrestbank.internal</strong></div>
     <div style="margin-top:4px;">Root password:     <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
     <div style="margin-top:4px;">Confirm password:  <strong style="color:var(--accent);">NovaCrest$vCenter2026!</strong></div>
   </div>
@@ -787,7 +787,7 @@
     There are two separate accounts being created during the VCSA deployment: (1) The <strong>VCSA Linux root account</strong> — set on this screen. This is the root user of the underlying Linux OS inside the appliance. You use it to SSH into the VCSA itself for appliance-level maintenance. (2) The <strong>SSO administrator account</strong> (administrator@vsphere.local) — set in Stage 2. This is the account you use to log into the vCenter web interface. They are completely separate accounts with separate passwords. Both go into CyberArk.
   </div>
 
-  <p>The VM name <code>vcenter.novacrestbank.local</code> is the name that appears in the ESXi host inventory list. Using the FQDN as the VM name makes it immediately identifiable — no ambiguity about which VM this is. Click <strong>Next</strong>.</p>
+  <p>The VM name <code>vcenter.novacrestbank.internal</code> is the name that appears in the ESXi host inventory list. Using the FQDN as the VM name makes it immediately identifiable — no ambiguity about which VM this is. Click <strong>Next</strong>.</p>
 </div>
 
 <!-- ══════ 11 — S1 DEPLOYMENT SIZE ══════ -->
@@ -979,7 +979,7 @@
         </div>
         <div class="wiz-field">
           <div class="wiz-label">FQDN <span class="wiz-required">*</span></div>
-          <div class="wiz-input filled">vcenter.novacrestbank.local</div>
+          <div class="wiz-input filled">vcenter.novacrestbank.internal</div>
           <div class="wiz-hint">The fully qualified domain name. Must match a DNS A record once the DC is built.</div>
         </div>
         <div class="wiz-field">
@@ -1012,7 +1012,7 @@
     <div>Network (port group):  <strong style="color:var(--accent);">PG-VLAN10-Management</strong>  (the one you created on vSwitch0)</div>
     <div style="margin-top:4px;">IP version:            <strong style="color:var(--accent);">IPv4</strong></div>
     <div style="margin-top:4px;">IP assignment:         <strong style="color:var(--accent);">Static</strong></div>
-    <div style="margin-top:4px;">FQDN:                  <strong style="color:var(--accent);">vcenter.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">FQDN:                  <strong style="color:var(--accent);">vcenter.novacrestbank.internal</strong></div>
     <div style="margin-top:4px;">IP address:            <strong style="color:var(--accent);">10.10.0.100</strong></div>
     <div style="margin-top:4px;">Subnet mask:           <strong style="color:var(--accent);">255.255.255.0</strong></div>
     <div style="margin-top:4px;">Default gateway:       <strong style="color:var(--accent);">10.10.0.1</strong>  (leaf01 VLAN 10 SVI)</div>
@@ -1052,13 +1052,13 @@
         <div class="wiz-warn">Once you click Finish, Stage 1 will begin and cannot be cancelled.</div>
         <table style="margin-top:14px;font-size:12.5px;">
           <tr><td style="color:#8098b0;padding:4px 0;min-width:180px;">Target ESXi host</td><td style="color:#c8d8e8;">10.10.0.11 (esxi01)</td></tr>
-          <tr><td style="color:#8098b0;padding:4px 0;">VM name</td><td style="color:#c8d8e8;">vcenter.novacrestbank.local</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">VM name</td><td style="color:#c8d8e8;">vcenter.novacrestbank.internal</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">Deployment size</td><td style="color:#c8d8e8;">Tiny</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">vCPU / Memory</td><td style="color:#c8d8e8;">2 vCPUs / 12 GB RAM</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">Datastore</td><td style="color:#c8d8e8;">datastore1 (thin provisioned)</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">Network</td><td style="color:#c8d8e8;">PG-VLAN10-Management</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">IP address</td><td style="color:#4da8da;font-weight:600;">10.10.0.100</td></tr>
-          <tr><td style="color:#8098b0;padding:4px 0;">FQDN</td><td style="color:#4da8da;font-weight:600;">vcenter.novacrestbank.local</td></tr>
+          <tr><td style="color:#8098b0;padding:4px 0;">FQDN</td><td style="color:#4da8da;font-weight:600;">vcenter.novacrestbank.internal</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">Gateway</td><td style="color:#c8d8e8;">10.10.0.1</td></tr>
           <tr><td style="color:#8098b0;padding:4px 0;">DNS servers</td><td style="color:#c8d8e8;">10.70.0.10, 10.70.0.11</td></tr>
         </table>
@@ -1073,7 +1073,7 @@
   <h2>What to verify before clicking Finish</h2>
   <ul>
     <li>IP address shows <strong>10.10.0.100</strong> — if it shows anything else, click Back and fix it</li>
-    <li>FQDN shows <strong>vcenter.novacrestbank.local</strong> — correct capitalisation and spelling</li>
+    <li>FQDN shows <strong>vcenter.novacrestbank.internal</strong> — correct capitalisation and spelling</li>
     <li>Network shows <strong>PG-VLAN10-Management</strong> — not "VM Network"</li>
     <li>Deployment size shows <strong>Tiny</strong></li>
     <li>Datastore shows <strong>datastore1</strong></li>
@@ -1111,7 +1111,7 @@
         <div style="margin-top:18px;font-size:12px;color:#8098b0;border-top:1px solid var(--wiz-border);padding-top:14px;">
           <div style="color:#4da8da;margin-bottom:6px;font-weight:600;">Progress log:</div>
           <div style="color:#5ccb6f;">✓ Connected to target ESXi host 10.10.0.11</div>
-          <div style="color:#5ccb6f;">✓ Created VM: vcenter.novacrestbank.local</div>
+          <div style="color:#5ccb6f;">✓ Created VM: vcenter.novacrestbank.internal</div>
           <div style="color:#5ccb6f;">✓ Configured VM hardware (2 vCPUs, 12 GB RAM)</div>
           <div style="color:#d4a331;">→ Uploading disk image... (6.2 GB of 9.2 GB)</div>
           <div style="color:#4a6a8a;">○ Configure boot options</div>
@@ -1352,7 +1352,7 @@
 
   <div class="callout">
     <div class="cl">Should you change the SSO domain name from "vsphere.local"?</div>
-    Some organisations change this to match their AD domain (e.g., <code>novacrestbank.local</code>). VMware does not recommend this — it creates confusion because two different identity systems would share the same domain name. Leave it as <strong>vsphere.local</strong>. The SSO domain is for vCenter's internal authentication only. AD authentication is added separately via the Identity Sources feature — the SSO domain name does not need to match AD.
+    Some organisations change this to match their AD domain (e.g., <code>novacrestbank.internal</code>). VMware does not recommend this — it creates confusion because two different identity systems would share the same domain name. Leave it as <strong>vsphere.local</strong>. The SSO domain is for vCenter's internal authentication only. AD authentication is added separately via the Identity Sources feature — the SSO domain name does not need to match AD.
   </div>
 
   <p>Click <strong>Next</strong>.</p>
@@ -1508,7 +1508,7 @@
         <div class="wiz-subtitle" style="margin-top:8px;">Both stages completed successfully. vCenter Server 8.0.3 is deployed and configured.</div>
         <div class="wiz-info" style="text-align:left;margin-top:20px;">
           <strong>vCenter Server access:</strong><br/>
-          vSphere Client (HTML5): <span style="color:#4da8da;">https://vcenter.novacrestbank.local/ui</span><br/>
+          vSphere Client (HTML5): <span style="color:#4da8da;">https://vcenter.novacrestbank.internal/ui</span><br/>
           (or directly by IP): <span style="color:#4da8da;">https://10.10.0.100/ui</span><br/><br/>
           <strong>Login credentials:</strong><br/>
           Username: <span style="color:#4da8da;">administrator@vsphere.local</span><br/>
@@ -1579,11 +1579,11 @@
     </div>
     <div class="vc-body">
       <div class="vc-sidebar">
-        <div class="vc-side-item active">📦 vcenter.novacrestbank.local</div>
+        <div class="vc-side-item active">📦 vcenter.novacrestbank.internal</div>
         <div style="padding:6px 14px;font-size:11px;color:#aaa;">No datacenters yet</div>
       </div>
       <div class="vc-main">
-        <div class="vc-title">vcenter.novacrestbank.local</div>
+        <div class="vc-title">vcenter.novacrestbank.internal</div>
         <div class="vc-subtitle">VMware vCenter Server 8.0.3 · Build 24022515</div>
         <table style="font-size:12.5px;margin-top:10px;">
           <tr><td style="color:#6c757d;padding:4px 0;min-width:140px;">Datacenters</td><td style="color:#333;">0</td></tr>
@@ -1614,7 +1614,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">Right-click the vCenter node in the inventory tree</div>
-        <p style="font-size:13.5px">In the left-side inventory tree, right-click on <strong>vcenter.novacrestbank.local</strong>. A context menu appears with options including <strong>New Datacenter</strong>, <strong>New Cluster</strong>, <strong>Add Host</strong>, and others. Click <strong>New Datacenter</strong>.</p>
+        <p style="font-size:13.5px">In the left-side inventory tree, right-click on <strong>vcenter.novacrestbank.internal</strong>. A context menu appears with options including <strong>New Datacenter</strong>, <strong>New Cluster</strong>, <strong>Add Host</strong>, and others. Click <strong>New Datacenter</strong>.</p>
       </div>
     </li>
     <li class="step-item">

@@ -332,7 +332,7 @@
 <span class="tw">═══════════════════════════════════════════════════════════════════</span>
 <span class="tw"> NovaCrestBank OOB Reachability — Test Run</span>
 <span class="tw"> Timestamp: 2026-04-13 09:00:14 UTC</span>
-<span class="tw"> Engineer:  network.admin@novacrestbank.local</span>
+<span class="tw"> Engineer:  network.admin@novacrestbank.internal</span>
 <span class="tw">═══════════════════════════════════════════════════════════════════</span>
 
 <span class="tw">── Network Switches ────────────────────────────────────────────</span>
@@ -1162,7 +1162,7 @@ done</span>
     <li><strong>vSAN VMkernel (vmk2) must use MTU 9000.</strong> The switch is already configured for jumbo frames on VLAN 25. If VMware is configured at 1500, vSAN will degrade silently. Set it to 9000.</li>
     <li><strong>NFS VMkernel (vmk3) must use MTU 9000.</strong> Same reason. The NetApp and leaf switches support 9000. VMware must match.</li>
     <li><strong>LACP must be enabled on the vDS uplink teaming policy.</strong> The switch is configured with LACP active mode on all ESXi-facing port channels. The vDS must also use LACP (not load-based teaming or failover).</li>
-    <li><strong>vCenter IP: 10.10.0.100.</strong> Deploy the VCSA to this static IP on VLAN 10. DNS record <code>vcenter.novacrestbank.local</code> already exists in AD DNS pointing to this IP.</li>
+    <li><strong>vCenter IP: 10.10.0.100.</strong> Deploy the VCSA to this static IP on VLAN 10. DNS record <code>vcenter.novacrestbank.internal</code> already exists in AD DNS pointing to this IP.</li>
     <li><strong>Default gateway for esxi01–04 is 10.10.0.1 (leaf01 primary).</strong> For esxi05 the gateway is 10.10.0.3 (leaf03 — it has no leaf01/02 connection).</li>
     <li><strong>OCP node IPs use VLAN 50 (10.50.0.0/24).</strong> The OpenShift install-config.yaml should specify this subnet. API VIP: 10.50.0.200. Ingress VIP: 10.50.0.201.</li>
     <li><strong>DHCP is available on VLANs 10, 20, 50, 60, 70 (pool .200–.254).</strong> Static IPs are required for all infrastructure components (ESXi hosts, vCenter, DCs). Use DHCP only for general VMs in VLAN 60.</li>

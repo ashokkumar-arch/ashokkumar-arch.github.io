@@ -542,7 +542,7 @@
   <h2>Server-level options — applied to every scope</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">Option 006 — DNS Servers</span><span class="spec-val">10.70.0.10 (DC01), 10.70.0.11 (DC02)</span></div>
-    <div class="spec-row"><span class="spec-label">Option 015 — DNS Domain Name</span><span class="spec-val">novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Option 015 — DNS Domain Name</span><span class="spec-val">novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Option 042 — NTP Servers</span><span class="spec-val">10.70.0.10 (DC01), 10.70.0.11 (DC02)</span></div>
   </div>
 
@@ -709,14 +709,14 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">Open DHCP Manager: Server Manager → Tools → DHCP</div>
-        <p style="font-size:13.5px">The DHCP Manager window opens. In the left panel you see: DHCP → dc01.novacrestbank.local. The server node may show a red down-arrow if not yet authorised.</p>
+        <p style="font-size:13.5px">The DHCP Manager window opens. In the left panel you see: DHCP → dc01.novacrestbank.internal. The server node may show a red down-arrow if not yet authorised.</p>
       </div>
     </li>
     <li class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
         <div class="step-title">Right-click the server name → Authorise</div>
-        <p style="font-size:13.5px">Right-click <strong>dc01.novacrestbank.local</strong> in the left panel. Click <strong>Authorise</strong>. The red arrow changes to a green upward arrow within a few seconds.</p>
+        <p style="font-size:13.5px">Right-click <strong>dc01.novacrestbank.internal</strong> in the left panel. Click <strong>Authorise</strong>. The red arrow changes to a green upward arrow within a few seconds.</p>
       </div>
     </li>
   </ul>
@@ -748,7 +748,7 @@
     <div class="dhcp-body">
       <div class="dhcp-tree">
         <div class="dhcp-node server"><span class="dhcp-icon">🖥</span> DHCP</div>
-        <div class="dhcp-node server selected"><span class="dhcp-icon">✅</span> dc01.novacrestbank.local</div>
+        <div class="dhcp-node server selected"><span class="dhcp-icon">✅</span> dc01.novacrestbank.internal</div>
         <div class="dhcp-node"><span class="dhcp-icon">▶</span> IPv4</div>
         <div class="dhcp-node child" style="color:#aaa;font-style:italic;">No scopes yet</div>
         <div class="dhcp-node"><span class="dhcp-icon">▶</span> IPv6</div>
@@ -757,7 +757,7 @@
         <div class="dhcp-section">Server Summary</div>
         <div class="dhcp-row">
           <span class="dhcp-col-name">Server name</span>
-          <span class="dhcp-col-val">dc01.novacrestbank.local</span>
+          <span class="dhcp-col-val">dc01.novacrestbank.internal</span>
         </div>
         <div class="dhcp-row">
           <span class="dhcp-col-name">IP address</span>
@@ -776,7 +776,7 @@
   </div>
 
   <h2>The DHCP Manager tree structure — what each node means</h2>
-  <p>The left tree panel has this hierarchy: <strong>DHCP → dc01.novacrestbank.local → IPv4 → [scopes]</strong>. Expanding <strong>IPv4</strong> shows all IPv4 scopes. Each scope expands to show: <strong>Address Pool</strong> (the full range and exclusions), <strong>Address Leases</strong> (currently active leases), <strong>Reservations</strong> (MAC-to-IP bindings), and <strong>Scope Options</strong> (options specific to this scope). There is also a <strong>Server Options</strong> node directly under the server — options here apply to all scopes.</p>
+  <p>The left tree panel has this hierarchy: <strong>DHCP → dc01.novacrestbank.internal → IPv4 → [scopes]</strong>. Expanding <strong>IPv4</strong> shows all IPv4 scopes. Each scope expands to show: <strong>Address Pool</strong> (the full range and exclusions), <strong>Address Leases</strong> (currently active leases), <strong>Reservations</strong> (MAC-to-IP bindings), and <strong>Scope Options</strong> (options specific to this scope). There is also a <strong>Server Options</strong> node directly under the server — options here apply to all scopes.</p>
 </div>
 
 <!-- ══════ 09 SCOPE VLAN10 ══════ -->
@@ -791,7 +791,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">In DHCP Manager, right-click "IPv4" → New Scope</div>
-        <p style="font-size:13.5px">In the left tree, click the arrow next to <strong>dc01.novacrestbank.local</strong> to expand it. Right-click <strong>IPv4</strong>. Click <strong>New Scope</strong>. The New Scope Wizard opens.</p>
+        <p style="font-size:13.5px">In the left tree, click the arrow next to <strong>dc01.novacrestbank.internal</strong> to expand it. Right-click <strong>IPv4</strong>. Click <strong>New Scope</strong>. The New Scope Wizard opens.</p>
       </div>
     </li>
   </ul>
@@ -961,7 +961,7 @@
     <div class="sd-body">
       <div class="sd-field">
         <div class="sd-label">Parent domain:</div>
-        <div class="sd-input filled wide">novacrestbank.local</div>
+        <div class="sd-input filled wide">novacrestbank.internal</div>
         <div style="font-size:11px;color:#8090a0;margin-top:3px;">Sets Option 015 — DNS Domain Name. Clients append this to short hostnames.</div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-end;margin-top:10px;">
@@ -986,7 +986,7 @@
     <div class="sd-footer"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div>
   </div>
 
-  <p>Parent domain: <strong>novacrestbank.local</strong>. Add DNS servers: <strong>10.70.0.10</strong> then <strong>10.70.0.11</strong>. Click <strong>Next</strong>.</p>
+  <p>Parent domain: <strong>novacrestbank.internal</strong>. Add DNS servers: <strong>10.70.0.10</strong> then <strong>10.70.0.11</strong>. Click <strong>Next</strong>.</p>
 
   <h2>Step 9 — WINS Servers</h2>
   <p>The WINS Servers screen appears. <strong>Leave it empty.</strong> WINS (Windows Internet Name Service) is a legacy NetBIOS name resolution service from the Windows NT era. It is not needed in Windows Server 2022 environments. Click <strong>Next</strong>.</p>
@@ -1136,7 +1136,7 @@
     <div class="decision-label">The three levels of DHCP options — server, scope, and client</div>
     <div class="decision-q">DHCP Manager shows "Server Options" and "Scope Options" for each scope. What is the difference and which takes priority?</div>
     <div class="decision-a">
-      <strong>Server Options</strong> — applied to every client from every scope on this DHCP server. Use for options that are the same across all VLANs: DNS servers (10.70.0.10, 10.70.0.11 — the same for all VLANs), DNS domain name (novacrestbank.local — the same everywhere), NTP servers (10.70.0.10, 10.70.0.11 — the same everywhere).<br/><br/>
+      <strong>Server Options</strong> — applied to every client from every scope on this DHCP server. Use for options that are the same across all VLANs: DNS servers (10.70.0.10, 10.70.0.11 — the same for all VLANs), DNS domain name (novacrestbank.internal — the same everywhere), NTP servers (10.70.0.10, 10.70.0.11 — the same everywhere).<br/><br/>
       <strong>Scope Options</strong> — applied only to clients in a specific scope. Use for options that differ per VLAN: the default gateway (Option 003) differs per VLAN — VLAN 10 clients get 10.10.0.1, VLAN 60 clients get 10.60.0.1. If you set Option 003 at the server level with one gateway, all clients get the same gateway regardless of VLAN — which breaks routing.<br/><br/>
       <strong>Priority (if the same option is set at multiple levels):</strong> Client reservation options override scope options, which override server options. In NovaCrestBank's design, the gateway (Option 003) is set per scope and the DNS/NTP options are set at server level — no conflicts.<br/><br/>
       <strong>The practical rule:</strong> Set options at the highest level that applies correctly. Everything the same across all scopes → server level. Per-VLAN differences → scope level.
@@ -1149,7 +1149,7 @@
     <tbody>
       <tr><td><code>003</code></td><td>Router</td><td>Default gateway</td><td>Per-scope (different per VLAN)</td></tr>
       <tr><td><code>006</code></td><td>DNS Servers</td><td>DNS resolver IPs</td><td>10.70.0.10, 10.70.0.11 (server level)</td></tr>
-      <tr><td><code>015</code></td><td>DNS Domain Name</td><td>Default DNS search suffix</td><td>novacrestbank.local (server level)</td></tr>
+      <tr><td><code>015</code></td><td>DNS Domain Name</td><td>Default DNS search suffix</td><td>novacrestbank.internal (server level)</td></tr>
       <tr><td><code>042</code></td><td>NTP Servers</td><td>Network Time Protocol server IPs</td><td>10.70.0.10, 10.70.0.11 (server level)</td></tr>
       <tr><td><code>051</code></td><td>IP Address Lease Time</td><td>Lease duration (set in scope wizard)</td><td>8 days</td></tr>
     </tbody>
@@ -1167,7 +1167,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">In DHCP Manager, right-click "Server Options" → Configure Options</div>
-        <p style="font-size:13.5px">In the left tree, expand <strong>dc01.novacrestbank.local → IPv4</strong>. Right-click <strong>Server Options</strong>. Click <strong>Configure Options</strong>. The Server Options dialog opens — a window with a list of all available DHCP options and checkboxes.</p>
+        <p style="font-size:13.5px">In the left tree, expand <strong>dc01.novacrestbank.internal → IPv4</strong>. Right-click <strong>Server Options</strong>. Click <strong>Configure Options</strong>. The Server Options dialog opens — a window with a list of all available DHCP options and checkboxes.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1180,8 +1180,8 @@
     <li class="step-item">
       <div class="step-num">3</div>
       <div class="step-content">
-        <div class="step-title">Tick "015 DNS Domain Name" — type novacrestbank.local</div>
-        <p style="font-size:13.5px">Still in the Server Options dialog, scroll to find <strong>015 DNS Domain Name</strong>. Tick it. A "String value" field appears in the lower panel. Type <strong>novacrestbank.local</strong>. This tells every DHCP client its DNS search domain — when the client types just "vcenter" in a browser or command, the OS appends ".novacrestbank.local" and resolves "vcenter.novacrestbank.local".</p>
+        <div class="step-title">Tick "015 DNS Domain Name" — type novacrestbank.internal</div>
+        <p style="font-size:13.5px">Still in the Server Options dialog, scroll to find <strong>015 DNS Domain Name</strong>. Tick it. A "String value" field appears in the lower panel. Type <strong>novacrestbank.internal</strong>. This tells every DHCP client its DNS search domain — when the client types just "vcenter" in a browser or command, the OS appends ".novacrestbank.internal" and resolves "vcenter.novacrestbank.internal".</p>
       </div>
     </li>
     <li class="step-item">
@@ -1193,7 +1193,7 @@
     </li>
   </ul>
 
-  <div class="screen-ann ok"><span class="sai">✓</span><span>Server-level options are set. Every VM that receives a DHCP lease from any scope on DC01 will automatically get DNS servers 10.70.0.10 and 10.70.0.11, and DNS domain name novacrestbank.local — without configuring these per-scope.</span></div>
+  <div class="screen-ann ok"><span class="sai">✓</span><span>Server-level options are set. Every VM that receives a DHCP lease from any scope on DC01 will automatically get DNS servers 10.70.0.10 and 10.70.0.11, and DNS domain name novacrestbank.internal — without configuring these per-scope.</span></div>
 </div>
 
 <!-- ══════ 17 PER-SCOPE OPTIONS ══════ -->
@@ -1253,7 +1253,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">In DHCP Manager → Server Options → Configure Options</div>
-        <p style="font-size:13.5px">Right-click <strong>Server Options</strong> under dc01.novacrestbank.local → IPv4. Click <strong>Configure Options</strong>.</p>
+        <p style="font-size:13.5px">Right-click <strong>Server Options</strong> under dc01.novacrestbank.internal → IPv4. Click <strong>Configure Options</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1270,7 +1270,7 @@
     </li>
   </ul>
 
-  <div class="screen-ann ok"><span class="sai">✓</span><span>Server Options now includes: 006 DNS Servers (10.70.0.10, 10.70.0.11), 015 DNS Domain Name (novacrestbank.local), and 042 NTP Servers (10.70.0.10, 10.70.0.11). All three will be delivered with every DHCP lease from every scope.</span></div>
+  <div class="screen-ann ok"><span class="sai">✓</span><span>Server Options now includes: 006 DNS Servers (10.70.0.10, 10.70.0.11), 015 DNS Domain Name (novacrestbank.internal), and 042 NTP Servers (10.70.0.10, 10.70.0.11). All three will be delivered with every DHCP lease from every scope.</span></div>
 </div>
 
 <!-- ══════ 19 EXCLUSIONS ══════ -->
@@ -1508,10 +1508,10 @@
               <div class="ww-field" style="margin-top:14px;">
                 <div class="ww-label">Partner Server:</div>
                 <div style="display:flex;gap:10px;align-items:flex-start;">
-                  <div class="ww-input filled" style="width:280px;">dc02.novacrestbank.local</div>
+                  <div class="ww-input filled" style="width:280px;">dc02.novacrestbank.internal</div>
                   <div class="ww-btn next" style="padding:6px 14px;font-size:12px;">Add Server</div>
                 </div>
-                <div style="font-size:11.5px;color:#107c10;margin-top:6px;">✓ dc02.novacrestbank.local — 10.70.0.11 — DHCP Server role detected</div>
+                <div style="font-size:11.5px;color:#107c10;margin-top:6px;">✓ dc02.novacrestbank.internal — 10.70.0.11 — DHCP Server role detected</div>
               </div>
               <div class="ww-field" style="margin-top:14px;">
                 <div class="ww-label">Relationship Name:</div>
@@ -1522,7 +1522,7 @@
           </div>
           <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">← Back</div><div class="ww-btn next">Next →</div></div></div>
         </div>
-        <p style="font-size:13.5px;margin-top:8px;">Type <strong>dc02.novacrestbank.local</strong> in the Partner Server field. Click <strong>Add Server</strong>. The wizard verifies DC02 is reachable and has the DHCP role. A green tick confirms. Relationship Name: <strong>DC01-DC02-DHCP-Failover</strong>. Click <strong>Next</strong>.</p>
+        <p style="font-size:13.5px;margin-top:8px;">Type <strong>dc02.novacrestbank.internal</strong> in the Partner Server field. Click <strong>Add Server</strong>. The wizard verifies DC02 is reachable and has the DHCP role. A green tick confirms. Relationship Name: <strong>DC01-DC02-DHCP-Failover</strong>. Click <strong>Next</strong>.</p>
       </div>
     </li>
   </ul>
@@ -1623,7 +1623,7 @@
     <div class="dhcp-bar"><span>DHCP Manager — All scopes active</span></div>
     <div class="dhcp-body">
       <div class="dhcp-tree">
-        <div class="dhcp-node server">🖥 dc01.novacrestbank.local</div>
+        <div class="dhcp-node server">🖥 dc01.novacrestbank.internal</div>
         <div class="dhcp-node" style="padding-left:14px;">▼ IPv4</div>
         <div class="dhcp-node scope active">✅ VLAN10-ESXi-Management</div>
         <div class="dhcp-node scope active">✅ VLAN20-vMotion</div>
@@ -1774,7 +1774,7 @@
     <div class="spec-row"><span class="spec-label">All exclusions: .1–.199 per scope</span><span class="spec-val badge bg">✓ Static range protected</span></div>
     <div class="spec-row"><span class="spec-label">Option 003 (gateway) — correct per scope</span><span class="spec-val badge bg">✓ Verified per VLAN</span></div>
     <div class="spec-row"><span class="spec-label">Option 006 (DNS) — server level</span><span class="spec-val badge bg">✓ 10.70.0.10, 10.70.0.11</span></div>
-    <div class="spec-row"><span class="spec-label">Option 015 (domain) — server level</span><span class="spec-val badge bg">✓ novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Option 015 (domain) — server level</span><span class="spec-val badge bg">✓ novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Option 042 (NTP) — server level</span><span class="spec-val badge bg">✓ 10.70.0.10, 10.70.0.11</span></div>
     <div class="spec-row"><span class="spec-label">Failover DC01↔DC02 — Hot Standby</span><span class="spec-val badge bg">✓ All 5 scopes in failover relationship</span></div>
     <div class="spec-row"><span class="spec-label">DHCP relay on leaf switches</span><span class="spec-val badge bg">✓ ip helper-address 10.70.0.10 on all SVIs</span></div>
@@ -1798,7 +1798,7 @@
       </tr>
       <tr>
         <td><strong>vSphere-03 — vCenter AD integration + cert replacement</strong></td>
-        <td>Join vCenter to novacrestbank.local. Replace self-signed TLS certs with AD CS certs. Map AD groups to vCenter roles.</td>
+        <td>Join vCenter to novacrestbank.internal. Replace self-signed TLS certs with AD CS certs. Map AD groups to vCenter roles.</td>
         <td>Requires stable DNS (from Win-01) and the Issuing CA (from Win-04). DHCP is not directly required for this guide but ensures other infrastructure VMs can be reached by name.</td>
       </tr>
     </tbody>

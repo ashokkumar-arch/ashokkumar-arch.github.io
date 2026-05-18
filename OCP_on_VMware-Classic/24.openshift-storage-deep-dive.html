@@ -363,7 +363,7 @@
   </div>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — force-delete stuck PVC</span>
+      <span class="term-title">jumphost.novacrestbank.internal — force-delete stuck PVC</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># PVC stuck in Terminating</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc -n banking-app</span>
@@ -434,13 +434,13 @@
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — complete vSphere CSI health check</span>
+      <span class="term-title">jumphost.novacrestbank.internal — complete vSphere CSI health check</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># ── 1. Check CSI driver pods are all Running ─────────────────────────</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n openshift-cluster-csi-drivers \
   -l app=vsphere-csi-controller -o wide</span>
 <span class="tc-w">NAME                                    READY   STATUS    RESTARTS   AGE    NODE</span>
-<span class="tc-g">vsphere-csi-controller-847f9d6c4-x8p2k  6/6     Running   0          3h     master01.ocp.novacrestbank.local</span>
+<span class="tc-g">vsphere-csi-controller-847f9d6c4-x8p2k  6/6     Running   0          3h     master01.ocp.novacrestbank.internal</span>
 <span class="tc-d">                                        ↑ 6/6 containers = all sidecars running (attacher, provisioner, resizer, snapshotter, liveness probe, driver)</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n openshift-cluster-csi-drivers \
@@ -500,7 +500,7 @@
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — create tiered vSAN StorageClasses</span>
+      <span class="term-title">jumphost.novacrestbank.internal — create tiered vSAN StorageClasses</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># Create a Retain-policy StorageClass for production databases</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
@@ -540,11 +540,11 @@ EOF</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — full vSAN storage demo</span>
+      <span class="term-title">jumphost.novacrestbank.internal — full vSAN storage demo</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># Developer creates a namespace for their application</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc new-project banking-backend</span>
-<span class="tc-g">Now using project "banking-backend" on server "https://api.ocp.novacrestbank.local:6443".</span>
+<span class="tc-g">Now using project "banking-backend" on server "https://api.ocp.novacrestbank.internal:6443".</span>
 
 <span class="tc-d"># Developer creates a PVC — this is ALL the developer needs to know</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
@@ -714,7 +714,7 @@ EOF</span>
       <span class="term-title">NetApp ONTAP CLI — storage admin workstation (SSH to cluster management)</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># SSH into ONTAP cluster management interface</span>
-<span class="tc-prompt">storage-admin@workstation:~$</span> <span class="tc-cmd">ssh admin@netapp-mgmt.novacrestbank.local</span>
+<span class="tc-prompt">storage-admin@workstation:~$</span> <span class="tc-cmd">ssh admin@netapp-mgmt.novacrestbank.internal</span>
 <span class="tc-g">NetApp Release 9.13.1: Mon Jan 15 12:00:00 UTC 2024</span>
 <span class="tc-w">Copyright (C) 1992-2024 NetApp Inc. All Rights Reserved.</span>
 <span class="tc-g">cluster1::></span>
@@ -791,10 +791,10 @@ EOF</span>
   <h2>Verify NFS connectivity from OCP nodes before installing Trident</h2>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — test NFS from inside the cluster</span>
+      <span class="term-title">jumphost.novacrestbank.internal — test NFS from inside the cluster</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># Run a debug pod on a worker node to test NFS mount</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc debug node/worker01.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc debug node/worker01.ocp.novacrestbank.internal</span>
 <span class="tc-g">Starting pod/worker01ocpnovacrestbanklocal-debug ...</span>
 <span class="tc-w">To use host binaries, `chroot /host`</span>
 <span class="tc-prompt">sh-4.4#</span> <span class="tc-cmd">chroot /host</span>
@@ -833,7 +833,7 @@ exit</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — download and install Trident operator</span>
+      <span class="term-title">jumphost.novacrestbank.internal — download and install Trident operator</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># Download Trident installer</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cd ~/ocp-kit && \
@@ -897,7 +897,7 @@ cd trident-installer</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — create Trident backend configuration</span>
+      <span class="term-title">jumphost.novacrestbank.internal — create Trident backend configuration</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># Step 1: Create a Kubernetes secret for the NetApp credentials</span>
 <span class="tc-d"># NEVER put credentials directly in the backend config YAML</span>
@@ -963,7 +963,7 @@ EOF</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — create Trident NFS StorageClasses</span>
+      <span class="term-title">jumphost.novacrestbank.internal — create Trident NFS StorageClasses</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># StorageClass 1: standard NFS (Delete reclaim — for shared/temp data)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
@@ -1044,10 +1044,10 @@ EOF</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — RWX NFS demo: 3 pods, 1 shared volume</span>
+      <span class="term-title">jumphost.novacrestbank.internal — RWX NFS demo: 3 pods, 1 shared volume</span>
     </div>
     <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc new-project kyc-service</span>
-<span class="tc-g">Now using project "kyc-service" on server "https://api.ocp.novacrestbank.local:6443".</span>
+<span class="tc-g">Now using project "kyc-service" on server "https://api.ocp.novacrestbank.internal:6443".</span>
 
 <span class="tc-d"># Create the RWX PVC — ReadWriteMany = multiple pods on multiple nodes</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
@@ -1116,9 +1116,9 @@ EOF</span>
 <span class="tc-d"># Watch pods distribute across nodes</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pods -n kyc-service -o wide</span>
 <span class="tc-w">NAME                                   READY  STATUS   NODE</span>
-<span class="tc-g">kyc-document-service-7d4b8f9c2-a3k8m  1/1    Running  worker01.ocp.novacrestbank.local</span>
-<span class="tc-g">kyc-document-service-7d4b8f9c2-b7n2p  1/1    Running  worker02.ocp.novacrestbank.local</span>
-<span class="tc-g">kyc-document-service-7d4b8f9c2-c1q5r  1/1    Running  worker03.ocp.novacrestbank.local</span>
+<span class="tc-g">kyc-document-service-7d4b8f9c2-a3k8m  1/1    Running  worker01.ocp.novacrestbank.internal</span>
+<span class="tc-g">kyc-document-service-7d4b8f9c2-b7n2p  1/1    Running  worker02.ocp.novacrestbank.internal</span>
+<span class="tc-g">kyc-document-service-7d4b8f9c2-c1q5r  1/1    Running  worker03.ocp.novacrestbank.internal</span>
 <span class="tc-d">                                               ↑ 3 different nodes, all mounting the SAME NFS volume ✓</span>
 
 <span class="tc-d"># Prove all 3 pods are writing to the SAME shared file simultaneously</span>
@@ -1213,7 +1213,7 @@ EOF</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
-      <span class="term-title">jumphost.novacrestbank.local — PVC stuck Pending diagnostic</span>
+      <span class="term-title">jumphost.novacrestbank.internal — PVC stuck Pending diagnostic</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># A PVC is stuck Pending for 2 minutes — how to diagnose it</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get pvc problem-pvc -n banking-app</span>
@@ -1288,7 +1288,7 @@ EOF</span>
       <span class="term-title">A developer's workstation — first day at NovaCrestBank</span>
     </div>
     <div class="term-body"><pre><span class="tc-d"># Developer logs in with their AD credentials</span>
-<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">jsmith@devlaptop:~$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u jsmith -p 'MyADPassword!'</span>
 <span class="tc-g">Login successful.</span>
 

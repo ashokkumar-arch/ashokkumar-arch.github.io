@@ -462,47 +462,47 @@
   </div>
 
   <h2>Check 1 — DNS forward + reverse lookups</h2>
-  <p>Run these from the jump host. The jump host must be on a network that uses your internal DNS server (Windows DNS / <code>novacrestbank.local</code>). Every single one of these must resolve correctly before proceeding.</p>
+  <p>Run these from the jump host. The jump host must be on a network that uses your internal DNS server (Windows DNS / <code>novacrestbank.internal</code>). Every single one of these must resolve correctly before proceeding.</p>
 
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Check your DNS server first</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat /etc/resolv.conf</span>
 <span class="tc-cyan">nameserver 10.10.0.10</span>   <span class="tc-dim"># your internal Windows DNS</span>
-<span class="tc-cyan">search novacrestbank.local</span>
+<span class="tc-cyan">search novacrestbank.internal</span>
 
 <span class="tc-dim"># ── Forward lookups (A records) ──────────────────────</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short api.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short api.ocp.novacrestbank.internal</span>
 <span class="tc-green">10.50.0.200</span>              <span class="tc-dim">← good: F5 API VIP</span>
 
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short api-int.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short api-int.ocp.novacrestbank.internal</span>
 <span class="tc-green">10.50.0.200</span>              <span class="tc-dim">← good: same VIP (must match api.)</span>
 
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short master01.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short master01.ocp.novacrestbank.internal</span>
 <span class="tc-green">10.50.0.11</span>
 
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short master02.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short master02.ocp.novacrestbank.internal</span>
 <span class="tc-green">10.50.0.12</span>
 
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short master03.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short master03.ocp.novacrestbank.internal</span>
 <span class="tc-green">10.50.0.13</span>
 
 <span class="tc-dim"># Wildcard apps record</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short test.apps.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short test.apps.ocp.novacrestbank.internal</span>
 <span class="tc-green">10.50.0.201</span>              <span class="tc-dim">← good: F5 Ingress VIP</span>
 
 <span class="tc-dim"># ── Reverse lookups (PTR records) ────────────────────</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short -x 10.50.0.11</span>
-<span class="tc-green">master01.ocp.novacrestbank.local.</span>   <span class="tc-dim">← good</span>
+<span class="tc-green">master01.ocp.novacrestbank.internal.</span>   <span class="tc-dim">← good</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short -x 10.50.0.12</span>
-<span class="tc-green">master02.ocp.novacrestbank.local.</span>
+<span class="tc-green">master02.ocp.novacrestbank.internal.</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">dig +short -x 10.50.0.13</span>
-<span class="tc-green">master03.ocp.novacrestbank.local.</span></pre>
+<span class="tc-green">master03.ocp.novacrestbank.internal.</span></pre>
 
       <div class="term-annotation bad">
         <span class="ann-icon">✗</span>
@@ -519,7 +519,7 @@
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">timedatectl status</span>
 <span class="tc-white">               Local time: Mon 2026-04-13 09:42:11 UTC</span>
@@ -532,7 +532,7 @@
 
 <span class="tc-dim"># Check actual offset (must be under 1 second)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">chronyc tracking</span>
-<span class="tc-white">Reference ID    : 0A0A000A (ntp.novacrestbank.local)</span>
+<span class="tc-white">Reference ID    : 0A0A000A (ntp.novacrestbank.internal)</span>
 <span class="tc-white">Stratum         : 3</span>
 <span class="tc-white">Ref time (UTC)  : Mon Apr 13 09:42:08 2026</span>
 <span class="tc-green">System time     : 0.000042384 seconds fast of NTP time</span>   <span class="tc-dim">← tiny offset, good</span>
@@ -550,11 +550,11 @@
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Can we reach vCenter HTTPS from jump host?</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://vcenter.novacrestbank.local/rest/com/vmware/cis/session \
-  -X POST -u 'svc-ocp-installer@novacrestbank.local:P@ssw0rd!' | python3 -m json.tool</span>
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://vcenter.novacrestbank.internal/rest/com/vmware/cis/session \
+  -X POST -u 'svc-ocp-installer@novacrestbank.internal:P@ssw0rd!' | python3 -m json.tool</span>
 
 <span class="tc-green">{
     "value": "52c7b6ab-3e1d-4e9a-a72b-9f1e8c3d4a17"
@@ -562,7 +562,7 @@
 <span class="tc-dim">                                ← session token returned = credentials work</span>
 
 <span class="tc-dim"># Download and trust the vCenter root CA (MUST do this)</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://vcenter.novacrestbank.local/certs/download.zip \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://vcenter.novacrestbank.internal/certs/download.zip \
   -o ~/ocp-kit/certs/vcenter-ca.zip</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cd ~/ocp-kit/certs && unzip -o vcenter-ca.zip</span>
@@ -574,7 +574,7 @@
 <span class="tc-prompt">[svc-ocp@jumphost certs]$</span> <span class="tc-cmd">sudo update-ca-trust extract</span>
 
 <span class="tc-dim"># Verify vCenter is now trusted (should show no SSL warnings)</span>
-<span class="tc-prompt">[svc-ocp@jumphost certs]$</span> <span class="tc-cmd">curl -s https://vcenter.novacrestbank.local/ -o /dev/null -w "%{http_code}"</span>
+<span class="tc-prompt">[svc-ocp@jumphost certs]$</span> <span class="tc-cmd">curl -s https://vcenter.novacrestbank.internal/ -o /dev/null -w "%{http_code}"</span>
 <span class="tc-green">200</span>    <span class="tc-dim">← 200 = trusted, no SSL error</span></pre>
 
       <div class="term-annotation bad">
@@ -588,7 +588,7 @@
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># API VIP — port 6443 must be reachable (not yet serving, but port must be open)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">nc -zv 10.50.0.200 6443</span>
@@ -613,7 +613,7 @@
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Verify pull secret can actually authenticate to Red Hat registry</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat ~/ocp-kit/configs/pull-secret.json | \
@@ -646,7 +646,7 @@ curl -si -H "Authorization: Basic $TOKEN" \
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openshift-install version</span>
 <span class="tc-green">openshift-install 4.15.12</span>
@@ -681,14 +681,14 @@ curl -si -H "Authorization: Basic $TOKEN" \
 
   <div class="callout">
     <div class="callout-label">Context: NovaCrestBank jump host</div>
-    Your jump host is <code>jumphost.novacrestbank.local</code> (Windows Server 2022 VM, CyberArk PSM protected, management VLAN 40, <code>10.40.0.50</code>). You log in via CyberArk recorded session. All admin sessions are recorded — this is your audit trail.
+    Your jump host is <code>jumphost.novacrestbank.internal</code> (Windows Server 2022 VM, CyberArk PSM protected, management VLAN 40, <code>10.40.0.50</code>). You log in via CyberArk recorded session. All admin sessions are recorded — this is your audit trail.
   </div>
 
   <h2>Create the working directory structure</h2>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash (WSL2 or RHEL jump VM)</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash (WSL2 or RHEL jump VM)</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Create your OCP kit directory — everything lives here</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">mkdir -p ~/ocp-kit/{bin,certs,configs,install,backups,logs}</span>
@@ -724,7 +724,7 @@ curl -si -H "Authorization: Basic $TOKEN" \
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Generate Ed25519 key pair — this is your ONLY way to SSH into OCP nodes</span>
 <span class="tc-dim"># Store both keys in CyberArk immediately after generation</span>
@@ -765,7 +765,7 @@ curl -si -H "Authorization: Basic $TOKEN" \
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — PowerShell (AD CS export)</span>
+      <span class="term-title">jumphost.novacrestbank.internal — PowerShell (AD CS export)</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># On a Windows machine that has the AD CS certs in its trust store</span>
 <span class="tc-dim"># Export the Root CA cert</span>
@@ -823,16 +823,16 @@ issuer=CN = NovaCrestBank-RootCA, O = NovaCrestBank, C = US</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">mkdir -p ~/ocp-kit/install</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat > ~/ocp-kit/install/install-config.yaml << 'EOF'</span>
 <span class="tc-cyan">apiVersion: v1</span>
 
-<span class="tc-cyan">baseDomain: novacrestbank.local</span>    <span class="tc-dim"># your internal domain</span>
+<span class="tc-cyan">baseDomain: novacrestbank.internal</span>    <span class="tc-dim"># your internal domain</span>
 
 <span class="tc-cyan">metadata:</span>
-<span class="tc-cyan">  name: ocp</span>                          <span class="tc-dim"># cluster name: ocp.novacrestbank.local</span>
+<span class="tc-cyan">  name: ocp</span>                          <span class="tc-dim"># cluster name: ocp.novacrestbank.internal</span>
 
 <span class="tc-cyan">compute:</span>
 <span class="tc-cyan">  - architecture: amd64</span>
@@ -862,8 +862,8 @@ issuer=CN = NovaCrestBank-RootCA, O = NovaCrestBank, C = US</span>
 
 <span class="tc-cyan">platform:</span>
 <span class="tc-cyan">  vsphere:</span>
-<span class="tc-cyan">    vcenter: vcenter.novacrestbank.local</span>
-<span class="tc-cyan">    username: svc-ocp-installer@novacrestbank.local</span>
+<span class="tc-cyan">    vcenter: vcenter.novacrestbank.internal</span>
+<span class="tc-cyan">    username: svc-ocp-installer@novacrestbank.internal</span>
 <span class="tc-cyan">    password: 'P@ssw0rd!C0mpl3x'</span>    <span class="tc-dim"># retrieved from CyberArk</span>
 <span class="tc-cyan">    datacenter: NovaCrestBank-DC</span>
 <span class="tc-cyan">    defaultDatastore: vSAN-Datastore</span>
@@ -913,7 +913,7 @@ issuer=CN = NovaCrestBank-RootCA, O = NovaCrestBank, C = US</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Check YAML syntax — catches indentation errors</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">python3 -c "import yaml; yaml.safe_load(open('~/ocp-kit/install/install-config.yaml'))" \
@@ -953,7 +953,7 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># For IPI — you can skip straight to 'create cluster'</span>
 <span class="tc-dim"># But generating manifests first gives you a chance to customise</span>
@@ -1032,7 +1032,7 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash [KEEP THIS TERMINAL OPEN — DO NOT CLOSE]</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash [KEEP THIS TERMINAL OPEN — DO NOT CLOSE]</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Re-copy install-config.yaml one last time (it must exist in install dir)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cp ~/ocp-kit/backups/install-config.yaml.20260413-094512.bak \
@@ -1050,15 +1050,15 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Uploading RHCOS OVA to vCenter datastore...</span>         <span class="tc-dim">← may take 5-10 min</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Using existing RHCOS OVA</span>                               <span class="tc-dim">← if already uploaded</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Creating bootstrap VM...</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM bootstrap.ocp.novacrestbank.local</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM bootstrap.ocp.novacrestbank.internal</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Creating master VMs...</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master01.ocp.novacrestbank.local</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master02.ocp.novacrestbank.local</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master03.ocp.novacrestbank.local</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master01.ocp.novacrestbank.internal</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master02.ocp.novacrestbank.internal</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM master03.ocp.novacrestbank.internal</span>
 
 <span class="tc-dim">───────────────── T+05:00 — Waiting for API ───────────────────────</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 30 minutes for the Kubernetes API at</span>
-<span class="tc-white">     https://api.ocp.novacrestbank.local:6443...</span>
+<span class="tc-white">     https://api.ocp.novacrestbank.internal:6443...</span>
 <span class="tc-dim">     ← Normal to wait here for 5-10 minutes</span>
 <span class="tc-dim">     ← Bootstrap VM is booting, pulling images, starting temporary API</span>
 <span class="tc-dim">     ← You will see this line just sitting there. This is normal.</span>
@@ -1073,13 +1073,13 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
 <span class="tc-dim">───────────────── T+22:00 — Bootstrap complete ─────────────────────</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Bootstrapping complete: masters have taken over the API</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Destroying the bootstrap resources...</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Destroyed VM bootstrap.ocp.novacrestbank.local</span>        <span class="tc-dim">← bootstrap VM is gone</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Destroyed VM bootstrap.ocp.novacrestbank.internal</span>        <span class="tc-dim">← bootstrap VM is gone</span>
 
 <span class="tc-dim">───────────────── T+25:00 — Workers created ────────────────────────</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Creating worker VMs...</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker01.ocp.novacrestbank.local</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker02.ocp.novacrestbank.local</span>
-<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker03.ocp.novacrestbank.local</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker01.ocp.novacrestbank.internal</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker02.ocp.novacrestbank.internal</span>
+<span class="tc-green">INFO</span> <span class="tc-white">  Created VM worker03.ocp.novacrestbank.internal</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 40 minutes for the cluster to initialize...</span>
 <span class="tc-dim">     ← Cluster operators starting up one by one</span></pre>
     </div>
@@ -1094,7 +1094,7 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash [TERMINAL 2 — monitoring]</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash [TERMINAL 2 — monitoring]</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Set kubeconfig (works as soon as bootstrap API is up ~T+10min)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig</span>
@@ -1104,23 +1104,23 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
 
 <span class="tc-dim"># At T+12 min (masters just starting to register):</span>
 <span class="tc-white">NAME                              STATUS      ROLES    AGE   VERSION</span>
-<span class="tc-yellow">master01.ocp.novacrestbank.local  NotReady    master   2m    v1.28.7</span>   <span class="tc-dim">← starting</span>
-<span class="tc-yellow">master02.ocp.novacrestbank.local  NotReady    master   1m    v1.28.7</span>
-<span class="tc-yellow">master03.ocp.novacrestbank.local  NotReady    master   45s   v1.28.7</span>
+<span class="tc-yellow">master01.ocp.novacrestbank.internal  NotReady    master   2m    v1.28.7</span>   <span class="tc-dim">← starting</span>
+<span class="tc-yellow">master02.ocp.novacrestbank.internal  NotReady    master   1m    v1.28.7</span>
+<span class="tc-yellow">master03.ocp.novacrestbank.internal  NotReady    master   45s   v1.28.7</span>
 
 <span class="tc-dim"># At T+18 min (masters fully Ready):</span>
 <span class="tc-white">NAME                              STATUS   ROLES    AGE   VERSION</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   8m    v1.28.7</span>   <span class="tc-dim">← all Ready now</span>
-<span class="tc-green">master02.ocp.novacrestbank.local  Ready    master   7m    v1.28.7</span>
-<span class="tc-green">master03.ocp.novacrestbank.local  Ready    master   6m    v1.28.7</span>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   8m    v1.28.7</span>   <span class="tc-dim">← all Ready now</span>
+<span class="tc-green">master02.ocp.novacrestbank.internal  Ready    master   7m    v1.28.7</span>
+<span class="tc-green">master03.ocp.novacrestbank.internal  Ready    master   6m    v1.28.7</span>
 
 <span class="tc-dim"># At T+28 min (workers registering):</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   18m   v1.28.7</span>
-<span class="tc-green">master02.ocp.novacrestbank.local  Ready    master   17m   v1.28.7</span>
-<span class="tc-green">master03.ocp.novacrestbank.local  Ready    master   16m   v1.28.7</span>
-<span class="tc-yellow">worker01.ocp.novacrestbank.local  NotReady worker   2m    v1.28.7</span>   <span class="tc-dim">← pending CSR</span>
-<span class="tc-yellow">worker02.ocp.novacrestbank.local  NotReady worker   1m    v1.28.7</span>
-<span class="tc-yellow">worker03.ocp.novacrestbank.local  NotReady worker   30s   v1.28.7</span></pre>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   18m   v1.28.7</span>
+<span class="tc-green">master02.ocp.novacrestbank.internal  Ready    master   17m   v1.28.7</span>
+<span class="tc-green">master03.ocp.novacrestbank.internal  Ready    master   16m   v1.28.7</span>
+<span class="tc-yellow">worker01.ocp.novacrestbank.internal  NotReady worker   2m    v1.28.7</span>   <span class="tc-dim">← pending CSR</span>
+<span class="tc-yellow">worker02.ocp.novacrestbank.internal  NotReady worker   1m    v1.28.7</span>
+<span class="tc-yellow">worker03.ocp.novacrestbank.internal  NotReady worker   30s   v1.28.7</span></pre>
     </div>
   </div>
 </div>
@@ -1137,12 +1137,12 @@ openshift-install create manifests --dir=/tmp/validate/ 2>&1 | head -20</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># SSH into master01 using the key you generated</span>
 <span class="tc-dim"># User is always 'core' on RHCOS — never root, never anything else</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master01.ocp.novacrestbank.local</span>
+  core@master01.ocp.novacrestbank.internal</span>
 
 <span class="tc-green">Red Hat Enterprise Linux CoreOS 415.92.202603240257-0</span>
 <span class="tc-white">  Part of OpenShift 4.15, RHCOS is a Kubernetes-native operating system</span>
@@ -1169,7 +1169,7 @@ crictl ps | grep etcd</span>
 <span class="tc-dim"># Watch the kubelet logs (most informative during bootstrap)</span>
 <span class="tc-prompt">[root@master01 ~]#</span> <span class="tc-cmd">journalctl -u kubelet -f --since "10 minutes ago"</span>
 <span class="tc-green">Apr 13 10:14:33 master01 kubelet[1234]: I0413 10:14:33 controller.go:127] "Starting kubelet"</span>
-<span class="tc-green">Apr 13 10:14:35 master01 kubelet[1234]: I0413 10:14:35 server.go:441]  "Successfully registered node" node="master01.ocp.novacrestbank.local"</span>
+<span class="tc-green">Apr 13 10:14:35 master01 kubelet[1234]: I0413 10:14:35 server.go:441]  "Successfully registered node" node="master01.ocp.novacrestbank.internal"</span>
 <span class="tc-white">Apr 13 10:14:40 master01 kubelet[1234]: I0413 10:14:40 pod_workers.go:190] "Processing pod event" pod="openshift-etcd/etcd-master01..."</span>
 <span class="tc-green">Apr 13 10:15:02 master01 kubelet[1234]: I0413 10:15:02 status_manager.go:158] "Pod status updated" pod="etcd-master01" status="Running"</span>
 <span class="tc-dim">                                              ↑ etcd pod is Running = good</span>
@@ -1215,7 +1215,7 @@ crictl ps | grep etcd</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash [Terminal 2]</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash [Terminal 2]</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Check for pending CSRs — run this repeatedly after T+25min</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get csr</span>
@@ -1223,9 +1223,9 @@ crictl ps | grep etcd</span>
 <span class="tc-green">csr-4j8k2   18m    kubernetes.io/kube-apiserver-client-kubelet   system:serviceaccount:openshift-machine-config-operator  Approved,Issued</span>
 <span class="tc-green">csr-9p3m7   18m    kubernetes.io/kube-apiserver-client-kubelet   system:serviceaccount:openshift-machine-config-operator  Approved,Issued</span>
 <span class="tc-green">csr-r7q1t   18m    kubernetes.io/kube-apiserver-client-kubelet   system:serviceaccount:openshift-machine-config-operator  Approved,Issued</span>
-<span class="tc-yellow">csr-x2b8n   2m     kubernetes.io/kubelet-serving                 system:node:worker01.ocp.novacrestbank.local              Pending</span>   <span class="tc-dim">← approve!</span>
-<span class="tc-yellow">csr-w5k9p   1m     kubernetes.io/kubelet-serving                 system:node:worker02.ocp.novacrestbank.local              Pending</span>   <span class="tc-dim">← approve!</span>
-<span class="tc-yellow">csr-v1m4j   45s    kubernetes.io/kubelet-serving                 system:node:worker03.ocp.novacrestbank.local              Pending</span>   <span class="tc-dim">← approve!</span>
+<span class="tc-yellow">csr-x2b8n   2m     kubernetes.io/kubelet-serving                 system:node:worker01.ocp.novacrestbank.internal              Pending</span>   <span class="tc-dim">← approve!</span>
+<span class="tc-yellow">csr-w5k9p   1m     kubernetes.io/kubelet-serving                 system:node:worker02.ocp.novacrestbank.internal              Pending</span>   <span class="tc-dim">← approve!</span>
+<span class="tc-yellow">csr-v1m4j   45s    kubernetes.io/kubelet-serving                 system:node:worker03.ocp.novacrestbank.internal              Pending</span>   <span class="tc-dim">← approve!</span>
 
 <span class="tc-dim"># Approve ALL pending CSRs at once</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get csr -o name | xargs oc adm certificate approve</span>
@@ -1236,9 +1236,9 @@ crictl ps | grep etcd</span>
 <span class="tc-dim"># There are TWO rounds of CSRs per worker — approve the first round,</span>
 <span class="tc-dim"># then wait ~2 minutes and approve the second round</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">sleep 120 && oc get csr | grep Pending</span>
-<span class="tc-yellow">csr-a9z3f   1m    kubernetes.io/kubelet-serving   system:node:worker01.ocp.novacrestbank.local   Pending</span>
-<span class="tc-yellow">csr-b4q8r   45s   kubernetes.io/kubelet-serving   system:node:worker02.ocp.novacrestbank.local   Pending</span>
-<span class="tc-yellow">csr-c7m2x   30s   kubernetes.io/kubelet-serving   system:node:worker03.ocp.novacrestbank.local   Pending</span>
+<span class="tc-yellow">csr-a9z3f   1m    kubernetes.io/kubelet-serving   system:node:worker01.ocp.novacrestbank.internal   Pending</span>
+<span class="tc-yellow">csr-b4q8r   45s   kubernetes.io/kubelet-serving   system:node:worker02.ocp.novacrestbank.internal   Pending</span>
+<span class="tc-yellow">csr-c7m2x   30s   kubernetes.io/kubelet-serving   system:node:worker03.ocp.novacrestbank.internal   Pending</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get csr -o name | xargs oc adm certificate approve</span>
 <span class="tc-green">certificatesigningrequest.certificates.k8s.io/csr-a9z3f approved</span>
@@ -1248,12 +1248,12 @@ crictl ps | grep etcd</span>
 <span class="tc-dim"># Now watch workers become Ready</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n5 'oc get nodes'</span>
 <span class="tc-white">NAME                              STATUS   ROLES    AGE   VERSION</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   38m   v1.28.7</span>
-<span class="tc-green">master02.ocp.novacrestbank.local  Ready    master   37m   v1.28.7</span>
-<span class="tc-green">master03.ocp.novacrestbank.local  Ready    master   36m   v1.28.7</span>
-<span class="tc-green">worker01.ocp.novacrestbank.local  Ready    worker   8m    v1.28.7</span>   <span class="tc-dim">← all Ready ✓</span>
-<span class="tc-green">worker02.ocp.novacrestbank.local  Ready    worker   7m    v1.28.7</span>
-<span class="tc-green">worker03.ocp.novacrestbank.local  Ready    worker   6m    v1.28.7</span></pre>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   38m   v1.28.7</span>
+<span class="tc-green">master02.ocp.novacrestbank.internal  Ready    master   37m   v1.28.7</span>
+<span class="tc-green">master03.ocp.novacrestbank.internal  Ready    master   36m   v1.28.7</span>
+<span class="tc-green">worker01.ocp.novacrestbank.internal  Ready    worker   8m    v1.28.7</span>   <span class="tc-dim">← all Ready ✓</span>
+<span class="tc-green">worker02.ocp.novacrestbank.internal  Ready    worker   7m    v1.28.7</span>
+<span class="tc-green">worker03.ocp.novacrestbank.internal  Ready    worker   6m    v1.28.7</span></pre>
     </div>
   </div>
 </div>
@@ -1269,7 +1269,7 @@ crictl ps | grep etcd</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash [Terminal 1 — installer]</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash [Terminal 1 — installer]</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim">───────────────── T+45:00 — Install finishes ───────────────────────</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 10 minutes for the openshift-console route to be created...</span>
@@ -1277,7 +1277,7 @@ crictl ps | grep etcd</span>
 <span class="tc-green">INFO</span> <span class="tc-white">To access the cluster as the system:admin user when using 'oc', run</span>
 <span class="tc-green">INFO</span>   <span class="tc-cyan">export KUBECONFIG=/home/svc-ocp/ocp-kit/install/auth/kubeconfig</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Access the OpenShift web-console here:</span>
-<span class="tc-green">INFO</span>   <span class="tc-cyan">https://console-openshift-console.apps.ocp.novacrestbank.local</span>
+<span class="tc-green">INFO</span>   <span class="tc-cyan">https://console-openshift-console.apps.ocp.novacrestbank.internal</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Login to the console with user: </span><span class="tc-cyan">kubeadmin</span><span class="tc-white">, and password: </span><span class="tc-cyan">AbCd1-EfGh2-IjKl3-MnOp4</span>
 <span class="tc-green">INFO</span> <span class="tc-white">Time elapsed: 44m42s</span></pre>
 
@@ -1326,9 +1326,9 @@ crictl ps | grep etcd</span>
 <span class="tc-dim"># ── PODS — watch the control plane namespaces ────────────────────────</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n10 'oc get pods -n openshift-etcd'</span>
 <span class="tc-green">NAME                                   READY   STATUS    RESTARTS   AGE</span>
-<span class="tc-green">etcd-master01.ocp.novacrestbank.local  4/4     Running   0          15m</span>
-<span class="tc-green">etcd-master02.ocp.novacrestbank.local  4/4     Running   0          14m</span>
-<span class="tc-green">etcd-master03.ocp.novacrestbank.local  4/4     Running   0          13m</span>
+<span class="tc-green">etcd-master01.ocp.novacrestbank.internal  4/4     Running   0          15m</span>
+<span class="tc-green">etcd-master02.ocp.novacrestbank.internal  4/4     Running   0          14m</span>
+<span class="tc-green">etcd-master03.ocp.novacrestbank.internal  4/4     Running   0          13m</span>
 <span class="tc-dim">                                       ↑ 4/4 containers Running = etcd cluster is healthy</span>
 
 <span class="tc-dim"># ── EVENTS — catch problems before they stall the install ────────────</span>
@@ -1339,7 +1339,7 @@ crictl ps | grep etcd</span>
 
 <span class="tc-dim"># ── SSH INTO BOOTSTRAP (only during T+5 to T+22 min window) ─────────</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@bootstrap.ocp.novacrestbank.local \
+  core@bootstrap.ocp.novacrestbank.internal \
   'journalctl -b -f -u bootkube.service'</span>
 <span class="tc-dim"># bootkube.service is the bootstrap control plane service</span>
 <span class="tc-dim"># Its log shows ignition serving, master etcd joining, and bootstrap completing</span></pre>
@@ -1362,7 +1362,7 @@ crictl ps | grep etcd</span>
       <span class="term-title">What you see — installer stuck</span>
     </div>
     <div class="term-body"><pre><span class="tc-green">INFO</span> <span class="tc-white">Waiting up to 30 minutes for the Kubernetes API at</span>
-<span class="tc-white">     https://api.ocp.novacrestbank.local:6443...</span>
+<span class="tc-white">     https://api.ocp.novacrestbank.internal:6443...</span>
 <span class="tc-dim">     [10 minutes later — still showing the same line, nothing changed]</span>
 <span class="tc-dim">     [20 minutes later — same]</span>
 <span class="tc-red">FATAL</span> <span class="tc-white">waiting for Kubernetes API: context deadline exceeded</span></pre>
@@ -1381,24 +1381,24 @@ crictl ps | grep etcd</span>
 <span class="tc-dim"># Check what DNS server the bootstrap is using</span>
 <span class="tc-prompt">[core@bootstrap ~]$</span> <span class="tc-cmd">cat /etc/resolv.conf</span>
 <span class="tc-white">nameserver 10.10.0.10</span>
-<span class="tc-white">search ocp.novacrestbank.local novacrestbank.local</span>
+<span class="tc-white">search ocp.novacrestbank.internal novacrestbank.internal</span>
 
 <span class="tc-dim"># Test DNS resolution FROM the bootstrap node</span>
-<span class="tc-prompt">[core@bootstrap ~]$</span> <span class="tc-cmd">dig +short api.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[core@bootstrap ~]$</span> <span class="tc-cmd">dig +short api.ocp.novacrestbank.internal</span>
 <span class="tc-dim">                          ← empty output = DNS record missing or wrong server</span>
 
-<span class="tc-prompt">[core@bootstrap ~]$</span> <span class="tc-cmd">dig +short api-int.ocp.novacrestbank.local</span>
+<span class="tc-prompt">[core@bootstrap ~]$</span> <span class="tc-cmd">dig +short api-int.ocp.novacrestbank.internal</span>
 <span class="tc-dim">                          ← also empty = api-int record missing</span>
 
 <span class="tc-dim"># Check bootkube logs for specific error</span>
 <span class="tc-prompt">[core@bootstrap ~]$</span> <span class="tc-cmd">journalctl -u bootkube.service | grep -i "error\|fail\|dns"</span>
-<span class="tc-red">Apr 13 10:12:44 bootstrap bootkube[4821]: error: failed to connect to api.ocp.novacrestbank.local:6443</span>
-<span class="tc-red">Apr 13 10:12:44 bootstrap bootkube[4821]: dial tcp: lookup api.ocp.novacrestbank.local: no such host</span>
+<span class="tc-red">Apr 13 10:12:44 bootstrap bootkube[4821]: error: failed to connect to api.ocp.novacrestbank.internal:6443</span>
+<span class="tc-red">Apr 13 10:12:44 bootstrap bootkube[4821]: dial tcp: lookup api.ocp.novacrestbank.internal: no such host</span>
 <span class="tc-dim">                                                    ↑ "no such host" = DNS resolution failing</span></pre>
 
       <div class="term-annotation bad">
         <span class="ann-icon">✗</span>
-        <span>The DNS record <code>api.ocp.novacrestbank.local</code> is not resolving from the bootstrap node. Most likely cause: the VM's DHCP-provided DNS server is not your internal DNS server (it's using the default gateway's DNS which doesn't know about <code>novacrestbank.local</code>).</span>
+        <span>The DNS record <code>api.ocp.novacrestbank.internal</code> is not resolving from the bootstrap node. Most likely cause: the VM's DHCP-provided DNS server is not your internal DNS server (it's using the default gateway's DNS which doesn't know about <code>novacrestbank.internal</code>).</span>
       </div>
     </div>
   </div>
@@ -1407,7 +1407,7 @@ crictl ps | grep etcd</span>
   <div class="grid-2">
     <div class="card">
       <h3>Cause A — DNS record not created</h3>
-      <p style="font-size:13px">Go to Windows DNS Manager → Add the missing A record for <code>api.ocp.novacrestbank.local</code> pointing to <code>10.50.0.200</code>. Wait 60 seconds, then verify from jump host with <code>dig</code>.</p>
+      <p style="font-size:13px">Go to Windows DNS Manager → Add the missing A record for <code>api.ocp.novacrestbank.internal</code> pointing to <code>10.50.0.200</code>. Wait 60 seconds, then verify from jump host with <code>dig</code>.</p>
       <p style="font-size:13px">Then destroy and re-run the install:<br/><code>openshift-install destroy cluster --dir=~/ocp-kit/install/</code></p>
     </div>
     <div class="card">
@@ -1433,12 +1433,12 @@ crictl ps | grep etcd</span>
     </div>
     <div class="term-body"><pre><span class="tc-green">INFO</span> <span class="tc-white">Creating infrastructure resources...</span>
 <span class="tc-red">FATAL</span> <span class="tc-white">failed to create cluster: failed to initialize vSphere session:</span>
-<span class="tc-red">      Post "https://vcenter.novacrestbank.local/rest/com/vmware/cis/session":</span>
+<span class="tc-red">      Post "https://vcenter.novacrestbank.internal/rest/com/vmware/cis/session":</span>
 <span class="tc-red">      x509: certificate signed by unknown authority</span></pre>
 
       <div class="term-annotation bad">
         <span class="ann-icon">✗</span>
-        <span>The installer does not trust your vCenter's TLS certificate. You did not add the vCenter CA to the OS trust store on the jump host — or you did it incorrectly. The fix is in Phase 1 Check 3 above. Re-run <code>update-ca-trust extract</code> and verify with <code>curl -s https://vcenter.novacrestbank.local/</code> returns 200.</span>
+        <span>The installer does not trust your vCenter's TLS certificate. You did not add the vCenter CA to the OS trust store on the jump host — or you did it incorrectly. The fix is in Phase 1 Check 3 above. Re-run <code>update-ca-trust extract</code> and verify with <code>curl -s https://vcenter.novacrestbank.internal/</code> returns 200.</span>
       </div>
     </div>
   </div>
@@ -1462,7 +1462,7 @@ crictl ps | grep etcd</span>
 <span class="tc-dim"># Quick fix — tell oc to skip TLS verification temporarily (DEBUGGING ONLY)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes --insecure-skip-tls-verify=true</span>
 <span class="tc-green">NAME                              STATUS   ROLES    AGE   VERSION</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   45m   v1.28.7</span>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   45m   v1.28.7</span>
 <span class="tc-dim">← nodes visible = cluster is healthy, this is a trust issue only, not a cluster issue</span>
 
 <span class="tc-dim"># Permanent fix — extract and trust the cluster CA on your jump host</span>
@@ -1472,7 +1472,7 @@ sudo cp /tmp/ocp-cluster-ca.crt /etc/pki/ca-trust/source/anchors/
 sudo update-ca-trust extract
 oc get nodes</span>
 <span class="tc-green">NAME                              STATUS   ROLES    AGE</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   48m</span>    <span class="tc-dim">← working now</span></pre>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   48m</span>    <span class="tc-dim">← working now</span></pre>
     </div>
   </div>
 </div>
@@ -1580,7 +1580,7 @@ done</span>
   <div class="terminal">
     <div class="term-titlebar">
       <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — emergency log collection</span>
+      <span class="term-title">jumphost.novacrestbank.internal — emergency log collection</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Gather all logs from bootstrap and masters</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openshift-install gather bootstrap \
@@ -1645,12 +1645,12 @@ done</span>
 <span class="tc-dim"># 1. Are all nodes Ready?</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes</span>
 <span class="tc-green">NAME                              STATUS   ROLES    AGE   VERSION</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   45m   v1.28.7+2bab981</span>
-<span class="tc-green">master02.ocp.novacrestbank.local  Ready    master   44m   v1.28.7+2bab981</span>
-<span class="tc-green">master03.ocp.novacrestbank.local  Ready    master   43m   v1.28.7+2bab981</span>
-<span class="tc-green">worker01.ocp.novacrestbank.local  Ready    worker   15m   v1.28.7+2bab981</span>
-<span class="tc-green">worker02.ocp.novacrestbank.local  Ready    worker   14m   v1.28.7+2bab981</span>
-<span class="tc-green">worker03.ocp.novacrestbank.local  Ready    worker   13m   v1.28.7+2bab981</span>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   45m   v1.28.7+2bab981</span>
+<span class="tc-green">master02.ocp.novacrestbank.internal  Ready    master   44m   v1.28.7+2bab981</span>
+<span class="tc-green">master03.ocp.novacrestbank.internal  Ready    master   43m   v1.28.7+2bab981</span>
+<span class="tc-green">worker01.ocp.novacrestbank.internal  Ready    worker   15m   v1.28.7+2bab981</span>
+<span class="tc-green">worker02.ocp.novacrestbank.internal  Ready    worker   14m   v1.28.7+2bab981</span>
+<span class="tc-green">worker03.ocp.novacrestbank.internal  Ready    worker   13m   v1.28.7+2bab981</span>
 
 <span class="tc-dim"># 2. All cluster operators healthy?</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get clusteroperators | grep -v "True.*False.*False"</span>
@@ -1674,7 +1674,7 @@ done</span>
 <span class="tc-dim">                                  investigate each one</span>
 
 <span class="tc-dim"># 6. Web console accessible?</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://console-openshift-console.apps.ocp.novacrestbank.local \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">curl -sk https://console-openshift-console.apps.ocp.novacrestbank.internal \
   -o /dev/null -w "%{http_code}"</span>
 <span class="tc-green">200</span>    <span class="tc-dim">← console is reachable ✓</span>
 
@@ -1683,7 +1683,7 @@ done</span>
 <span class="tc-green">system:admin</span>    <span class="tc-dim">← using kubeconfig = system:admin (cluster owner)</span>
 
 <span class="tc-dim"># 8. Log in with kubeadmin via oc login (test the API VIP + F5)</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u kubeadmin \
   -p "$(cat ~/ocp-kit/install/auth/kubeadmin-password)"</span>
 <span class="tc-green">Login successful.</span>

@@ -465,7 +465,7 @@
       <div class="wz-icon">📚</div>
       <div>
         <div class="wz-title">New Content Library</div>
-        <div class="wz-sub">vcenter.novacrestbank.local</div>
+        <div class="wz-sub">vcenter.novacrestbank.internal</div>
       </div>
     </div>
     <div class="wz-body">
@@ -488,7 +488,7 @@
         </div>
         <div class="wz-field">
           <div class="wz-lbl">vCenter Server:</div>
-          <div class="wz-sel ok">vcenter.novacrestbank.local (current)</div>
+          <div class="wz-sel ok">vcenter.novacrestbank.internal (current)</div>
         </div>
       </div>
     </div>
@@ -622,7 +622,7 @@
         <div class="step-title">Click NCB-Content-Library → Summary tab → copy the Subscription URL</div>
         <p style="font-size:13.5px;">In the Content Libraries list, click <strong>NCB-Content-Library</strong>. The Summary tab shows the library details. Find the <strong>Subscription URL</strong> field:</p>
         <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
-          https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json
+          https://vcenter.novacrestbank.internal:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json
         </div>
         <p style="font-size:13.5px;margin-top:8px;">Copy this URL and store it in the NovaCrestBank infrastructure documentation alongside the subscription password. This URL is stable for the lifetime of the library.</p>
       </div>
@@ -842,7 +842,7 @@
       <div class="step-num">4</div>
       <div class="step-content">
         <div class="step-title">Join the domain → apply Windows Updates → run gpupdate /force</div>
-        <p style="font-size:13.5px;">Join <code>novacrestbank.local</code> (System Properties → Computer Name → Change → Domain). Restart. Log in with a domain admin account. Run <strong>Windows Update</strong> until the VM is fully patched (may require multiple update cycles and restarts). Then run <code>gpupdate /force</code> to ensure the NovaCrestBank-SecurityBaseline GPO is applied. Verify in <code>certlm.msc</code> that the Personal store contains a CA-signed computer certificate from NovaCrestBank-Issuing-CA.</p>
+        <p style="font-size:13.5px;">Join <code>novacrestbank.internal</code> (System Properties → Computer Name → Change → Domain). Restart. Log in with a domain admin account. Run <strong>Windows Update</strong> until the VM is fully patched (may require multiple update cycles and restarts). Then run <code>gpupdate /force</code> to ensure the NovaCrestBank-SecurityBaseline GPO is applied. Verify in <code>certlm.msc</code> that the Personal store contains a CA-signed computer certificate from NovaCrestBank-Issuing-CA.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1045,8 +1045,8 @@ Shutting down Windows...</span>
           <div class="spec-row"><span class="spec-label">Time zone</span><span class="spec-val">(GMT+00:00) Dublin, Edinburgh, Lisbon, London</span></div>
           <div class="spec-row"><span class="spec-label">Network — NIC 1</span><span class="spec-val">Use DHCP — VLAN 70 DHCP scope provides .200–.254 range for new VMs</span></div>
           <div class="spec-row"><span class="spec-label">DNS servers</span><span class="spec-val">10.70.0.10, 10.70.0.11</span></div>
-          <div class="spec-row"><span class="spec-label">DNS domain</span><span class="spec-val">novacrestbank.local</span></div>
-          <div class="spec-row"><span class="spec-label">Join</span><span class="spec-val">Domain: novacrestbank.local — credentials: NOVACRESTBANK\svc-vcenter-ldap (or Administrator)</span></div>
+          <div class="spec-row"><span class="spec-label">DNS domain</span><span class="spec-val">novacrestbank.internal</span></div>
+          <div class="spec-row"><span class="spec-label">Join</span><span class="spec-val">Domain: novacrestbank.internal — credentials: NOVACRESTBANK\svc-vcenter-ldap (or Administrator)</span></div>
         </div>
         <p style="font-size:13.5px;margin-top:8px;">Click <strong>Finish</strong>. The customisation spec <strong>NCB-WinServer2022-DomainJoin</strong> appears in the Guest OS Customisation Specs list.</p>
       </div>
@@ -1088,7 +1088,7 @@ Shutting down Windows...</span>
 
   <div class="callout success">
     <div class="cl">What happens automatically after clicking Finish</div>
-    The VM boots into OOBE. vCenter injects the customisation spec. Windows renames itself to <code>appserver01</code>, generates a new unique SID, sets the time zone and locale, joins <code>novacrestbank.local</code> with the specified credentials, and restarts. After restart, the domain-joined server reaches the login screen. Group Policy applies at first login — the security baseline, firewall rules, and audit policy are in place. Certificate auto-enrolment runs within 90 minutes — the computer receives a CA-signed certificate from NovaCrestBank-Issuing-CA. Total elapsed time from clicking Finish to a fully operational, baseline-compliant, domain-joined server: approximately 10–15 minutes, with zero manual steps.
+    The VM boots into OOBE. vCenter injects the customisation spec. Windows renames itself to <code>appserver01</code>, generates a new unique SID, sets the time zone and locale, joins <code>novacrestbank.internal</code> with the specified credentials, and restarts. After restart, the domain-joined server reaches the login screen. Group Policy applies at first login — the security baseline, firewall rules, and audit policy are in place. Certificate auto-enrolment runs within 90 minutes — the computer receives a CA-signed certificate from NovaCrestBank-Issuing-CA. Total elapsed time from clicking Finish to a fully operational, baseline-compliant, domain-joined server: approximately 10–15 minutes, with zero manual steps.
   </div>
 </div>
 
@@ -1192,7 +1192,7 @@ Shutting down Windows...</span>
 
   <div class="term">
     <div class="term-bar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="term-lbl">PowerCLI — verify Content Library contents</span></div>
-    <div class="term-body"><pre><span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+    <div class="term-body"><pre><span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 
 <span class="td"># Verify the library exists and is published on vsanDatastore</span>
 <span class="tp">PS C:\></span> <span class="tc">Get-ContentLibrary -Name "NCB-Content-Library" |
@@ -1226,7 +1226,7 @@ NCB-WinServer2022-Core     VmTemplate  11.87   1        18/04/2026 14:01  ✓</s
 
 <span class="tg">PublishUrl                                                                Published
 ----------                                                                ---------
-https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   True  ✓</span></pre>
+https://vcenter.novacrestbank.internal:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   True  ✓</span></pre>
       <div class="tann ok"><span class="tai">✓</span><span>NCB-Content-Library verified. 5 items: 2 ISO images and 3 VM Templates. All on vsanDatastore. Published with active subscription URL. Library total ~53 GB.</span></div>
     </div>
   </div>
@@ -1246,7 +1246,7 @@ https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   Tru
   <h2>vSphere-07 verification checklist</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">NCB-Content-Library — Local, Published, authenticated</span><span class="spec-val badge bg">✓ Published = True on vsanDatastore</span></div>
-    <div class="spec-row"><span class="spec-label">Subscription URL — saved to documentation</span><span class="spec-val badge bg">✓ https://vcenter.novacrestbank.local/cls/...</span></div>
+    <div class="spec-row"><span class="spec-label">Subscription URL — saved to documentation</span><span class="spec-val badge bg">✓ https://vcenter.novacrestbank.internal/cls/...</span></div>
     <div class="spec-row"><span class="spec-label">ISO: WinServer2022-EN-x64 (~5.4 GB)</span><span class="spec-val badge bg">✓ Version 1, type ISO Image</span></div>
     <div class="spec-row"><span class="spec-label">ISO: RHEL-9.x-x86_64 (~8.9 GB)</span><span class="spec-val badge bg">✓ Version 1, type ISO Image</span></div>
     <div class="spec-row"><span class="spec-label">VM Template: NCB-WinServer2022-Base (~20 GB)</span><span class="spec-val badge bg">✓ Sysprep'd, domain-capable, baseline applied</span></div>
@@ -1283,7 +1283,7 @@ https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   Tru
       </tr>
       <tr>
         <td><strong>Win-01</strong></td>
-        <td>DC01 (10.70.0.10, esxi01) and DC02 (10.70.0.11, esxi02). Forest novacrestbank.local, FL Windows Server 2016. All 5 FSMO on DC01. AD-integrated DNS. NTP stratum 2. Sites and Services with all 7 VLANs as subnets. repadmin: 0 failures.</td>
+        <td>DC01 (10.70.0.10, esxi01) and DC02 (10.70.0.11, esxi02). Forest novacrestbank.internal, FL Windows Server 2016. All 5 FSMO on DC01. AD-integrated DNS. NTP stratum 2. Sites and Services with all 7 VLANs as subnets. repadmin: 0 failures.</td>
       </tr>
       <tr>
         <td><strong>Win-02</strong></td>
@@ -1291,11 +1291,11 @@ https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   Tru
       </tr>
       <tr>
         <td><strong>Win-03</strong></td>
-        <td>Root CA: rootca.novacrestbank.local, 10.70.0.20, esxi03. Standalone workgroup. RSA-4096 SHA-256, 20-year validity, 52-week CRL. CDP/AIA: http://pki.novacrestbank.local/pki/. Root cert published to AD. VM permanently powered off after snapshot RootCA-Initial-Clean-State-2026-04-13.</td>
+        <td>Root CA: rootca.novacrestbank.internal, 10.70.0.20, esxi03. Standalone workgroup. RSA-4096 SHA-256, 20-year validity, 52-week CRL. CDP/AIA: http://pki.novacrestbank.internal/pki/. Root cert published to AD. VM permanently powered off after snapshot RootCA-Initial-Clean-State-2026-04-13.</td>
       </tr>
       <tr>
         <td><strong>Win-04</strong></td>
-        <td>Issuing CA: issuingca.novacrestbank.local, 10.70.0.21, esxi04, domain-joined. Enterprise Subordinate CA. 10-year validity. 3 templates (WebServer, Computer, DomainController). Auto-enrolment GPO. LDAPS active on DC01/DC02. CA Web Enrollment at certsrv.</td>
+        <td>Issuing CA: issuingca.novacrestbank.internal, 10.70.0.21, esxi04, domain-joined. Enterprise Subordinate CA. 10-year validity. 3 templates (WebServer, Computer, DomainController). Auto-enrolment GPO. LDAPS active on DC01/DC02. CA Web Enrollment at certsrv.</td>
       </tr>
       <tr>
         <td><strong>vSphere-03</strong></td>
@@ -1338,7 +1338,7 @@ https://vcenter.novacrestbank.local:443/cls/vcsp/lib/&lt;uuid&gt;/lib.json   Tru
 
   <div class="callout success" style="margin-top:24px;">
     <div class="cl">The NovaCrestBank data centre build series is complete</div>
-    Every layer of the stack is built, integrated, verified, and documented: physical network fabric (Cisco Nexus leaf-spine), compute (VMware vSphere with HA, DRS, and vSAN), identity and PKI (Active Directory, Root CA, Issuing CA, certificate auto-enrolment), security baseline (GPO hardening, HSM-backed encryption), container platform (OpenShift with AD integration and vSAN storage), Fibre Channel SAN (Dell EMC PowerStore with dual-fabric zoning), and content management (Content Library with golden VM Templates). The candidate now has a complete mental model of a production enterprise banking data centre — not from a textbook, but built step by step with every decision explained.
+    Every layer of the stack is built, integrated, verified, and documented: physical network fabric (Cisco Nexus leaf-spine), compute (VMware vSphere with HA, DRS, and vSAN), identity and PKI (Active Directory, Root CA, Issuing CA, certificate auto-enrolment), security baseline (GPO hardening, HSM-backed encryption), container platform (OpenShift with AD integration and vSAN storage), Fibre Channel SAN (Dell EMC PowerStore with dual-fabric zoning), and content management (Content Library with golden VM Templates). You now have a complete mental model of a production enterprise banking data centre — not from a textbook, but built step by step with every decision explained.
   </div>
 </div>
 

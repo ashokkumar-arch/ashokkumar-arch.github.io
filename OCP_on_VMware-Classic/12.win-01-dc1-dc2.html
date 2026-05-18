@@ -384,7 +384,7 @@
     <div class="ngl">Promote to Domain Controller</div>
     <div class="ni" onclick="show('promote-start')"><div class="nd"></div>22 — The promotion notification</div>
     <div class="ni" onclick="show('promote-deployment')"><div class="nd"></div>23 — Deployment configuration — new forest</div>
-    <div class="ni" onclick="show('promote-domain')"><div class="nd"></div>24 — Domain name — novacrestbank.local</div>
+    <div class="ni" onclick="show('promote-domain')"><div class="nd"></div>24 — Domain name — novacrestbank.internal</div>
     <div class="ni" onclick="show('promote-options')"><div class="nd"></div>25 — Domain controller options</div>
     <div class="ni" onclick="show('promote-dns')"><div class="nd"></div>26 — DNS options screen</div>
     <div class="ni" onclick="show('promote-netbios')"><div class="nd"></div>27 — NetBIOS domain name</div>
@@ -432,7 +432,7 @@
 
   <div class="callout">
     <div class="cl">Why DC1 and DC2 must exist before almost everything else</div>
-    Domain Controllers provide four services that every other system in NovaCrestBank depends on: <strong>Authentication</strong> (Kerberos and NTLM — vCenter AD login, OpenShift LDAP IDP, Windows machine logins), <strong>DNS</strong> (name resolution — vcenter.novacrestbank.local, esxi01.novacrestbank.local, every service FQDN), <strong>NTP</strong> (time synchronisation — ESXi hosts, Cisco switches, and Palo Alto all point to the DC for time), and <strong>DHCP</strong> (IP address assignment for VMs — configured in Win-02). Until DCs exist, none of these services are operational.
+    Domain Controllers provide four services that every other system in NovaCrestBank depends on: <strong>Authentication</strong> (Kerberos and NTLM — vCenter AD login, OpenShift LDAP IDP, Windows machine logins), <strong>DNS</strong> (name resolution — vcenter.novacrestbank.internal, esxi01.novacrestbank.internal, every service FQDN), <strong>NTP</strong> (time synchronisation — ESXi hosts, Cisco switches, and Palo Alto all point to the DC for time), and <strong>DHCP</strong> (IP address assignment for VMs — configured in Win-02). Until DCs exist, none of these services are operational.
   </div>
 
   <h2>What DC1 and DC2 provide — the complete service list</h2>
@@ -470,11 +470,11 @@
   <h2>DC1 vs DC2 — which one does what</h2>
   <div class="grid-2">
     <div class="card" style="border-top:3px solid var(--win-blue);">
-      <h3 style="color:var(--win-blue);">DC1 (dc01.novacrestbank.local)</h3>
+      <h3 style="color:var(--win-blue);">DC1 (dc01.novacrestbank.internal)</h3>
       <p style="font-size:13.5px">10.70.0.10 · Primary Domain Controller. Holds all five FSMO roles initially. Primary DNS server. PDC Emulator (primary NTP source). The first DC in the forest — creates the domain. All other DCs replicate FROM DC1 initially.</p>
     </div>
     <div class="card" style="border-top:3px solid var(--accent2);">
-      <h3 style="color:var(--accent2);">DC2 (dc02.novacrestbank.local)</h3>
+      <h3 style="color:var(--accent2);">DC2 (dc02.novacrestbank.internal)</h3>
       <p style="font-size:13.5px">10.70.0.11 · Additional Domain Controller. Replicates all AD data from DC1. Secondary DNS server. Provides redundancy — if DC1 fails, DC2 handles all authentication and DNS automatically. In the same AD site as DC1 (one physical location).</p>
     </div>
   </div>
@@ -491,8 +491,8 @@
     <div class="decision-q">The promotion wizard uses all three terms. What is the difference between a forest, a domain, and a domain controller?</div>
     <div class="decision-a">
       <strong>Forest</strong> — the outermost boundary of an Active Directory deployment. A forest contains one or more domains and defines the trust boundary. NovaCrestBank has one forest. All DCs in the forest share a common schema (the definition of every object type that can exist in AD). The forest name is typically the name of the root domain.<br/><br/>
-      <strong>Domain</strong> — a partition within the forest. NovaCrestBank has one domain: <code>novacrestbank.local</code>. The domain stores user accounts, computer accounts, groups, and policies. It defines the Kerberos authentication boundary — all machines in the domain trust each other's authentication.<br/><br/>
-      <strong>Domain Controller (DC)</strong> — a Windows Server with the AD DS role installed and promoted to serve the domain. The DC stores a writable copy of the domain database (ntds.dit) and runs the authentication services. You can have multiple DCs for the same domain — they replicate automatically. NovaCrestBank has two DCs (DC1 and DC2) both serving the same <code>novacrestbank.local</code> domain.
+      <strong>Domain</strong> — a partition within the forest. NovaCrestBank has one domain: <code>novacrestbank.internal</code>. The domain stores user accounts, computer accounts, groups, and policies. It defines the Kerberos authentication boundary — all machines in the domain trust each other's authentication.<br/><br/>
+      <strong>Domain Controller (DC)</strong> — a Windows Server with the AD DS role installed and promoted to serve the domain. The DC stores a writable copy of the domain database (ntds.dit) and runs the authentication services. You can have multiple DCs for the same domain — they replicate automatically. NovaCrestBank has two DCs (DC1 and DC2) both serving the same <code>novacrestbank.internal</code> domain.
     </div>
   </div>
 
@@ -514,10 +514,10 @@
     <div class="decision-label">Why ".local" domain — not ".com" or ".novacrestbank.com"</div>
     <div class="decision-q">NovaCrestBank has a public domain (novacrestbank.com). Should the internal AD domain use the same name?</div>
     <div class="decision-a">
-      <strong>NovaCrestBank uses <code>novacrestbank.local</code> — a non-routable internal namespace — for clear separation from the public DNS name.</strong><br/><br/>
+      <strong>NovaCrestBank uses <code>novacrestbank.internal</code> — a non-routable internal namespace — for clear separation from the public DNS name.</strong><br/><br/>
       Using <code>novacrestbank.com</code> as the internal AD domain creates a DNS split-brain problem: all internal machines resolve <code>novacrestbank.com</code> via the internal AD DNS — but external clients and internet systems also use <code>novacrestbank.com</code>. Without careful split-horizon DNS configuration, internal machines may fail to reach public services (like cloud APIs) because internal DNS gives different answers from public DNS for the same name.<br/><br/>
-      Using <code>novacrestbank.local</code> is clean: this namespace only exists internally, it is never registered in public DNS, and there is no ambiguity between internal and external resolution. The one limitation: <code>.local</code> can conflict with Bonjour/mDNS on some client networks — not a concern in a data center environment.<br/><br/>
-      Microsoft's current guidance (since Windows Server 2012) actually recommends using a subdomain of the public DNS name (e.g., <code>corp.novacrestbank.com</code>) to avoid the .local limitation on modern clients. NovaCrestBank chooses <code>novacrestbank.local</code> for operational simplicity — it is a bank data center with no end-user devices, not a corporate desktop environment where .local limitations matter.
+      Using <code>novacrestbank.internal</code> is clean: this namespace only exists internally, it is never registered in public DNS, and there is no ambiguity between internal and external resolution. The one limitation: <code>.local</code> can conflict with Bonjour/mDNS on some client networks — not a concern in a data center environment.<br/><br/>
+      Microsoft's current guidance (since Windows Server 2012) actually recommends using a subdomain of the public DNS name (e.g., <code>novacrestbank.internal</code>) to avoid the .local limitation on modern clients. NovaCrestBank chooses <code>novacrestbank.internal</code> for operational simplicity — it is a bank data center with no end-user devices, not a corporate desktop environment where .local limitations matter.
     </div>
   </div>
 </div>
@@ -531,8 +531,8 @@
   <h2>DC1 and DC2 specifications</h2>
   <div class="grid-2">
     <div class="card">
-      <h3>DC1 — dc01.novacrestbank.local</h3>
-      <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">dc01.novacrestbank.local</span></div>
+      <h3>DC1 — dc01.novacrestbank.internal</h3>
+      <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">dc01.novacrestbank.internal</span></div>
       <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">DC01</span></div>
       <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.10 / 255.255.255.0</span></div>
       <div class="spec-row"><span class="spec-label">Default gateway</span><span class="spec-val">10.70.0.1 (leaf01 VLAN 70 SVI)</span></div>
@@ -542,8 +542,8 @@
       <div class="spec-row"><span class="spec-label">Deployed on ESXi host</span><span class="spec-val">esxi01 (10.10.0.11)</span></div>
     </div>
     <div class="card">
-      <h3>DC2 — dc02.novacrestbank.local</h3>
-      <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">dc02.novacrestbank.local</span></div>
+      <h3>DC2 — dc02.novacrestbank.internal</h3>
+      <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">dc02.novacrestbank.internal</span></div>
       <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">DC02</span></div>
       <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.11 / 255.255.255.0</span></div>
       <div class="spec-row"><span class="spec-label">Default gateway</span><span class="spec-val">10.70.0.1</span></div>
@@ -659,7 +659,7 @@
 
   <h2>Step 2 — Name and folder</h2>
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
-    <div>VM name:   <strong style="color:var(--win-blue);">dc01.novacrestbank.local</strong></div>
+    <div>VM name:   <strong style="color:var(--win-blue);">dc01.novacrestbank.internal</strong></div>
     <div style="margin-top:4px;color:#8090a0;"># Type this in the "Virtual machine name" field</div>
     <div style="margin-top:8px;color:#8090a0;"># Folder: leave as NovaCrestBank-DC1 (the default datacenter folder)</div>
   </div>
@@ -693,7 +693,7 @@
   <div class="win-wizard">
     <div class="ww-header">
       <div class="ww-icon">⚙</div>
-      <div><div class="ww-title">Customize Hardware</div><div class="ww-sub">dc01.novacrestbank.local</div></div>
+      <div><div class="ww-title">Customize Hardware</div><div class="ww-sub">dc01.novacrestbank.internal</div></div>
     </div>
     <div class="ww-body" style="min-height:260px;">
       <div class="ww-content" style="padding:18px 24px;">
@@ -806,7 +806,7 @@
   </ul>
 
   <h2>Complete the VM creation wizard</h2>
-  <p>Click <strong>Next</strong> on the Customize Hardware screen. The <strong>Ready to complete</strong> screen shows a summary of the VM configuration. Review it — VM name dc01.novacrestbank.local, 2 vCPUs, 4 GB RAM, 60 GB disk on datastore1, VMXNET3 NIC on PG-VLAN70-Windows, ISO attached. Click <strong>Finish</strong>. The VM is created and appears in the cluster inventory.</p>
+  <p>Click <strong>Next</strong> on the Customize Hardware screen. The <strong>Ready to complete</strong> screen shows a summary of the VM configuration. Review it — VM name dc01.novacrestbank.internal, 2 vCPUs, 4 GB RAM, 60 GB disk on datastore1, VMXNET3 NIC on PG-VLAN70-Windows, ISO attached. Click <strong>Finish</strong>. The VM is created and appears in the cluster inventory.</p>
 </div>
 
 <!-- ══════ 08 WS BOOT ══════ -->
@@ -820,7 +820,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">Power on DC1 — right-click the VM → Power → Power On</div>
-        <p style="font-size:13.5px">In the vCenter inventory, right-click <strong>dc01.novacrestbank.local</strong>. Hover over <strong>Power</strong>. Click <strong>Power On</strong>. The VM powers on.</p>
+        <p style="font-size:13.5px">In the vCenter inventory, right-click <strong>dc01.novacrestbank.internal</strong>. Hover over <strong>Power</strong>. Click <strong>Power On</strong>. The VM powers on.</p>
       </div>
     </li>
     <li class="step-item">
@@ -851,7 +851,7 @@
   <div class="win-setup">
     <div class="win-setup-bar">
       <div class="wsd r"></div><div class="wsd y"></div><div class="wsd g"></div>
-      <span class="win-setup-label">Windows Setup — dc01.novacrestbank.local — vCenter Console</span>
+      <span class="win-setup-label">Windows Setup — dc01.novacrestbank.internal — vCenter Console</span>
     </div>
     <div class="win-setup-body">
       <div class="win-logo">Windows <span>Server 2022</span></div>
@@ -935,7 +935,7 @@
     <div class="decision-a"><strong>Because this guide is for learning — and GUI tools are the fastest way to build and understand Active Directory configuration for the first time.</strong><br/><br/>
     Server Core requires all AD DS configuration to be done via PowerShell and command-line tools. This is the production-hardened approach and reduces the attack surface (no GUI processes, no IE, no Windows Explorer). However, it requires familiarity with AD PowerShell cmdlets and has a steeper learning curve.<br/><br/>
     Desktop Experience provides: Server Manager (the central configuration hub), Active Directory Users and Computers (ADUC), DNS Manager, Active Directory Sites and Services, Group Policy Management — all with graphical interfaces. Every action in this guide can be seen, clicked, and verified visually.<br/><br/>
-    <strong>For NovaCrestBank in a production environment:</strong> Server Core is the correct long-term choice. After this guide series is complete and the candidate is comfortable with the concepts, the DCs should be rebuilt as Server Core and managed via Remote Server Administration Tools (RSAT) from a management workstation. For now, Desktop Experience is the right choice for learning.</div>
+    <strong>For NovaCrestBank in a production environment:</strong> Server Core is the correct long-term choice. After this guide series is complete and you would be comfortable with the concepts, the DCs should be rebuilt as Server Core and managed via Remote Server Administration Tools (RSAT) from a management workstation. For now, Desktop Experience is the right choice for learning.</div>
   </div>
 
   <p>Click <strong>Windows Server 2022 Standard (Desktop Experience)</strong> to highlight it. Click <strong>Next</strong>.</p>
@@ -1571,7 +1571,7 @@
         </div>
         <div class="ww-field" style="margin-top:16px;">
           <div class="ww-label">Root domain name <span style="color:#e05252;">*</span></div>
-          <div class="ww-input filled">novacrestbank.local</div>
+          <div class="ww-input filled">novacrestbank.internal</div>
         </div>
       </div>
     </div>
@@ -1587,19 +1587,19 @@
   <h2>What to select and type</h2>
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
     <div>Select:          <strong style="color:var(--win-blue);">Add a new forest</strong></div>
-    <div style="margin-top:4px;">Root domain name: <strong style="color:var(--win-blue);">novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">Root domain name: <strong style="color:var(--win-blue);">novacrestbank.internal</strong></div>
   </div>
 
   <div class="decision">
     <div class="decision-label">Why "Add a new forest" — not "Add a domain controller to an existing domain"</div>
     <div class="decision-q">There are three options. Why "Add a new forest"?</div>
     <div class="decision-a"><strong>Because this is the first Domain Controller in NovaCrestBank's environment — there is no existing domain or forest to join.</strong><br/><br/>
-    "Add a domain controller to an existing domain" — used for DC2, which joins the already-existing <code>novacrestbank.local</code> domain.<br/>
-    "Add a new domain to an existing forest" — used in multi-domain forests (e.g., adding a <code>europe.novacrestbank.local</code> child domain).<br/>
+    "Add a domain controller to an existing domain" — used for DC2, which joins the already-existing <code>novacrestbank.internal</code> domain.<br/>
+    "Add a new domain to an existing forest" — used in multi-domain forests (e.g., adding a <code>europe.novacrestbank.internal</code> child domain).<br/>
     "Add a new forest" — creates everything from scratch: the forest, the first domain, and the first DC in one operation. This is the correct choice for DC1, the founding DC of a new environment.</div>
   </div>
 
-  <p>Select <strong>Add a new forest</strong>. In the "Root domain name" field type <strong>novacrestbank.local</strong>. Click <strong>Next</strong>.</p>
+  <p>Select <strong>Add a new forest</strong>. In the "Root domain name" field type <strong>novacrestbank.internal</strong>. Click <strong>Next</strong>.</p>
 </div>
 
 <!-- ══════ 24-25 PROMOTE OPTIONS ══════ -->
@@ -1607,7 +1607,7 @@
   <div class="ey">Windows Server · Win-01 · Section 24</div>
   <div class="pt">Domain name confirmed — proceeding to DC options</div>
   <div class="ps">After typing the domain name and clicking Next, the wizard validates the name and proceeds to Domain Controller Options</div>
-  <p>After clicking Next on the Deployment Configuration screen, the wizard briefly validates the domain name <code>novacrestbank.local</code> (checking it is a valid DNS name format). It then advances to the Domain Controller Options screen — covered in Section 25.</p>
+  <p>After clicking Next on the Deployment Configuration screen, the wizard briefly validates the domain name <code>novacrestbank.internal</code> (checking it is a valid DNS name format). It then advances to the Domain Controller Options screen — covered in Section 25.</p>
 </div>
 
 <div class="page" id="page-promote-options">
@@ -1709,7 +1709,7 @@
       <div class="ww-content">
         <div class="ww-section-title">DNS Options</div>
         <div class="ww-warn-box">
-          ⚠ A delegation for this DNS server cannot be created because the authoritative parent zone cannot be found or it does not run Windows DNS server. If you are integrating with an existing DNS infrastructure, you should manually create a delegation to this DNS server in the parent zone to ensure reliable name resolution from outside the domain "novacrestbank.local".
+          ⚠ A delegation for this DNS server cannot be created because the authoritative parent zone cannot be found or it does not run Windows DNS server. If you are integrating with an existing DNS infrastructure, you should manually create a delegation to this DNS server in the parent zone to ensure reliable name resolution from outside the domain "novacrestbank.internal".
         </div>
         <div class="ww-text" style="margin-top:12px;">You can specify DNS delegation options below.</div>
         <div class="ww-checkbox">
@@ -1731,7 +1731,7 @@
     <div class="decision-label">The yellow DNS delegation warning — why it appears and what to do</div>
     <div class="decision-q">The wizard shows a yellow warning about DNS delegation. Is this a problem?</div>
     <div class="decision-a"><strong>No — this warning is expected and correct for NovaCrestBank's design. Leave "Create DNS delegation" unticked and click Next.</strong><br/><br/>
-    DNS delegation means: in the parent DNS zone (the zone above "novacrestbank.local" — which would be the ".local" top-level domain or the public DNS zone for "novacrestbank.com"), there would be an NS record pointing to DC01 as the authoritative DNS server for the "novacrestbank.local" subdomain.<br/><br/>
+    DNS delegation means: in the parent DNS zone (the zone above "novacrestbank.internal" — which would be the ".local" top-level domain or the public DNS zone for "novacrestbank.com"), there would be an NS record pointing to DC01 as the authoritative DNS server for the "novacrestbank.internal" subdomain.<br/><br/>
     For NovaCrestBank's internal domain, there is no parent zone to delegate from: ".local" is not a real internet TLD and has no DNS zone anywhere. The warning is the wizard saying "I tried to find a parent zone to create a delegation in, and I couldn't find one." For an internal-only .local domain, this is the correct and expected result. The delegation is not needed — all internal clients will be configured to use DC01 (10.70.0.10) as their DNS server directly, without needing to traverse any delegation chain.</div>
   </div>
 
@@ -1755,7 +1755,7 @@
         <div class="ww-field">
           <div class="ww-label">The NetBIOS domain name</div>
           <div class="ww-input filled">NOVACRESTBANK</div>
-          <div class="vc-hint">Automatically derived from "novacrestbank.local" — truncated to 15 characters, uppercased.</div>
+          <div class="vc-hint">Automatically derived from "novacrestbank.internal" — truncated to 15 characters, uppercased.</div>
         </div>
         <div class="ww-text" style="margin-top:10px;font-size:12.5px;color:#5a5a5a;">The NetBIOS domain name is used by older clients and applications for authentication. It appears in domain login prompts as the domain prefix: NOVACRESTBANK\username.</div>
       </div>
@@ -1833,7 +1833,7 @@
   <p>The wizard shows a summary of all the choices made. Verify:</p>
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;background:var(--bg3);">
     <div>Operation:              <strong style="color:var(--win-blue);">Install a new Active Directory forest</strong></div>
-    <div style="margin-top:4px;">Domain name:            <strong style="color:var(--win-blue);">novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">Domain name:            <strong style="color:var(--win-blue);">novacrestbank.internal</strong></div>
     <div style="margin-top:4px;">Forest functional level: <strong style="color:var(--win-blue);">Windows Server 2016</strong></div>
     <div style="margin-top:4px;">Domain functional level: <strong style="color:var(--win-blue);">Windows Server 2016</strong></div>
     <div style="margin-top:4px;">Domain controller type:  <strong style="color:var(--win-blue);">DNS server, Global Catalog</strong></div>
@@ -1887,7 +1887,7 @@
   <ul>
     <li><em>Configuring Active Directory Domain Services...</em></li>
     <li><em>Creating the NTDS database...</em></li>
-    <li><em>Creating DNS zones for novacrestbank.local...</em></li>
+    <li><em>Creating DNS zones for novacrestbank.internal...</em></li>
     <li><em>Configuring SYSVOL share...</em></li>
     <li><em>Configuring service settings...</em></li>
   </ul>
@@ -1895,7 +1895,7 @@
 
   <div class="callout success">
     <div class="cl">After the reboot — DC01 is a Domain Controller</div>
-    After the reboot, DC01 logs in differently. The login screen shows: <strong>NOVACRESTBANK\Administrator</strong> at the top — the domain prefix appears. The server is now a Domain Controller for the novacrestbank.local domain. Log in with the domain Administrator credentials: username <code>Administrator</code> or <code>NOVACRESTBANK\Administrator</code>, password <code>NovaCrest$Domain2026!</code>. Note: after promotion, the local Administrator account and the domain Administrator account share the same password (they are the same account — the domain Administrator account was created from the local Administrator account during promotion).
+    After the reboot, DC01 logs in differently. The login screen shows: <strong>NOVACRESTBANK\Administrator</strong> at the top — the domain prefix appears. The server is now a Domain Controller for the novacrestbank.internal domain. Log in with the domain Administrator credentials: username <code>Administrator</code> or <code>NOVACRESTBANK\Administrator</code>, password <code>NovaCrest$Domain2026!</code>. Note: after promotion, the local Administrator account and the domain Administrator account share the same password (they are the same account — the domain Administrator account was created from the local Administrator account during promotion).
   </div>
 </div>
 
@@ -1924,7 +1924,7 @@
       <div class="step-num">3</div>
       <div class="step-content">
         <div class="step-title">Open Active Directory Users and Computers</div>
-        <p style="font-size:13.5px">In Server Manager, click <strong>Tools</strong> in the top menu bar. A dropdown list appears showing all the admin tools. Click <strong>Active Directory Users and Computers</strong>. A window opens showing the AD domain tree. You should see: <strong>novacrestbank.local</strong> at the top, with child containers including: Builtin, Computers, Domain Controllers, ForeignSecurityPrincipals, Users. Under Domain Controllers, you see <strong>DC01</strong> listed. This confirms AD DS is functioning.</p>
+        <p style="font-size:13.5px">In Server Manager, click <strong>Tools</strong> in the top menu bar. A dropdown list appears showing all the admin tools. Click <strong>Active Directory Users and Computers</strong>. A window opens showing the AD domain tree. You should see: <strong>novacrestbank.internal</strong> at the top, with child containers including: Builtin, Computers, Domain Controllers, ForeignSecurityPrincipals, Users. Under Domain Controllers, you see <strong>DC01</strong> listed. This confirms AD DS is functioning.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1933,22 +1933,22 @@
         <div class="step-title">Verify DNS is working — open a Command Prompt and test</div>
         <div class="psh" style="margin-top:8px;">
           <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">Command Prompt — DC01</span></div>
-          <div class="psh-body"><pre><span class="pp">C:\Users\Administrator></span> <span class="pc">nslookup novacrestbank.local</span>
-<span class="ps">Server:  dc01.novacrestbank.local
+          <div class="psh-body"><pre><span class="pp">C:\Users\Administrator></span> <span class="pc">nslookup novacrestbank.internal</span>
+<span class="ps">Server:  dc01.novacrestbank.internal
 Address:  127.0.0.1
 
-Name:    novacrestbank.local
+Name:    novacrestbank.internal
 Address:  10.70.0.10</span>
 <span class="pd">
 ↑ DNS is resolving the domain name to DC01's IP ✓
   The DNS server is dc01 itself (127.0.0.1)
-  The domain novacrestbank.local resolves to 10.70.0.10</span>
+  The domain novacrestbank.internal resolves to 10.70.0.10</span>
 
-<span class="pp">C:\Users\Administrator></span> <span class="pc">nslookup dc01.novacrestbank.local</span>
-<span class="ps">Server:  dc01.novacrestbank.local
+<span class="pp">C:\Users\Administrator></span> <span class="pc">nslookup dc01.novacrestbank.internal</span>
+<span class="ps">Server:  dc01.novacrestbank.internal
 Address:  127.0.0.1
 
-Name:    dc01.novacrestbank.local
+Name:    dc01.novacrestbank.internal
 Address:  10.70.0.10</span>
 <span class="pd">↑ DC01's A record resolves correctly ✓</span></pre>
           </div>
@@ -1984,11 +1984,11 @@ Address:  10.70.0.10</span>
           <div class="win-mgr-body">
             <div class="win-mgr-section">Forward Lookup Zones</div>
             <div class="win-mgr-row">
-              <span class="win-mgr-label">📁 _msdcs.novacrestbank.local</span>
+              <span class="win-mgr-label">📁 _msdcs.novacrestbank.internal</span>
               <span class="win-mgr-val ok">Active Directory-Integrated · Primary</span>
             </div>
             <div class="win-mgr-row">
-              <span class="win-mgr-label">📁 novacrestbank.local</span>
+              <span class="win-mgr-label">📁 novacrestbank.internal</span>
               <span class="win-mgr-val ok">Active Directory-Integrated · Primary</span>
             </div>
           </div>
@@ -1998,10 +1998,10 @@ Address:  10.70.0.10</span>
   </ul>
 
   <div class="decision">
-    <div class="decision-label">Why there are two zones — what _msdcs.novacrestbank.local is</div>
-    <div class="decision-q">Two DNS zones were created. What is _msdcs.novacrestbank.local and why does it exist?</div>
+    <div class="decision-label">Why there are two zones — what _msdcs.novacrestbank.internal is</div>
+    <div class="decision-q">Two DNS zones were created. What is _msdcs.novacrestbank.internal and why does it exist?</div>
     <div class="decision-a"><strong>_msdcs (Microsoft Domain Controller Services) is a special DNS zone that Windows clients use to locate domain controllers and global catalog servers.</strong><br/><br/>
-    When a Windows computer needs to authenticate, it does not know which server is a DC by IP — it asks DNS. Specifically, it queries for SRV records in the _msdcs zone: <code>_ldap._tcp._msdcs.novacrestbank.local</code> returns the list of DCs. <code>_kerberos._tcp._msdcs.novacrestbank.local</code> returns the DCs that offer Kerberos. These SRV records are created automatically when AD DS is promoted and are updated automatically when DCs are added or removed.<br/><br/>
+    When a Windows computer needs to authenticate, it does not know which server is a DC by IP — it asks DNS. Specifically, it queries for SRV records in the _msdcs zone: <code>_ldap._tcp._msdcs.novacrestbank.internal</code> returns the list of DCs. <code>_kerberos._tcp._msdcs.novacrestbank.internal</code> returns the DCs that offer Kerberos. These SRV records are created automatically when AD DS is promoted and are updated automatically when DCs are added or removed.<br/><br/>
     The _msdcs zone being AD-integrated means it replicates between DC1 and DC2 automatically — no manual zone transfer configuration needed. If DC1 is unavailable, clients query DC2's DNS and still find the SRV records they need.</div>
   </div>
 
@@ -2024,15 +2024,15 @@ Address:  10.70.0.10</span>
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">In DNS Manager, right-click "novacrestbank.local" → New Host (A or AAAA)</div>
-        <p style="font-size:13.5px">In DNS Manager, expand <strong>Forward Lookup Zones</strong> → click <strong>novacrestbank.local</strong>. The right panel shows existing records (SOA, NS, and a few auto-created A records for DC01). Right-click <strong>novacrestbank.local</strong> in the left panel. Click <strong>New Host (A or AAAA)...</strong>. A dialog opens with two fields: Name and IP address.</p>
+        <div class="step-title">In DNS Manager, right-click "novacrestbank.internal" → New Host (A or AAAA)</div>
+        <p style="font-size:13.5px">In DNS Manager, expand <strong>Forward Lookup Zones</strong> → click <strong>novacrestbank.internal</strong>. The right panel shows existing records (SOA, NS, and a few auto-created A records for DC01). Right-click <strong>novacrestbank.internal</strong> in the left panel. Click <strong>New Host (A or AAAA)...</strong>. A dialog opens with two fields: Name and IP address.</p>
       </div>
     </li>
     <li class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
         <div class="step-title">Fill in the name and IP — click "Add Host" — repeat for each record</div>
-        <p style="font-size:13.5px">Type the hostname (short name — not the full FQDN) in the Name field and the IP address in the IP address field. Click <strong>Add Host</strong>. A dialog says "The host record dc01.novacrestbank.local was successfully created." Click <strong>OK</strong>. The record appears in the zone. Repeat for each entry in the table below.</p>
+        <p style="font-size:13.5px">Type the hostname (short name — not the full FQDN) in the Name field and the IP address in the IP address field. Click <strong>Add Host</strong>. A dialog says "The host record dc01.novacrestbank.internal was successfully created." Click <strong>OK</strong>. The record appears in the zone. Repeat for each entry in the table below.</p>
       </div>
     </li>
   </ul>
@@ -2041,20 +2041,20 @@ Address:  10.70.0.10</span>
   <table>
     <thead><tr><th>Name (short)</th><th>IP address</th><th>FQDN result</th><th>What this is</th></tr></thead>
     <tbody>
-      <tr><td><code>vcenter</code></td><td>10.10.0.100</td><td>vcenter.novacrestbank.local</td><td>vCenter Server Appliance</td></tr>
-      <tr><td><code>esxi01</code></td><td>10.10.0.11</td><td>esxi01.novacrestbank.local</td><td>ESXi host 1</td></tr>
-      <tr><td><code>esxi02</code></td><td>10.10.0.12</td><td>esxi02.novacrestbank.local</td><td>ESXi host 2</td></tr>
-      <tr><td><code>esxi03</code></td><td>10.10.0.13</td><td>esxi03.novacrestbank.local</td><td>ESXi host 3</td></tr>
-      <tr><td><code>esxi04</code></td><td>10.10.0.14</td><td>esxi04.novacrestbank.local</td><td>ESXi host 4</td></tr>
-      <tr><td><code>esxi05</code></td><td>10.10.0.15</td><td>esxi05.novacrestbank.local</td><td>ESXi host 5</td></tr>
-      <tr><td><code>dc01</code></td><td>10.70.0.10</td><td>dc01.novacrestbank.local</td><td>DC1 (auto-created — verify it exists)</td></tr>
-      <tr><td><code>dc02</code></td><td>10.70.0.11</td><td>dc02.novacrestbank.local</td><td>DC2 (add now — server built shortly)</td></tr>
-      <tr><td><code>issuingca</code></td><td>10.70.0.21</td><td>issuingca.novacrestbank.local</td><td>AD CS Issuing CA (built in Win-04)</td></tr>
-      <tr><td><code>spine01</code></td><td>10.40.0.10</td><td>spine01.novacrestbank.local</td><td>Nexus 9504 spine 1</td></tr>
-      <tr><td><code>spine02</code></td><td>10.40.0.11</td><td>spine02.novacrestbank.local</td><td>Nexus 9504 spine 2</td></tr>
-      <tr><td><code>leaf01</code></td><td>10.40.0.20</td><td>leaf01.novacrestbank.local</td><td>Nexus leaf 1</td></tr>
-      <tr><td><code>leaf02</code></td><td>10.40.0.21</td><td>leaf02.novacrestbank.local</td><td>Nexus leaf 2</td></tr>
-      <tr><td><code>leaf03</code></td><td>10.40.0.22</td><td>leaf03.novacrestbank.local</td><td>Nexus leaf 3</td></tr>
+      <tr><td><code>vcenter</code></td><td>10.10.0.100</td><td>vcenter.novacrestbank.internal</td><td>vCenter Server Appliance</td></tr>
+      <tr><td><code>esxi01</code></td><td>10.10.0.11</td><td>esxi01.novacrestbank.internal</td><td>ESXi host 1</td></tr>
+      <tr><td><code>esxi02</code></td><td>10.10.0.12</td><td>esxi02.novacrestbank.internal</td><td>ESXi host 2</td></tr>
+      <tr><td><code>esxi03</code></td><td>10.10.0.13</td><td>esxi03.novacrestbank.internal</td><td>ESXi host 3</td></tr>
+      <tr><td><code>esxi04</code></td><td>10.10.0.14</td><td>esxi04.novacrestbank.internal</td><td>ESXi host 4</td></tr>
+      <tr><td><code>esxi05</code></td><td>10.10.0.15</td><td>esxi05.novacrestbank.internal</td><td>ESXi host 5</td></tr>
+      <tr><td><code>dc01</code></td><td>10.70.0.10</td><td>dc01.novacrestbank.internal</td><td>DC1 (auto-created — verify it exists)</td></tr>
+      <tr><td><code>dc02</code></td><td>10.70.0.11</td><td>dc02.novacrestbank.internal</td><td>DC2 (add now — server built shortly)</td></tr>
+      <tr><td><code>issuingca</code></td><td>10.70.0.21</td><td>issuingca.novacrestbank.internal</td><td>AD CS Issuing CA (built in Win-04)</td></tr>
+      <tr><td><code>spine01</code></td><td>10.40.0.10</td><td>spine01.novacrestbank.internal</td><td>Nexus 9504 spine 1</td></tr>
+      <tr><td><code>spine02</code></td><td>10.40.0.11</td><td>spine02.novacrestbank.internal</td><td>Nexus 9504 spine 2</td></tr>
+      <tr><td><code>leaf01</code></td><td>10.40.0.20</td><td>leaf01.novacrestbank.internal</td><td>Nexus leaf 1</td></tr>
+      <tr><td><code>leaf02</code></td><td>10.40.0.21</td><td>leaf02.novacrestbank.internal</td><td>Nexus leaf 2</td></tr>
+      <tr><td><code>leaf03</code></td><td>10.40.0.22</td><td>leaf03.novacrestbank.internal</td><td>Nexus leaf 3</td></tr>
     </tbody>
   </table>
 
@@ -2211,7 +2211,7 @@ Poll Interval: 17 (131072s)</span>
 
   <div class="callout warn">
     <div class="cl">DC2 must point to DC1 for DNS BEFORE joining the domain</div>
-    When DC2 is a standalone server and you set its DNS to 10.70.0.10 (DC1), DC2 can resolve novacrestbank.local DNS queries — which is required for domain join. If DC2 points to itself (127.0.0.1) before promotion, there is no DNS server running on DC2 yet and name resolution fails. The order is: set DNS to DC1 → join domain → promote to DC → then change DNS to prefer itself.
+    When DC2 is a standalone server and you set its DNS to 10.70.0.10 (DC1), DC2 can resolve novacrestbank.internal DNS queries — which is required for domain join. If DC2 points to itself (127.0.0.1) before promotion, there is no DNS server running on DC2 yet and name resolution fails. The order is: set DNS to DC1 → join domain → promote to DC → then change DNS to prefer itself.
   </div>
 
   <p>Follow Sections 04–13 for DC2, substituting the DC2-specific values above. When DC2 has Windows Server installed, renamed to DC02, IP set to 10.70.0.11, and DNS pointing to 10.70.0.10 — proceed to Section 37 to join it to the domain.</p>
@@ -2220,7 +2220,7 @@ Poll Interval: 17 (131072s)</span>
 <!-- ══════ 37 DC2 JOIN ══════ -->
 <div class="page" id="page-dc2-join">
   <div class="ey">Windows Server · Win-01 · Section 37</div>
-  <div class="pt">Join DC2 to the novacrestbank.local domain</div>
+  <div class="pt">Join DC2 to the novacrestbank.internal domain</div>
   <div class="ps">Before promoting DC2, it must join the domain as a member server — then be promoted to an additional DC</div>
 
   <ul class="step-list">
@@ -2234,7 +2234,7 @@ Poll Interval: 17 (131072s)</span>
     <li class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">Select "Domain" and type novacrestbank.local</div>
+        <div class="step-title">Select "Domain" and type novacrestbank.internal</div>
         <div class="win-wizard" style="margin-top:10px;">
           <div class="ww-header" style="padding:10px 16px;">
             <div class="ww-icon">💻</div>
@@ -2257,14 +2257,14 @@ Poll Interval: 17 (131072s)</span>
                     <div style="width:12px;height:12px;border-radius:50%;background:#0078d4;flex-shrink:0;"></div>
                     <strong>Domain:</strong>
                   </div>
-                  <div class="ww-input filled" style="margin-left:22px;">novacrestbank.local</div>
+                  <div class="ww-input filled" style="margin-left:22px;">novacrestbank.internal</div>
                 </div>
               </div>
             </div>
           </div>
           <div class="ww-footer"><div></div><div class="ww-footer-btns"><div class="ww-btn back">Cancel</div><div class="ww-btn next">OK</div></div></div>
         </div>
-        <p style="font-size:13.5px;margin-top:8px;">Select the <strong>Domain</strong> radio button. Type <strong>novacrestbank.local</strong> in the Domain field. Click <strong>OK</strong>. A credentials dialog appears: Windows needs domain admin credentials to authorise the join. Type <code>Administrator</code> and <code>NovaCrest$Domain2026!</code>. Click <strong>OK</strong>. A dialog says "Welcome to the novacrestbank.local domain." Click <strong>OK</strong>. Click <strong>OK</strong> on System Properties. Click <strong>Restart Now</strong>.</p>
+        <p style="font-size:13.5px;margin-top:8px;">Select the <strong>Domain</strong> radio button. Type <strong>novacrestbank.internal</strong> in the Domain field. Click <strong>OK</strong>. A credentials dialog appears: Windows needs domain admin credentials to authorise the join. Type <code>Administrator</code> and <code>NovaCrest$Domain2026!</code>. Click <strong>OK</strong>. A dialog says "Welcome to the novacrestbank.internal domain." Click <strong>OK</strong>. Click <strong>OK</strong> on System Properties. Click <strong>Restart Now</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -2303,11 +2303,11 @@ Poll Interval: 17 (131072s)</span>
         <div class="step-title">Deployment Configuration — "Add a domain controller to an existing domain"</div>
         <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;margin-top:8px;">
           <div>Select:          <strong style="color:var(--win-blue);">Add a domain controller to an existing domain</strong></div>
-          <div style="margin-top:4px;">Domain:          <strong style="color:var(--win-blue);">novacrestbank.local</strong>  (auto-filled from domain membership)</div>
+          <div style="margin-top:4px;">Domain:          <strong style="color:var(--win-blue);">novacrestbank.internal</strong>  (auto-filled from domain membership)</div>
           <div style="margin-top:4px;">Credentials:     <strong style="color:var(--win-blue);">NOVACRESTBANK\Administrator / NovaCrest$Domain2026!</strong></div>
           <div style="margin-top:4px;">                 Click "Change..." to supply credentials if not already filled</div>
         </div>
-        <p style="font-size:13.5px;margin-top:8px;">The domain field should be pre-filled with novacrestbank.local. Click <strong>Next</strong>.</p>
+        <p style="font-size:13.5px;margin-top:8px;">The domain field should be pre-filled with novacrestbank.internal. Click <strong>Next</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -2328,7 +2328,7 @@ Poll Interval: 17 (131072s)</span>
       <div class="step-num">4</div>
       <div class="step-content">
         <div class="step-title">Additional options — replicate from DC01</div>
-        <p style="font-size:13.5px">A screen asks "Specify the domain controller to replicate from." The dropdown shows "Any Domain Controller" or specifically DC01. Select <strong>DC01.novacrestbank.local</strong>. This ensures DC2 gets its initial AD database copy directly from DC1 — using a known-good source rather than any available DC (useful if there were multiple DCs with varying replication lag). Click <strong>Next</strong>.</p>
+        <p style="font-size:13.5px">A screen asks "Specify the domain controller to replicate from." The dropdown shows "Any Domain Controller" or specifically DC01. Select <strong>DC01.novacrestbank.internal</strong>. This ensures DC2 gets its initial AD database copy directly from DC1 — using a known-good source rather than any available DC (useful if there were multiple DCs with varying replication lag). Click <strong>Next</strong>.</p>
       </div>
     </li>
     <li class="step-item">
@@ -2374,8 +2374,8 @@ Poll Interval: 17 (131072s)</span>
 <span class="pg"> Zone name                            Type       Storage   Properties</span>
 
 <span class="pg"> .                                    Cache      RAM
- _msdcs.novacrestbank.local           Primary    AD-Forest  Secure
- novacrestbank.local                  Primary    AD-Domain  Secure</span>
+ _msdcs.novacrestbank.internal           Primary    AD-Forest  Secure
+ novacrestbank.internal                  Primary    AD-Domain  Secure</span>
 <span class="pd">
    ↑ Both DNS zones present on DC02 ✓
      Type: Primary, Storage: AD-Domain (AD-integrated) ✓
@@ -2384,16 +2384,16 @@ Poll Interval: 17 (131072s)</span>
 <span class="pd"># ── Verify FSMO roles remain on DC01 ─────────────────────────────────</span>
 <span class="pp">C:\></span> <span class="pc">netdom query fsmo</span>
 
-<span class="pg">Schema master               DC01.novacrestbank.local
-Domain naming master        DC01.novacrestbank.local
-PDC                         DC01.novacrestbank.local
-RID pool manager            DC01.novacrestbank.local
-Infrastructure master       DC01.novacrestbank.local</span>
+<span class="pg">Schema master               DC01.novacrestbank.internal
+Domain naming master        DC01.novacrestbank.internal
+PDC                         DC01.novacrestbank.internal
+RID pool manager            DC01.novacrestbank.internal
+Infrastructure master       DC01.novacrestbank.internal</span>
 <span class="pg">The command completed successfully.</span>
 <span class="pd">
    ↑ All 5 FSMO roles are on DC01 ✓ — as expected
      DC02 promotion does not move FSMO roles</span></pre>
-      <div class="pann ok"><span class="pai">✓</span><span>AD replication is healthy (0 failures). Both DNS zones are present on DC02 and are AD-integrated (replicated automatically). FSMO roles remain on DC01. DC1 and DC2 are both functioning domain controllers for novacrestbank.local.</span></div>
+      <div class="pann ok"><span class="pai">✓</span><span>AD replication is healthy (0 failures). Both DNS zones are present on DC02 and are AD-integrated (replicated automatically). FSMO roles remain on DC01. DC1 and DC2 are both functioning domain controllers for novacrestbank.internal.</span></div>
     </div>
   </div>
 </div>
@@ -2406,19 +2406,19 @@ Infrastructure master       DC01.novacrestbank.local</span>
 
   <div class="callout success">
     <div class="cl">Win-01 complete — the identity fabric is in place</div>
-    DC1 and DC2 are both running. novacrestbank.local domain is established. DNS is AD-integrated and replicating. NTP is configured with DC1 as stratum 2. AD Sites and Services reflects the physical topology. All infrastructure A records and PTR records are in DNS. FSMO roles are on DC1. Replication between DC1 and DC2 is healthy.
+    DC1 and DC2 are both running. novacrestbank.internal domain is established. DNS is AD-integrated and replicating. NTP is configured with DC1 as stratum 2. AD Sites and Services reflects the physical topology. All infrastructure A records and PTR records are in DNS. FSMO roles are on DC1. Replication between DC1 and DC2 is healthy.
   </div>
 
   <h2>Verification checklist — all items before handoff</h2>
   <div class="card">
     <div class="spec-row"><span class="spec-label">DC01 accessible at 10.70.0.10</span><span class="spec-val badge bg">✓ Ping responds</span></div>
     <div class="spec-row"><span class="spec-label">DC02 accessible at 10.70.0.11</span><span class="spec-val badge bg">✓ Ping responds</span></div>
-    <div class="spec-row"><span class="spec-label">Domain: novacrestbank.local</span><span class="spec-val badge bg">✓ Visible in ADUC</span></div>
+    <div class="spec-row"><span class="spec-label">Domain: novacrestbank.internal</span><span class="spec-val badge bg">✓ Visible in ADUC</span></div>
     <div class="spec-row"><span class="spec-label">DC01 in Domain Controllers OU</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">DC02 in Domain Controllers OU</span><span class="spec-val badge bg">✓</span></div>
-    <div class="spec-row"><span class="spec-label">DNS zone: novacrestbank.local (AD-integrated)</span><span class="spec-val badge bg">✓ On both DCs</span></div>
-    <div class="spec-row"><span class="spec-label">DNS zone: _msdcs.novacrestbank.local</span><span class="spec-val badge bg">✓ On both DCs</span></div>
-    <div class="spec-row"><span class="spec-label">A record: vcenter.novacrestbank.local → 10.10.0.100</span><span class="spec-val badge bg">✓ Resolves</span></div>
+    <div class="spec-row"><span class="spec-label">DNS zone: novacrestbank.internal (AD-integrated)</span><span class="spec-val badge bg">✓ On both DCs</span></div>
+    <div class="spec-row"><span class="spec-label">DNS zone: _msdcs.novacrestbank.internal</span><span class="spec-val badge bg">✓ On both DCs</span></div>
+    <div class="spec-row"><span class="spec-label">A record: vcenter.novacrestbank.internal → 10.10.0.100</span><span class="spec-val badge bg">✓ Resolves</span></div>
     <div class="spec-row"><span class="spec-label">A records: all ESXi hosts (esxi01–05)</span><span class="spec-val badge bg">✓ Created</span></div>
     <div class="spec-row"><span class="spec-label">All subnets added to NovaCrestBank-London-DC1 site</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">NTP: DC01 stratum 2 (w32tm /query /status)</span><span class="spec-val badge bg">✓ Syncing to internet</span></div>
@@ -2436,7 +2436,7 @@ Infrastructure master       DC01.novacrestbank.local</span>
       <tr><td><strong>Win-02 — DHCP</strong></td><td>Configure DHCP scopes for all VLANs on DC1. DHCP options include DNS server (DC1/DC2), default gateway per VLAN, NTP server.</td><td>VMs need IP addresses. Without DHCP, every VM must be manually configured with a static IP before it can communicate.</td></tr>
       <tr><td><strong>Win-03 — Root CA</strong></td><td>Build the offline Root CA VM. Configure certificate policy. Issue the Issuing CA certificate. Power off Root CA permanently.</td><td>The PKI chain starts here. No certificates can be issued until the Root CA signs the Issuing CA.</td></tr>
       <tr><td><strong>Win-04 — Issuing CA</strong></td><td>Online subordinate CA. Configure certificate templates. Enable auto-enrolment.</td><td>The Issuing CA is what signs vCenter certificates, ESXi certificates, and OCP wildcard certificates.</td></tr>
-      <tr><td><strong>vSphere-03 — vCenter AD integration</strong></td><td>Join vCenter to novacrestbank.local. Map AD groups to vCenter roles. Replace self-signed TLS certs with AD CS-signed certs.</td><td>Requires both DC1/DC2 (for LDAP) and the Issuing CA (for certificates) to be operational first.</td></tr>
+      <tr><td><strong>vSphere-03 — vCenter AD integration</strong></td><td>Join vCenter to novacrestbank.internal. Map AD groups to vCenter roles. Replace self-signed TLS certs with AD CS-signed certs.</td><td>Requires both DC1/DC2 (for LDAP) and the Issuing CA (for certificates) to be operational first.</td></tr>
     </tbody>
   </table>
 </div>

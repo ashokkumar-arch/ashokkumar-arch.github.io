@@ -1458,7 +1458,7 @@ vmnic5 Up 25000Mbit</span>
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">In vCenter — right-click the vCenter VM → Migrate</div>
-        <p style="font-size:13.5px">In the Hosts and Clusters view, find <strong>vcenter.novacrestbank.local</strong> (it is under esxi01). Right-click it. Click <strong>Migrate</strong>. The Migrate wizard opens.</p>
+        <p style="font-size:13.5px">In the Hosts and Clusters view, find <strong>vcenter.novacrestbank.internal</strong> (it is under esxi01). Right-click it. Click <strong>Migrate</strong>. The Migrate wizard opens.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1486,14 +1486,14 @@ vmnic5 Up 25000Mbit</span>
       <div class="step-num">5</div>
       <div class="step-content">
         <div class="step-title">Watch the Tasks panel — migration completes in under 30 seconds</div>
-        <p style="font-size:13.5px">The Tasks panel at the bottom shows the migration progress: "Relocating vcenter.novacrestbank.local" with a percentage progress bar. For the vCenter VM (with approximately 12–20 GB RAM), the migration completes in approximately 15–30 seconds on a 25G vMotion link. The vSphere Client may briefly show a "Connection lost" state during the final VM pause (typically under 1 second). After migration, the Tasks panel shows "Completed successfully." The vCenter VM is now running on esxi02.</p>
+        <p style="font-size:13.5px">The Tasks panel at the bottom shows the migration progress: "Relocating vcenter.novacrestbank.internal" with a percentage progress bar. For the vCenter VM (with approximately 12–20 GB RAM), the migration completes in approximately 15–30 seconds on a 25G vMotion link. The vSphere Client may briefly show a "Connection lost" state during the final VM pause (typically under 1 second). After migration, the Tasks panel shows "Completed successfully." The vCenter VM is now running on esxi02.</p>
       </div>
     </li>
     <li class="step-item">
       <div class="step-num">6</div>
       <div class="step-content">
         <div class="step-title">Verify vCenter is accessible at the same IP after migration</div>
-        <p style="font-size:13.5px">Open a new browser tab to <strong>https://vcenter.novacrestbank.local/ui</strong>. The vSphere Client loads immediately — proving vCenter's IP (10.10.0.100) is reachable on its new host (esxi02). The vCenter VM's summary tab shows it is now on esxi02. vMotion is fully operational.</p>
+        <p style="font-size:13.5px">Open a new browser tab to <strong>https://vcenter.novacrestbank.internal/ui</strong>. The vSphere Client loads immediately — proving vCenter's IP (10.10.0.100) is reachable on its new host (esxi02). The vCenter VM's summary tab shows it is now on esxi02. vMotion is fully operational.</p>
       </div>
     </li>
   </ul>

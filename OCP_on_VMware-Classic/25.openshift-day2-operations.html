@@ -227,7 +227,7 @@
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — daily morning health check script</span>
+      <span class="ttt">jumphost.novacrestbank.internal — daily morning health check script</span>
     </div>
     <div class="tb"><pre><span class="td">#!/bin/bash
 # NovaCrestBank OCP Daily Health Check
@@ -239,15 +239,15 @@
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">echo "=== NODE STATUS ===" && oc get nodes</span>
 <span class="tw">=== NODE STATUS ===</span>
 <span class="tw">NAME                              STATUS   ROLES    AGE    VERSION</span>
-<span class="tg">master01.ocp.novacrestbank.local  Ready    master   45d    v1.28.7+2bab981</span>
-<span class="tg">master02.ocp.novacrestbank.local  Ready    master   45d    v1.28.7+2bab981</span>
-<span class="tg">master03.ocp.novacrestbank.local  Ready    master   45d    v1.28.7+2bab981</span>
-<span class="tg">infra01.ocp.novacrestbank.local   Ready    infra    45d    v1.28.7+2bab981</span>
-<span class="tg">infra02.ocp.novacrestbank.local   Ready    infra    45d    v1.28.7+2bab981</span>
-<span class="tg">infra03.ocp.novacrestbank.local   Ready    infra    45d    v1.28.7+2bab981</span>
-<span class="tg">worker01.ocp.novacrestbank.local  Ready    worker   45d    v1.28.7+2bab981</span>
-<span class="tg">worker02.ocp.novacrestbank.local  Ready    worker   45d    v1.28.7+2bab981</span>
-<span class="tg">worker03.ocp.novacrestbank.local  Ready    worker   45d    v1.28.7+2bab981</span>
+<span class="tg">master01.ocp.novacrestbank.internal  Ready    master   45d    v1.28.7+2bab981</span>
+<span class="tg">master02.ocp.novacrestbank.internal  Ready    master   45d    v1.28.7+2bab981</span>
+<span class="tg">master03.ocp.novacrestbank.internal  Ready    master   45d    v1.28.7+2bab981</span>
+<span class="tg">infra01.ocp.novacrestbank.internal   Ready    infra    45d    v1.28.7+2bab981</span>
+<span class="tg">infra02.ocp.novacrestbank.internal   Ready    infra    45d    v1.28.7+2bab981</span>
+<span class="tg">infra03.ocp.novacrestbank.internal   Ready    infra    45d    v1.28.7+2bab981</span>
+<span class="tg">worker01.ocp.novacrestbank.internal  Ready    worker   45d    v1.28.7+2bab981</span>
+<span class="tg">worker02.ocp.novacrestbank.internal  Ready    worker   45d    v1.28.7+2bab981</span>
+<span class="tg">worker03.ocp.novacrestbank.internal  Ready    worker   45d    v1.28.7+2bab981</span>
 <span class="td">         ↑ All 9 nodes Ready. No NotReady = healthy morning start ✓</span>
 
 <span class="td"># ── 2. Any cluster operators degraded? ────────────────────────────</span>
@@ -303,14 +303,14 @@
 <span class="td"># ── 7. Node resource usage ────────────────────────────────────────</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm top nodes</span>
 <span class="tw">NAME                              CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%</span>
-<span class="tg">master01.ocp.novacrestbank.local  382m         4%     14862Mi         46%</span>
-<span class="tg">master02.ocp.novacrestbank.local  401m         5%     15203Mi         47%</span>
-<span class="tg">master03.ocp.novacrestbank.local  389m         4%     14991Mi         46%</span>
-<span class="tg">infra01.ocp.novacrestbank.local   1204m        7%     38427Mi         60%</span>
-<span class="ty">infra02.ocp.novacrestbank.local   2891m        18%    52841Mi         82%</span>   <span class="td">← memory at 82% — watch this</span>
-<span class="tg">worker01.ocp.novacrestbank.local  891m         5%     28234Mi         44%</span>
-<span class="tg">worker02.ocp.novacrestbank.local  1203m        7%     31492Mi         49%</span>
-<span class="tg">worker03.ocp.novacrestbank.local  987m         6%     29871Mi         46%</span>
+<span class="tg">master01.ocp.novacrestbank.internal  382m         4%     14862Mi         46%</span>
+<span class="tg">master02.ocp.novacrestbank.internal  401m         5%     15203Mi         47%</span>
+<span class="tg">master03.ocp.novacrestbank.internal  389m         4%     14991Mi         46%</span>
+<span class="tg">infra01.ocp.novacrestbank.internal   1204m        7%     38427Mi         60%</span>
+<span class="ty">infra02.ocp.novacrestbank.internal   2891m        18%    52841Mi         82%</span>   <span class="td">← memory at 82% — watch this</span>
+<span class="tg">worker01.ocp.novacrestbank.internal  891m         5%     28234Mi         44%</span>
+<span class="tg">worker02.ocp.novacrestbank.internal  1203m        7%     31492Mi         49%</span>
+<span class="tg">worker03.ocp.novacrestbank.internal  987m         6%     29871Mi         46%</span>
 <span class="td">         ↑ infra02 at 82% memory — if it hits 90%+ consider adding infra node
            general rule: &gt;85% memory consistently for 3+ days → add a node</span></pre>
 
@@ -419,7 +419,7 @@
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — pre-upgrade checklist</span>
+      <span class="ttt">jumphost.novacrestbank.internal — pre-upgrade checklist</span>
     </div>
     <div class="tb"><pre><span class="td"># ── Step 1: Check current cluster health (MUST be fully healthy) ──</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get co | grep -v "True.*False.*False" | grep -v NAME</span>
@@ -432,13 +432,13 @@
 <span class="td"># ── Step 2: Take etcd backup RIGHT NOW ────────────────────────────</span>
 <span class="td"># (NEVER start an upgrade without a fresh etcd backup — see Section 15)</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master01.ocp.novacrestbank.local \
+  core@master01.ocp.novacrestbank.internal \
   'sudo /usr/local/bin/cluster-backup.sh /home/core/assets/backup'</span>
 <span class="tg">Snapshot saved to /home/core/assets/backup/snapshot_2026-04-13_090000.db</span>
 <span class="tg">Static pod resources saved to /home/core/assets/backup/static-pod-resources_2026-04-13_090000</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">scp -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master01.ocp.novacrestbank.local:/home/core/assets/backup/snapshot_2026-04-13_090000.db \
+  core@master01.ocp.novacrestbank.internal:/home/core/assets/backup/snapshot_2026-04-13_090000.db \
   ~/ocp-kit/backups/etcd/</span>
 <span class="tg">snapshot_2026-04-13_090000.db    100%  142MB  18.2MB/s  00:07</span>
 <span class="tg">                                  ↑ etcd backup safely on jump host ✓</span>
@@ -497,7 +497,7 @@
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — Terminal 1 (trigger upgrade)</span>
+      <span class="ttt">jumphost.novacrestbank.internal — Terminal 1 (trigger upgrade)</span>
     </div>
     <div class="tb"><pre><span class="td"># Trigger the upgrade — this is the point of no return</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm upgrade --to=4.15.15</span>
@@ -529,41 +529,41 @@
   <h2>Terminal 2 — watching nodes update in real time</h2>
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — Terminal 2 (node-by-node watch)</span>
+      <span class="ttt">jumphost.novacrestbank.internal — Terminal 2 (node-by-node watch)</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n15 'oc get nodes'</span>
 
 <span class="td">──── Masters updating first (T+30 to T+75 min) ─────────────────────</span>
 <span class="tw">NAME                              STATUS                     ROLES    VERSION</span>
-<span class="ty">master01.ocp.novacrestbank.local  Ready,SchedulingDisabled  master   v1.28.7</span>  <span class="td">← being drained</span>
-<span class="tg">master02.ocp.novacrestbank.local  Ready                     master   v1.28.7</span>
-<span class="tg">master03.ocp.novacrestbank.local  Ready                     master   v1.28.7</span>
-<span class="tg">infra01.ocp.novacrestbank.local   Ready                     infra    v1.28.7</span>
-<span class="tg">worker01.ocp.novacrestbank.local  Ready                     worker   v1.28.7</span>
-<span class="tg">worker02.ocp.novacrestbank.local  Ready                     worker   v1.28.7</span>
-<span class="tg">worker03.ocp.novacrestbank.local  Ready                     worker   v1.28.7</span>
+<span class="ty">master01.ocp.novacrestbank.internal  Ready,SchedulingDisabled  master   v1.28.7</span>  <span class="td">← being drained</span>
+<span class="tg">master02.ocp.novacrestbank.internal  Ready                     master   v1.28.7</span>
+<span class="tg">master03.ocp.novacrestbank.internal  Ready                     master   v1.28.7</span>
+<span class="tg">infra01.ocp.novacrestbank.internal   Ready                     infra    v1.28.7</span>
+<span class="tg">worker01.ocp.novacrestbank.internal  Ready                     worker   v1.28.7</span>
+<span class="tg">worker02.ocp.novacrestbank.internal  Ready                     worker   v1.28.7</span>
+<span class="tg">worker03.ocp.novacrestbank.internal  Ready                     worker   v1.28.7</span>
 
 <span class="td">──── master01 rebooting (NotReady for ~3 minutes) ───────────────────</span>
-<span class="tr">master01.ocp.novacrestbank.local  NotReady                  master   v1.28.7</span>  <span class="td">← rebooting (normal!)</span>
+<span class="tr">master01.ocp.novacrestbank.internal  NotReady                  master   v1.28.7</span>  <span class="td">← rebooting (normal!)</span>
 
 <span class="td">──── master01 back, now on new version ─────────────────────────────</span>
-<span class="tg">master01.ocp.novacrestbank.local  Ready                     master   v1.29.3+4b4ec0b</span>  <span class="td">← new k8s version ✓</span>
+<span class="tg">master01.ocp.novacrestbank.internal  Ready                     master   v1.29.3+4b4ec0b</span>  <span class="td">← new k8s version ✓</span>
 
 <span class="td">──── master02 being drained next ───────────────────────────────────</span>
-<span class="ty">master02.ocp.novacrestbank.local  Ready,SchedulingDisabled  master   v1.28.7</span>
+<span class="ty">master02.ocp.novacrestbank.internal  Ready,SchedulingDisabled  master   v1.28.7</span>
 
 <span class="td">──── (continues for all 9 nodes — infra after masters, workers last)</span>
 
 <span class="td">──── Final state — all nodes on new version ─────────────────────────</span>
-<span class="tg">master01.ocp.novacrestbank.local  Ready  master  v1.29.3+4b4ec0b</span>
-<span class="tg">master02.ocp.novacrestbank.local  Ready  master  v1.29.3+4b4ec0b</span>
-<span class="tg">master03.ocp.novacrestbank.local  Ready  master  v1.29.3+4b4ec0b</span>
-<span class="tg">infra01.ocp.novacrestbank.local   Ready  infra   v1.29.3+4b4ec0b</span>
-<span class="tg">infra02.ocp.novacrestbank.local   Ready  infra   v1.29.3+4b4ec0b</span>
-<span class="tg">infra03.ocp.novacrestbank.local   Ready  infra   v1.29.3+4b4ec0b</span>
-<span class="tg">worker01.ocp.novacrestbank.local  Ready  worker  v1.29.3+4b4ec0b</span>
-<span class="tg">worker02.ocp.novacrestbank.local  Ready  worker  v1.29.3+4b4ec0b</span>
-<span class="tg">worker03.ocp.novacrestbank.local  Ready  worker  v1.29.3+4b4ec0b</span>
+<span class="tg">master01.ocp.novacrestbank.internal  Ready  master  v1.29.3+4b4ec0b</span>
+<span class="tg">master02.ocp.novacrestbank.internal  Ready  master  v1.29.3+4b4ec0b</span>
+<span class="tg">master03.ocp.novacrestbank.internal  Ready  master  v1.29.3+4b4ec0b</span>
+<span class="tg">infra01.ocp.novacrestbank.internal   Ready  infra   v1.29.3+4b4ec0b</span>
+<span class="tg">infra02.ocp.novacrestbank.internal   Ready  infra   v1.29.3+4b4ec0b</span>
+<span class="tg">infra03.ocp.novacrestbank.internal   Ready  infra   v1.29.3+4b4ec0b</span>
+<span class="tg">worker01.ocp.novacrestbank.internal  Ready  worker  v1.29.3+4b4ec0b</span>
+<span class="tg">worker02.ocp.novacrestbank.internal  Ready  worker  v1.29.3+4b4ec0b</span>
+<span class="tg">worker03.ocp.novacrestbank.internal  Ready  worker  v1.29.3+4b4ec0b</span>
 <span class="td">                                                 ↑ ALL nodes on new version ✓</span></pre>
 
       <div class="ann info"><span class="ai">ℹ</span><span><code>Ready,SchedulingDisabled</code> means the node is being drained — new pods cannot land on it but existing pods are still running. <code>NotReady</code> during upgrade means the node is rebooting — this lasts 3–5 minutes and is completely normal. Never intervene during this phase unless a node is NotReady for more than 15 minutes.</span></div>
@@ -579,7 +579,7 @@
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — post-upgrade verification sequence</span>
+      <span class="ttt">jumphost.novacrestbank.internal — post-upgrade verification sequence</span>
     </div>
     <div class="tb"><pre><span class="td">══════════════════════════════════════════════════════</span>
 <span class="tw">  Post-Upgrade Verification — NovaCrestBank OCP 4.15.15</span>
@@ -596,15 +596,15 @@
 
 <span class="td"># 3. All nodes on new version?</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.nodeInfo.kubeletVersion}{"\n"}{end}'</span>
-<span class="tg">master01.ocp.novacrestbank.local	v1.29.3+4b4ec0b</span>
-<span class="tg">master02.ocp.novacrestbank.local	v1.29.3+4b4ec0b</span>
-<span class="tg">master03.ocp.novacrestbank.local	v1.29.3+4b4ec0b</span>
-<span class="tg">infra01.ocp.novacrestbank.local 	v1.29.3+4b4ec0b</span>
-<span class="tg">infra02.ocp.novacrestbank.local 	v1.29.3+4b4ec0b</span>
-<span class="tg">infra03.ocp.novacrestbank.local 	v1.29.3+4b4ec0b</span>
-<span class="tg">worker01.ocp.novacrestbank.local	v1.29.3+4b4ec0b</span>
-<span class="tg">worker02.ocp.novacrestbank.local	v1.29.3+4b4ec0b</span>
-<span class="tg">worker03.ocp.novacrestbank.local	v1.29.3+4b4ec0b</span>
+<span class="tg">master01.ocp.novacrestbank.internal	v1.29.3+4b4ec0b</span>
+<span class="tg">master02.ocp.novacrestbank.internal	v1.29.3+4b4ec0b</span>
+<span class="tg">master03.ocp.novacrestbank.internal	v1.29.3+4b4ec0b</span>
+<span class="tg">infra01.ocp.novacrestbank.internal 	v1.29.3+4b4ec0b</span>
+<span class="tg">infra02.ocp.novacrestbank.internal 	v1.29.3+4b4ec0b</span>
+<span class="tg">infra03.ocp.novacrestbank.internal 	v1.29.3+4b4ec0b</span>
+<span class="tg">worker01.ocp.novacrestbank.internal	v1.29.3+4b4ec0b</span>
+<span class="tg">worker02.ocp.novacrestbank.internal	v1.29.3+4b4ec0b</span>
+<span class="tg">worker03.ocp.novacrestbank.internal	v1.29.3+4b4ec0b</span>
 <span class="td">                                     ↑ all nodes on same new kubelet version ✓</span>
 
 <span class="td"># 4. etcd still healthy after upgrade?</span>
@@ -621,13 +621,13 @@
 <span class="tg">postgres-primary                        1/1     Running   0          3h</span>
 
 <span class="td"># 6. AD login still working after upgrade?</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u jsmith -p 'ADpassword123!' &amp;&amp; echo "AD LOGIN OK"</span>
 <span class="tg">Login successful.
 AD LOGIN OK ✓</span>
 
 <span class="td"># 7. OCP web console accessible?</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">curl -sk https://console-openshift-console.apps.ocp.novacrestbank.local \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">curl -sk https://console-openshift-console.apps.ocp.novacrestbank.internal \
   -o /dev/null -w "%{http_code}"</span>
 <span class="tg">200</span>   <span class="td">← console reachable ✓</span>
 
@@ -652,7 +652,7 @@ AD LOGIN OK ✓</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — diagnosing a stalled upgrade</span>
+      <span class="ttt">jumphost.novacrestbank.internal — diagnosing a stalled upgrade</span>
     </div>
     <div class="tb"><pre><span class="td"># Upgrade has been showing 45% for 30 minutes — investigate</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get clusterversion -o yaml | grep -A 20 conditions | grep -A 5 "Progressing"</span>
@@ -674,7 +674,7 @@ AD LOGIN OK ✓</span>
 
 <span class="td"># Check the ingress router pods (were they on the node that rebooted?)</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get pods -n openshift-ingress -o wide</span>
-<span class="tr">router-default-6d8b7f9c4-x4p2k   0/1   Pending   infra02.ocp.novacrestbank.local</span>  <span class="td">← stuck!</span>
+<span class="tr">router-default-6d8b7f9c4-x4p2k   0/1   Pending   infra02.ocp.novacrestbank.internal</span>  <span class="td">← stuck!</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc describe pod router-default-6d8b7f9c4-x4p2k -n openshift-ingress | grep -A5 Events</span>
 <span class="tr">  Warning  FailedScheduling  2m  default-scheduler  0/9 nodes: 3 node(s) had taint
@@ -682,9 +682,9 @@ AD LOGIN OK ✓</span>
 <span class="td">                              ↑ Router pod can't schedule — infra02 taint issue after reboot</span>
 
 <span class="td"># Fix: the taint was lost during reboot — re-apply it</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm taint node infra02.ocp.novacrestbank.local \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm taint node infra02.ocp.novacrestbank.internal \
   node-role.kubernetes.io/infra=reserved:NoSchedule --overwrite</span>
-<span class="tg">node/infra02.ocp.novacrestbank.local tainted</span>
+<span class="tg">node/infra02.ocp.novacrestbank.internal tainted</span>
 
 <span class="td"># Router pod now schedules and the authentication operator recovers</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n10 'oc get co authentication'</span>
@@ -723,14 +723,14 @@ AD LOGIN OK ✓</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — diagnose resource pressure before adding a node</span>
+      <span class="ttt">jumphost.novacrestbank.internal — diagnose resource pressure before adding a node</span>
     </div>
     <div class="tb"><pre><span class="td"># Check node resource usage</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm top nodes --sort-by=memory</span>
 <span class="tw">NAME                              CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%</span>
-<span class="tr">worker02.ocp.novacrestbank.local  14203m       88%    61847Mi         96%</span>    <span class="td">← critical</span>
-<span class="ty">worker01.ocp.novacrestbank.local  12891m       80%    56234Mi         87%</span>    <span class="td">← warning</span>
-<span class="ty">worker03.ocp.novacrestbank.local  11203m       70%    49871Mi         78%</span>    <span class="td">← elevated</span>
+<span class="tr">worker02.ocp.novacrestbank.internal  14203m       88%    61847Mi         96%</span>    <span class="td">← critical</span>
+<span class="ty">worker01.ocp.novacrestbank.internal  12891m       80%    56234Mi         87%</span>    <span class="td">← warning</span>
+<span class="ty">worker03.ocp.novacrestbank.internal  11203m       70%    49871Mi         78%</span>    <span class="td">← elevated</span>
 
 <span class="td"># Check for pending pods</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get pods -A | grep Pending</span>
@@ -773,7 +773,7 @@ AD LOGIN OK ✓</span>
     <div class="tb"><pre><span class="td"># ── Step 1: Create the VM in vCenter ─────────────────────────────</span>
 <span class="td"># (Change Request must be approved before this step)</span>
 <span class="td"># In vCenter: New VM → deploy from OVA template (RHCOS OVA)</span>
-<span class="td"># Name: worker04.ocp.novacrestbank.local</span>
+<span class="td"># Name: worker04.ocp.novacrestbank.internal</span>
 <span class="td"># Datastore: vSAN-Datastore</span>
 <span class="td"># Network: VLAN50-OCP-Nodes</span>
 <span class="td"># CPU: 16 vCPU, Memory: 64 GB, Disk: 120 GB thin</span>
@@ -791,7 +791,7 @@ AD LOGIN OK ✓</span>
     "version": "3.1.0",
     "config": {
       "merge": [{
-        "source": "https://api-int.ocp.novacrestbank.local:22623/config/worker",
+        "source": "https://api-int.ocp.novacrestbank.internal:22623/config/worker",
         "verification": {}
       }]
     },
@@ -823,12 +823,12 @@ EOF</span>
 <span class="td"># configures itself as an OCP worker node, and registers with the cluster</span>
 
 <span class="td"># ── Step 5: Add DNS records ──────────────────────────────────────</span>
-<span class="td"># In Windows DNS: add A + PTR for worker04.ocp.novacrestbank.local → 10.50.0.34</span>
+<span class="td"># In Windows DNS: add A + PTR for worker04.ocp.novacrestbank.internal → 10.50.0.34</span>
 
 <span class="td"># ── Step 6: Watch the new node appear ────────────────────────────</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n10 'oc get nodes | grep worker04'</span>
 <span class="td">... 3-5 minutes for RHCOS to boot and register ...</span>
-<span class="ty">worker04.ocp.novacrestbank.local   NotReady   worker   90s   v1.29.3+4b4ec0b</span>   <span class="td">← appeared!</span>
+<span class="ty">worker04.ocp.novacrestbank.internal   NotReady   worker   90s   v1.29.3+4b4ec0b</span>   <span class="td">← appeared!</span>
 
 <span class="td"># ── Step 7: Approve the CSRs (two rounds) ────────────────────────</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get csr | grep Pending</span>
@@ -842,9 +842,9 @@ EOF</span>
 <span class="tg">certificatesigningrequest.certificates.k8s.io/csr-y8n3p approved</span>
 
 <span class="td"># ── Step 8: Confirm node is Ready ────────────────────────────────</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node worker04.ocp.novacrestbank.local</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node worker04.ocp.novacrestbank.internal</span>
 <span class="tg">NAME                              STATUS   ROLES    AGE   VERSION</span>
-<span class="tg">worker04.ocp.novacrestbank.local  Ready    worker   8m    v1.29.3+4b4ec0b</span>   <span class="td">← Ready ✓</span>
+<span class="tg">worker04.ocp.novacrestbank.internal  Ready    worker   8m    v1.29.3+4b4ec0b</span>   <span class="td">← Ready ✓</span>
 
 <span class="td"># Confirm the pending pods now schedule</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get pods -n banking-backend | grep payment-api-v2</span>
@@ -864,22 +864,22 @@ EOF</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — drain worker01 for ESXi host maintenance</span>
+      <span class="ttt">jumphost.novacrestbank.internal — drain worker01 for ESXi host maintenance</span>
     </div>
     <div class="tb"><pre><span class="td"># Scenario: esxi01 needs a firmware update — worker01 runs on esxi01
 # We must drain all pods off worker01 first</span>
 
 <span class="td"># Step 1: Cordon the node — prevent new pods scheduling on it</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm cordon worker01.ocp.novacrestbank.local</span>
-<span class="tg">node/worker01.ocp.novacrestbank.local cordoned</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm cordon worker01.ocp.novacrestbank.internal</span>
+<span class="tg">node/worker01.ocp.novacrestbank.internal cordoned</span>
 
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node worker01.ocp.novacrestbank.local</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node worker01.ocp.novacrestbank.internal</span>
 <span class="ty">NAME                              STATUS                     ROLES    AGE</span>
-<span class="ty">worker01.ocp.novacrestbank.local  Ready,SchedulingDisabled  worker   45d</span>
+<span class="ty">worker01.ocp.novacrestbank.internal  Ready,SchedulingDisabled  worker   45d</span>
 <span class="td">                                  ↑ SchedulingDisabled = cordoned ✓ (pods still running)</span>
 
 <span class="td"># Step 2: Drain the node — evict all pods gracefully</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm drain worker01.ocp.novacrestbank.local \
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm drain worker01.ocp.novacrestbank.internal \
   --ignore-daemonsets \          # DaemonSet pods cannot be evicted — skip them
   --delete-emptydir-data \       # pods using emptyDir volumes will lose that data
   --grace-period=60 \            # give pods 60 seconds to terminate gracefully
@@ -889,11 +889,11 @@ EOF</span>
 <span class="tg">evicting pod kyc-service/kyc-document-service-7d4b8f9c2-a3k8m</span>
 <span class="tg">pod/banking-api-7d4b8c9f2-a3k8m evicted</span>
 <span class="tg">pod/kyc-document-service-7d4b8f9c2-a3k8m evicted</span>
-<span class="tg">node/worker01.ocp.novacrestbank.local drained</span>
+<span class="tg">node/worker01.ocp.novacrestbank.internal drained</span>
 
 <span class="td"># Verify no user pods remain on worker01</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get pods -A \
-  --field-selector spec.nodeName=worker01.ocp.novacrestbank.local | \
+  --field-selector spec.nodeName=worker01.ocp.novacrestbank.internal | \
   grep -v DaemonSet | grep -v NAME</span>
 <span class="td">              ← only DaemonSet pods remain (collector, csi-node, etc.) — this is expected ✓</span>
 
@@ -901,12 +901,12 @@ EOF</span>
 <span class="td"># ... ESXi firmware update happens here ...</span>
 
 <span class="td"># Step 4: Uncordon — allow pods back onto worker01</span>
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm uncordon worker01.ocp.novacrestbank.local</span>
-<span class="tg">node/worker01.ocp.novacrestbank.local uncordoned</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc adm uncordon worker01.ocp.novacrestbank.internal</span>
+<span class="tg">node/worker01.ocp.novacrestbank.internal uncordoned</span>
 
-<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node worker01.ocp.novacrestbank.local</span>
+<span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc get node worker01.ocp.novacrestbank.internal</span>
 <span class="tg">NAME                              STATUS   ROLES    AGE</span>
-<span class="tg">worker01.ocp.novacrestbank.local  Ready    worker   45d</span>   <span class="td">← Ready and schedulable again ✓</span></pre>
+<span class="tg">worker01.ocp.novacrestbank.internal  Ready    worker   45d</span>   <span class="td">← Ready and schedulable again ✓</span></pre>
 
       <div class="ann warn"><span class="ai">!</span><span>If drain gets stuck with "error: unable to drain node... cannot evict pod as it would violate the pod's disruption budget" — a PDB is preventing eviction because too few replicas are available. Check which deployment only has 1 healthy pod remaining. Fix: scale it up temporarily, then retry drain.</span></div>
     </div>
@@ -929,12 +929,12 @@ EOF</span>
     <h3>Certificate inventory</h3>
     <div class="cert-row">
       <div class="cert-name">API server cert</div>
-      <div class="cert-exp"><code>api.ocp.novacrestbank.local</code> — signed by AD CS Issuing CA — 1 year validity</div>
+      <div class="cert-exp"><code>api.ocp.novacrestbank.internal</code> — signed by AD CS Issuing CA — 1 year validity</div>
       <div class="cert-status cs-ok">Valid</div>
     </div>
     <div class="cert-row">
       <div class="cert-name">Ingress wildcard cert</div>
-      <div class="cert-exp"><code>*.apps.ocp.novacrestbank.local</code> — signed by AD CS Issuing CA — 1 year validity</div>
+      <div class="cert-exp"><code>*.apps.ocp.novacrestbank.internal</code> — signed by AD CS Issuing CA — 1 year validity</div>
       <div class="cert-status cs-ok">Valid</div>
     </div>
     <div class="cert-row">
@@ -982,7 +982,7 @@ EOF</span>
   <h2>Automated expiry check — run weekly</h2>
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — comprehensive cert expiry scanner</span>
+      <span class="ttt">jumphost.novacrestbank.internal — comprehensive cert expiry scanner</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cat ~/ocp-kit/bin/check-cert-expiry.sh</span>
 <span class="tc">#!/bin/bash
@@ -1012,14 +1012,14 @@ check_cert() {
 }
 
 # Check API server cert
-api_pem=$(echo | openssl s_client -connect api.ocp.novacrestbank.local:6443 2>/dev/null | \
+api_pem=$(echo | openssl s_client -connect api.ocp.novacrestbank.internal:6443 2>/dev/null | \
   openssl x509 2>/dev/null)
 check_cert "API server cert" "$api_pem"
 
 # Check ingress wildcard cert
 ingress_pem=$(echo | openssl s_client \
-  -connect console-openshift-console.apps.ocp.novacrestbank.local:443 \
-  -servername console-openshift-console.apps.ocp.novacrestbank.local 2>/dev/null | \
+  -connect console-openshift-console.apps.ocp.novacrestbank.internal:443 \
+  -servername console-openshift-console.apps.ocp.novacrestbank.internal 2>/dev/null | \
   openssl x509 2>/dev/null)
 check_cert "Ingress wildcard cert" "$ingress_pem"
 
@@ -1058,7 +1058,7 @@ done</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — force-rotate internal OCP certificates</span>
+      <span class="ttt">jumphost.novacrestbank.internal — force-rotate internal OCP certificates</span>
     </div>
     <div class="tb"><pre><span class="td"># ── Rotate the service-ca (signs all internal service TLS certs) ──</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc delete secret/signing-key -n openshift-service-ca</span>
@@ -1095,8 +1095,8 @@ done</span>
 <span class="td">         ← triggers a rolling restart of all etcd pods with fresh certs (takes ~10 minutes)</span>
 
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">watch -n15 'oc get pods -n openshift-etcd'</span>
-<span class="ty">etcd-master01.ocp.novacrestbank.local  4/4   Terminating   0   45d</span>   <span class="td">← restarting</span>
-<span class="tg">etcd-master01.ocp.novacrestbank.local  4/4   Running       0   45s</span>    <span class="td">← new pod ✓</span></pre>
+<span class="ty">etcd-master01.ocp.novacrestbank.internal  4/4   Terminating   0   45d</span>   <span class="td">← restarting</span>
+<span class="tg">etcd-master01.ocp.novacrestbank.internal  4/4   Running       0   45s</span>    <span class="td">← new pod ✓</span></pre>
     </div>
   </div>
 </div>
@@ -1109,15 +1109,15 @@ done</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — rotate API server cert (same process for ingress)</span>
+      <span class="ttt">jumphost.novacrestbank.internal — rotate API server cert (same process for ingress)</span>
     </div>
     <div class="tb"><pre><span class="td"># Step 1: Generate new CSR for the API cert (same as initial setup)</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cd ~/ocp-kit/certs/api-server-$(date +%Y)
 openssl req -newkey rsa:4096 -nodes \
-  -keyout api.ocp.novacrestbank.local.key \
-  -out api.ocp.novacrestbank.local.csr \
-  -subj "/CN=api.ocp.novacrestbank.local/O=NovaCrestBank/C=US" \
-  -addext "subjectAltName=DNS:api.ocp.novacrestbank.local,DNS:api-int.ocp.novacrestbank.local"</span>
+  -keyout api.ocp.novacrestbank.internal.key \
+  -out api.ocp.novacrestbank.internal.csr \
+  -subj "/CN=api.ocp.novacrestbank.internal/O=NovaCrestBank/C=US" \
+  -addext "subjectAltName=DNS:api.ocp.novacrestbank.internal,DNS:api-int.ocp.novacrestbank.internal"</span>
 <span class="tg">Generating a RSA private key... writing RSA key</span>
 
 <span class="td"># Step 2: Sign with AD CS (Windows — certreq)</span>
@@ -1126,14 +1126,14 @@ openssl req -newkey rsa:4096 -nodes \
 
 <span class="td"># Step 3: Verify new cert matches new key</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">diff \
-  &lt;(openssl x509 -in api.ocp.novacrestbank.local.crt -pubkey -noout) \
-  &lt;(openssl rsa -in api.ocp.novacrestbank.local.key -pubout 2>/dev/null)</span>
+  &lt;(openssl x509 -in api.ocp.novacrestbank.internal.crt -pubkey -noout) \
+  &lt;(openssl rsa -in api.ocp.novacrestbank.internal.key -pubout 2>/dev/null)</span>
 <span class="td">                    ← no output = matching pair ✓</span>
 
 <span class="td"># Step 4: Update the secret in OpenShift</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">oc create secret tls api-server-custom-cert \
-  --cert=api.ocp.novacrestbank.local.crt \
-  --key=api.ocp.novacrestbank.local.key \
+  --cert=api.ocp.novacrestbank.internal.crt \
+  --key=api.ocp.novacrestbank.internal.key \
   -n openshift-config \
   --dry-run=client -o yaml | oc apply -f -</span>
 <span class="tg">secret/api-server-custom-cert configured</span>
@@ -1147,9 +1147,9 @@ openssl req -newkey rsa:4096 -nodes \
 
 <span class="td"># Verify the new cert's expiry</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">echo | openssl s_client \
-  -connect api.ocp.novacrestbank.local:6443 2>/dev/null | \
+  -connect api.ocp.novacrestbank.internal:6443 2>/dev/null | \
   openssl x509 -noout -subject -enddate</span>
-<span class="tg">subject=CN = api.ocp.novacrestbank.local, O = NovaCrestBank, C = US</span>
+<span class="tg">subject=CN = api.ocp.novacrestbank.internal, O = NovaCrestBank, C = US</span>
 <span class="tg">notAfter=Apr 13 09:00:00 2027 GMT</span>   <span class="td">← new cert, expires 1 year from now ✓</span></pre>
     </div>
   </div>
@@ -1163,7 +1163,7 @@ openssl req -newkey rsa:4096 -nodes \
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — create cert expiry PrometheusRules</span>
+      <span class="ttt">jumphost.novacrestbank.internal — create cert expiry PrometheusRules</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cat &lt;&lt; 'EOF' | oc apply -f -
 apiVersion: monitoring.coreos.com/v1
@@ -1247,11 +1247,11 @@ EOF</span>
   <h2>Manual backup — run before every upgrade and weekly</h2>
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">master01.ocp.novacrestbank.local — run etcd backup</span>
+      <span class="ttt">master01.ocp.novacrestbank.internal — run etcd backup</span>
     </div>
     <div class="tb"><pre><span class="td"># SSH into master01 — backup runs from a master node</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master01.ocp.novacrestbank.local</span>
+  core@master01.ocp.novacrestbank.internal</span>
 
 <span class="td"># Run the built-in OCP backup script (always use this — never etcdctl directly)</span>
 <span class="tpr">[core@master01 ~]$</span> <span class="tcmd">sudo /usr/local/bin/cluster-backup.sh /home/core/assets/backup</span>
@@ -1290,7 +1290,7 @@ EOF</span>
 
 <span class="td"># Copy backup to jump host (off-node storage)</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">scp -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master01.ocp.novacrestbank.local:/home/core/assets/backup/snapshot_2026-04-13_090000.db \
+  core@master01.ocp.novacrestbank.internal:/home/core/assets/backup/snapshot_2026-04-13_090000.db \
   ~/ocp-kit/backups/etcd/</span>
 <span class="tg">snapshot_2026-04-13_090000.db    100%  142MB  18.2MB/s   00:07</span>
 
@@ -1304,7 +1304,7 @@ EOF</span>
   <h2>Automated backup CronJob — daily at 02:00</h2>
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — create automated daily etcd backup CronJob</span>
+      <span class="ttt">jumphost.novacrestbank.internal — create automated daily etcd backup CronJob</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cat &lt;&lt; 'EOF' | oc apply -f -
 apiVersion: batch/v1
@@ -1398,7 +1398,7 @@ EOF</span>
     <div class="tb"><pre><span class="td">══════════════════════════════════════════════════════════
   DISASTER RECOVERY PROCEDURE — etcd restore
   Backup: snapshot_2026-04-13_090000.db (142 MB, 18492 keys)
-  Cluster: ocp.novacrestbank.local
+  Cluster: ocp.novacrestbank.internal
 ══════════════════════════════════════════════════════════</span>
 
 <span class="td"># Step 1: Ensure all three master VMs have been recreated in vCenter
@@ -1409,7 +1409,7 @@ EOF</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">for master in master01 master02 master03; do
   scp -i ~/.ssh/ocp_novacrestbank_ed25519 \
     ~/ocp-kit/backups/etcd/snapshot_2026-04-13_090000.db \
-    core@${master}.ocp.novacrestbank.local:/home/core/
+    core@${master}.ocp.novacrestbank.internal:/home/core/
   echo "Copied snapshot to $master"
 done</span>
 <span class="tg">snapshot_2026-04-13_090000.db    100%  142MB  18.2MB/s   00:07
@@ -1421,7 +1421,7 @@ Copied snapshot to master03</span>
 
 <span class="td"># Step 3: Run the restore script on master01 FIRST</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">ssh -i ~/.ssh/ocp_novacrestbank_ed25519 \
-  core@master01.ocp.novacrestbank.local</span>
+  core@master01.ocp.novacrestbank.internal</span>
 <span class="tpr">[core@master01 ~]$</span> <span class="tcmd">sudo /usr/local/bin/cluster-restore.sh /home/core/snapshot_2026-04-13_090000.db</span>
 
 <span class="tg">starting restore from snapshot /home/core/snapshot_2026-04-13_090000.db</span>
@@ -1489,7 +1489,7 @@ Copied snapshot to master03</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — configure Alertmanager receivers</span>
+      <span class="ttt">jumphost.novacrestbank.internal — configure Alertmanager receivers</span>
     </div>
     <div class="tb"><pre><span class="td"># Configure Alertmanager with email and webhook receivers</span>
 <span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cat &lt;&lt; 'EOF' | oc apply -f -
@@ -1502,10 +1502,10 @@ stringData:
   alertmanager.yaml: |
     global:
       resolve_timeout: 5m
-      smtp_smarthost: 'smtp.novacrestbank.local:587'
+      smtp_smarthost: 'smtp.novacrestbank.internal:587'
       smtp_from: 'ocp-alerts@novacrestbank.com'
       smtp_require_tls: true
-      smtp_auth_username: 'svc-ocp-alerts@novacrestbank.local'
+      smtp_auth_username: 'svc-ocp-alerts@novacrestbank.internal'
       smtp_auth_password: 'AlertMail$2026!'
 
     inhibit_rules:
@@ -1558,7 +1558,7 @@ stringData:
 
     - name: platform-teams-webhook
       webhook_configs:
-      - url: 'https://teams.novacrestbank.local/webhook/ocp-alerts'
+      - url: 'https://teams.novacrestbank.internal/webhook/ocp-alerts'
         send_resolved: true
         http_config:
           tls_config:
@@ -1572,7 +1572,7 @@ EOF</span>
   amtool config show | head -20</span>
 <span class="tg">global:</span>
 <span class="tg">  resolve_timeout: 5m</span>
-<span class="tg">  smtp_smarthost: smtp.novacrestbank.local:587</span>
+<span class="tg">  smtp_smarthost: smtp.novacrestbank.internal:587</span>
 <span class="tg">  smtp_from: ocp-alerts@novacrestbank.com</span>
 <span class="tg">route:</span>
 <span class="tg">  group_by: [alertname, namespace, severity]</span>
@@ -1600,7 +1600,7 @@ EOF</span>
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — create NovaCrestBank banking-specific alert rules</span>
+      <span class="ttt">jumphost.novacrestbank.internal — create NovaCrestBank banking-specific alert rules</span>
     </div>
     <div class="tb"><pre><span class="tpr">[svc-ocp@jumphost ~]$</span> <span class="tcmd">cat &lt;&lt; 'EOF' | oc apply -f -
 apiVersion: monitoring.coreos.com/v1
@@ -1716,7 +1716,7 @@ EOF</span>
     </div>
     <div class="tb"><pre><span class="tpu">═══════════════════════════════════════════════════════════════════</span>
 <span class="tw">  NOVACRESTBANK OCP OPERATIONS QUICK REFERENCE</span>
-<span class="tw">  Cluster: ocp.novacrestbank.local | Version: 4.15.x</span>
+<span class="tw">  Cluster: ocp.novacrestbank.internal | Version: 4.15.x</span>
 <span class="tpu">═══════════════════════════════════════════════════════════════════</span>
 
 <span class="td">── DAILY CHECKS ──────────────────────────────────────────────────</span>
@@ -1742,7 +1742,7 @@ EOF</span>
 <span class="td">── ADD A WORKER NODE ─────────────────────────────────────────────</span>
 <span class="w">1. Create VM in vCenter (16 vCPU, 64GB RAM, 120GB disk, VLAN50)</span>
 <span class="w">2. Inject worker ignition pointer via vApp properties</span>
-<span class="w">3. Add DNS A + PTR for worker0X.ocp.novacrestbank.local</span>
+<span class="w">3. Add DNS A + PTR for worker0X.ocp.novacrestbank.internal</span>
 <span class="w">4. Power on VM</span>
 <span class="w">5. oc get csr -o name | xargs oc adm certificate approve  (twice)</span>
 <span class="w">6. oc get node workerXX  # confirm Ready</span>
@@ -1765,13 +1765,13 @@ EOF</span>
 <span class="w">4. watch oc get co kube-apiserver  # wait for rollout</span>
 
 <span class="td">── ROTATE INGRESS CERT ───────────────────────────────────────────</span>
-<span class="w">1. openssl req (wildcard: *.apps.ocp.novacrestbank.local)</span>
+<span class="w">1. openssl req (wildcard: *.apps.ocp.novacrestbank.internal)</span>
 <span class="w">2. certreq -submit (AD CS)</span>
 <span class="w">3. oc create secret tls ingress-custom-cert ... -n openshift-ingress --dry-run=client -o yaml | oc apply -f -</span>
 
 <span class="td">── CHECK CERT EXPIRY ─────────────────────────────────────────────</span>
 <span class="w">bash ~/ocp-kit/bin/check-cert-expiry.sh</span>
-<span class="w">echo | openssl s_client -connect api.ocp.novacrestbank.local:6443 2>/dev/null | openssl x509 -noout -enddate</span>
+<span class="w">echo | openssl s_client -connect api.ocp.novacrestbank.internal:6443 2>/dev/null | openssl x509 -noout -enddate</span>
 
 <span class="td">── ETCD RESTORE (DISASTER RECOVERY) ──────────────────────────────</span>
 <span class="w">1. Recreate master VMs in vCenter</span>

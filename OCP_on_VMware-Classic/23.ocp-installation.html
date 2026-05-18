@@ -459,8 +459,8 @@
     <div class="decision-label">The API VIP and Ingress VIP — what these addresses do</div>
     <div class="decision-q">What is a VIP (Virtual IP) in the context of OCP, and why are two separate VIPs needed?</div>
     <div class="decision-a"><strong>A VIP is a single IP address that routes to multiple backend nodes via a software load balancer — providing a stable entry point even when individual nodes fail or are replaced.</strong><br/><br/>
-    <strong>API VIP (10.50.0.200):</strong> The API server endpoint. Every interaction with the cluster — kubectl commands, the OCP web console, the installer, CI/CD pipelines — goes to this address. It is load-balanced across all 3 master nodes (each of which runs kube-apiserver). If master-0 fails, the API VIP still works via master-1 and master-2. DNS: <code>api.ocp.novacrestbank.local → 10.50.0.200</code>.<br/><br/>
-    <strong>Ingress VIP (10.50.0.201):</strong> The ingress router endpoint. All HTTP/HTTPS traffic to applications running in OCP arrives at this address. The OCP Router (based on HAProxy) load-balances across the infra nodes that run the router pods. All application Routes (e.g., <code>banking-portal.apps.ocp.novacrestbank.local</code>) resolve to this single IP. DNS: <code>*.apps.ocp.novacrestbank.local → 10.50.0.201</code> (wildcard DNS record).<br/><br/>
+    <strong>API VIP (10.50.0.200):</strong> The API server endpoint. Every interaction with the cluster — kubectl commands, the OCP web console, the installer, CI/CD pipelines — goes to this address. It is load-balanced across all 3 master nodes (each of which runs kube-apiserver). If master-0 fails, the API VIP still works via master-1 and master-2. DNS: <code>api.ocp.novacrestbank.internal → 10.50.0.200</code>.<br/><br/>
+    <strong>Ingress VIP (10.50.0.201):</strong> The ingress router endpoint. All HTTP/HTTPS traffic to applications running in OCP arrives at this address. The OCP Router (based on HAProxy) load-balances across the infra nodes that run the router pods. All application Routes (e.g., <code>banking-portal.apps.ocp.novacrestbank.internal</code>) resolve to this single IP. DNS: <code>*.apps.ocp.novacrestbank.internal → 10.50.0.201</code> (wildcard DNS record).<br/><br/>
     With IPI on vSphere, OCP uses its built-in <code>keepalived</code> implementation to manage these VIPs — no external load balancer hardware is required. The VIPs are configured in install-config.yaml and managed automatically by OCP after installation.</div>
   </div>
 
@@ -468,18 +468,18 @@
   <table>
     <thead><tr><th>Record</th><th>Type</th><th>Value</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td><code>api.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.200</td><td>API VIP — required by installer and all kubectl users</td></tr>
-      <tr><td><code>api-int.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.200</td><td>Internal API — used by nodes to communicate with the API server</td></tr>
-      <tr><td><code>*.apps.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.201</td><td>Wildcard ingress — all application routes resolve here</td></tr>
-      <tr><td><code>master-0.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.11</td><td>Master node FQDN</td></tr>
-      <tr><td><code>master-1.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.12</td><td>Master node FQDN</td></tr>
-      <tr><td><code>master-2.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.13</td><td>Master node FQDN</td></tr>
-      <tr><td><code>infra-0.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.21</td><td>Infra node FQDN</td></tr>
-      <tr><td><code>infra-1.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.22</td><td>Infra node FQDN</td></tr>
-      <tr><td><code>infra-2.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.23</td><td>Infra node FQDN</td></tr>
-      <tr><td><code>worker-0.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.31</td><td>Worker node FQDN</td></tr>
-      <tr><td><code>worker-1.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.32</td><td>Worker node FQDN</td></tr>
-      <tr><td><code>worker-2.ocp.novacrestbank.local</code></td><td>A</td><td>10.50.0.33</td><td>Worker node FQDN</td></tr>
+      <tr><td><code>api.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.200</td><td>API VIP — required by installer and all kubectl users</td></tr>
+      <tr><td><code>api-int.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.200</td><td>Internal API — used by nodes to communicate with the API server</td></tr>
+      <tr><td><code>*.apps.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.201</td><td>Wildcard ingress — all application routes resolve here</td></tr>
+      <tr><td><code>master-0.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.11</td><td>Master node FQDN</td></tr>
+      <tr><td><code>master-1.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.12</td><td>Master node FQDN</td></tr>
+      <tr><td><code>master-2.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.13</td><td>Master node FQDN</td></tr>
+      <tr><td><code>infra-0.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.21</td><td>Infra node FQDN</td></tr>
+      <tr><td><code>infra-1.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.22</td><td>Infra node FQDN</td></tr>
+      <tr><td><code>infra-2.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.23</td><td>Infra node FQDN</td></tr>
+      <tr><td><code>worker-0.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.31</td><td>Worker node FQDN</td></tr>
+      <tr><td><code>worker-1.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.32</td><td>Worker node FQDN</td></tr>
+      <tr><td><code>worker-2.ocp.novacrestbank.internal</code></td><td>A</td><td>10.50.0.33</td><td>Worker node FQDN</td></tr>
       <tr><td>Reverse PTR records for all above</td><td>PTR</td><td>FQDNs</td><td>Required for TLS certificate validation and cluster node identity verification</td></tr>
     </tbody>
   </table>
@@ -499,8 +499,8 @@
 <span class="tp">PS C:\></span> <span class="tc">New-ADUser `
     -Name "svc-ocp-vsphere" `
     -SamAccountName "svc-ocp-vsphere" `
-    -UserPrincipalName "svc-ocp-vsphere@novacrestbank.local" `
-    -Path "OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=local" `
+    -UserPrincipalName "svc-ocp-vsphere@novacrestbank.internal" `
+    -Path "OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=internal" `
     -AccountPassword (ConvertTo-SecureString "NovaCrest`$SvcOCPvSphere2026!" -AsPlainText -Force) `
     -Enabled $true -PasswordNeverExpires $true -CannotChangePassword $true `
     -Description "OCP IPI installer vCenter service account"</span>
@@ -516,7 +516,7 @@
     <thead><tr><th>vCenter object</th><th>Role required</th><th>Propagate</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong>vCenter root (vcenter.novacrestbank.local)</strong></td>
+        <td><strong>vCenter root (vcenter.novacrestbank.internal)</strong></td>
         <td>Read-only</td>
         <td>No</td>
       </tr>
@@ -553,7 +553,7 @@
   <div class="term">
     <div class="term-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><span class="term-label">PowerShell — DC01 — create all OCP DNS records</span></div>
     <div class="term-body"><pre><span class="td"># ── A records for OCP nodes ──────────────────────────────────────────</span>
-<span class="tp">PS C:\></span> <span class="tc">$zone = "novacrestbank.local"
+<span class="tp">PS C:\></span> <span class="tc">$zone = "novacrestbank.internal"
 $records = @(
     @{Name="api.ocp";      IP="10.50.0.200"},
     @{Name="api-int.ocp";  IP="10.50.0.200"},
@@ -571,27 +571,27 @@ foreach ($r in $records) {
     Add-DnsServerResourceRecordA -Name $r.Name -ZoneName $zone -IPv4Address $r.IP
     Write-Host "A record: $($r.Name).$zone → $($r.IP) ✓"
 }</span>
-<span class="tg">A record: api.ocp.novacrestbank.local → 10.50.0.200 ✓
-A record: api-int.ocp.novacrestbank.local → 10.50.0.200 ✓
-A record: master-0.ocp.novacrestbank.local → 10.50.0.11 ✓
+<span class="tg">A record: api.ocp.novacrestbank.internal → 10.50.0.200 ✓
+A record: api-int.ocp.novacrestbank.internal → 10.50.0.200 ✓
+A record: master-0.ocp.novacrestbank.internal → 10.50.0.11 ✓
 [... all 11 records created ...]</span>
 
 <span class="td"># ── Wildcard A record for *.apps.ocp ────────────────────────────────</span>
 <span class="tp">PS C:\></span> <span class="tc">Add-DnsServerResourceRecordA -Name "*.apps.ocp" -ZoneName $zone -IPv4Address "10.50.0.201"</span>
-<span class="tg">A record: *.apps.ocp.novacrestbank.local → 10.50.0.201 ✓</span>
+<span class="tg">A record: *.apps.ocp.novacrestbank.internal → 10.50.0.201 ✓</span>
 
 <span class="td"># ── Reverse PTR records ──────────────────────────────────────────────</span>
 <span class="tp">PS C:\></span> <span class="tc">$ptrRecords = @(
-    @{IP="10.50.0.200"; FQDN="api.ocp.novacrestbank.local."},
-    @{IP="10.50.0.11";  FQDN="master-0.ocp.novacrestbank.local."},
-    @{IP="10.50.0.12";  FQDN="master-1.ocp.novacrestbank.local."},
-    @{IP="10.50.0.13";  FQDN="master-2.ocp.novacrestbank.local."},
-    @{IP="10.50.0.21";  FQDN="infra-0.ocp.novacrestbank.local."},
-    @{IP="10.50.0.22";  FQDN="infra-1.ocp.novacrestbank.local."},
-    @{IP="10.50.0.23";  FQDN="infra-2.ocp.novacrestbank.local."},
-    @{IP="10.50.0.31";  FQDN="worker-0.ocp.novacrestbank.local."},
-    @{IP="10.50.0.32";  FQDN="worker-1.ocp.novacrestbank.local."},
-    @{IP="10.50.0.33";  FQDN="worker-2.ocp.novacrestbank.local."}
+    @{IP="10.50.0.200"; FQDN="api.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.11";  FQDN="master-0.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.12";  FQDN="master-1.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.13";  FQDN="master-2.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.21";  FQDN="infra-0.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.22";  FQDN="infra-1.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.23";  FQDN="infra-2.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.31";  FQDN="worker-0.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.32";  FQDN="worker-1.ocp.novacrestbank.internal."},
+    @{IP="10.50.0.33";  FQDN="worker-2.ocp.novacrestbank.internal."}
 )
 foreach ($p in $ptrRecords) {
     $lastOctet = $p.IP.Split(".")[-1]
@@ -599,20 +599,20 @@ foreach ($p in $ptrRecords) {
         -ZoneName "50.10.in-addr.arpa" -PtrDomainName $p.FQDN
     Write-Host "PTR: $($p.IP) → $($p.FQDN) ✓"
 }</span>
-<span class="tg">PTR: 10.50.0.200 → api.ocp.novacrestbank.local. ✓
-PTR: 10.50.0.11  → master-0.ocp.novacrestbank.local. ✓
+<span class="tg">PTR: 10.50.0.200 → api.ocp.novacrestbank.internal. ✓
+PTR: 10.50.0.11  → master-0.ocp.novacrestbank.internal. ✓
 [... all PTR records created ...]</span>
 
 <span class="td"># ── Verify DNS resolution before running the installer ──────────────</span>
-<span class="tp">PS C:\></span> <span class="tc">Resolve-DnsName api.ocp.novacrestbank.local</span>
+<span class="tp">PS C:\></span> <span class="tc">Resolve-DnsName api.ocp.novacrestbank.internal</span>
 <span class="tg">Name                  Type   TTL   Section    IPAddress
 ----                  ----   ---   -------    ---------
-api.ocp.novacrestbank.local  A  3600  Answer  10.50.0.200  ✓</span>
+api.ocp.novacrestbank.internal  A  3600  Answer  10.50.0.200  ✓</span>
 
-<span class="tp">PS C:\></span> <span class="tc">Resolve-DnsName test.apps.ocp.novacrestbank.local</span>
+<span class="tp">PS C:\></span> <span class="tc">Resolve-DnsName test.apps.ocp.novacrestbank.internal</span>
 <span class="tg">Name  Type  TTL  IPAddress
 ----  ----  ---  ---------
-test.apps.ocp.novacrestbank.local  A  3600  10.50.0.201  ✓  (wildcard working)</span></pre>
+test.apps.ocp.novacrestbank.internal  A  3600  10.50.0.201  ✓  (wildcard working)</span></pre>
     </div>
   </div>
 </div>
@@ -641,10 +641,10 @@ test.apps.ocp.novacrestbank.local  A  3600  10.50.0.201  ✓  (wildcard working)
 <span class="tp">[jumphost]$</span> <span class="tc">ping -c 3 10.50.0.1</span>   <span class="td"># VLAN 50 gateway</span>
 <span class="tg">3 packets transmitted, 3 received, 0% packet loss ✓</span>
 
-<span class="tp">[jumphost]$</span> <span class="tc">curl -sk https://vcenter.novacrestbank.local/sdk | head -5</span>
+<span class="tp">[jumphost]$</span> <span class="tc">curl -sk https://vcenter.novacrestbank.internal/sdk | head -5</span>
 <span class="tg">&lt;?xml version="1.0"?&gt;...  ← vCenter API responding ✓</span>
 
-<span class="tp">[jumphost]$</span> <span class="tc">nslookup api.ocp.novacrestbank.local 10.70.0.10</span>
+<span class="tp">[jumphost]$</span> <span class="tc">nslookup api.ocp.novacrestbank.internal 10.70.0.10</span>
 <span class="tg">Address: 10.50.0.200  ← DNS resolving correctly from DC01 ✓</span></pre>
     </div>
   </div>
@@ -710,17 +710,17 @@ Your identification has been saved in /root/.ssh/ocp-install-key</span>
     <div class="yaml-body"><pre><span class="yk">apiVersion</span>: <span class="yv">v1</span>
 
 <span class="yc"># ── Cluster identity ─────────────────────────────────────────────────</span>
-<span class="yk">baseDomain</span>: <span class="yv">novacrestbank.local</span>
+<span class="yk">baseDomain</span>: <span class="yv">novacrestbank.internal</span>
 <span class="yc"># baseDomain: the DNS zone the cluster lives in
 # The cluster name + baseDomain form all cluster DNS names:
-# api.ocp.novacrestbank.local, *.apps.ocp.novacrestbank.local</span>
+# api.ocp.novacrestbank.internal, *.apps.ocp.novacrestbank.internal</span>
 
 <span class="yk">metadata</span>:
   <span class="yk">name</span>: <span class="yv">ocp</span>
   <span class="yc"># name: the cluster name. Combined with baseDomain:
-  # cluster = ocp.novacrestbank.local
-  # api     = api.ocp.novacrestbank.local
-  # apps    = *.apps.ocp.novacrestbank.local</span>
+  # cluster = ocp.novacrestbank.internal
+  # api     = api.ocp.novacrestbank.internal
+  # apps    = *.apps.ocp.novacrestbank.internal</span>
 
 <span class="yc"># ── Control plane configuration ──────────────────────────────────────</span>
 <span class="yk">controlPlane</span>:
@@ -755,8 +755,8 @@ Your identification has been saved in /root/.ssh/ocp-install-key</span>
 <span class="yc"># ── Platform configuration (vSphere) — Section 10 ────────────────────</span>
 <span class="yk">platform</span>:
   <span class="yk">vsphere</span>:
-    <span class="yk">vcenter</span>: <span class="yv">vcenter.novacrestbank.local</span>
-    <span class="yk">username</span>: <span class="yv">svc-ocp-vsphere@novacrestbank.local</span>
+    <span class="yk">vcenter</span>: <span class="yv">vcenter.novacrestbank.internal</span>
+    <span class="yk">username</span>: <span class="yv">svc-ocp-vsphere@novacrestbank.internal</span>
     <span class="yk">password</span>: <span class="yv">NovaCrest$SvcOCPvSphere2026!</span>
     <span class="yk">datacenter</span>: <span class="yv">NovaCrestBank-DC</span>
     <span class="yk">defaultDatastore</span>: <span class="yv">vsanDatastore</span>
@@ -805,7 +805,7 @@ Your identification has been saved in /root/.ssh/ocp-install-key</span>
   <span class="yv">-----END CERTIFICATE-----</span>
 <span class="yc"># additionalTrustBundle: the NovaCrestBank Root CA certificate (PEM format)
 # Required for OCP nodes to trust the internal PKI — enables LDAPS to DCs
-# Download from: http://pki.novacrestbank.local/pki/rootca...crt</span></pre>
+# Download from: http://pki.novacrestbank.internal/pki/rootca...crt</span></pre>
     </div>
   </div>
 </div>
@@ -820,8 +820,8 @@ Your identification has been saved in /root/.ssh/ocp-install-key</span>
     <div class="decision-label">What each platform.vsphere field maps to in vCenter</div>
     <div class="decision-q">The install-config.yaml has vcenter, datacenter, defaultDatastore, folder, resourcePool, and network fields. Where does each of these come from in vCenter?</div>
     <div class="decision-a">
-      <strong>vcenter:</strong> The FQDN of vCenter — <code>vcenter.novacrestbank.local</code>. Must be resolvable from the installer host and match the TLS certificate subject. Do not use the IP address — certificate validation will fail.<br/><br/>
-      <strong>username / password:</strong> The service account created in Section 05. Full UPN format: <code>svc-ocp-vsphere@novacrestbank.local</code>.<br/><br/>
+      <strong>vcenter:</strong> The FQDN of vCenter — <code>vcenter.novacrestbank.internal</code>. Must be resolvable from the installer host and match the TLS certificate subject. Do not use the IP address — certificate validation will fail.<br/><br/>
+      <strong>username / password:</strong> The service account created in Section 05. Full UPN format: <code>svc-ocp-vsphere@novacrestbank.internal</code>.<br/><br/>
       <strong>datacenter:</strong> Visible in vCenter Hosts and Clusters as the top-level datacenter object. Right-click the datacenter → Rename to see the exact name: <code>NovaCrestBank-DC</code>.<br/><br/>
       <strong>defaultDatastore:</strong> The name of the datastore where OCP will store VM disks. Must be <code>vsanDatastore</code> (the exact name vSAN uses). Verify in Storage → Datastores.<br/><br/>
       <strong>folder:</strong> The vCenter VM folder path where OCP VMs will be created. Must begin with <code>/DatacenterName/vm/</code>. Create the folder first in vCenter: right-click the VMs &amp; Templates view → New Folder → <code>OCP-Cluster</code>.<br/><br/>
@@ -837,8 +837,8 @@ Your identification has been saved in /root/.ssh/ocp-install-key</span>
     <div class="term-body"><pre><span class="td"># govc is the vSphere CLI tool — install it to verify vCenter paths</span>
 <span class="tp">[jumphost]$</span> <span class="tc">curl -L https://github.com/vmware/govmomi/releases/latest/download/govc_Linux_x86_64.tar.gz | tar xz -C /usr/local/bin/</span>
 
-<span class="tp">[jumphost]$</span> <span class="tc">export GOVC_URL=https://vcenter.novacrestbank.local
-export GOVC_USERNAME="svc-ocp-vsphere@novacrestbank.local"
+<span class="tp">[jumphost]$</span> <span class="tc">export GOVC_URL=https://vcenter.novacrestbank.internal
+export GOVC_USERNAME="svc-ocp-vsphere@novacrestbank.internal"
 export GOVC_PASSWORD="NovaCrest\$SvcOCPvSphere2026!"
 export GOVC_INSECURE=false  # We have a valid CA-signed cert</span>
 
@@ -941,7 +941,7 @@ cp install-config.yaml ~/ocp-install/novacrestbank/install-config.yaml.bak</span
 <span class="tg">INFO Install complete!</span>
 <span class="tg">INFO To access the cluster as the system:admin user when using 'oc', run</span>
 <span class="tg">     export KUBECONFIG=~/ocp-install/novacrestbank/auth/kubeconfig</span>
-<span class="tg">INFO Access the OpenShift web-console here: https://console.apps.ocp.novacrestbank.local</span>
+<span class="tg">INFO Access the OpenShift web-console here: https://console.apps.ocp.novacrestbank.internal</span>
 <span class="tg">INFO Login to the console with user: kubeadmin, password: XXXXX-XXXXX-XXXXX-XXXXX</span></pre>
           </div>
         </div>
@@ -1015,12 +1015,12 @@ network                                    4.14.x    True        False         F
 <span class="td"># Watch node readiness</span>
 <span class="tp">[jumphost]$</span> <span class="tc">watch -n 30 'oc get nodes'</span>
 <span class="tg">NAME                                STATUS   ROLES           AGE    VERSION
-master-0.ocp.novacrestbank.local    Ready    control-plane   15m    v1.27.x  ✓
-master-1.ocp.novacrestbank.local    Ready    control-plane   14m    v1.27.x  ✓
-master-2.ocp.novacrestbank.local    Ready    control-plane   14m    v1.27.x  ✓
-worker-0.ocp.novacrestbank.local    Ready    worker          8m     v1.27.x  ✓
-worker-1.ocp.novacrestbank.local    Ready    worker          7m     v1.27.x  ✓
-worker-2.ocp.novacrestbank.local    Ready    worker          7m     v1.27.x  ✓</span>
+master-0.ocp.novacrestbank.internal    Ready    control-plane   15m    v1.27.x  ✓
+master-1.ocp.novacrestbank.internal    Ready    control-plane   14m    v1.27.x  ✓
+master-2.ocp.novacrestbank.internal    Ready    control-plane   14m    v1.27.x  ✓
+worker-0.ocp.novacrestbank.internal    Ready    worker          8m     v1.27.x  ✓
+worker-1.ocp.novacrestbank.internal    Ready    worker          7m     v1.27.x  ✓
+worker-2.ocp.novacrestbank.internal    Ready    worker          7m     v1.27.x  ✓</span>
 
 <span class="td"># Check etcd health specifically</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get etcd -o jsonpath='{.items[0].status.conditions[?(@.type=="EtcdMembersAvailable")].message}'</span>
@@ -1052,12 +1052,12 @@ worker-2.ocp.novacrestbank.local    Ready    worker          7m     v1.27.x  ✓
     <div class="term-body"><pre><span class="td"># ── Verify all nodes are Ready ───────────────────────────────────────</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get nodes -o wide</span>
 <span class="tg">NAME                              STATUS   ROLES           AGE   VERSION   INTERNAL-IP
-master-0.ocp.novacrestbank.local  Ready    control-plane   45m   v1.27.x   10.50.0.11
-master-1.ocp.novacrestbank.local  Ready    control-plane   44m   v1.27.x   10.50.0.12
-master-2.ocp.novacrestbank.local  Ready    control-plane   44m   v1.27.x   10.50.0.13
-worker-0.ocp.novacrestbank.local  Ready    worker          38m   v1.27.x   10.50.0.31
-worker-1.ocp.novacrestbank.local  Ready    worker          37m   v1.27.x   10.50.0.32
-worker-2.ocp.novacrestbank.local  Ready    worker          37m   v1.27.x   10.50.0.33</span>
+master-0.ocp.novacrestbank.internal  Ready    control-plane   45m   v1.27.x   10.50.0.11
+master-1.ocp.novacrestbank.internal  Ready    control-plane   44m   v1.27.x   10.50.0.12
+master-2.ocp.novacrestbank.internal  Ready    control-plane   44m   v1.27.x   10.50.0.13
+worker-0.ocp.novacrestbank.internal  Ready    worker          38m   v1.27.x   10.50.0.31
+worker-1.ocp.novacrestbank.internal  Ready    worker          37m   v1.27.x   10.50.0.32
+worker-2.ocp.novacrestbank.internal  Ready    worker          37m   v1.27.x   10.50.0.33</span>
 
 <span class="td"># ── Verify all cluster operators are healthy ─────────────────────────</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get clusteroperators | grep -v "True.*False.*False"</span>
@@ -1071,12 +1071,12 @@ version   4.14.x    True        False         2m      Cluster version is 4.14.x<
 <span class="td"># ── Confirm etcd has 3 healthy members ──────────────────────────────</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get etcd -o jsonpath='{.items[0].status.conditions}' | python3 -m json.tool | grep -A2 "EtcdMembersAvailable"</span>
 <span class="tg">"message": "3 members are available"  ✓</span></pre>
-      <div class="tann ok"><span class="tai">✓</span><span>OCP cluster installed successfully. 6 nodes Ready (3 masters, 3 workers). All cluster operators healthy. etcd has 3 members. Web console accessible at https://console.apps.ocp.novacrestbank.local with kubeadmin credentials.</span></div>
+      <div class="tann ok"><span class="tai">✓</span><span>OCP cluster installed successfully. 6 nodes Ready (3 masters, 3 workers). All cluster operators healthy. etcd has 3 members. Web console accessible at https://console.apps.ocp.novacrestbank.internal with kubeadmin credentials.</span></div>
     </div>
   </div>
 
   <h2>Log into the web console</h2>
-  <p>Open a browser on a domain-joined machine and navigate to <strong>https://console.apps.ocp.novacrestbank.local</strong>. The browser shows the OCP login page. Log in with username <code>kubeadmin</code> and the password from <code>auth/kubeadmin-password</code>. The OCP web console dashboard loads — showing the cluster overview, node status, and operator health at a glance.</p>
+  <p>Open a browser on a domain-joined machine and navigate to <strong>https://console.apps.ocp.novacrestbank.internal</strong>. The browser shows the OCP login page. Log in with username <code>kubeadmin</code> and the password from <code>auth/kubeadmin-password</code>. The OCP web console dashboard loads — showing the cluster overview, node status, and operator health at a glance.</p>
 </div>
 
 <!-- ══════ 17 CERT API ══════ -->
@@ -1092,7 +1092,7 @@ version   4.14.x    True        False         2m      Cluster version is 4.14.x<
 
   <div class="term">
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">Linux jumphost — generate CSR and replace API server certificate</span></div>
-    <div class="term-body"><pre><span class="td"># Step 1: Generate the CSR for api.ocp.novacrestbank.local</span>
+    <div class="term-body"><pre><span class="td"># Step 1: Generate the CSR for api.ocp.novacrestbank.internal</span>
 <span class="tp">[jumphost]$</span> <span class="tc">cat > api-csr.conf &lt;&lt;'EOF'
 [req]
 distinguished_name = req_distinguished_name
@@ -1101,13 +1101,13 @@ req_extensions = v3_req
 [v3_req]
 subjectAltName = @alt_names
 [alt_names]
-DNS.1 = api.ocp.novacrestbank.local
-DNS.2 = api-int.ocp.novacrestbank.local
+DNS.1 = api.ocp.novacrestbank.internal
+DNS.2 = api-int.ocp.novacrestbank.internal
 EOF</span>
 
 <span class="tp">[jumphost]$</span> <span class="tc">openssl req -new -newkey rsa:2048 -nodes \
   -keyout api.key \
-  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/CN=api.ocp.novacrestbank.local" \
+  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/CN=api.ocp.novacrestbank.internal" \
   -config api-csr.conf \
   -out api.csr</span>
 <span class="tg">CSR generated: api.csr ✓</span>
@@ -1129,7 +1129,7 @@ EOF</span>
 
 <span class="td"># Step 5: Patch the APIServer resource to use the new certificate</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc patch apiserver cluster --type=merge -p \
-  '{"spec":{"servingCerts":{"namedCertificates":[{"names":["api.ocp.novacrestbank.local"],"servingCertificate":{"name":"api-server-cert"}}]}}}'</span>
+  '{"spec":{"servingCerts":{"namedCertificates":[{"names":["api.ocp.novacrestbank.internal"],"servingCertificate":{"name":"api-server-cert"}}]}}}'</span>
 <span class="tg">apiserver.config.openshift.io/cluster patched ✓</span>
 
 <span class="td"># The kube-apiserver operator rolls out the new cert — takes 5-10 min
@@ -1146,15 +1146,15 @@ kube-apiserver   True        False         False    ← done ✓</span></pre>
 <div class="page" id="page-cert-ingress">
   <div class="ey">OpenShift · Section 18</div>
   <div class="pt">Replace the Ingress wildcard certificate</div>
-  <div class="ps">The certificate that makes *.apps.ocp.novacrestbank.local show a green padlock in browsers — the most visible certificate in the cluster</div>
+  <div class="ps">The certificate that makes *.apps.ocp.novacrestbank.internal show a green padlock in browsers — the most visible certificate in the cluster</div>
 
   <div class="term">
     <div class="term-bar"><div class="yaml-dot g"></div><span class="term-label">Linux jumphost — generate and install the Ingress wildcard certificate</span></div>
-    <div class="term-body"><pre><span class="td"># Step 1: Generate CSR for *.apps.ocp.novacrestbank.local</span>
+    <div class="term-body"><pre><span class="td"># Step 1: Generate CSR for *.apps.ocp.novacrestbank.internal</span>
 <span class="tp">[jumphost]$</span> <span class="tc">openssl req -new -newkey rsa:2048 -nodes \
   -keyout ingress.key \
-  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/CN=*.apps.ocp.novacrestbank.local" \
-  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.local" \
+  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/CN=*.apps.ocp.novacrestbank.internal" \
+  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.internal" \
   -out ingress.csr</span>
 <span class="tg">CSR generated: ingress.csr ✓</span>
 
@@ -1178,11 +1178,11 @@ kube-apiserver   True        False         False    ← done ✓</span></pre>
 <span class="tg">ingresscontroller.operator.openshift.io/default patched ✓</span>
 
 <span class="td"># Verify — open the OCP web console in a browser
-# https://console.apps.ocp.novacrestbank.local should now show a green padlock
+# https://console.apps.ocp.novacrestbank.internal should now show a green padlock
 # Issued by: NovaCrestBank-Issuing-CA ✓</span>
 
-<span class="tp">[jumphost]$</span> <span class="tc">echo | openssl s_client -connect console.apps.ocp.novacrestbank.local:443 2>/dev/null | openssl x509 -noout -subject -issuer</span>
-<span class="tg">subject= /CN=*.apps.ocp.novacrestbank.local
+<span class="tp">[jumphost]$</span> <span class="tc">echo | openssl s_client -connect console.apps.ocp.novacrestbank.internal:443 2>/dev/null | openssl x509 -noout -subject -issuer</span>
+<span class="tg">subject= /CN=*.apps.ocp.novacrestbank.internal
 issuer=  /CN=NovaCrestBank-Issuing-CA  ✓</span></pre>
     </div>
   </div>
@@ -1203,7 +1203,7 @@ issuer=  /CN=NovaCrestBank-Issuing-CA  ✓</span></pre>
 <span class="tg">secret/ldap-bind-password created ✓</span>
 
 <span class="td"># Step 2: Create a ConfigMap with the Root CA cert for LDAPS trust</span>
-<span class="tp">[jumphost]$</span> <span class="tc">curl -o rootca.crt http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt
+<span class="tp">[jumphost]$</span> <span class="tc">curl -o rootca.crt http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt
 oc create configmap ldap-ca-cert \
   --from-file=ca.crt=rootca.crt \
   -n openshift-config</span>
@@ -1228,10 +1228,10 @@ oc create configmap ldap-ca-cert \
     <span class="yc">    # claim: creates a new OCP user if none exists for the LDAP identity</span>
     <span class="yk">type</span>: <span class="yv">LDAP</span>
     <span class="yk">ldap</span>:
-      <span class="yk">url</span>: <span class="yv">ldaps://dc01.novacrestbank.local:636/OU=NovaCrestBank,DC=novacrestbank,DC=local?sAMAccountName</span>
+      <span class="yk">url</span>: <span class="yv">ldaps://dc01.novacrestbank.internal:636/OU=NovaCrestBank,DC=novacrestbank,DC=internal?sAMAccountName</span>
       <span class="yc">      # url format: ldaps://server:636/baseDN?attributeToSearchOn
       # sAMAccountName: the AD attribute users type when logging in</span>
-      <span class="yk">bindDN</span>: <span class="yv">CN=svc-ocp-ldap,OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=local</span>
+      <span class="yk">bindDN</span>: <span class="yv">CN=svc-ocp-ldap,OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=internal</span>
       <span class="yk">bindPassword</span>:
         <span class="yk">name</span>: <span class="yv">ldap-bind-password</span>
         <span class="yc">        # References the Secret created above</span>
@@ -1265,7 +1265,7 @@ authentication   True        True          False    ← updating
 authentication   True        False         False    ← done ✓</span>
 
 <span class="td"># Test login with an AD account</span>
-<span class="tp">[jumphost]$</span> <span class="tc">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tp">[jumphost]$</span> <span class="tc">oc login https://api.ocp.novacrestbank.internal:6443 \
   --username=Administrator --password="NovaCrest\$Domain2026!"</span>
 <span class="tg">Login successful.
 You have access to 0 projects, the server has 1 project.</span>
@@ -1291,14 +1291,14 @@ You have access to 0 projects, the server has 1 project.</span>
     <div class="yaml-bar"><div class="yaml-dot r"></div><div class="yaml-dot y"></div><div class="yaml-dot g"></div><span class="yaml-label">ldap-group-sync.yaml — sync AD groups to OCP</span></div>
     <div class="yaml-body"><pre><span class="yk">kind</span>: <span class="yv">LDAPSyncConfig</span>
 <span class="yk">apiVersion</span>: <span class="yv">v1</span>
-<span class="yk">url</span>: <span class="yv">ldaps://dc01.novacrestbank.local:636</span>
-<span class="yk">bindDN</span>: <span class="yv">CN=svc-ocp-ldap,OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=local</span>
+<span class="yk">url</span>: <span class="yv">ldaps://dc01.novacrestbank.internal:636</span>
+<span class="yk">bindDN</span>: <span class="yv">CN=svc-ocp-ldap,OU=Service Accounts,OU=NovaCrestBank,DC=novacrestbank,DC=internal</span>
 <span class="yk">bindPassword</span>: <span class="yv">NovaCrest$SvcOCP2026!</span>
 <span class="yk">ca</span>: <span class="yv">rootca.crt</span>
 <span class="yk">insecure</span>: <span class="yb">false</span>
 <span class="yk">activeDirectory</span>:
   <span class="yk">usersQuery</span>:
-    <span class="yk">baseDN</span>: <span class="yv">OU=NovaCrestBank,DC=novacrestbank,DC=local</span>
+    <span class="yk">baseDN</span>: <span class="yv">OU=NovaCrestBank,DC=novacrestbank,DC=internal</span>
     <span class="yk">scope</span>: <span class="yv">sub</span>
     <span class="yk">derefAliases</span>: <span class="yv">never</span>
     <span class="yk">filter</span>: <span class="yv">(objectclass=person)</span>
@@ -1310,7 +1310,7 @@ You have access to 0 projects, the server has 1 project.</span>
     <span class="yc">    # memberOf: the AD attribute that lists a user's group memberships</span>
 <span class="yk">augmentedActiveDirectory</span>:
   <span class="yk">groupsQuery</span>:
-    <span class="yk">baseDN</span>: <span class="yv">OU=OpenShift,OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=local</span>
+    <span class="yk">baseDN</span>: <span class="yv">OU=OpenShift,OU=Security Groups,OU=NovaCrestBank,DC=novacrestbank,DC=internal</span>
     <span class="yc">    # Only sync groups in the OpenShift OU — not all AD groups</span>
     <span class="yk">scope</span>: <span class="yv">sub</span>
     <span class="yk">derefAliases</span>: <span class="yv">never</span>
@@ -1379,12 +1379,12 @@ EOF</span>
 <span class="tg">clusterrole.rbac.authorization.k8s.io/view added: "OCP-Viewers" ✓</span>
 
 <span class="td"># Verify AD admin login works with cluster-admin before removing kubeadmin</span>
-<span class="tp">[jumphost]$</span> <span class="tc">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tp">[jumphost]$</span> <span class="tc">oc login https://api.ocp.novacrestbank.internal:6443 \
   --username=Administrator --password="NovaCrest\$Domain2026!"</span>
 <span class="tg">Login successful.</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get nodes  # Should work if cluster-admin</span>
 <span class="tg">NAME                              STATUS   ROLES    ...
-master-0.ocp.novacrestbank.local  Ready    control-plane  ← visible ✓</span>
+master-0.ocp.novacrestbank.internal  Ready    control-plane  ← visible ✓</span>
 
 <span class="td"># ONLY remove kubeadmin after confirming AD admin works</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc delete secret kubeadmin -n kube-system</span>
@@ -1511,8 +1511,8 @@ image-registry-storage   Bound    pvc-...  100Gi      RWX            vsan-standa
 <span class="td"># Verify the registry pods are running on infra nodes</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get pods -n openshift-image-registry -o wide</span>
 <span class="tg">NAME                                   READY  STATUS   NODE
-image-registry-xxxxx                   1/1    Running  infra-0.ocp.novacrestbank.local
-image-registry-yyyyy                   1/1    Running  infra-1.ocp.novacrestbank.local</span>
+image-registry-xxxxx                   1/1    Running  infra-0.ocp.novacrestbank.internal
+image-registry-yyyyy                   1/1    Running  infra-1.ocp.novacrestbank.internal</span>
 <span class="td">↑ After infra nodes are configured (Section 24), registry moves to infra nodes ✓</span></pre>
     </div>
   </div>
@@ -1538,9 +1538,9 @@ image-registry-yyyyy                   1/1    Running  infra-1.ocp.novacrestbank
 # For initial deployment: label worker-0, worker-1, worker-2 as infra</span>
 
 <span class="tp">[jumphost]$</span> <span class="tc">for node in worker-0 worker-1 worker-2; do
-  oc label node ${node}.ocp.novacrestbank.local \
+  oc label node ${node}.ocp.novacrestbank.internal \
     node-role.kubernetes.io/infra=""
-  oc label node ${node}.ocp.novacrestbank.local \
+  oc label node ${node}.ocp.novacrestbank.internal \
     node-role.kubernetes.io/worker-
   echo "Labelled ${node} as infra ✓"
 done</span>
@@ -1629,15 +1629,15 @@ storage                                    4.14.x    True        False         F
 <span class="td"># ── All nodes ────────────────────────────────────────────────────────</span>
 <span class="tp">[jumphost]$</span> <span class="tc">oc get nodes</span>
 <span class="tg">NAME                              STATUS  ROLES           AGE   VERSION
-master-0.ocp.novacrestbank.local  Ready   control-plane   2h    v1.27.x ✓
-master-1.ocp.novacrestbank.local  Ready   control-plane   2h    v1.27.x ✓
-master-2.ocp.novacrestbank.local  Ready   control-plane   2h    v1.27.x ✓
-infra-0.ocp.novacrestbank.local   Ready   infra           30m   v1.27.x ✓
-infra-1.ocp.novacrestbank.local   Ready   infra           30m   v1.27.x ✓
-infra-2.ocp.novacrestbank.local   Ready   infra           29m   v1.27.x ✓
-worker-0.ocp.novacrestbank.local  Ready   worker          15m   v1.27.x ✓
-worker-1.ocp.novacrestbank.local  Ready   worker          14m   v1.27.x ✓
-worker-2.ocp.novacrestbank.local  Ready   worker          14m   v1.27.x ✓</span>
+master-0.ocp.novacrestbank.internal  Ready   control-plane   2h    v1.27.x ✓
+master-1.ocp.novacrestbank.internal  Ready   control-plane   2h    v1.27.x ✓
+master-2.ocp.novacrestbank.internal  Ready   control-plane   2h    v1.27.x ✓
+infra-0.ocp.novacrestbank.internal   Ready   infra           30m   v1.27.x ✓
+infra-1.ocp.novacrestbank.internal   Ready   infra           30m   v1.27.x ✓
+infra-2.ocp.novacrestbank.internal   Ready   infra           29m   v1.27.x ✓
+worker-0.ocp.novacrestbank.internal  Ready   worker          15m   v1.27.x ✓
+worker-1.ocp.novacrestbank.internal  Ready   worker          14m   v1.27.x ✓
+worker-2.ocp.novacrestbank.internal  Ready   worker          14m   v1.27.x ✓</span>
 <span class="td">↑ 9 nodes total: 3 masters, 3 infra, 3 workers — all Ready ✓</span></pre>
       <div class="tann ok"><span class="tai">✓</span><span>OCP cluster fully operational. All 18+ cluster operators healthy. 9 nodes Ready. vSphere CSI storage classes configured. Image registry running on infra nodes. AD authentication active. kubeadmin removed. Ingress and API certificates CA-signed.</span></div>
     </div>
@@ -1670,15 +1670,15 @@ worker-2.ocp.novacrestbank.local  Ready   worker          14m   v1.27.x ✓</spa
 
 <span class="tp">[jumphost]$</span> <span class="tc">oc get route test-app</span>
 <span class="tg">NAME       HOST                                     PORT  PATH  TERMINATION  WILDCARD
-test-app   test-app.apps.ocp.novacrestbank.local    8080        None         None</span>
+test-app   test-app.apps.ocp.novacrestbank.internal    8080        None         None</span>
 
 <span class="td"># Verify HTTP access (the route uses the Ingress wildcard cert)</span>
-<span class="tp">[jumphost]$</span> <span class="tc">curl -I http://test-app.apps.ocp.novacrestbank.local</span>
+<span class="tp">[jumphost]$</span> <span class="tc">curl -I http://test-app.apps.ocp.novacrestbank.internal</span>
 <span class="tg">HTTP/1.1 200 OK
 Server: nginx/1.x
 X-Powered-By: Express</span>
 <span class="td">↑ Application accessible via DNS + Ingress ✓
-  Wildcard DNS (*.apps.ocp.novacrestbank.local → 10.50.0.201) working ✓
+  Wildcard DNS (*.apps.ocp.novacrestbank.internal → 10.50.0.201) working ✓
   Ingress router routing to the pod ✓
 
 # Test persistent storage</span>
@@ -1720,14 +1720,14 @@ test-pvc   Bound    pvc-abc123   1Gi        vsan-standard   30s ✓</span>
 
   <h2>Final verification checklist</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">Cluster name: ocp.novacrestbank.local</span><span class="spec-val badge bg">✓ oc get clusterversion confirms</span></div>
+    <div class="spec-row"><span class="spec-label">Cluster name: ocp.novacrestbank.internal</span><span class="spec-val badge bg">✓ oc get clusterversion confirms</span></div>
     <div class="spec-row"><span class="spec-label">3 master nodes: Ready, control-plane role</span><span class="spec-val badge bg">✓ oc get nodes</span></div>
     <div class="spec-row"><span class="spec-label">3 infra nodes: Ready, infra role</span><span class="spec-val badge bg">✓ oc get nodes</span></div>
     <div class="spec-row"><span class="spec-label">3 worker nodes: Ready, worker role</span><span class="spec-val badge bg">✓ oc get nodes</span></div>
     <div class="spec-row"><span class="spec-label">etcd: 3 members available</span><span class="spec-val badge bg">✓ oc get etcd confirms 3 members</span></div>
     <div class="spec-row"><span class="spec-label">All cluster operators: Available, not Degraded</span><span class="spec-val badge bg">✓ oc get clusteroperators — no red</span></div>
     <div class="spec-row"><span class="spec-label">API certificate: NovaCrestBank-Issuing-CA, 2-year</span><span class="spec-val badge bg">✓ openssl s_client verified</span></div>
-    <div class="spec-row"><span class="spec-label">Ingress wildcard cert: *.apps.ocp.novacrestbank.local</span><span class="spec-val badge bg">✓ Green padlock in browser</span></div>
+    <div class="spec-row"><span class="spec-label">Ingress wildcard cert: *.apps.ocp.novacrestbank.internal</span><span class="spec-val badge bg">✓ Green padlock in browser</span></div>
     <div class="spec-row"><span class="spec-label">LDAP Identity Provider: NovaCrestBank-ActiveDirectory</span><span class="spec-val badge bg">✓ AD login works</span></div>
     <div class="spec-row"><span class="spec-label">OCP groups synced from AD: ClusterAdmins, Developers, Viewers</span><span class="spec-val badge bg">✓ oc get groups</span></div>
     <div class="spec-row"><span class="spec-label">OCP-ClusterAdmins has cluster-admin role</span><span class="spec-val badge bg">✓ AD admin can oc get nodes</span></div>
@@ -1737,7 +1737,7 @@ test-pvc   Bound    pvc-abc123   1Gi        vsan-standard   30s ✓</span>
     <div class="spec-row"><span class="spec-label">Image registry: Managed, running on infra nodes</span><span class="spec-val badge bg">✓ oc get pods -n openshift-image-registry</span></div>
     <div class="spec-row"><span class="spec-label">Router: running on infra nodes</span><span class="spec-val badge bg">✓ oc get pods -n openshift-ingress</span></div>
     <div class="spec-row"><span class="spec-label">Monitoring: Prometheus/Grafana on infra nodes</span><span class="spec-val badge bg">✓ cluster-monitoring-config applied</span></div>
-    <div class="spec-row"><span class="spec-label">Test app deployed and accessible via Ingress</span><span class="spec-val badge bg">✓ curl http://test-app.apps.ocp.novacrestbank.local 200 OK</span></div>
+    <div class="spec-row"><span class="spec-label">Test app deployed and accessible via Ingress</span><span class="spec-val badge bg">✓ curl http://test-app.apps.ocp.novacrestbank.internal 200 OK</span></div>
     <div class="spec-row"><span class="spec-label">vSAN CSI: PVC Bound in &lt;60 seconds</span><span class="spec-val badge bg">✓ test-pvc Bound on vsan-standard</span></div>
     <div class="spec-row"><span class="spec-label">kubeconfig saved securely</span><span class="spec-val badge ba">⚠ Store ~/ocp-install/novacrestbank/auth/kubeconfig in CyberArk</span></div>
     <div class="spec-row"><span class="spec-label">LDAP group sync CronJob: running every 30 min</span><span class="spec-val badge bg">✓ oc get cronjob -n openshift-authentication</span></div>

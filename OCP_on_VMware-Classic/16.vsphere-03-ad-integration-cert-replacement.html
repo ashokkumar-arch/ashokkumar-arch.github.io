@@ -258,7 +258,7 @@
     <div class="ni" onclick="show('ad-add-source')"><div class="nd"></div>06 — Add Active Directory as Identity Source</div>
     <div class="ni" onclick="show('ad-ldaps')"><div class="nd"></div>07 — Configure LDAPS — encrypted connection to DCs</div>
     <div class="ni" onclick="show('ad-test')"><div class="nd"></div>08 — Test the identity source connection</div>
-    <div class="ni" onclick="show('ad-set-default')"><div class="nd"></div>09 — Set novacrestbank.local as default domain</div>
+    <div class="ni" onclick="show('ad-set-default')"><div class="nd"></div>09 — Set novacrestbank.internal as default domain</div>
   </div>
 
   <div class="nav-group">
@@ -345,7 +345,7 @@
     <div class="decision-q">vCenter has its own SSO (Single Sign-On) with a vsphere.local domain. How does Active Directory fit into this?</div>
     <div class="decision-a"><strong>vCenter SSO supports multiple Identity Sources — directories that SSO can query to authenticate users. Adding Active Directory as an Identity Source allows vCenter SSO to validate NOVACRESTBANK\username credentials against DC01 and DC02.</strong><br/><br/>
     The authentication flow works like this:<br/>
-    1. Engineer goes to https://vcenter.novacrestbank.local/ui<br/>
+    1. Engineer goes to https://vcenter.novacrestbank.internal/ui<br/>
     2. On the login page, selects "NOVACRESTBANK" from the domain dropdown (or types NOVACRESTBANK\username)<br/>
     3. vCenter SSO receives the credentials and queries DC01 (via LDAPS on port 636) with the bind credentials you configure<br/>
     4. DC01 validates the username/password and returns the user's group memberships<br/>
@@ -424,7 +424,7 @@
     <div class="spec-row"><span class="spec-label">LDAPS active on DC01 and DC02 (port 636)</span><span class="spec-val badge bg">✓ DC auto-enrolled Domain Controller cert in Win-04</span></div>
     <div class="spec-row"><span class="spec-label">Issuing CA running at 10.70.0.21</span><span class="spec-val badge bg">✓ CA Web Enrollment accessible at https://issuingca/certsrv</span></div>
     <div class="spec-row"><span class="spec-label">Root CA cert in GPO (all domain machines trust it)</span><span class="spec-val badge bg">✓ GPO NovaCrestBank-PKI-AutoEnrollment linked in Win-04</span></div>
-    <div class="spec-row"><span class="spec-label">pki.novacrestbank.local resolves (HTTP 200 for CRL)</span><span class="spec-val badge bg">✓ DNS A record and IIS on DC01 configured in Win-03</span></div>
+    <div class="spec-row"><span class="spec-label">pki.novacrestbank.internal resolves (HTTP 200 for CRL)</span><span class="spec-val badge bg">✓ DNS A record and IIS on DC01 configured in Win-03</span></div>
     <div class="spec-row"><span class="spec-label">AD security groups for vCenter roles (created in this guide)</span><span class="spec-val badge ba">⚠ Done in Section 10</span></div>
     <div class="spec-row"><span class="spec-label">vCenter accessible at https://10.10.0.100/ui</span><span class="spec-val badge bg">✓ administrator@vsphere.local login works</span></div>
     <div class="spec-row"><span class="spec-label">VAMI accessible at https://10.10.0.100:5480</span><span class="spec-val badge bg">✓ Root credentials work</span></div>
@@ -432,7 +432,7 @@
 
   <div class="callout warn">
     <div class="cl">Verify LDAPS before configuring vCenter AD integration</div>
-    The single most common failure in vCenter AD integration is LDAPS not working — either because the DC's certificate is missing the correct EKU, because the Root CA certificate is not trusted by vCenter, or because port 636 is blocked. Verify LDAPS from a Windows machine on the network before starting: open PowerShell on DC01 and run <code>Test-NetConnection -ComputerName dc01.novacrestbank.local -Port 636</code>. If TcpTestSucceeded is True, LDAPS is reachable.
+    The single most common failure in vCenter AD integration is LDAPS not working — either because the DC's certificate is missing the correct EKU, because the Root CA certificate is not trusted by vCenter, or because port 636 is blocked. Verify LDAPS from a Windows machine on the network before starting: open PowerShell on DC01 and run <code>Test-NetConnection -ComputerName dc01.novacrestbank.internal -Port 636</code>. If TcpTestSucceeded is True, LDAPS is reachable.
   </div>
 </div>
 
@@ -447,7 +447,7 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">Log into vCenter as administrator@vsphere.local</div>
-        <p style="font-size:13.5px">Open https://vcenter.novacrestbank.local/ui (or https://10.10.0.100/ui). Log in as <strong>administrator@vsphere.local</strong> / <code>NovaCrest$vCenter2026!</code>. The vSphere Client dashboard loads.</p>
+        <p style="font-size:13.5px">Open https://vcenter.novacrestbank.internal/ui (or https://10.10.0.100/ui). Log in as <strong>administrator@vsphere.local</strong> / <code>NovaCrest$vCenter2026!</code>. The vSphere Client dashboard loads.</p>
       </div>
     </li>
     <li class="step-item">
@@ -554,19 +554,19 @@
         </div>
         <div class="vc-field">
           <div class="vc-label">Name:</div>
-          <div class="vc-input filled">novacrestbank.local</div>
+          <div class="vc-input filled">novacrestbank.internal</div>
         </div>
         <div class="vc-field">
           <div class="vc-label">Base DN for users:</div>
-          <div class="vc-input filled">DC=novacrestbank,DC=local</div>
+          <div class="vc-input filled">DC=novacrestbank,DC=internal</div>
         </div>
         <div class="vc-field">
           <div class="vc-label">Base DN for groups:</div>
-          <div class="vc-input filled">DC=novacrestbank,DC=local</div>
+          <div class="vc-input filled">DC=novacrestbank,DC=internal</div>
         </div>
         <div class="vc-field">
           <div class="vc-label">Domain name:</div>
-          <div class="vc-input filled">novacrestbank.local</div>
+          <div class="vc-input filled">novacrestbank.internal</div>
         </div>
         <div class="vc-field">
           <div class="vc-label">Domain alias:</div>
@@ -586,11 +586,11 @@
         </div>
         <div class="vc-field">
           <div class="vc-label">Primary server URL:</div>
-          <div class="vc-input filled">ldaps://dc01.novacrestbank.local:636</div>
+          <div class="vc-input filled">ldaps://dc01.novacrestbank.internal:636</div>
         </div>
         <div class="vc-field">
           <div class="vc-label">Secondary server URL:</div>
-          <div class="vc-input filled">ldaps://dc02.novacrestbank.local:636</div>
+          <div class="vc-input filled">ldaps://dc02.novacrestbank.internal:636</div>
         </div>
       </div>
     </div>
@@ -607,15 +607,15 @@
 
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
     <div>Identity source type:   <strong style="color:var(--vm-blue);">Active Directory as LDAP Server</strong></div>
-    <div style="margin-top:4px;">Name:                   <strong style="color:var(--vm-blue);">novacrestbank.local</strong></div>
-    <div style="margin-top:4px;">Base DN for users:      <strong style="color:var(--vm-blue);">DC=novacrestbank,DC=local</strong></div>
-    <div style="margin-top:4px;">Base DN for groups:     <strong style="color:var(--vm-blue);">DC=novacrestbank,DC=local</strong></div>
-    <div style="margin-top:4px;">Domain name:            <strong style="color:var(--vm-blue);">novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">Name:                   <strong style="color:var(--vm-blue);">novacrestbank.internal</strong></div>
+    <div style="margin-top:4px;">Base DN for users:      <strong style="color:var(--vm-blue);">DC=novacrestbank,DC=internal</strong></div>
+    <div style="margin-top:4px;">Base DN for groups:     <strong style="color:var(--vm-blue);">DC=novacrestbank,DC=internal</strong></div>
+    <div style="margin-top:4px;">Domain name:            <strong style="color:var(--vm-blue);">novacrestbank.internal</strong></div>
     <div style="margin-top:4px;">Domain alias:           <strong style="color:var(--vm-blue);">NOVACRESTBANK</strong></div>
     <div style="margin-top:4px;">Username (bind acct):   <strong style="color:var(--vm-blue);">NOVACRESTBANK\svc-vcenter-ldap</strong></div>
     <div style="margin-top:4px;">Password:               <strong style="color:var(--vm-blue);">[from CyberArk — created in next step]</strong></div>
-    <div style="margin-top:4px;">Primary server:         <strong style="color:var(--vm-blue);">ldaps://dc01.novacrestbank.local:636</strong></div>
-    <div style="margin-top:4px;">Secondary server:       <strong style="color:var(--vm-blue);">ldaps://dc02.novacrestbank.local:636</strong></div>
+    <div style="margin-top:4px;">Primary server:         <strong style="color:var(--vm-blue);">ldaps://dc01.novacrestbank.internal:636</strong></div>
+    <div style="margin-top:4px;">Secondary server:       <strong style="color:var(--vm-blue);">ldaps://dc02.novacrestbank.internal:636</strong></div>
   </div>
 
   <div class="decision">
@@ -631,15 +631,15 @@
   <div class="psh">
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01 — create the vCenter LDAP service account</span></div>
     <div class="psh-body"><pre><span class="pd"># Create a dedicated OU for service accounts (if not already exists)</span>
-<span class="pp">PS C:\></span> <span class="pc">New-ADOrganizationalUnit -Name "Service Accounts" -Path "DC=novacrestbank,DC=local"</span>
+<span class="pp">PS C:\></span> <span class="pc">New-ADOrganizationalUnit -Name "Service Accounts" -Path "DC=novacrestbank,DC=internal"</span>
 <span class="pg">Organizational Unit 'Service Accounts' created ✓</span>
 
 <span class="pd"># Create the vCenter LDAP bind account</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADUser `
     -Name "svc-vcenter-ldap" `
     -SamAccountName "svc-vcenter-ldap" `
-    -UserPrincipalName "svc-vcenter-ldap@novacrestbank.local" `
-    -Path "OU=Service Accounts,DC=novacrestbank,DC=local" `
+    -UserPrincipalName "svc-vcenter-ldap@novacrestbank.internal" `
+    -Path "OU=Service Accounts,DC=novacrestbank,DC=internal" `
     -AccountPassword (ConvertTo-SecureString "NovaCrest$SvcVcenter2026!" -AsPlainText -Force) `
     -Enabled $true `
     -PasswordNeverExpires $true `
@@ -673,14 +673,14 @@
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">In the Add Identity Source dialog — find the SSL Certificates field</div>
-        <p style="font-size:13.5px">After entering the LDAPS URLs (<code>ldaps://dc01.novacrestbank.local:636</code>), the dialog shows a section labelled <strong>"SSL Certificates"</strong> with a Browse button. This upload adds the CA certificate that signed DC01's LDAPS certificate to vCenter's trust for this identity source.</p>
+        <p style="font-size:13.5px">After entering the LDAPS URLs (<code>ldaps://dc01.novacrestbank.internal:636</code>), the dialog shows a section labelled <strong>"SSL Certificates"</strong> with a Browse button. This upload adds the CA certificate that signed DC01's LDAPS certificate to vCenter's trust for this identity source.</p>
       </div>
     </li>
     <li class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
         <div class="step-title">Click Browse — upload the Root CA certificate file</div>
-        <p style="font-size:13.5px">Click <strong>Browse</strong>. A file upload dialog opens. Navigate to the Root CA certificate file. You previously placed it at <code>http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</code>. Download it to your laptop from that URL first (open it in a browser, then save). Upload it via the Browse dialog. The certificate is validated and shown: "NovaCrestBank-Root-CA — Valid until April 2046."</p>
+        <p style="font-size:13.5px">Click <strong>Browse</strong>. A file upload dialog opens. Navigate to the Root CA certificate file. You previously placed it at <code>http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt</code>. Download it to your laptop from that URL first (open it in a browser, then save). Upload it via the Browse dialog. The certificate is validated and shown: "NovaCrestBank-Root-CA — Valid until April 2046."</p>
       </div>
     </li>
   </ul>
@@ -696,7 +696,7 @@
 
 <span class="pd"># First, copy the Root CA certificate to the VCSA</span>
 <span class="pd"># (from the pki web server — curl it directly)</span>
-<span class="pp">root@vcsa []#</span> <span class="pc">curl -o /tmp/rootca.crt http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</span>
+<span class="pp">root@vcsa []#</span> <span class="pc">curl -o /tmp/rootca.crt http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt</span>
 <span class="pg">  % Total    % Received  100  1350  100  1350  -- done</span>
 
 <span class="pd"># Add the Root CA certificate to VECS TRUSTED_ROOTS store</span>
@@ -710,8 +710,8 @@
 <span class="pg">1 added, 0 removed; done.</span>
 
 <span class="pd"># Verify the Root CA is trusted</span>
-<span class="pp">root@vcsa []#</span> <span class="pc">openssl s_client -connect dc01.novacrestbank.local:636 -CAfile /tmp/rootca.crt 2>&1 | grep -E "Verify|issuer"</span>
-<span class="pg">issuer=CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=local
+<span class="pp">root@vcsa []#</span> <span class="pc">openssl s_client -connect dc01.novacrestbank.internal:636 -CAfile /tmp/rootca.crt 2>&1 | grep -E "Verify|issuer"</span>
+<span class="pg">issuer=CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=internal
 Verify return code: 0 (ok)</span>
 <span class="pd">
 ↑ Verify return code: 0 (ok) ← DC01's LDAPS cert validates against Root CA ✓
@@ -761,7 +761,7 @@ Verify return code: 0 (ok)</span>
       <div class="step-num">3</div>
       <div class="step-content">
         <div class="step-title">Click Save — Active Directory appears as an Identity Source</div>
-        <p style="font-size:13.5px">Click <strong>Save</strong> (or <strong>OK</strong> depending on vCenter version). The Identity Sources list now shows two entries: vsphere.local (built-in) and novacrestbank.local (Active Directory). The domain <strong>NOVACRESTBANK</strong> is now available as a login domain on the vCenter login page.</p>
+        <p style="font-size:13.5px">Click <strong>Save</strong> (or <strong>OK</strong> depending on vCenter version). The Identity Sources list now shows two entries: vsphere.local (built-in) and novacrestbank.internal (Active Directory). The domain <strong>NOVACRESTBANK</strong> is now available as a login domain on the vCenter login page.</p>
       </div>
     </li>
   </ul>
@@ -770,22 +770,22 @@ Verify return code: 0 (ok)</span>
 <!-- ══════ 09 AD DEFAULT ══════ -->
 <div class="page" id="page-ad-set-default">
   <div class="ey">VMware Series · vSphere-03 · Section 09</div>
-  <div class="pt">Set novacrestbank.local as the default domain</div>
+  <div class="pt">Set novacrestbank.internal as the default domain</div>
   <div class="ps">Making the AD domain appear first on the vCenter login page — so engineers don't have to select it manually every time</div>
 
   <ul class="step-list">
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">In Identity Sources — click "novacrestbank.local" → "Set as Default Domain"</div>
-        <p style="font-size:13.5px">In the Identity Sources list, click the row for <strong>novacrestbank.local</strong> to select it. In the toolbar above the list, click <strong>Set as Default Domain</strong> (or right-click and select "Set as default identity source"). A tick or star icon appears next to novacrestbank.local indicating it is now the default.</p>
+        <div class="step-title">In Identity Sources — click "novacrestbank.internal" → "Set as Default Domain"</div>
+        <p style="font-size:13.5px">In the Identity Sources list, click the row for <strong>novacrestbank.internal</strong> to select it. In the toolbar above the list, click <strong>Set as Default Domain</strong> (or right-click and select "Set as default identity source"). A tick or star icon appears next to novacrestbank.internal indicating it is now the default.</p>
       </div>
     </li>
     <li class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
         <div class="step-title">Verify the login page shows NOVACRESTBANK as the default domain</div>
-        <p style="font-size:13.5px">Open a new incognito/private browser window. Navigate to https://vcenter.novacrestbank.local/ui. The login page loads. Look at the domain dropdown below the password field — it should now show <strong>NOVACRESTBANK</strong> pre-selected (not vsphere.local). Engineers can type just their username without specifying the domain prefix.</p>
+        <p style="font-size:13.5px">Open a new incognito/private browser window. Navigate to https://vcenter.novacrestbank.internal/ui. The login page loads. Look at the domain dropdown below the password field — it should now show <strong>NOVACRESTBANK</strong> pre-selected (not vsphere.local). Engineers can type just their username without specifying the domain prefix.</p>
       </div>
     </li>
   </ul>
@@ -815,27 +815,27 @@ Verify return code: 0 (ok)</span>
   <div class="psh">
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — DC01 — create vCenter AD security groups</span></div>
     <div class="psh-body"><pre><span class="pd"># Create a dedicated OU for vCenter groups (clean separation)</span>
-<span class="pp">PS C:\></span> <span class="pc">New-ADOrganizationalUnit -Name "vCenter Groups" -Path "DC=novacrestbank,DC=local"</span>
+<span class="pp">PS C:\></span> <span class="pc">New-ADOrganizationalUnit -Name "vCenter Groups" -Path "DC=novacrestbank,DC=internal"</span>
 
 <span class="pd"># Create four AD security groups — one per vCenter permission level</span>
 <span class="pd"># Group 1: vCenter Administrators — full control of the vSphere environment</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADGroup -Name "vCenter-Admins" -GroupScope Global -GroupCategory Security `
-    -Path "OU=vCenter Groups,DC=novacrestbank,DC=local" `
+    -Path "OU=vCenter Groups,DC=novacrestbank,DC=internal" `
     -Description "Full vCenter Administrator role — infrastructure team only"</span>
 
 <span class="pd"># Group 2: vCenter Read-Only — view all but change nothing (auditors, helpdesk)</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADGroup -Name "vCenter-ReadOnly" -GroupScope Global -GroupCategory Security `
-    -Path "OU=vCenter Groups,DC=novacrestbank,DC=local" `
+    -Path "OU=vCenter Groups,DC=novacrestbank,DC=internal" `
     -Description "vCenter read-only access — monitoring and auditing"</span>
 
 <span class="pd"># Group 3: vCenter Operators — can power VMs on/off, view consoles, but not modify config</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADGroup -Name "vCenter-Operators" -GroupScope Global -GroupCategory Security `
-    -Path "OU=vCenter Groups,DC=novacrestbank,DC=local" `
+    -Path "OU=vCenter Groups,DC=novacrestbank,DC=internal" `
     -Description "vCenter operator access — VM power management and console access"</span>
 
 <span class="pd"># Group 4: vCenter No Access — explicitly denied (useful for break-glass prevention)</span>
 <span class="pp">PS C:\></span> <span class="pc">New-ADGroup -Name "vCenter-NoAccess" -GroupScope Global -GroupCategory Security `
-    -Path "OU=vCenter Groups,DC=novacrestbank,DC=local" `
+    -Path "OU=vCenter Groups,DC=novacrestbank,DC=internal" `
     -Description "Explicitly no vCenter access — security team managed"</span>
 
 <span class="pd"># Add the first admin to the vCenter-Admins group</span>
@@ -847,10 +847,10 @@ Verify return code: 0 (ok)</span>
 <span class="pp">PS C:\></span> <span class="pc">Get-ADGroup -Filter "Name -like 'vCenter*'" | Select Name,DistinguishedName</span>
 <span class="pg">Name              DistinguishedName
 ----              -----------------
-vCenter-Admins    CN=vCenter-Admins,OU=vCenter Groups,DC=novacrestbank,DC=local
-vCenter-ReadOnly  CN=vCenter-ReadOnly,OU=vCenter Groups,DC=novacrestbank,DC=local
-vCenter-Operators CN=vCenter-Operators,OU=vCenter Groups,DC=novacrestbank,DC=local
-vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=local</span></pre>
+vCenter-Admins    CN=vCenter-Admins,OU=vCenter Groups,DC=novacrestbank,DC=internal
+vCenter-ReadOnly  CN=vCenter-ReadOnly,OU=vCenter Groups,DC=novacrestbank,DC=internal
+vCenter-Operators CN=vCenter-Operators,OU=vCenter Groups,DC=novacrestbank,DC=internal
+vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=internal</span></pre>
     </div>
   </div>
 </div>
@@ -951,7 +951,7 @@ vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=loca
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">Open a private browser window — navigate to vCenter</div>
-        <p style="font-size:13.5px">Open an incognito/private browser window. Navigate to https://vcenter.novacrestbank.local/ui. The login page loads.</p>
+        <p style="font-size:13.5px">Open an incognito/private browser window. Navigate to https://vcenter.novacrestbank.internal/ui. The login page loads.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1024,8 +1024,8 @@ vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=loca
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">Open https://vcenter.novacrestbank.local:5480 in a browser</div>
-        <p style="font-size:13.5px">Open a browser and navigate to <strong>https://vcenter.novacrestbank.local:5480</strong> (or https://10.10.0.100:5480). A certificate warning appears — the VAMI itself uses a self-signed certificate initially. Accept the warning and proceed. The VAMI login page appears.</p>
+        <div class="step-title">Open https://vcenter.novacrestbank.internal:5480 in a browser</div>
+        <p style="font-size:13.5px">Open a browser and navigate to <strong>https://vcenter.novacrestbank.internal:5480</strong> (or https://10.10.0.100:5480). A certificate warning appears — the VAMI itself uses a self-signed certificate initially. Accept the warning and proceed. The VAMI login page appears.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1113,7 +1113,7 @@ vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=loca
             <div class="vami-content">
               <div class="vami-field">
                 <div class="vami-label">Common Name (CN):</div>
-                <div class="vami-input filled">vcenter.novacrestbank.local</div>
+                <div class="vami-input filled">vcenter.novacrestbank.internal</div>
               </div>
               <div class="vami-field">
                 <div class="vami-label">Organisation (O):</div>
@@ -1137,7 +1137,7 @@ vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=loca
               </div>
               <div class="vami-field">
                 <div class="vami-label">Subject Alternative Names:</div>
-                <div class="vami-input filled">vcenter.novacrestbank.local, 10.10.0.100</div>
+                <div class="vami-input filled">vcenter.novacrestbank.internal, 10.10.0.100</div>
               </div>
               <div class="vami-field">
                 <div class="vami-label">Key size:</div>
@@ -1154,21 +1154,21 @@ vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=loca
   </ul>
 
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
-    <div>Common Name:              <strong style="color:var(--vm-blue);">vcenter.novacrestbank.local</strong></div>
+    <div>Common Name:              <strong style="color:var(--vm-blue);">vcenter.novacrestbank.internal</strong></div>
     <div style="margin-top:4px;">Organisation:             <strong style="color:var(--vm-blue);">NovaCrestBank</strong></div>
     <div style="margin-top:4px;">Organisational Unit:      <strong style="color:var(--vm-blue);">Infrastructure</strong></div>
     <div style="margin-top:4px;">Country:                  <strong style="color:var(--vm-blue);">GB</strong></div>
     <div style="margin-top:4px;">State/Province:           <strong style="color:var(--vm-blue);">England</strong></div>
     <div style="margin-top:4px;">Locality:                 <strong style="color:var(--vm-blue);">London</strong></div>
-    <div style="margin-top:4px;">Subject Alternative Names: <strong style="color:var(--vm-blue);">vcenter.novacrestbank.local, 10.10.0.100</strong></div>
+    <div style="margin-top:4px;">Subject Alternative Names: <strong style="color:var(--vm-blue);">vcenter.novacrestbank.internal, 10.10.0.100</strong></div>
     <div style="margin-top:4px;">Key size:                 <strong style="color:var(--vm-blue);">2048</strong>  (sufficient for leaf certs)</div>
   </div>
 
   <div class="decision">
     <div class="decision-label">Why include both the FQDN and IP address in the SAN</div>
-    <div class="decision-q">Why does the Subject Alternative Name include both vcenter.novacrestbank.local AND 10.10.0.100?</div>
+    <div class="decision-q">Why does the Subject Alternative Name include both vcenter.novacrestbank.internal AND 10.10.0.100?</div>
     <div class="decision-a"><strong>Because some systems connect to vCenter by IP address rather than hostname — if the IP is not in the SAN, those connections get a certificate warning even with a valid CA-signed cert.</strong><br/><br/>
-    ESXi hosts connect to vCenter using its IP address (10.10.0.100) for some internal vCenter communications. The vSphere Client itself connects by FQDN. If only the FQDN were in the SAN, any connection that uses the IP address would see "Certificate hostname mismatch" — the certificate says vcenter.novacrestbank.local but the connection is to 10.10.0.100. Including both in the SAN covers all connection paths without warnings.<br/><br/>
+    ESXi hosts connect to vCenter using its IP address (10.10.0.100) for some internal vCenter communications. The vSphere Client itself connects by FQDN. If only the FQDN were in the SAN, any connection that uses the IP address would see "Certificate hostname mismatch" — the certificate says vcenter.novacrestbank.internal but the connection is to 10.10.0.100. Including both in the SAN covers all connection paths without warnings.<br/><br/>
     Modern TLS certificate verification checks the Subject Alternative Name (SAN) — not the Common Name. The Common Name is legacy — its value is largely ignored by modern browsers. All hostnames and IPs that will be used to access this service must be in the SAN list.</div>
   </div>
 
@@ -1185,8 +1185,8 @@ vCenter-NoAccess  CN=vCenter-NoAccess,OU=vCenter Groups,DC=novacrestbank,DC=loca
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">Open https://issuingca.novacrestbank.local/certsrv in a browser</div>
-        <p style="font-size:13.5px">Open a browser and navigate to <strong>https://issuingca.novacrestbank.local/certsrv</strong>. A certificate warning appears for the IIS default certificate — accept it. The Microsoft Active Directory Certificate Services page loads with the title "Microsoft Active Directory Certificate Services — NovaCrestBank-Issuing-CA."</p>
+        <div class="step-title">Open https://issuingca.novacrestbank.internal/certsrv in a browser</div>
+        <p style="font-size:13.5px">Open a browser and navigate to <strong>https://issuingca.novacrestbank.internal/certsrv</strong>. A certificate warning appears for the IIS default certificate — accept it. The Microsoft Active Directory Certificate Services page loads with the title "Microsoft Active Directory Certificate Services — NovaCrestBank-Issuing-CA."</p>
       </div>
     </li>
     <li class="step-item">
@@ -1264,14 +1264,14 @@ CertUtil: -decode command completed successfully.</span>
 
 <span class="pd"># The easiest method: download each cert directly as Base64 from the pki server</span>
 <span class="pd"># and concatenate manually:</span>
-<span class="pp">C:\></span> <span class="pc">curl http://pki.novacrestbank.local/pki/issuingca.novacrestbank.local_NovaCrestBank-Issuing-CA.crt -o issuingca.cer</span>
-<span class="pp">C:\></span> <span class="pc">curl http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt -o rootca.cer</span>
+<span class="pp">C:\></span> <span class="pc">curl http://pki.novacrestbank.internal/pki/issuingca.novacrestbank.internal_NovaCrestBank-Issuing-CA.crt -o issuingca.cer</span>
+<span class="pp">C:\></span> <span class="pc">curl http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt -o rootca.cer</span>
 
 <span class="pd"># Create the full chain file (leaf + issuing CA + root CA in PEM format)</span>
 <span class="pp">C:\></span> <span class="pc">type vcenter.cer issuingca.cer rootca.cer > vcenter-fullchain.pem</span>
 <span class="pg">Chain file created: vcenter-fullchain.pem</span>
 <span class="pd"># This file contains three PEM certificates in sequence:
-# 1. vCenter leaf cert (vcenter.novacrestbank.local)
+# 1. vCenter leaf cert (vcenter.novacrestbank.internal)
 # 2. NovaCrestBank-Issuing-CA certificate
 # 3. NovaCrestBank-Root-CA certificate</span></pre>
           </div>
@@ -1294,7 +1294,7 @@ CertUtil: -decode command completed successfully.</span>
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">In VAMI — Certificate Management → Machine SSL Certificate → Actions → Import and Replace Certificate</div>
-        <p style="font-size:13.5px">Return to the VAMI Certificate Management page (https://vcenter.novacrestbank.local:5480). Click on <strong>Machine SSL Certificate</strong>. In the Actions menu (or button bar), click <strong>"Import and Replace Certificate"</strong>. A dialog opens with file upload fields.</p>
+        <p style="font-size:13.5px">Return to the VAMI Certificate Management page (https://vcenter.novacrestbank.internal:5480). Click on <strong>Machine SSL Certificate</strong>. In the Actions menu (or button bar), click <strong>"Import and Replace Certificate"</strong>. A dialog opens with file upload fields.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1372,14 +1372,14 @@ CertUtil: -decode command completed successfully.</span>
       <div class="step-num">3</div>
       <div class="step-content">
         <div class="step-title">Open the vSphere Client — verify the padlock is green</div>
-        <p style="font-size:13.5px">Open a browser and navigate to <strong>https://vcenter.novacrestbank.local/ui</strong>. If the Root CA certificate has been distributed via GPO (and the browser is running on a domain-joined machine), the page loads with a <strong>green padlock</strong> — no certificate warning. Click the padlock and inspect the certificate: it should show <code>vcenter.novacrestbank.local</code> issued by <code>NovaCrestBank-Issuing-CA</code> with a 2-year validity.</p>
+        <p style="font-size:13.5px">Open a browser and navigate to <strong>https://vcenter.novacrestbank.internal/ui</strong>. If the Root CA certificate has been distributed via GPO (and the browser is running on a domain-joined machine), the page loads with a <strong>green padlock</strong> — no certificate warning. Click the padlock and inspect the certificate: it should show <code>vcenter.novacrestbank.internal</code> issued by <code>NovaCrestBank-Issuing-CA</code> with a 2-year validity.</p>
       </div>
     </li>
   </ul>
 
   <div class="callout success">
     <div class="cl">The padlock is green — vCenter is trusted by all domain machines</div>
-    The browser shows a green padlock for https://vcenter.novacrestbank.local. The certificate chain shows: vcenter.novacrestbank.local (leaf) → NovaCrestBank-Issuing-CA → NovaCrestBank-Root-CA (trusted via GPO). No warning, no click-through. The entire NovaCrestBank domain automatically trusts vCenter's TLS certificate — no manual configuration needed on any client.
+    The browser shows a green padlock for https://vcenter.novacrestbank.internal. The certificate chain shows: vcenter.novacrestbank.internal (leaf) → NovaCrestBank-Issuing-CA → NovaCrestBank-Root-CA (trusted via GPO). No warning, no click-through. The entire NovaCrestBank domain automatically trusts vCenter's TLS certificate — no manual configuration needed on any client.
   </div>
 </div>
 
@@ -1394,7 +1394,7 @@ CertUtil: -decode command completed successfully.</span>
     <div class="decision-q">vCenter's certificate is now CA-signed. Why do the ESXi hosts also need CA-signed certificates?</div>
     <div class="decision-a"><strong>Because vCenter connects to ESXi hosts over HTTPS — and without CA-signed certificates on ESXi, vCenter cannot cryptographically verify it is connecting to the real host rather than a man-in-the-middle.</strong><br/><br/>
     Currently, vCenter accepts ESXi self-signed certificates without validation (thumbprint-based trust — vCenter trusts whatever certificate a host presents once it is added to the cluster). A compromised network device between vCenter and an ESXi host could present a fake ESXi certificate and intercept management traffic — vCenter would not detect this.<br/><br/>
-    With CA-signed ESXi certificates and Custom certificate mode enabled in vCenter: vCenter validates each ESXi host's certificate against the NovaCrestBank CA chain before connecting. An impostor cannot present a valid certificate because only the Issuing CA can sign certificates for esxi01.novacrestbank.local — and the Issuing CA requires authentication before signing anything. The vCenter-ESXi management channel is end-to-end verified.</div>
+    With CA-signed ESXi certificates and Custom certificate mode enabled in vCenter: vCenter validates each ESXi host's certificate against the NovaCrestBank CA chain before connecting. An impostor cannot present a valid certificate because only the Issuing CA can sign certificates for esxi01.novacrestbank.internal — and the Issuing CA requires authentication before signing anything. The vCenter-ESXi management channel is end-to-end verified.</div>
   </div>
 
   <h2>The two approaches to ESXi certificate replacement</h2>
@@ -1481,7 +1481,7 @@ e is 65537 (0x10001)</span>
 
 <span class="pd"># Generate the CSR with correct Subject and SANs</span>
 <span class="pp">root@esxi01:~#</span> <span class="pc">openssl req -new -key /etc/vmware/ssl/rui.key \
-  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/OU=Infrastructure/CN=esxi01.novacrestbank.local" \
+  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/OU=Infrastructure/CN=esxi01.novacrestbank.internal" \
   -out /etc/vmware/ssl/esxi01.csr \
   -config /etc/vmware/ssl/openssl.cnf</span>
 
@@ -1495,12 +1495,12 @@ distinguished_name = req_distinguished_name
 [v3_req]
 subjectAltName = @alt_names
 [alt_names]
-DNS.1 = esxi01.novacrestbank.local
+DNS.1 = esxi01.novacrestbank.internal
 IP.1 = 10.10.0.11
 EOF</span>
 
 <span class="pp">root@esxi01:~#</span> <span class="pc">openssl req -new -key /etc/vmware/ssl/rui.key \
-  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/OU=Infrastructure/CN=esxi01.novacrestbank.local" \
+  -subj "/C=GB/ST=England/L=London/O=NovaCrestBank/OU=Infrastructure/CN=esxi01.novacrestbank.internal" \
   -out /etc/vmware/ssl/esxi01.csr \
   -extensions v3_req -config /tmp/esxi01-san.cnf</span>
 <span class="pg">CSR generated: /etc/vmware/ssl/esxi01.csr</span>
@@ -1517,7 +1517,7 @@ MIICpDCCAYwCAQAwXzELMAkGA1UEBhMCR0IxDzANBgNVBAgTBkxvbmRvbjEP...
   <h2>Sign the ESXi CSR at the Issuing CA Web Enrollment</h2>
   <p>Follow the same procedure as Section 16 for each ESXi host:</p>
   <ol>
-    <li>Open https://issuingca.novacrestbank.local/certsrv</li>
+    <li>Open https://issuingca.novacrestbank.internal/certsrv</li>
     <li>Request a certificate → Advanced certificate request</li>
     <li>Paste the ESXi CSR text</li>
     <li>Select template: <strong>NovaCrestBank-WebServer</strong></li>
@@ -1583,7 +1583,7 @@ Restarting vpxa (vCenter agent)...</span>
       <div class="step-num">2</div>
       <div class="step-content">
         <div class="step-title">Repeat for esxi02–esxi05</div>
-        <p style="font-size:13.5px">The same openssl commands on each host, substituting hostname and IP in the CSR Subject and SANs. esxi02: CN=esxi02.novacrestbank.local, IP=10.10.0.12. esxi03: 10.10.0.13. esxi04: 10.10.0.14. esxi05: 10.10.0.15. Repeat the full generate → sign → install → vpxa restart sequence for each.</p>
+        <p style="font-size:13.5px">The same openssl commands on each host, substituting hostname and IP in the CSR Subject and SANs. esxi02: CN=esxi02.novacrestbank.internal, IP=10.10.0.12. esxi03: 10.10.0.13. esxi04: 10.10.0.14. esxi05: 10.10.0.15. Repeat the full generate → sign → install → vpxa restart sequence for each.</p>
       </div>
     </li>
   </ul>
@@ -1601,12 +1601,12 @@ Restarting vpxa (vCenter agent)...</span>
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">SSH — each ESXi host — verify Root CA in trust store</span></div>
     <div class="psh-body"><pre><span class="pd"># Verify Root CA and Issuing CA are both in the castore</span>
 <span class="pp">root@esxi01:~#</span> <span class="pc">openssl crl2pkcs7 -nocrl -certfile /etc/vmware/ssl/castore.pem | openssl pkcs7 -print_certs -text -noout | grep "Subject:"</span>
-<span class="pg">Subject: CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=local</span>
+<span class="pg">Subject: CN=NovaCrestBank-Issuing-CA, DC=novacrestbank, DC=internal</span>
 <span class="pg">Subject: CN=NovaCrestBank-Root-CA</span>
 <span class="pd">↑ Both CA certificates are in the trust store ✓</span>
 
 <span class="pd"># Verify the vCenter certificate is trusted by this ESXi host</span>
-<span class="pp">root@esxi01:~#</span> <span class="pc">openssl s_client -connect vcenter.novacrestbank.local:443 -CAfile /etc/vmware/ssl/castore.pem 2>&1 | grep "Verify return code"</span>
+<span class="pp">root@esxi01:~#</span> <span class="pc">openssl s_client -connect vcenter.novacrestbank.internal:443 -CAfile /etc/vmware/ssl/castore.pem 2>&1 | grep "Verify return code"</span>
 <span class="pg">Verify return code: 0 (ok)</span>
 <span class="pd">↑ ESXi01 trusts vCenter's new CA-signed certificate ✓
   The ESXi-vCenter management channel is now mutually verified</span></pre>
@@ -1674,14 +1674,14 @@ Restarting vpxa (vCenter agent)...</span>
 
   <h2>Final verification checklist</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">AD identity source: novacrestbank.local (LDAPS)</span><span class="spec-val badge bg">✓ Connection test passed in SSO configuration</span></div>
+    <div class="spec-row"><span class="spec-label">AD identity source: novacrestbank.internal (LDAPS)</span><span class="spec-val badge bg">✓ Connection test passed in SSO configuration</span></div>
     <div class="spec-row"><span class="spec-label">Default domain: NOVACRESTBANK on login page</span><span class="spec-val badge bg">✓ Verified in incognito browser session</span></div>
     <div class="spec-row"><span class="spec-label">AD group vCenter-Admins → Administrator role</span><span class="spec-val badge bg">✓ Global Permissions set</span></div>
     <div class="spec-row"><span class="spec-label">AD login: NOVACRESTBANK\Administrator works</span><span class="spec-val badge bg">✓ vSphere Client shows NOVACRESTBANK\Administrator</span></div>
     <div class="spec-row"><span class="spec-label">vCenter Machine SSL cert: CA-signed, 2 years</span><span class="spec-val badge bg">✓ Green padlock, no browser warning</span></div>
     <div class="spec-row"><span class="spec-label">vCenter cert issuer: NovaCrestBank-Issuing-CA</span><span class="spec-val badge bg">✓ Confirmed in browser certificate viewer</span></div>
     <div class="spec-row"><span class="spec-label">ESXi cert mode: Custom Certificate Authority</span><span class="spec-val badge bg">✓ Set in vCenter certificate management</span></div>
-    <div class="spec-row"><span class="spec-label">esxi01 cert: CA-signed (esxi01.novacrestbank.local)</span><span class="spec-val badge bg">✓ Verified in vCenter, host Connected</span></div>
+    <div class="spec-row"><span class="spec-label">esxi01 cert: CA-signed (esxi01.novacrestbank.internal)</span><span class="spec-val badge bg">✓ Verified in vCenter, host Connected</span></div>
     <div class="spec-row"><span class="spec-label">esxi02 cert: CA-signed</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">esxi03 cert: CA-signed</span><span class="spec-val badge bg">✓</span></div>
     <div class="spec-row"><span class="spec-label">esxi04 cert: CA-signed</span><span class="spec-val badge bg">✓</span></div>

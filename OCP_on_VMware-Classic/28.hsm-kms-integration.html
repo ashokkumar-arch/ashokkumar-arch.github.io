@@ -340,8 +340,8 @@
   <div class="ps">All decisions made before the first command is run — passwords, partition names, and IP addresses</div>
 
   <div class="card">
-    <div class="spec-row"><span class="spec-label">HSM appliance 1 (HSM-01)</span><span class="spec-val">10.40.0.61 (OOB VLAN 40) · hostname hsm01.novacrestbank.local</span></div>
-    <div class="spec-row"><span class="spec-label">HSM appliance 2 (HSM-02)</span><span class="spec-val">10.40.0.62 (OOB VLAN 40) · hostname hsm02.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">HSM appliance 1 (HSM-01)</span><span class="spec-val">10.40.0.61 (OOB VLAN 40) · hostname hsm01.novacrestbank.internal</span></div>
+    <div class="spec-row"><span class="spec-label">HSM appliance 2 (HSM-02)</span><span class="spec-val">10.40.0.62 (OOB VLAN 40) · hostname hsm02.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">KMIP port</span><span class="spec-val">TCP 5696 (KMIP standard port)</span></div>
     <div class="spec-row"><span class="spec-label">NTLS port</span><span class="spec-val">TCP 1792 (Luna client-to-HSM)</span></div>
     <div class="spec-row"><span class="spec-label">Admin SSH port</span><span class="spec-val">TCP 22 — accessible from management VLAN only</span></div>
@@ -406,7 +406,7 @@ WARNING: This system is for authorized use only.</span>
 <span class="tg">  Password changed successfully.</span>
 
 <span class="td"># Set the hostname</span>
-<span class="tp">lunash:></span> <span class="tc">network hostname hsm01.novacrestbank.local</span>
+<span class="tp">lunash:></span> <span class="tc">network hostname hsm01.novacrestbank.internal</span>
 <span class="tg">Network hostname changed.</span>
 
 <span class="td"># Set IP address (if not already configured via serial console)</span>
@@ -422,7 +422,7 @@ WARNING: This system is for authorized use only.</span>
 <span class="td"># Add DNS resolvers</span>
 <span class="tp">lunash:></span> <span class="tc">network dns add nameserver 10.70.0.10</span>
 <span class="tp">lunash:></span> <span class="tc">network dns add nameserver 10.70.0.11</span>
-<span class="tp">lunash:></span> <span class="tc">network dns add searchdomain novacrestbank.local</span></pre>
+<span class="tp">lunash:></span> <span class="tc">network dns add searchdomain novacrestbank.internal</span></pre>
     </div>
   </div>
 </div>
@@ -600,7 +600,7 @@ Auto Recovery:   Enabled</span>
   <div class="term">
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><span class="term-label">SSH to VCSA — install Luna client</span></div>
     <div class="term-body"><pre><span class="td"># SSH to the VCSA as root</span>
-<span class="tp">[jumphost]$</span> <span class="tc">ssh root@vcenter.novacrestbank.local</span>
+<span class="tp">[jumphost]$</span> <span class="tc">ssh root@vcenter.novacrestbank.internal</span>
 <span class="td"># Password: NovaCrest$vCenter2026!</span>
 
 <span class="td"># Enable bash shell (VCSA default shell is appliance shell)</span>
@@ -611,7 +611,7 @@ Auto Recovery:   Enabled</span>
 <span class="td"># Copy the Luna client installer to the VCSA
 # (Download LunaClient from Thales Trusted Delivery System — requires support account)
 # Transfer via SCP from jumphost</span>
-<span class="tp">[jumphost]$</span> <span class="tc">scp LunaClient_10.x.x_Linux-x86_64.tar.gz root@vcenter.novacrestbank.local:/tmp/</span>
+<span class="tp">[jumphost]$</span> <span class="tc">scp LunaClient_10.x.x_Linux-x86_64.tar.gz root@vcenter.novacrestbank.internal:/tmp/</span>
 
 <span class="td"># Extract and install on VCSA</span>
 <span class="tp">root@vcsa:~#</span> <span class="tc">cd /tmp && tar xvf LunaClient_10.x.x_Linux-x86_64.tar.gz</span>
@@ -660,19 +660,19 @@ Auto Recovery:   Enabled</span>
 
 <span class="td"># Step 3: Get the vCenter client certificate to register on the HSMs
 # Luna client auto-generates a client cert during installation</span>
-<span class="tp">root@vcsa:~#</span> <span class="tc">vtl createCert -n vcenter.novacrestbank.local</span>
-<span class="tg">  Private key written to: /usr/safenet/lunaclient/cert/client/vcenter.novacrestbank.local.pem
-  Certificate written to: /usr/safenet/lunaclient/cert/client/vcenter.novacrestbank.localCert.pem</span>
+<span class="tp">root@vcsa:~#</span> <span class="tc">vtl createCert -n vcenter.novacrestbank.internal</span>
+<span class="tg">  Private key written to: /usr/safenet/lunaclient/cert/client/vcenter.novacrestbank.internal.pem
+  Certificate written to: /usr/safenet/lunaclient/cert/client/vcenter.novacrestbank.internalCert.pem</span>
 
 <span class="td"># Step 4: Copy the client cert to both HSMs and register it
 # SCP the client cert to HSM-01</span>
-<span class="tp">root@vcsa:~#</span> <span class="tc">scp /usr/safenet/lunaclient/cert/client/vcenter.novacrestbank.localCert.pem \
+<span class="tp">root@vcsa:~#</span> <span class="tc">scp /usr/safenet/lunaclient/cert/client/vcenter.novacrestbank.internalCert.pem \
   admin@10.40.0.61:/tmp/vcenter-client.pem</span>
 
 <span class="td"># On HSM-01: register the client certificate</span>
-<span class="tp">lunash:></span> <span class="tc">client register -client vcenter.novacrestbank.local -hostname vcenter.novacrestbank.local</span>
-<span class="tp">lunash:></span> <span class="tc">client certificate -client vcenter.novacrestbank.local -file vcenter-client.pem</span>
-<span class="tg">  Certificate installed for client vcenter.novacrestbank.local ✓</span>
+<span class="tp">lunash:></span> <span class="tc">client register -client vcenter.novacrestbank.internal -hostname vcenter.novacrestbank.internal</span>
+<span class="tp">lunash:></span> <span class="tc">client certificate -client vcenter.novacrestbank.internal -file vcenter-client.pem</span>
+<span class="tg">  Certificate installed for client vcenter.novacrestbank.internal ✓</span>
 
 <span class="td"># Repeat SCP + register on HSM-02</span>
 
@@ -701,9 +701,9 @@ Auto Recovery:   Enabled</span>
   <div class="term">
     <div class="term-bar"><div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div><span class="term-label">LunaSH — HSM-01 — assign partition to client</span></div>
     <div class="term-body"><pre><span class="td"># On HSM-01: assign the partition to the registered vCenter client</span>
-<span class="tp">lunash:></span> <span class="tc">client assignPartition -client vcenter.novacrestbank.local \
+<span class="tp">lunash:></span> <span class="tc">client assignPartition -client vcenter.novacrestbank.internal \
   -partition NovaCrestBank-vCenter-KMS</span>
-<span class="tg">  Partition NovaCrestBank-vCenter-KMS assigned to client vcenter.novacrestbank.local ✓</span>
+<span class="tg">  Partition NovaCrestBank-vCenter-KMS assigned to client vcenter.novacrestbank.internal ✓</span>
 
 <span class="td"># Repeat on HSM-02</span>
 <span class="td"># (HSM-02 also has the partition — created there separately and in the HA group)</span>
@@ -1045,7 +1045,7 @@ Objects Encrypted: 247/247 ✓</span>
 # Select "Shallow rekey" → Confirm
 
 # Alternatively via PowerCLI:</span>
-<span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+<span class="tp">PS C:\></span> <span class="tc">Connect-VIServer vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 <span class="tp">PS C:\></span> <span class="pc">$cluster = Get-Cluster "NovaCrestBank-Cluster01"</span>
 <span class="tp">PS C:\></span> <span class="pc">Set-VsanClusterConfiguration -Cluster $cluster -ReconfigSpec (
     New-Object VMware.VimAutomation.Storage.Types.V1.Vsan.VsanClusterReconfigSpec -Property @{

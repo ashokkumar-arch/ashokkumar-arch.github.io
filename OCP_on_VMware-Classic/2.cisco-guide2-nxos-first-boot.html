@@ -328,7 +328,7 @@
 
   <div class="callout warn">
     <div class="cl">Important: use a temporary NTP server during Guide 2</div>
-    The Windows DC (which will be NovaCrestBank's NTP server) has not been installed yet. During Guide 2 we point all devices to a public NTP server (<code>216.239.35.0</code> — Google's NTP) as a temporary measure. In the Windows Server guide, we will update NTP on all devices to point to <code>dc01.novacrestbank.local</code>.
+    The Windows DC (which will be NovaCrestBank's NTP server) has not been installed yet. During Guide 2 we point all devices to a public NTP server (<code>216.239.35.0</code> — Google's NTP) as a temporary measure. In the Windows Server guide, we will update NTP on all devices to point to <code>dc01.novacrestbank.internal</code>.
   </div>
 </div>
 
@@ -341,7 +341,7 @@
   <div class="device-banner db-oob">
     <div class="db-icon" style="background:#92400e;color:#fef3c7;">OOB</div>
     <div>
-      <div class="db-title">oob-sw01.novacrestbank.local</div>
+      <div class="db-title">oob-sw01.novacrestbank.internal</div>
       <div class="db-sub">Cisco Catalyst 9200 · Management IP: 10.40.0.1 · Connected via console cable</div>
     </div>
   </div>
@@ -443,11 +443,11 @@
 <span class="tg">oob-sw01(config)#</span>
 
 <span class="td"># Set the domain name — required for SSH key generation</span>
-<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+<span class="tg">oob-sw01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.internal</span>
 
 <span class="td"># Generate RSA keys for SSH (2048-bit)</span>
 <span class="tg">oob-sw01(config)#</span> <span class="tcmd">crypto key generate rsa modulus 2048</span>
-<span class="tw">The name for the keys will be: oob-sw01.novacrestbank.local</span>
+<span class="tw">The name for the keys will be: oob-sw01.novacrestbank.internal</span>
 <span class="tw">% Generating 2048 bit RSA keys, keys will be non-exportable...</span>
 <span class="tg">[OK] (elapsed time was 3 seconds)</span>
 
@@ -633,7 +633,7 @@
 <span class="tw">Authentication timeout: 120 secs; Authentication retries: 3</span>
 <span class="tw">Minimum expected Diffie Hellman key size : 1024 bits</span>
 <span class="tg">IOS Keys in SECSH format(ssh-rsa, base64 encoded):</span>
-<span class="tg">oob-sw01.novacrestbank.local</span>
+<span class="tg">oob-sw01.novacrestbank.internal</span>
 <span class="td">                 ↑ SSH v2.0 enabled ✓</td>
 
 <span class="td"># Check NTP status</span>
@@ -648,7 +648,7 @@
 <span class="td"># Show running config to confirm everything</span>
 <span class="tg">oob-sw01#</span> <span class="tcmd">show running-config | include hostname|username|ip ssh|ntp|vlan</span>
 <span class="tg">hostname oob-sw01</span>
-<span class="tg">ip domain-name novacrestbank.local</span>
+<span class="tg">ip domain-name novacrestbank.internal</span>
 <span class="tg">ip ssh version 2</span>
 <span class="tg">username admin privilege 15 secret 9 $9$encrypted...</span>
 <span class="tg">ntp server 216.239.35.0</span>
@@ -681,7 +681,7 @@
   <div class="device-banner db-spine">
     <div class="db-icon" style="background:#1e40af;color:#dbeafe;">S1</div>
     <div>
-      <div class="db-title">spine01.novacrestbank.local</div>
+      <div class="db-title">spine01.novacrestbank.internal</div>
       <div class="db-sub">Cisco Nexus 9504 · Management IP: 10.40.0.10 · Connected via console cable from laptop</div>
     </div>
   </div>
@@ -780,8 +780,8 @@
 <span class="tg">spine01(config)#</span>
 
 <span class="td"># ── Domain name and DNS ───────────────────────────────────────────</span>
-<span class="tg">spine01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
-<span class="td">↑ Required for SSH key generation with a proper hostname (spine01.novacrestbank.local)</td>
+<span class="tg">spine01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.internal</span>
+<span class="td">↑ Required for SSH key generation with a proper hostname (spine01.novacrestbank.internal)</td>
 
 <span class="tg">spine01(config)#</span> <span class="tcmd">ip name-server 10.70.0.10</span>
 <span class="td">↑ DNS server = dc01 (Windows DC). Even though dc01 is not built yet,</td>
@@ -797,7 +797,7 @@
 <span class="td"># ── Banner — shows before every login ─────────────────────────────</span>
 <span class="tg">spine01(config)#</span> <span class="tcmd">banner motd @</span>
 <span class="tcmd">******************************************************************</span>
-<span class="tcmd">* NovaCrestBank - spine01.novacrestbank.local                   *</span>
+<span class="tcmd">* NovaCrestBank - spine01.novacrestbank.internal                   *</span>
 <span class="tcmd">* AUTHORISED ACCESS ONLY. All activity is monitored and logged. *</span>
 <span class="tcmd">* Unauthorised access is a criminal offence.                    *</span>
 <span class="tcmd">******************************************************************</span>
@@ -993,7 +993,7 @@
 <span class="td"># Connection type: SSH | Host: 10.40.0.10 | Port: 22</span>
 <span class="tpr">admin@laptop:~$</span> <span class="tcmd">ssh admin@10.40.0.10</span>
 <span class="tw">******************************************************************</span>
-<span class="tw">* NovaCrestBank - spine01.novacrestbank.local                   *</span>
+<span class="tw">* NovaCrestBank - spine01.novacrestbank.internal                   *</span>
 <span class="tw">* AUTHORISED ACCESS ONLY...                                     *</span>
 <span class="tw">******************************************************************</span>
 <span class="tw">User Access Verification</span>
@@ -1016,7 +1016,7 @@
   <div class="device-banner db-spine">
     <div class="db-icon" style="background:#1e40af;color:#dbeafe;">S2</div>
     <div>
-      <div class="db-title">spine02.novacrestbank.local</div>
+      <div class="db-title">spine02.novacrestbank.internal</div>
       <div class="db-sub">Cisco Nexus 9504 · Management IP: 10.40.0.11 · Console cable from laptop</div>
     </div>
   </div>
@@ -1049,13 +1049,13 @@
 <span class="td"># Substitute "spine02" everywhere "spine01" appeared in descriptions</span>
 <span class="td"># The full command set (from Sections 07 and 08) applies identically:</span>
 <span class="tg">spine02#</span> <span class="tcmd">configure terminal</span>
-<span class="tg">spine02(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+<span class="tg">spine02(config)#</span> <span class="tcmd">ip domain-name novacrestbank.internal</span>
 <span class="tg">spine02(config)#</span> <span class="tcmd">ip name-server 10.70.0.10</span>
 <span class="tg">spine02(config)#</span> <span class="tcmd">ip name-server 10.70.0.11</span>
 <span class="tg">spine02(config)#</span> <span class="tcmd">clock timezone UTC 0 0</span>
 <span class="tg">spine02(config)#</span> <span class="tcmd">banner motd @</span>
 <span class="tcmd">******************************************************************</span>
-<span class="tcmd">* NovaCrestBank - spine02.novacrestbank.local                   *</span>
+<span class="tcmd">* NovaCrestBank - spine02.novacrestbank.internal                   *</span>
 <span class="tcmd">* AUTHORISED ACCESS ONLY...                                     *</span>
 <span class="tcmd">******************************************************************</span>
 <span class="tcmd">@</span>
@@ -1105,7 +1105,7 @@
   <div class="device-banner db-leaf">
     <div class="db-icon" style="background:#065f46;color:#d1fae5;">L1</div>
     <div>
-      <div class="db-title">leaf01.novacrestbank.local</div>
+      <div class="db-title">leaf01.novacrestbank.internal</div>
       <div class="db-sub">Cisco Nexus 93180YC-FX · Management IP: 10.40.0.20 · Console port on front panel (RJ45)</div>
     </div>
   </div>
@@ -1187,13 +1187,13 @@
     <div class="tb"><pre><span class="tg">leaf01#</span> <span class="tcmd">configure terminal</span>
 
 <span class="td"># Domain, DNS, timezone, banner, SSH — identical to spines</span>
-<span class="tg">leaf01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.local</span>
+<span class="tg">leaf01(config)#</span> <span class="tcmd">ip domain-name novacrestbank.internal</span>
 <span class="tg">leaf01(config)#</span> <span class="tcmd">ip name-server 10.70.0.10</span>
 <span class="tg">leaf01(config)#</span> <span class="tcmd">ip name-server 10.70.0.11</span>
 <span class="tg">leaf01(config)#</span> <span class="tcmd">clock timezone UTC 0 0</span>
 <span class="tg">leaf01(config)#</span> <span class="tcmd">banner motd @</span>
 <span class="tcmd">******************************************************************</span>
-<span class="tcmd">* NovaCrestBank - leaf01.novacrestbank.local                    *</span>
+<span class="tcmd">* NovaCrestBank - leaf01.novacrestbank.internal                    *</span>
 <span class="tcmd">* AUTHORISED ACCESS ONLY. All activity is monitored and logged. *</span>
 <span class="tcmd">******************************************************************</span>
 <span class="tcmd">@</span>
@@ -1399,7 +1399,7 @@
     <h3>leaf02 — what changes from leaf01</h3>
     <div class="spec-row"><span class="spec-label">Hostname</span><span class="spec-val">leaf02</span></div>
     <div class="spec-row"><span class="spec-label">Management IP</span><span class="spec-val">10.40.0.21/24</span></div>
-    <div class="spec-row"><span class="spec-label">Banner</span><span class="spec-val">leaf02.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Banner</span><span class="spec-val">leaf02.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">mgmt0 description</span><span class="spec-val">oob-sw01:Gi1/0/11 — OOB management</span></div>
     <div class="spec-row"><span class="spec-label">Eth1/1–6</span><span class="spec-val">esxi03:vmnic0–vmnic5 (not esxi01)</span></div>
     <div class="spec-row"><span class="spec-label">Eth1/7–12</span><span class="spec-val">esxi04:vmnic0–vmnic5 (not esxi02)</span></div>
@@ -1412,7 +1412,7 @@
     <h3>leaf03 — what changes from leaf01</h3>
     <div class="spec-row"><span class="spec-label">Hostname</span><span class="spec-val">leaf03</span></div>
     <div class="spec-row"><span class="spec-label">Management IP</span><span class="spec-val">10.40.0.22/24</span></div>
-    <div class="spec-row"><span class="spec-label">Banner</span><span class="spec-val">leaf03.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">Banner</span><span class="spec-val">leaf03.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">mgmt0 description</span><span class="spec-val">oob-sw01:Gi1/0/12 — OOB management</span></div>
     <div class="spec-row"><span class="spec-label">Eth1/1–6</span><span class="spec-val">esxi05:vmnic0–vmnic5 (only one ESXi host on this leaf currently)</span></div>
     <div class="spec-row"><span class="spec-label">Eth1/13–14</span><span class="spec-val">NetApp AFF A400 NFS connections (25G, VLAN 30)</span></div>
@@ -1437,7 +1437,7 @@
 
   <div class="terminal">
     <div class="ttb"><div class="tdt r"></div><div class="tdt y"></div><div class="tdt g"></div>
-      <span class="ttt">jumphost.novacrestbank.local — SSH reachability test to all switches</span>
+      <span class="ttt">jumphost.novacrestbank.internal — SSH reachability test to all switches</span>
     </div>
     <div class="tb"><pre><span class="td"># From the jump host — test SSH to every switch in one script</span>
 <span class="tpr">[admin@jumphost ~]$</span> <span class="tcmd">for device in 10.40.0.1 10.40.0.10 10.40.0.11 10.40.0.20 10.40.0.21 10.40.0.22; do

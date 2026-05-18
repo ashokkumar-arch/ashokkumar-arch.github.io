@@ -716,22 +716,22 @@
     <thead><tr><th>VM</th><th>Priority</th><th>Reason</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong>dc01.novacrestbank.local</strong></td>
+        <td><strong>dc01.novacrestbank.internal</strong></td>
         <td><span class="badge bg">High</span></td>
         <td>Active Directory is required by all other infrastructure. DC01 is on esxi01 — if esxi01 fails, DC01 is the highest priority restart.</td>
       </tr>
       <tr>
-        <td><strong>dc02.novacrestbank.local</strong></td>
+        <td><strong>dc02.novacrestbank.internal</strong></td>
         <td><span class="badge bg">High</span></td>
         <td>Second DC — must restart quickly to restore AD replication and redundancy. Anti-affinity rule ensures DC01 and DC02 are never on the same host (so both cannot fail simultaneously in a single-host failure).</td>
       </tr>
       <tr>
-        <td><strong>vcenter.novacrestbank.local</strong></td>
+        <td><strong>vcenter.novacrestbank.internal</strong></td>
         <td><span class="badge bg">High</span></td>
         <td>Without vCenter, the administrator cannot manage the cluster, trigger manual interventions, or access monitoring. Must be up quickly after a failure.</td>
       </tr>
       <tr>
-        <td><strong>issuingca.novacrestbank.local</strong></td>
+        <td><strong>issuingca.novacrestbank.internal</strong></td>
         <td><span class="badge bb">Medium</span></td>
         <td>Certificate services — important but active certificate validation typically uses cached CRLs, so a brief CA outage does not immediately break things.</td>
       </tr>
@@ -945,11 +945,11 @@
                 <div class="ww-label">Add VMs to this rule:</div>
                 <div style="background:#f5f5f5;border:1px solid #e0e0e0;border-radius:4px;padding:8px 12px;font-size:12.5px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:0.5px solid #e0e0e0;">
-                    <span style="color:#1a2a3a;font-weight:600;">dc01.novacrestbank.local</span>
+                    <span style="color:#1a2a3a;font-weight:600;">dc01.novacrestbank.internal</span>
                     <span style="color:#6c757d;font-size:11px;">10.70.0.10</span>
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
-                    <span style="color:#1a2a3a;font-weight:600;">dc02.novacrestbank.local</span>
+                    <span style="color:#1a2a3a;font-weight:600;">dc02.novacrestbank.internal</span>
                     <span style="color:#6c757d;font-size:11px;">10.70.0.11</span>
                   </div>
                 </div>
@@ -987,7 +987,7 @@
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
     <div>Name:  <strong style="color:var(--drs-blue);">NCB-AntiAffinity-vCenter-DCs</strong></div>
     <div style="margin-top:4px;">Type:  <strong style="color:var(--drs-blue);">Separate Virtual Machines</strong></div>
-    <div style="margin-top:4px;">VMs:   <strong style="color:var(--drs-blue);">vcenter.novacrestbank.local, dc01.novacrestbank.local, dc02.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">VMs:   <strong style="color:var(--drs-blue);">vcenter.novacrestbank.internal, dc01.novacrestbank.internal, dc02.novacrestbank.internal</strong></div>
     <div style="margin-top:8px;color:#8090a0;"># All three VMs are kept on separate hosts
 # A single host failure cannot simultaneously lose vCenter and a DC
 # Effect: vCenter is on esxi01, DC01 on esxi02, DC02 on esxi03 (or similar spread)
@@ -998,7 +998,7 @@
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
     <div>Name:  <strong style="color:var(--drs-blue);">NCB-AntiAffinity-CA-Infrastructure</strong></div>
     <div style="margin-top:4px;">Type:  <strong style="color:var(--drs-blue);">Separate Virtual Machines</strong></div>
-    <div style="margin-top:4px;">VMs:   <strong style="color:var(--drs-blue);">issuingca.novacrestbank.local, vcenter.novacrestbank.local, dc01.novacrestbank.local</strong></div>
+    <div style="margin-top:4px;">VMs:   <strong style="color:var(--drs-blue);">issuingca.novacrestbank.internal, vcenter.novacrestbank.internal, dc01.novacrestbank.internal</strong></div>
     <div style="margin-top:8px;color:#8090a0;"># Issuing CA, vCenter, and DC01 on different hosts
 # A single host failure cannot eliminate certificate services AND domain management
 # Note: with 5 hosts and 3 rules constraining 4 VMs, the rules are satisfiable</div>
@@ -1027,11 +1027,11 @@
   <div class="psh">
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — vCenter — verify VM placement after anti-affinity rules</span></div>
     <div class="psh-body"><pre><span class="pd"># Connect to vCenter</span>
-<span class="pp">PS C:\></span> <span class="pc">Connect-VIServer -Server vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+<span class="pp">PS C:\></span> <span class="pc">Connect-VIServer -Server vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 
 <span class="pd"># Show which host each infrastructure VM is running on</span>
 <span class="pp">PS C:\></span> <span class="pc">@("dc01","dc02","vcenter","issuingca") | ForEach-Object {
-    $vmName = "$_.novacrestbank.local"
+    $vmName = "$_.novacrestbank.internal"
     $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
     if ($vm) {
         [PSCustomObject]@{
@@ -1044,10 +1044,10 @@
 
 <span class="pg">VM                              Host                    IP
 --                              ----                    --
-dc01.novacrestbank.local        esxi02.novacrestbank.local  10.70.0.10
-dc02.novacrestbank.local        esxi03.novacrestbank.local  10.70.0.11
-vcenter.novacrestbank.local     esxi01.novacrestbank.local  10.10.0.100
-issuingca.novacrestbank.local   esxi04.novacrestbank.local  10.70.0.21</span>
+dc01.novacrestbank.internal        esxi02.novacrestbank.internal  10.70.0.10
+dc02.novacrestbank.internal        esxi03.novacrestbank.internal  10.70.0.11
+vcenter.novacrestbank.internal     esxi01.novacrestbank.internal  10.10.0.100
+issuingca.novacrestbank.internal   esxi04.novacrestbank.internal  10.70.0.21</span>
 
 <span class="pd">
 ↑ Anti-affinity rules are being enforced ✓
@@ -1088,25 +1088,25 @@ issuingca.novacrestbank.local   esxi04.novacrestbank.local  10.70.0.21</span>
           </tr></thead>
           <tbody>
             <tr>
-              <td>dc01.novacrestbank.local</td>
+              <td>dc01.novacrestbank.internal</td>
               <td><span class="badge bg">High</span></td>
               <td>0 seconds (immediate)</td>
               <td>Fully Automated (inherit)</td>
             </tr>
             <tr>
-              <td>dc02.novacrestbank.local</td>
+              <td>dc02.novacrestbank.internal</td>
               <td><span class="badge bg">High</span></td>
               <td>0 seconds (immediate)</td>
               <td>Fully Automated (inherit)</td>
             </tr>
             <tr>
-              <td>vcenter.novacrestbank.local</td>
+              <td>vcenter.novacrestbank.internal</td>
               <td><span class="badge bg">High</span></td>
               <td>30 seconds (allow DCs to start first)</td>
               <td>Fully Automated (inherit)</td>
             </tr>
             <tr>
-              <td>issuingca.novacrestbank.local</td>
+              <td>issuingca.novacrestbank.internal</td>
               <td><span class="badge bb">Medium</span></td>
               <td>120 seconds (wait for DCs and vCenter)</td>
               <td>Fully Automated (inherit)</td>
@@ -1193,7 +1193,7 @@ T+95s esxi05 rejoins the cluster — all VMs confirmed running
        Test VM boots — takes ~60 seconds depending on guest OS</span>
 <span class="pd">T+95s Test VM is accessible — HA restart complete ✓</span>
 <span class="pg">Event log summary:
-  "HA Restarted VM TestVM on host esxi03.novacrestbank.local" ✓
+  "HA Restarted VM TestVM on host esxi03.novacrestbank.internal" ✓
   Total time from failure to VM accessible: ~95 seconds</span>
 <span class="pd">
 Power esxi05 back on via iLO — it rejoins the cluster
@@ -1212,7 +1212,7 @@ DRS rebalances VMs back onto esxi05 within next monitoring cycle</span></pre>
   <div class="psh">
     <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — force a DRS rebalance and observe results</span></div>
     <div class="psh-body"><pre><span class="pd"># Method 1: View current DRS recommendations (what DRS would do now)</span>
-<span class="pp">PS C:\></span> <span class="pc">Connect-VIServer -Server vcenter.novacrestbank.local -Credential (Get-Credential)</span>
+<span class="pp">PS C:\></span> <span class="pc">Connect-VIServer -Server vcenter.novacrestbank.internal -Credential (Get-Credential)</span>
 <span class="pp">PS C:\></span> <span class="pc">$cluster = Get-Cluster "NovaCrestBank-Cluster01"</span>
 <span class="pp">PS C:\></span> <span class="pc">$cluster | Get-DrsRecommendation | Select-Object Priority, Reason, Target | Format-Table</span>
 
@@ -1237,20 +1237,20 @@ DRS rebalances VMs back onto esxi05 within next monitoring cycle</span></pre>
     Format-Table</span>
 <span class="pg">Name                            CPU%  Mem%
 ----                            ----  ----
-esxi01.novacrestbank.local      68.2  72.4    ← relatively busy
-esxi02.novacrestbank.local      71.8  68.9    ← relatively busy
-esxi03.novacrestbank.local      24.1  31.2    ← underutilised
-esxi04.novacrestbank.local      22.7  28.8    ← underutilised
-esxi05.novacrestbank.local      26.3  33.1    ← underutilised</span>
+esxi01.novacrestbank.internal      68.2  72.4    ← relatively busy
+esxi02.novacrestbank.internal      71.8  68.9    ← relatively busy
+esxi03.novacrestbank.internal      24.1  31.2    ← underutilised
+esxi04.novacrestbank.internal      22.7  28.8    ← underutilised
+esxi05.novacrestbank.internal      26.3  33.1    ← underutilised</span>
 <span class="pd">↑ Imbalanced cluster — esxi01/02 much busier than esxi03/04/05
   DRS at threshold 3 will generate migration recommendations to rebalance</span>
 
 <span class="pd"># After "Run DRS Now" and DRS migrations complete — re-check balance</span>
-<span class="pg">esxi01.novacrestbank.local      48.3  52.1    ← balanced
-esxi02.novacrestbank.local      47.2  49.8    ← balanced
-esxi03.novacrestbank.local      45.8  48.2    ← balanced
-esxi04.novacrestbank.local      46.1  47.9    ← balanced
-esxi05.novacrestbank.local      44.9  46.3    ← balanced</span>
+<span class="pg">esxi01.novacrestbank.internal      48.3  52.1    ← balanced
+esxi02.novacrestbank.internal      47.2  49.8    ← balanced
+esxi03.novacrestbank.internal      45.8  48.2    ← balanced
+esxi04.novacrestbank.internal      46.1  47.9    ← balanced
+esxi05.novacrestbank.internal      44.9  46.3    ← balanced</span>
 <span class="pd">↑ DRS migrated VMs from esxi01/02 to esxi03/04/05 — cluster balanced ✓</span></pre>
     </div>
   </div>

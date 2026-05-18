@@ -218,8 +218,8 @@
 <span class="tc-orange">PS C:\> </span><span class="tc-cmd">New-ADUser `
   -Name "svc-ocp-ldap" `
   -SamAccountName "svc-ocp-ldap" `
-  -UserPrincipalName "svc-ocp-ldap@novacrestbank.local" `
-  -Path "OU=ServiceAccounts,DC=novacrestbank,DC=local" `
+  -UserPrincipalName "svc-ocp-ldap@novacrestbank.internal" `
+  -Path "OU=ServiceAccounts,DC=novacrestbank,DC=internal" `
   -AccountPassword (ConvertTo-SecureString "Ldap$Bind2026!" -AsPlainText -Force) `
   -PasswordNeverExpires $true `
   -CannotChangePassword $true `
@@ -235,11 +235,11 @@
 
 <span class="tc-dim"># Find your AD LDAP base DN — you will need this</span>
 <span class="tc-orange">PS C:\> </span><span class="tc-cmd">(Get-ADDomain).DistinguishedName</span>
-<span class="tc-green">DC=novacrestbank,DC=local</span>    <span class="tc-dim">← this is your base DN</span>
+<span class="tc-green">DC=novacrestbank,DC=internal</span>    <span class="tc-dim">← this is your base DN</span>
 
 <span class="tc-dim"># Find your AD LDAP server IP/hostname</span>
 <span class="tc-orange">PS C:\> </span><span class="tc-cmd">(Get-ADDomainController).HostName</span>
-<span class="tc-green">dc01.novacrestbank.local</span>    <span class="tc-dim">← your LDAP server</span></pre>
+<span class="tc-green">dc01.novacrestbank.internal</span>    <span class="tc-dim">← your LDAP server</span></pre>
     </div>
   </div>
 
@@ -248,14 +248,14 @@
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Test LDAPS connectivity from jump host first</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openssl s_client -connect dc01.novacrestbank.local:636 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">openssl s_client -connect dc01.novacrestbank.internal:636 \
   -CAfile ~/ocp-kit/certs/issuingca.pem &lt; /dev/null 2>&1 | grep -E "Verify|subject"</span>
 <span class="tc-green">depth=1 CN = NovaCrestBank-IssuingCA, O = NovaCrestBank, C = US</span>
 <span class="tc-green">verify return:1</span>
-<span class="tc-green">depth=0 CN = dc01.novacrestbank.local</span>
+<span class="tc-green">depth=0 CN = dc01.novacrestbank.internal</span>
 <span class="tc-green">verify return:1</span>
 <span class="tc-green">Verify return code: 0 (ok)</span>    <span class="tc-dim">← LDAPS is working and cert is trusted</span>
 
@@ -276,7 +276,7 @@
   <h2>Step 3 — Configure the LDAP identity provider</h2>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Create the OAuth configuration YAML</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat > /tmp/ldap-oauth.yaml << 'EOF'</span>
@@ -299,13 +299,13 @@ spec:
           - displayName                 # full name for display
         preferredUsername:
           - sAMAccountName
-      bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=local"
+      bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=internal"
       bindPassword:
         name: ldap-bind-secret          # references the secret you created
       ca:
         name: ldap-ca                   # references the CA configmap
       insecure: false                   # false = use LDAPS (TLS) — mandatory
-      url: "ldaps://dc01.novacrestbank.local:636/OU=Users,DC=novacrestbank,DC=local?sAMAccountName?sub?(objectClass=person)"</span>
+      url: "ldaps://dc01.novacrestbank.internal:636/OU=Users,DC=novacrestbank,DC=internal?sAMAccountName?sub?(objectClass=person)"</span>
 <span class="tc-green">EOF</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc apply -f /tmp/ldap-oauth.yaml</span>
@@ -323,10 +323,10 @@ spec:
   <h2>Step 4 — Test AD login and grant cluster-admin</h2>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Log in as a real AD user — use YOUR actual AD username</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u jsmith \
   -p 'ADpassword123!'</span>
 
@@ -343,7 +343,7 @@ spec:
 <span class="tc-green">clusterrole.rbac.authorization.k8s.io/cluster-admin added: "jsmith"</span>
 
 <span class="tc-dim"># Verify — log in as jsmith again and confirm cluster-admin access</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u jsmith -p 'ADpassword123!'</span>
 <span class="tc-green">Login successful.</span>
 
@@ -352,12 +352,12 @@ spec:
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes</span>
 <span class="tc-green">NAME                              STATUS   ROLES    AGE</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master   2h</span>
-<span class="tc-green">master02.ocp.novacrestbank.local  Ready    master   2h</span>
-<span class="tc-green">master03.ocp.novacrestbank.local  Ready    master   2h</span>
-<span class="tc-green">worker01.ocp.novacrestbank.local  Ready    worker   90m</span>
-<span class="tc-green">worker02.ocp.novacrestbank.local  Ready    worker   90m</span>
-<span class="tc-green">worker03.ocp.novacrestbank.local  Ready    worker   90m</span>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master   2h</span>
+<span class="tc-green">master02.ocp.novacrestbank.internal  Ready    master   2h</span>
+<span class="tc-green">master03.ocp.novacrestbank.internal  Ready    master   2h</span>
+<span class="tc-green">worker01.ocp.novacrestbank.internal  Ready    worker   90m</span>
+<span class="tc-green">worker02.ocp.novacrestbank.internal  Ready    worker   90m</span>
+<span class="tc-green">worker03.ocp.novacrestbank.internal  Ready    worker   90m</span>
 <span class="tc-dim">                          ↑ jsmith can see and manage nodes = cluster-admin confirmed ✓</span></pre>
 
       <div class="term-annotation good">
@@ -371,24 +371,24 @@ spec:
   <p>Beyond individual logins, you can sync AD security groups into OpenShift groups. This lets you say "anyone in the AD group OCP-Admins gets cluster-admin" rather than managing individuals.</p>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — AD group sync</span>
+      <span class="term-title">jumphost.novacrestbank.internal — AD group sync</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Create LDAP sync config file</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat > /tmp/ldap-sync.yaml << 'EOF'</span>
 <span class="tc-cyan">kind: LDAPSyncConfig
 apiVersion: v1
-url: ldaps://dc01.novacrestbank.local:636
-bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=local"
+url: ldaps://dc01.novacrestbank.internal:636
+bindDN: "CN=svc-ocp-ldap,OU=ServiceAccounts,DC=novacrestbank,DC=internal"
 bindPassword: "Ldap$Bind2026!"
 ca: /tmp/issuingca.pem
 insecure: false
 groupUIDNameMapping:
-  "CN=OCP-Admins,OU=Groups,DC=novacrestbank,DC=local": ocp-admins
-  "CN=OCP-Developers,OU=Groups,DC=novacrestbank,DC=local": ocp-developers
-  "CN=OCP-Viewers,OU=Groups,DC=novacrestbank,DC=local": ocp-viewers
+  "CN=OCP-Admins,OU=Groups,DC=novacrestbank,DC=internal": ocp-admins
+  "CN=OCP-Developers,OU=Groups,DC=novacrestbank,DC=internal": ocp-developers
+  "CN=OCP-Viewers,OU=Groups,DC=novacrestbank,DC=internal": ocp-viewers
 rfc2307:
   groupsQuery:
-    baseDN: "OU=Groups,DC=novacrestbank,DC=local"
+    baseDN: "OU=Groups,DC=novacrestbank,DC=internal"
     scope: sub
     derefAliases: never
     filter: "(objectClass=group)"
@@ -396,7 +396,7 @@ rfc2307:
   groupNameAttributes: [cn]
   groupMembershipAttributes: [member]
   usersQuery:
-    baseDN: "OU=Users,DC=novacrestbank,DC=local"
+    baseDN: "OU=Users,DC=novacrestbank,DC=internal"
     scope: sub
     derefAliases: never
   userUIDAttribute: dn
@@ -435,33 +435,33 @@ rfc2307:
 
   <div class="callout warn">
     <div class="callout-label">Why this cannot wait</div>
-    Every <code>oc</code> command, every CI/CD pipeline, every Kubernetes client connecting to <code>api.ocp.novacrestbank.local:6443</code> currently gets an x509 warning or error because the certificate is self-signed and unknown. In a banking environment with security monitoring, these TLS errors generate alerts. Replace this on day one.
+    Every <code>oc</code> command, every CI/CD pipeline, every Kubernetes client connecting to <code>api.ocp.novacrestbank.internal:6443</code> currently gets an x509 warning or error because the certificate is self-signed and unknown. In a banking environment with security monitoring, these TLS errors generate alerts. Replace this on day one.
   </div>
 
   <h2>Step 1 — Generate the API server certificate from AD CS</h2>
-  <p>You need to request a certificate from your AD CS Issuing CA for the hostname <code>api.ocp.novacrestbank.local</code>. This is done on a Windows machine with access to the Certificate Authority.</p>
+  <p>You need to request a certificate from your AD CS Issuing CA for the hostname <code>api.ocp.novacrestbank.internal</code>. This is done on a Windows machine with access to the Certificate Authority.</p>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash (generate CSR)</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash (generate CSR)</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Generate a private key and CSR on the jump host</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">mkdir -p ~/ocp-kit/certs/api-server
 cd ~/ocp-kit/certs/api-server</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost api-server]$</span> <span class="tc-cmd">openssl req -newkey rsa:4096 -nodes \
-  -keyout api.ocp.novacrestbank.local.key \
-  -out api.ocp.novacrestbank.local.csr \
-  -subj "/CN=api.ocp.novacrestbank.local/O=NovaCrestBank/C=US" \
-  -addext "subjectAltName=DNS:api.ocp.novacrestbank.local,DNS:api-int.ocp.novacrestbank.local"</span>
+  -keyout api.ocp.novacrestbank.internal.key \
+  -out api.ocp.novacrestbank.internal.csr \
+  -subj "/CN=api.ocp.novacrestbank.internal/O=NovaCrestBank/C=US" \
+  -addext "subjectAltName=DNS:api.ocp.novacrestbank.internal,DNS:api-int.ocp.novacrestbank.internal"</span>
 
 <span class="tc-white">Generating a RSA private key</span>
 <span class="tc-white">..............+++++</span>
 <span class="tc-white">writing RSA key</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost api-server]$</span> <span class="tc-cmd">ls -lh</span>
-<span class="tc-white">-rw-r--r-- 1 svc-ocp svc-ocp 1.8K api.ocp.novacrestbank.local.csr</span>
-<span class="tc-white">-rw------- 1 svc-ocp svc-ocp 3.2K api.ocp.novacrestbank.local.key</span>
+<span class="tc-white">-rw-r--r-- 1 svc-ocp svc-ocp 1.8K api.ocp.novacrestbank.internal.csr</span>
+<span class="tc-white">-rw------- 1 svc-ocp svc-ocp 3.2K api.ocp.novacrestbank.internal.key</span>
 
 <span class="tc-dim"># Submit the CSR to AD CS (from a Windows machine with CA access)</span>
 <span class="tc-dim"># Copy the CSR file to the Windows machine, then:</span></pre>
@@ -474,36 +474,36 @@ cd ~/ocp-kit/certs/api-server</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Submit CSR to the Issuing CA</span>
 <span class="tc-orange">PS C:\certs> </span><span class="tc-cmd">certreq -submit -attrib "CertificateTemplate:WebServer" `
-  api.ocp.novacrestbank.local.csr api.ocp.novacrestbank.local.cer</span>
+  api.ocp.novacrestbank.internal.csr api.ocp.novacrestbank.internal.cer</span>
 
 <span class="tc-white">RequestId: 47</span>
 <span class="tc-green">RequestId: "47"</span>
 <span class="tc-green">Certificate retrieved(Issued) Issued</span>
 
 <span class="tc-dim"># Convert .cer to PEM format</span>
-<span class="tc-orange">PS C:\certs> </span><span class="tc-cmd">certutil -encode api.ocp.novacrestbank.local.cer api.ocp.novacrestbank.local.crt</span>
+<span class="tc-orange">PS C:\certs> </span><span class="tc-cmd">certutil -encode api.ocp.novacrestbank.internal.cer api.ocp.novacrestbank.internal.crt</span>
 <span class="tc-green">CertUtil: -encode command completed successfully.</span>
 
-<span class="tc-dim"># Copy api.ocp.novacrestbank.local.crt back to jump host</span></pre>
+<span class="tc-dim"># Copy api.ocp.novacrestbank.internal.crt back to jump host</span></pre>
     </div>
   </div>
 
   <h2>Step 2 — Load the certificate into OpenShift</h2>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — bash</span>
+      <span class="term-title">jumphost.novacrestbank.internal — bash</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Verify the cert matches the key before loading (prevents a very painful mistake)</span>
 <span class="tc-prompt">[svc-ocp@jumphost api-server]$</span> <span class="tc-cmd">diff \
-  &lt;(openssl x509 -in api.ocp.novacrestbank.local.crt -pubkey -noout) \
-  &lt;(openssl rsa -in api.ocp.novacrestbank.local.key -pubout 2>/dev/null)</span>
+  &lt;(openssl x509 -in api.ocp.novacrestbank.internal.crt -pubkey -noout) \
+  &lt;(openssl rsa -in api.ocp.novacrestbank.internal.key -pubout 2>/dev/null)</span>
 <span class="tc-dim">                    ← no output = cert and key are a matching pair ✓</span>
 <span class="tc-dim">                       if there is output = they do NOT match — stop and re-generate</span>
 
 <span class="tc-dim"># Create the secret in openshift-config namespace</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create secret tls api-server-custom-cert \
-  --cert=~/ocp-kit/certs/api-server/api.ocp.novacrestbank.local.crt \
-  --key=~/ocp-kit/certs/api-server/api.ocp.novacrestbank.local.key \
+  --cert=~/ocp-kit/certs/api-server/api.ocp.novacrestbank.internal.crt \
+  --key=~/ocp-kit/certs/api-server/api.ocp.novacrestbank.internal.key \
   -n openshift-config</span>
 <span class="tc-green">secret/api-server-custom-cert created</span>
 
@@ -513,7 +513,7 @@ cd ~/ocp-kit/certs/api-server</span>
     "servingCerts": {
       "namedCertificates": [
         {
-          "names": ["api.ocp.novacrestbank.local"],
+          "names": ["api.ocp.novacrestbank.internal"],
           "servingCertificate": {
             "name": "api-server-custom-cert"
           }
@@ -533,9 +533,9 @@ cd ~/ocp-kit/certs/api-server</span>
 <span class="tc-green">kube-apiserver   True        False         False      8m</span>      <span class="tc-dim">← done ✓</span>
 
 <span class="tc-dim"># Verify the new cert is being served</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">echo | openssl s_client -connect api.ocp.novacrestbank.local:6443 2>/dev/null \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">echo | openssl s_client -connect api.ocp.novacrestbank.internal:6443 2>/dev/null \
   | openssl x509 -noout -subject -issuer -dates</span>
-<span class="tc-green">subject=CN = api.ocp.novacrestbank.local, O = NovaCrestBank, C = US</span>
+<span class="tc-green">subject=CN = api.ocp.novacrestbank.internal, O = NovaCrestBank, C = US</span>
 <span class="tc-green">issuer=CN = NovaCrestBank-IssuingCA, O = NovaCrestBank, C = US</span>
 <span class="tc-green">notBefore=Apr 13 10:00:00 2026 GMT</span>
 <span class="tc-green">notAfter=Apr 13 10:00:00 2027 GMT</span>
@@ -548,7 +548,7 @@ cd ~/ocp-kit/certs/api-server</span>
 <div class="page" id="page-ingress-cert">
   <div class="page-eyebrow">Task 3 · Immediate</div>
   <div class="page-title">Replace the default ingress wildcard certificate</div>
-  <div class="page-subtitle">Replacing the self-signed <code>*.apps.ocp.novacrestbank.local</code> wildcard with an AD CS-signed cert</div>
+  <div class="page-subtitle">Replacing the self-signed <code>*.apps.ocp.novacrestbank.internal</code> wildcard with an AD CS-signed cert</div>
 
   <div class="callout">
     <div class="callout-label">What this affects</div>
@@ -557,33 +557,33 @@ cd ~/ocp-kit/certs/api-server</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — generate wildcard CSR</span>
+      <span class="term-title">jumphost.novacrestbank.internal — generate wildcard CSR</span>
     </div>
     <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">mkdir -p ~/ocp-kit/certs/ingress
 cd ~/ocp-kit/certs/ingress</span>
 
-<span class="tc-dim"># Generate wildcard CSR — note the CN is *.apps.ocp.novacrestbank.local</span>
+<span class="tc-dim"># Generate wildcard CSR — note the CN is *.apps.ocp.novacrestbank.internal</span>
 <span class="tc-prompt">[svc-ocp@jumphost ingress]$</span> <span class="tc-cmd">openssl req -newkey rsa:4096 -nodes \
-  -keyout wildcard.apps.ocp.novacrestbank.local.key \
-  -out wildcard.apps.ocp.novacrestbank.local.csr \
-  -subj "/CN=*.apps.ocp.novacrestbank.local/O=NovaCrestBank/C=US" \
-  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.local,DNS:apps.ocp.novacrestbank.local"</span>
+  -keyout wildcard.apps.ocp.novacrestbank.internal.key \
+  -out wildcard.apps.ocp.novacrestbank.internal.csr \
+  -subj "/CN=*.apps.ocp.novacrestbank.internal/O=NovaCrestBank/C=US" \
+  -addext "subjectAltName=DNS:*.apps.ocp.novacrestbank.internal,DNS:apps.ocp.novacrestbank.internal"</span>
 
 <span class="tc-white">Generating a RSA private key ...... writing RSA key</span>
 
 <span class="tc-dim"># Submit to AD CS (same process as Task 2 — use certreq on Windows)</span>
-<span class="tc-dim"># After signing, copy wildcard.apps.ocp.novacrestbank.local.crt back here</span>
+<span class="tc-dim"># After signing, copy wildcard.apps.ocp.novacrestbank.internal.crt back here</span>
 
 <span class="tc-dim"># Verify the cert/key pair match</span>
 <span class="tc-prompt">[svc-ocp@jumphost ingress]$</span> <span class="tc-cmd">diff \
-  &lt;(openssl x509 -in wildcard.apps.ocp.novacrestbank.local.crt -pubkey -noout) \
-  &lt;(openssl rsa -in wildcard.apps.ocp.novacrestbank.local.key -pubout 2>/dev/null)</span>
+  &lt;(openssl x509 -in wildcard.apps.ocp.novacrestbank.internal.crt -pubkey -noout) \
+  &lt;(openssl rsa -in wildcard.apps.ocp.novacrestbank.internal.key -pubout 2>/dev/null)</span>
 <span class="tc-dim">                    ← no output = matching pair ✓</span>
 
 <span class="tc-dim"># Create the secret for the ingress cert</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc create secret tls ingress-custom-cert \
-  --cert=~/ocp-kit/certs/ingress/wildcard.apps.ocp.novacrestbank.local.crt \
-  --key=~/ocp-kit/certs/ingress/wildcard.apps.ocp.novacrestbank.local.key \
+  --cert=~/ocp-kit/certs/ingress/wildcard.apps.ocp.novacrestbank.internal.crt \
+  --key=~/ocp-kit/certs/ingress/wildcard.apps.ocp.novacrestbank.internal.key \
   -n openshift-ingress</span>
 <span class="tc-green">secret/ingress-custom-cert created</span>
 
@@ -601,10 +601,10 @@ cd ~/ocp-kit/certs/ingress</span>
 
 <span class="tc-dim"># Verify the new wildcard cert is being served on the console route</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">echo | openssl s_client \
-  -connect console-openshift-console.apps.ocp.novacrestbank.local:443 \
-  -servername console-openshift-console.apps.ocp.novacrestbank.local 2>/dev/null \
+  -connect console-openshift-console.apps.ocp.novacrestbank.internal:443 \
+  -servername console-openshift-console.apps.ocp.novacrestbank.internal 2>/dev/null \
   | openssl x509 -noout -subject -issuer</span>
-<span class="tc-green">subject=CN = *.apps.ocp.novacrestbank.local, O = NovaCrestBank, C = US</span>
+<span class="tc-green">subject=CN = *.apps.ocp.novacrestbank.internal, O = NovaCrestBank, C = US</span>
 <span class="tc-green">issuer=CN = NovaCrestBank-IssuingCA, O = NovaCrestBank, C = US</span>
 <span class="tc-dim">                        ↑ wildcard from your internal CA — browser will show padlock ✓</span></pre>
     </div>
@@ -624,16 +624,16 @@ cd ~/ocp-kit/certs/ingress</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — final verification then disable</span>
+      <span class="term-title">jumphost.novacrestbank.internal — final verification then disable</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Pre-flight: confirm at least one AD admin can log in</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u jsmith -p 'ADpassword123!'</span>
 <span class="tc-green">Login successful.</span>
 
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes</span>
 <span class="tc-green">NAME                              STATUS   ROLES</span>
-<span class="tc-green">master01.ocp.novacrestbank.local  Ready    master</span>    <span class="tc-dim">← jsmith has cluster-admin ✓</span>
+<span class="tc-green">master01.ocp.novacrestbank.internal  Ready    master</span>    <span class="tc-dim">← jsmith has cluster-admin ✓</span>
 
 <span class="tc-dim"># Pre-flight: confirm system:admin kubeconfig still works</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">export KUBECONFIG=~/ocp-kit/install/auth/kubeconfig
@@ -645,7 +645,7 @@ oc whoami</span>
 <span class="tc-green">secret "kubeadmin" deleted</span>
 
 <span class="tc-dim"># Verify kubeadmin can no longer log in</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u kubeadmin \
   -p "$(cat ~/ocp-kit/install/auth/kubeadmin-password)"</span>
 <span class="tc-red">error: Login failed (401 Unauthorized)</span>
@@ -680,57 +680,57 @@ oc whoami</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — label and taint infra nodes</span>
+      <span class="term-title">jumphost.novacrestbank.internal — label and taint infra nodes</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Add the infra role label to the designated infra nodes</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">for node in infra01 infra02 infra03; do
-  oc label node ${node}.ocp.novacrestbank.local \
+  oc label node ${node}.ocp.novacrestbank.internal \
     node-role.kubernetes.io/infra='' \
     --overwrite
   echo "Labelled: $node"
 done</span>
-<span class="tc-green">node/infra01.ocp.novacrestbank.local labeled
+<span class="tc-green">node/infra01.ocp.novacrestbank.internal labeled
 Labelled: infra01</span>
-<span class="tc-green">node/infra02.ocp.novacrestbank.local labeled
+<span class="tc-green">node/infra02.ocp.novacrestbank.internal labeled
 Labelled: infra02</span>
-<span class="tc-green">node/infra03.ocp.novacrestbank.local labeled
+<span class="tc-green">node/infra03.ocp.novacrestbank.internal labeled
 Labelled: infra03</span>
 
 <span class="tc-dim"># Remove the 'worker' role label from infra nodes</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">for node in infra01 infra02 infra03; do
-  oc label node ${node}.ocp.novacrestbank.local \
+  oc label node ${node}.ocp.novacrestbank.internal \
     node-role.kubernetes.io/worker-
 done</span>
-<span class="tc-green">node/infra01.ocp.novacrestbank.local labeled
-node/infra02.ocp.novacrestbank.local labeled
-node/infra03.ocp.novacrestbank.local labeled</span>
+<span class="tc-green">node/infra01.ocp.novacrestbank.internal labeled
+node/infra02.ocp.novacrestbank.internal labeled
+node/infra03.ocp.novacrestbank.internal labeled</span>
 
 <span class="tc-dim"># Add the NoSchedule taint — app pods will not land here</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">for node in infra01 infra02 infra03; do
-  oc adm taint node ${node}.ocp.novacrestbank.local \
+  oc adm taint node ${node}.ocp.novacrestbank.internal \
     node-role.kubernetes.io/infra=reserved:NoSchedule
 done</span>
-<span class="tc-green">node/infra01.ocp.novacrestbank.local tainted
-node/infra02.ocp.novacrestbank.local tainted
-node/infra03.ocp.novacrestbank.local tainted</span>
+<span class="tc-green">node/infra01.ocp.novacrestbank.internal tainted
+node/infra02.ocp.novacrestbank.internal tainted
+node/infra03.ocp.novacrestbank.internal tainted</span>
 
 <span class="tc-dim"># Verify the labels and taints</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get nodes -L node-role.kubernetes.io/infra</span>
 <span class="tc-white">NAME                              STATUS   ROLES    AGE   VERSION   INFRA</span>
-<span class="tc-green">infra01.ocp.novacrestbank.local   Ready    infra    2h    v1.28.7</span>   <span class="tc-dim">(infra label present)</span>
-<span class="tc-green">infra02.ocp.novacrestbank.local   Ready    infra    2h    v1.28.7</span>
-<span class="tc-green">infra03.ocp.novacrestbank.local   Ready    infra    2h    v1.28.7</span>
-<span class="tc-white">master01.ocp.novacrestbank.local  Ready    master   3h    v1.28.7</span>
-<span class="tc-white">worker01.ocp.novacrestbank.local  Ready    worker   2h    v1.28.7</span>
-<span class="tc-white">worker02.ocp.novacrestbank.local  Ready    worker   2h    v1.28.7</span>
-<span class="tc-white">worker03.ocp.novacrestbank.local  Ready    worker   2h    v1.28.7</span></pre>
+<span class="tc-green">infra01.ocp.novacrestbank.internal   Ready    infra    2h    v1.28.7</span>   <span class="tc-dim">(infra label present)</span>
+<span class="tc-green">infra02.ocp.novacrestbank.internal   Ready    infra    2h    v1.28.7</span>
+<span class="tc-green">infra03.ocp.novacrestbank.internal   Ready    infra    2h    v1.28.7</span>
+<span class="tc-white">master01.ocp.novacrestbank.internal  Ready    master   3h    v1.28.7</span>
+<span class="tc-white">worker01.ocp.novacrestbank.internal  Ready    worker   2h    v1.28.7</span>
+<span class="tc-white">worker02.ocp.novacrestbank.internal  Ready    worker   2h    v1.28.7</span>
+<span class="tc-white">worker03.ocp.novacrestbank.internal  Ready    worker   2h    v1.28.7</span></pre>
     </div>
   </div>
 
   <h2>Step 2 — Move the ingress router to infra nodes</h2>
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — move router to infra nodes</span>
+      <span class="term-title">jumphost.novacrestbank.internal — move router to infra nodes</span>
     </div>
     <div class="term-body"><pre><span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc patch ingresscontroller/default \
   -n openshift-ingress-operator \
@@ -759,9 +759,9 @@ node/infra03.ocp.novacrestbank.local tainted</span>
 <span class="tc-dim"># Watch router pods move to infra nodes</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n5 'oc get pods -n openshift-ingress -o wide'</span>
 <span class="tc-white">NAME                               READY  STATUS   NODE</span>
-<span class="tc-green">router-default-7d9b4f8c2-a1m3k    1/1    Running  infra01.ocp.novacrestbank.local</span>
-<span class="tc-green">router-default-7d9b4f8c2-b4n7p    1/1    Running  infra02.ocp.novacrestbank.local</span>
-<span class="tc-green">router-default-7d9b4f8c2-c8q2r    1/1    Running  infra03.ocp.novacrestbank.local</span>
+<span class="tc-green">router-default-7d9b4f8c2-a1m3k    1/1    Running  infra01.ocp.novacrestbank.internal</span>
+<span class="tc-green">router-default-7d9b4f8c2-b4n7p    1/1    Running  infra02.ocp.novacrestbank.internal</span>
+<span class="tc-green">router-default-7d9b4f8c2-c8q2r    1/1    Running  infra03.ocp.novacrestbank.internal</span>
 <span class="tc-dim">                                                  ↑ all 3 router pods on infra nodes ✓</span></pre>
     </div>
   </div>
@@ -780,7 +780,7 @@ node/infra03.ocp.novacrestbank.local tainted</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — enable etcd encryption</span>
+      <span class="term-title">jumphost.novacrestbank.internal — enable etcd encryption</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Enable etcd encryption — this is a one-line patch</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc patch apiserver cluster \
@@ -836,7 +836,7 @@ node/infra03.ocp.novacrestbank.local tainted</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — verify vSphere CSI is running</span>
+      <span class="term-title">jumphost.novacrestbank.internal — verify vSphere CSI is running</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># OCP 4.x on vSphere IPI automatically installs the vSphere CSI driver</span>
 <span class="tc-dim"># Verify it is running</span>
@@ -927,7 +927,7 @@ persistentvolumeclaim "test-pvc" deleted</span></pre>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — configure monitoring on infra nodes</span>
+      <span class="term-title">jumphost.novacrestbank.internal — configure monitoring on infra nodes</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Create the cluster monitoring config</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">cat &lt;&lt; 'EOF' | oc apply -f -
@@ -985,11 +985,11 @@ EOF</span>
 
 <span class="tc-dim"># Watch monitoring pods migrate to infra nodes (~5-10 minutes)</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n10 'oc get pods -n openshift-monitoring -o wide | grep -v master'</span>
-<span class="tc-green">alertmanager-main-0        2/2  Running  infra01.ocp.novacrestbank.local</span>
-<span class="tc-green">alertmanager-main-1        2/2  Running  infra02.ocp.novacrestbank.local</span>
-<span class="tc-green">prometheus-k8s-0           6/6  Running  infra02.ocp.novacrestbank.local</span>
-<span class="tc-green">prometheus-k8s-1           6/6  Running  infra03.ocp.novacrestbank.local</span>
-<span class="tc-green">grafana-6d4c9f8b7-x2k8p    2/2  Running  infra01.ocp.novacrestbank.local</span>
+<span class="tc-green">alertmanager-main-0        2/2  Running  infra01.ocp.novacrestbank.internal</span>
+<span class="tc-green">alertmanager-main-1        2/2  Running  infra02.ocp.novacrestbank.internal</span>
+<span class="tc-green">prometheus-k8s-0           6/6  Running  infra02.ocp.novacrestbank.internal</span>
+<span class="tc-green">prometheus-k8s-1           6/6  Running  infra03.ocp.novacrestbank.internal</span>
+<span class="tc-green">grafana-6d4c9f8b7-x2k8p    2/2  Running  infra01.ocp.novacrestbank.internal</span>
 <span class="tc-dim">                                         ↑ all monitoring on infra nodes ✓</span></pre>
     </div>
   </div>
@@ -1008,7 +1008,7 @@ EOF</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — configure image registry with persistent storage</span>
+      <span class="term-title">jumphost.novacrestbank.internal — configure image registry with persistent storage</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim"># Check current registry state</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc get configs.imageregistry.operator.openshift.io cluster \
@@ -1062,7 +1062,7 @@ EOF</span>
 
 <span class="tc-dim"># Watch the registry pod come up</span>
 <span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">watch -n5 'oc get pods -n openshift-image-registry -o wide'</span>
-<span class="tc-green">image-registry-7c8d9f4b2-m3k7p   1/1   Running   0   90s   infra01.ocp.novacrestbank.local</span>
+<span class="tc-green">image-registry-7c8d9f4b2-m3k7p   1/1   Running   0   90s   infra01.ocp.novacrestbank.internal</span>
 <span class="tc-dim">                                                            ↑ registry on infra node ✓</span>
 
 <span class="tc-dim"># Verify the registry clusteroperator is healthy</span>
@@ -1081,7 +1081,7 @@ EOF</span>
 
   <div class="terminal">
     <div class="term-titlebar"><div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
-      <span class="term-title">jumphost.novacrestbank.local — complete production readiness audit</span>
+      <span class="term-title">jumphost.novacrestbank.internal — complete production readiness audit</span>
     </div>
     <div class="term-body"><pre><span class="tc-dim">═══════════════════════════════════════════════════════════</span>
 <span class="tc-white">  NovaCrestBank OCP — Production Readiness Audit</span>
@@ -1096,7 +1096,7 @@ EOF</span>
 <span class="tc-dim">  [no output = all operators healthy ✓]</span>
 
 <span class="tc-dim"># 3. AD login working?</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.local:6443 \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">oc login https://api.ocp.novacrestbank.internal:6443 \
   -u jsmith -p 'ADpassword123!' &amp;&amp; echo "AD login OK"</span>
 <span class="tc-green">Login successful.
 AD login OK ✓</span>
@@ -1106,7 +1106,7 @@ AD login OK ✓</span>
 <span class="tc-green">Error from server (NotFound): secrets "kubeadmin" not found</span>   <span class="tc-dim">← correct ✓</span>
 
 <span class="tc-dim"># 5. API cert from AD CS?</span>
-<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">echo | openssl s_client -connect api.ocp.novacrestbank.local:6443 2>/dev/null \
+<span class="tc-prompt">[svc-ocp@jumphost ~]$</span> <span class="tc-cmd">echo | openssl s_client -connect api.ocp.novacrestbank.internal:6443 2>/dev/null \
   | openssl x509 -noout -issuer</span>
 <span class="tc-green">issuer=CN = NovaCrestBank-IssuingCA, O = NovaCrestBank, C = US</span>   <span class="tc-dim">← AD CS ✓</span>
 

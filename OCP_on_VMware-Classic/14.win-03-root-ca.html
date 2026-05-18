@@ -359,17 +359,17 @@
     <tbody>
       <tr>
         <td><strong>vCenter Server</strong></td>
-        <td>TLS certificate for vcenter.novacrestbank.local</td>
+        <td>TLS certificate for vcenter.novacrestbank.internal</td>
         <td>Eliminates the browser certificate warning. Required for vCenter SSO to work correctly with AD. Without it, every admin gets a "connection is not private" warning and must click through — training people to ignore security warnings.</td>
       </tr>
       <tr>
         <td><strong>ESXi hosts</strong></td>
-        <td>TLS certificate per host (esxi01–05.novacrestbank.local)</td>
+        <td>TLS certificate per host (esxi01–05.novacrestbank.internal)</td>
         <td>vCenter uses ESXi certificates to verify it is connecting to the real host, not an impostor. Critical for vMotion security — without cert validation, a compromised system could intercept live VM migrations.</td>
       </tr>
       <tr>
         <td><strong>OpenShift cluster</strong></td>
-        <td>Wildcard cert for *.apps.ocp.novacrestbank.local, API cert for api.ocp.novacrestbank.local</td>
+        <td>Wildcard cert for *.apps.ocp.novacrestbank.internal, API cert for api.ocp.novacrestbank.internal</td>
         <td>Banking applications served through OCP must have trusted certificates — otherwise every customer browser shows a security warning when accessing the banking portal.</td>
       </tr>
       <tr>
@@ -389,7 +389,7 @@
     <div class="decision-label">Why build a private CA — not just use DigiCert or Let's Encrypt for everything</div>
     <div class="decision-q">NovaCrestBank already uses DigiCert for its public-facing website. Why build an internal CA at all?</div>
     <div class="decision-a"><strong>Because public CAs cannot issue certificates for internal hostnames (.local domains and private IP addresses), and using public CAs for internal infrastructure creates unnecessary cost and external dependencies.</strong><br/><br/>
-    DigiCert and Let's Encrypt can only issue certificates for publicly-resolvable hostnames — names that DNS can verify exist on the public internet. <code>vcenter.novacrestbank.local</code> is a private hostname — public CAs will refuse to issue a certificate for it because <code>.local</code> is not a public TLD.<br/><br/>
+    DigiCert and Let's Encrypt can only issue certificates for publicly-resolvable hostnames — names that DNS can verify exist on the public internet. <code>vcenter.novacrestbank.internal</code> is a private hostname — public CAs will refuse to issue a certificate for it because <code>.local</code> is not a public TLD.<br/><br/>
     A private CA can issue certificates for any hostname or IP address — including all the internal infrastructure that uses private DNS names. The certificates are trusted by all domain-joined machines (which automatically receive the Root CA certificate from Group Policy) and by any system where you manually install the Root CA certificate (like ESXi hosts).<br/><br/>
     NovaCrestBank's PKI design: private CA handles all internal infrastructure certificates. DigiCert continues to handle the public banking portal certificate (novacrestbank.com) — which customers' browsers trust without needing the internal Root CA.</div>
   </div>
@@ -425,7 +425,7 @@
     <div class="pki-tier">
       <div class="pki-box leaf">
         <div class="pki-box-title">📜 Leaf certificates (issued to systems)</div>
-        <div class="pki-box-desc">vcenter.novacrestbank.local · esxi01–05 · *.apps.ocp.novacrestbank.local<br/>
+        <div class="pki-box-desc">vcenter.novacrestbank.internal · esxi01–05 · *.apps.ocp.novacrestbank.internal<br/>
         1–2 year validity · Can be revoked · Auto-enrolment via GPO<br/>
         These are what browsers, vCenter, and clients actually verify</div>
       </div>
@@ -459,7 +459,7 @@
 
   <div class="callout danger">
     <div class="cl">The Root CA private key — the most sensitive asset in NovaCrestBank's infrastructure</div>
-    The Root CA holds a private key that can sign any certificate. If this private key is stolen, an attacker can create certificates for any hostname that all NovaCrestBank systems would trust — vcenter.novacrestbank.local, dc01.novacrestbank.local, any internal system. Every encrypted connection would be vulnerable to man-in-the-middle. Recovering from a compromised Root CA requires rebuilding the entire PKI from scratch and replacing every certificate in the environment — a multi-day outage with significant operational risk. Protecting the Root CA private key is the highest-priority security objective in the PKI design.
+    The Root CA holds a private key that can sign any certificate. If this private key is stolen, an attacker can create certificates for any hostname that all NovaCrestBank systems would trust — vcenter.novacrestbank.internal, dc01.novacrestbank.internal, any internal system. Every encrypted connection would be vulnerable to man-in-the-middle. Recovering from a compromised Root CA requires rebuilding the entire PKI from scratch and replacing every certificate in the environment — a multi-day outage with significant operational risk. Protecting the Root CA private key is the highest-priority security objective in the PKI design.
   </div>
 
   <h2>What "offline" means for the Root CA VM</h2>
@@ -503,7 +503,7 @@
 
   <h2>Root CA VM specifications</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">rootca.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">VM name in vCenter</span><span class="spec-val">rootca.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Windows hostname</span><span class="spec-val">ROOTCA</span></div>
     <div class="spec-row"><span class="spec-label">IP address</span><span class="spec-val">10.70.0.20 / 255.255.255.0</span></div>
     <div class="spec-row"><span class="spec-label">Default gateway</span><span class="spec-val">10.70.0.1 (leaf01 VLAN 70 SVI)</span></div>
@@ -514,15 +514,15 @@
     <div class="spec-row"><span class="spec-label">RAM</span><span class="spec-val">4 GB</span></div>
     <div class="spec-row"><span class="spec-label">OS disk</span><span class="spec-val">60 GB thin provisioned</span></div>
     <div class="spec-row"><span class="spec-label">OS Edition</span><span class="spec-val">Windows Server 2022 Standard (Desktop Experience)</span></div>
-    <div class="spec-row"><span class="spec-label">Domain membership</span><span class="spec-val">Standalone — NOT joined to novacrestbank.local (explained below)</span></div>
+    <div class="spec-row"><span class="spec-label">Domain membership</span><span class="spec-val">Standalone — NOT joined to novacrestbank.internal (explained below)</span></div>
     <div class="spec-row"><span class="spec-label">Local Administrator password</span><span class="spec-val">NovaCrest$RootCA2026! — in CyberArk</span></div>
   </div>
 
   <div class="decision">
     <div class="decision-label">Why the Root CA is NOT joined to the domain</div>
-    <div class="decision-q">DC01 and DC02 are domain members. The Issuing CA will be a domain member. Why should the Root CA be standalone — not joined to novacrestbank.local?</div>
+    <div class="decision-q">DC01 and DC02 are domain members. The Issuing CA will be a domain member. Why should the Root CA be standalone — not joined to novacrestbank.internal?</div>
     <div class="decision-a"><strong>Because a domain-joined Root CA trusts every domain administrator — and any domain administrator could potentially access the Root CA's private key.</strong><br/><br/>
-    Domain-joined machines allow domain administrators to log in locally and have full local administrator rights. If the Root CA were joined to novacrestbank.local, any NOVACRESTBANK\Domain Admins member could log into the Root CA and potentially access or export the Root CA private key. The Root CA's security depends on restricting who can access it to an absolute minimum — ideally a dedicated PKI administrator account, not the entire domain admin group.<br/><br/>
+    Domain-joined machines allow domain administrators to log in locally and have full local administrator rights. If the Root CA were joined to novacrestbank.internal, any NOVACRESTBANK\Domain Admins member could log into the Root CA and potentially access or export the Root CA private key. The Root CA's security depends on restricting who can access it to an absolute minimum — ideally a dedicated PKI administrator account, not the entire domain admin group.<br/><br/>
     As a standalone machine (not domain-joined), the Root CA only accepts local user accounts. Only the local Administrator account (with the Root CA-specific password) can log in. This completely separates Root CA access from AD domain administration — a domain admin compromise does not automatically compromise the Root CA.<br/><br/>
     This also means the Root CA cannot be a type "Enterprise CA" (Enterprise CAs require domain membership). It must be a "Standalone CA" — which is fine because the Root CA's only job is to sign the Issuing CA's certificate. It does not need AD integration for certificate templates or auto-enrolment.</div>
   </div>
@@ -539,13 +539,13 @@
   <div class="win-wizard">
     <div class="ww-header">
       <div class="ww-icon">🖥</div>
-      <div><div class="ww-title">New Virtual Machine — rootca.novacrestbank.local</div><div class="ww-sub">Key values for the Root CA VM</div></div>
+      <div><div class="ww-title">New Virtual Machine — rootca.novacrestbank.internal</div><div class="ww-sub">Key values for the Root CA VM</div></div>
     </div>
     <div class="ww-body" style="min-height:260px;">
       <div class="ww-content">
         <div class="ww-section-title">Configuration values — enter these when the wizard asks</div>
         <table style="font-size:12.5px;margin-top:8px;">
-          <tr><td style="color:#6c757d;padding:5px 0;min-width:180px;border-bottom:0.5px solid #eee;">VM name</td><td style="padding:5px 12px;font-weight:600;border-bottom:0.5px solid #eee;color:#0078d4;">rootca.novacrestbank.local</td></tr>
+          <tr><td style="color:#6c757d;padding:5px 0;min-width:180px;border-bottom:0.5px solid #eee;">VM name</td><td style="padding:5px 12px;font-weight:600;border-bottom:0.5px solid #eee;color:#0078d4;">rootca.novacrestbank.internal</td></tr>
           <tr><td style="color:#6c757d;padding:5px 0;border-bottom:0.5px solid #eee;">Compute resource</td><td style="padding:5px 12px;font-weight:600;border-bottom:0.5px solid #eee;">esxi03 (10.10.0.13) — NOT esxi01 or esxi02</td></tr>
           <tr><td style="color:#6c757d;padding:5px 0;border-bottom:0.5px solid #eee;">Storage</td><td style="padding:5px 12px;border-bottom:0.5px solid #eee;">datastore1 on esxi03 · Thin Provision</td></tr>
           <tr><td style="color:#6c757d;padding:5px 0;border-bottom:0.5px solid #eee;">Guest OS</td><td style="padding:5px 12px;border-bottom:0.5px solid #eee;">Windows · Microsoft Windows Server 2022 (64-bit)</td></tr>
@@ -966,13 +966,13 @@
         </div>
         <div class="ww-field">
           <div class="ww-label">Distinguished name suffix:</div>
-          <div class="ww-input filled">DC=novacrestbank,DC=local</div>
+          <div class="ww-input filled">DC=novacrestbank,DC=internal</div>
           <div style="font-size:11px;color:#5a7090;margin-top:3px;">Automatically generated from the domain. For a standalone (non-domain) CA, this may show as blank — that is acceptable.</div>
         </div>
         <div class="ww-field">
           <div class="ww-label">Preview of distinguished name:</div>
           <div style="background:#f5f8fc;border:1px solid #d0dce8;padding:6px 10px;border-radius:3px;font-family:monospace;font-size:12px;color:#1a2a3a;">
-            CN=NovaCrestBank-Root-CA,DC=novacrestbank,DC=local
+            CN=NovaCrestBank-Root-CA,DC=novacrestbank,DC=internal
           </div>
         </div>
       </div>
@@ -1155,10 +1155,10 @@
   <h2>The publication locations NovaCrestBank uses</h2>
   <p>Because the Root CA will be offline, its CRL and CA certificate must be published to a location that is always accessible. NovaCrestBank uses a shared folder on DC01 that is accessible as an HTTP URL via IIS (to be configured in a moment) and as a UNC path for the CA to write to:</p>
   <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:13px;">
-    <div>CRL publication location (HTTP):  <strong style="color:var(--pki-gold);">http://pki.novacrestbank.local/pki/</strong></div>
-    <div style="margin-top:4px;">AIA publication location (HTTP):   <strong style="color:var(--pki-gold);">http://pki.novacrestbank.local/pki/</strong></div>
+    <div>CRL publication location (HTTP):  <strong style="color:var(--pki-gold);">http://pki.novacrestbank.internal/pki/</strong></div>
+    <div style="margin-top:4px;">AIA publication location (HTTP):   <strong style="color:var(--pki-gold);">http://pki.novacrestbank.internal/pki/</strong></div>
     <div style="margin-top:4px;">CRL local write path (UNC):        <strong style="color:var(--pki-gold);">\\dc01\pki\</strong></div>
-    <div style="margin-top:8px;color:#8090a0;"># pki.novacrestbank.local → DNS A record pointing to DC01 (10.70.0.10)</div>
+    <div style="margin-top:8px;color:#8090a0;"># pki.novacrestbank.internal → DNS A record pointing to DC01 (10.70.0.10)</div>
     <div style="color:#8090a0;"># IIS installed on DC01 with the /pki virtual directory</div>
     <div style="color:#8090a0;"># C:\inetpub\wwwroot\pki\ shared as \\dc01\pki\</div>
   </div>
@@ -1191,15 +1191,15 @@
 <span class="pp">PS C:\></span> <span class="pc">Set-WebConfigurationProperty -Filter "system.webServer/security/requestFiltering" `
     -Name allowDoubleEscaping -Value $true -PSPath "IIS:\" -Location ""</span>
 
-<span class="pd"># Step 4: Create the DNS record pki.novacrestbank.local → 10.70.0.10</span>
-<span class="pp">PS C:\></span> <span class="pc">Add-DnsServerResourceRecordA -Name "pki" -ZoneName "novacrestbank.local" -IPv4Address "10.70.0.10"</span>
-<span class="pg">Record added: pki.novacrestbank.local → 10.70.0.10 ✓</span>
+<span class="pd"># Step 4: Create the DNS record pki.novacrestbank.internal → 10.70.0.10</span>
+<span class="pp">PS C:\></span> <span class="pc">Add-DnsServerResourceRecordA -Name "pki" -ZoneName "novacrestbank.internal" -IPv4Address "10.70.0.10"</span>
+<span class="pg">Record added: pki.novacrestbank.internal → 10.70.0.10 ✓</span>
 
 <span class="pd"># Verify the web server is working</span>
-<span class="pp">PS C:\></span> <span class="pc">Invoke-WebRequest -Uri "http://pki.novacrestbank.local/pki/" -UseBasicParsing</span>
+<span class="pp">PS C:\></span> <span class="pc">Invoke-WebRequest -Uri "http://pki.novacrestbank.internal/pki/" -UseBasicParsing</span>
 <span class="pg">StatusCode        : 200
 StatusDescription : OK</span>
-<span class="pd">↑ Web server reachable at http://pki.novacrestbank.local/pki/ ✓</span></pre>
+<span class="pd">↑ Web server reachable at http://pki.novacrestbank.internal/pki/ ✓</span></pre>
     </div>
   </div>
 
@@ -1226,7 +1226,7 @@ StatusDescription : OK</span>
         <p style="font-size:13.5px">Ensure "CRL Distribution Point (CDP)" is selected in the dropdown. The list shows existing CDP locations (the default file-based location). You need to <strong>add</strong> an HTTP location and remove some unwanted defaults.</p>
         <p style="font-size:13.5px"><strong>Add the HTTP CDP location:</strong><br/>Click <strong>Add</strong>. In the "Add Location" dialog, type:</p>
         <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
-          http://pki.novacrestbank.local/pki/&lt;CaName&gt;&lt;CRLNameSuffix&gt;&lt;DeltaCRLAllowed&gt;.crl
+          http://pki.novacrestbank.internal/pki/&lt;CaName&gt;&lt;CRLNameSuffix&gt;&lt;DeltaCRLAllowed&gt;.crl
         </div>
         <p style="font-size:13.5px;margin-top:8px;">The <code>&lt;CaName&gt;</code>, <code>&lt;CRLNameSuffix&gt;</code>, and <code>&lt;DeltaCRLAllowed&gt;</code> are literal variables — type them exactly including the angle brackets. The CA replaces them with actual values when publishing. Click <strong>OK</strong>.</p>
         <p style="font-size:13.5px;margin-top:8px;">Tick the checkboxes for the newly added HTTP CDP: ✓ <strong>Include in CRLs. Clients use this to find Delta CRL locations</strong> and ✓ <strong>Include in the CDP extension of issued certificates</strong>.</p>
@@ -1243,7 +1243,7 @@ StatusDescription : OK</span>
         <div class="step-title">Configure AIA — Authority Information Access</div>
         <p style="font-size:13.5px">Change the "Select extension" dropdown to <strong>Authority Information Access (AIA)</strong>. Click <strong>Add</strong>. Type:</p>
         <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
-          http://pki.novacrestbank.local/pki/&lt;ServerDNSName&gt;_&lt;CaName&gt;&lt;CertificateName&gt;.crt
+          http://pki.novacrestbank.internal/pki/&lt;ServerDNSName&gt;_&lt;CaName&gt;&lt;CertificateName&gt;.crt
         </div>
         <p style="font-size:13.5px;margin-top:8px;">Tick: ✓ <strong>Include in the AIA extension of issued certificates</strong>.<br/>Also add a UNC location for the CA to write the certificate file:</p>
         <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
@@ -1309,9 +1309,9 @@ The Active Directory Certificate Services service is starting...started.</span>
         <div class="step-title">Also publish the Root CA certificate to the AIA location</div>
         <p style="font-size:13.5px">The Root CA certificate (the .cer file) must also be published to \\dc01\pki\ so it is accessible via HTTP. In the Certification Authority console, right-click the CA name (<strong>NovaCrestBank-Root-CA</strong>). Click <strong>Properties</strong>. On the <strong>General</strong> tab, click <strong>View Certificate</strong>. In the certificate viewer, click the <strong>Details</strong> tab. Click <strong>Copy to File</strong>. The Certificate Export Wizard opens. Select <strong>DER encoded binary X.509 (.CER)</strong>. Click Next. Save to:</p>
         <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;margin-top:8px;">
-          \\dc01\pki\rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt
+          \\dc01\pki\rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt
         </div>
-        <p style="font-size:13.5px;margin-top:8px;">Click Next → Finish. The Root CA certificate is now available at http://pki.novacrestbank.local/pki/ for all clients to download and add to their trust stores.</p>
+        <p style="font-size:13.5px;margin-top:8px;">Click Next → Finish. The Root CA certificate is now available at http://pki.novacrestbank.internal/pki/ for all clients to download and add to their trust stores.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1320,10 +1320,10 @@ The Active Directory Certificate Services service is starting...started.</span>
         <div class="step-title">Verify the CRL and certificate are accessible via HTTP</div>
         <div class="psh" style="margin-top:8px;">
           <div class="psh-bar"><div class="psh-dot r"></div><div class="psh-dot y"></div><div class="psh-dot g"></div><span class="psh-label">PowerShell — ROOTCA or DC01</span></div>
-          <div class="psh-body"><pre><span class="pp">PS C:\></span> <span class="pc">Invoke-WebRequest -Uri "http://pki.novacrestbank.local/pki/NovaCrestBank-Root-CA.crl" -UseBasicParsing</span>
+          <div class="psh-body"><pre><span class="pp">PS C:\></span> <span class="pc">Invoke-WebRequest -Uri "http://pki.novacrestbank.internal/pki/NovaCrestBank-Root-CA.crl" -UseBasicParsing</span>
 <span class="pg">StatusCode : 200    ← CRL accessible via HTTP ✓</span>
 
-<span class="pp">PS C:\></span> <span class="pc">Invoke-WebRequest -Uri "http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt" -UseBasicParsing</span>
+<span class="pp">PS C:\></span> <span class="pc">Invoke-WebRequest -Uri "http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt" -UseBasicParsing</span>
 <span class="pg">StatusCode : 200    ← Root CA certificate accessible via HTTP ✓</span></pre>
           </div>
         </div>
@@ -1452,7 +1452,7 @@ The Active Directory Certificate Services service is starting...started.</span>
   </div>
 
   <h2>Step 1 — Export the Root CA certificate (already done in Section 18)</h2>
-  <p>The Root CA certificate was exported to <code>\\dc01\pki\</code> in Section 18 as part of the AIA configuration. It is available at <code>http://pki.novacrestbank.local/pki/rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</code>.</p>
+  <p>The Root CA certificate was exported to <code>\\dc01\pki\</code> in Section 18 as part of the AIA configuration. It is available at <code>http://pki.novacrestbank.internal/pki/rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt</code>.</p>
 
   <h2>Step 2 — Create the Group Policy to distribute to domain members</h2>
   <div class="psh">
@@ -1461,7 +1461,7 @@ The Active Directory Certificate Services service is starting...started.</span>
 <span class="pd"># Trusted Root Certification Authorities containers</span>
 
 <span class="pd"># First, publish the Root CA certificate to AD (for domain-joined machines)</span>
-<span class="pp">PS C:\></span> <span class="pc">certutil -dspublish -f "C:\inetpub\wwwroot\pki\rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt" RootCA</span>
+<span class="pp">PS C:\></span> <span class="pc">certutil -dspublish -f "C:\inetpub\wwwroot\pki\rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt" RootCA</span>
 <span class="pg">Certificate added to DS store.</span>
 <span class="pg">CertUtil: -dsPublish command completed successfully.</span>
 <span class="pd">
@@ -1526,8 +1526,8 @@ User Policy update has completed successfully.</span>
     <li class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">In vCenter — right-click rootca.novacrestbank.local → Snapshots → Take Snapshot</div>
-        <p style="font-size:13.5px">In the vSphere Client, right-click the <strong>rootca.novacrestbank.local</strong> VM. Hover over <strong>Snapshots</strong>. Click <strong>Take Snapshot</strong>. A dialog opens.</p>
+        <div class="step-title">In vCenter — right-click rootca.novacrestbank.internal → Snapshots → Take Snapshot</div>
+        <p style="font-size:13.5px">In the vSphere Client, right-click the <strong>rootca.novacrestbank.internal</strong> VM. Hover over <strong>Snapshots</strong>. Click <strong>Take Snapshot</strong>. A dialog opens.</p>
       </div>
     </li>
     <li class="step-item">
@@ -1556,7 +1556,7 @@ User Policy update has completed successfully.</span>
 
   <div class="callout success">
     <div class="cl">The Root CA is now offline — permanently, until needed</div>
-    The Root CA VM is powered off. Its power state in vCenter shows "Powered Off." The private key is encrypted on disk and not in memory. The Root CA cannot be remotely accessed. The CRL and Root CA certificate are published to DC01 and accessible via http://pki.novacrestbank.local/pki/ — both of these are available to clients without the Root CA being online. The PKI infrastructure is now secure.
+    The Root CA VM is powered off. Its power state in vCenter shows "Powered Off." The private key is encrypted on disk and not in memory. The Root CA cannot be remotely accessed. The CRL and Root CA certificate are published to DC01 and accessible via http://pki.novacrestbank.internal/pki/ — both of these are available to clients without the Root CA being online. The PKI infrastructure is now secure.
   </div>
 </div>
 
@@ -1572,7 +1572,7 @@ User Policy update has completed successfully.</span>
     <ol style="font-size:13.5px;margin-left:16px;line-height:2;">
       <li>Raise a change management request — two-person authorisation required</li>
       <li>Log into vCenter with administrator@vsphere.local credentials</li>
-      <li>Power on rootca.novacrestbank.local</li>
+      <li>Power on rootca.novacrestbank.internal</li>
       <li>Log into Windows as ROOTCA\Administrator (from CyberArk)</li>
       <li>Open Certification Authority console → right-click Revoked Certificates → All Tasks → Publish → New CRL</li>
       <li>Verify the new CRL is published to \\dc01\pki\ and accessible via HTTP</li>
@@ -1648,7 +1648,7 @@ User Policy update has completed successfully.</span>
       </div>
       <div class="cert-row">
         <span class="cert-field">CRL Distribution Points:</span>
-        <span class="cert-val">http://pki.novacrestbank.local/pki/NovaCrestBank-Root-CA.crl</span>
+        <span class="cert-val">http://pki.novacrestbank.internal/pki/NovaCrestBank-Root-CA.crl</span>
       </div>
     </div>
   </div>
@@ -1659,7 +1659,7 @@ User Policy update has completed successfully.</span>
       <div class="step-num">1</div>
       <div class="step-content">
         <div class="step-title">On DC01 — open the certificate from the file share</div>
-        <p style="font-size:13.5px">Open File Explorer on DC01. Navigate to <code>\\dc01\pki\</code> (or <code>C:\inetpub\wwwroot\pki\</code>). Double-click the Root CA certificate file (<code>rootca.novacrestbank.local_NovaCrestBank-Root-CA.crt</code>). Windows opens the Certificate viewer showing all the details above.</p>
+        <p style="font-size:13.5px">Open File Explorer on DC01. Navigate to <code>\\dc01\pki\</code> (or <code>C:\inetpub\wwwroot\pki\</code>). Double-click the Root CA certificate file (<code>rootca.novacrestbank.internal_NovaCrestBank-Root-CA.crt</code>). Windows opens the Certificate viewer showing all the details above.</p>
       </div>
     </li>
   </ul>
@@ -1671,7 +1671,7 @@ User Policy update has completed successfully.</span>
     <li><strong>Public key = RSA 4096 bits</strong></li>
     <li><strong>Signature hash = sha256RSA</strong></li>
     <li><strong>Basic Constraints shows Subject Type=CA</strong> — this is the field that tells clients "this certificate is from a CA, not an end-entity"</li>
-    <li><strong>CRL Distribution Points contains the HTTP URL</strong> — http://pki.novacrestbank.local/pki/NovaCrestBank-Root-CA.crl</li>
+    <li><strong>CRL Distribution Points contains the HTTP URL</strong> — http://pki.novacrestbank.internal/pki/NovaCrestBank-Root-CA.crl</li>
   </ul>
 </div>
 
@@ -1715,7 +1715,7 @@ Leaf certificate revocation check passed CertUtil: -verify command completed suc
 
 <span class="pd"># ── Verify the chain from a leaf cert perspective ─────────────────────</span>
 <span class="pd"># (Run this after a leaf cert is issued — e.g., after vCenter cert replacement)</span>
-<span class="pp">PS C:\></span> <span class="pc">certutil -verify -urlfetch vcenter.novacrestbank.local.cer</span>
+<span class="pp">PS C:\></span> <span class="pc">certutil -verify -urlfetch vcenter.novacrestbank.internal.cer</span>
 <span class="pg">Full chain verified: leaf → NovaCrestBank-Issuing-CA → NovaCrestBank-Root-CA → Trusted ✓</span>
     </pre>
       <div class="pann ok"><span class="pai">✓</span><span>The full PKI trust chain is operational. Root CA certificate is in the Trusted Root store on all domain-joined machines. Issuing CA certificate is in the Intermediate CA store. CRL is valid and downloadable. The chain from leaf certificates to the Root CA verifies correctly.</span></div>
@@ -1731,12 +1731,12 @@ Leaf certificate revocation check passed CertUtil: -verify command completed suc
 
   <div class="callout success">
     <div class="cl">Win-03 complete — the Root CA is built, operational, and offline</div>
-    NovaCrestBank-Root-CA has been created with RSA-4096, SHA-256, 20-year validity. The CRL validity is set to 52 weeks. The CDP and AIA extensions point to http://pki.novacrestbank.local/pki/. The CRL and Root CA certificate are published and accessible via HTTP. The Root CA has signed the Issuing CA certificate (if Win-04 was built first) or is ready to do so. The Root CA VM is powered off. A clean-state snapshot exists in vCenter.
+    NovaCrestBank-Root-CA has been created with RSA-4096, SHA-256, 20-year validity. The CRL validity is set to 52 weeks. The CDP and AIA extensions point to http://pki.novacrestbank.internal/pki/. The CRL and Root CA certificate are published and accessible via HTTP. The Root CA has signed the Issuing CA certificate (if Win-04 was built first) or is ready to do so. The Root CA VM is powered off. A clean-state snapshot exists in vCenter.
   </div>
 
   <h2>Verification checklist</h2>
   <div class="card">
-    <div class="spec-row"><span class="spec-label">Root CA VM: rootca.novacrestbank.local</span><span class="spec-val badge bg">✓ Created on esxi03</span></div>
+    <div class="spec-row"><span class="spec-label">Root CA VM: rootca.novacrestbank.internal</span><span class="spec-val badge bg">✓ Created on esxi03</span></div>
     <div class="spec-row"><span class="spec-label">Windows hostname: ROOTCA</span><span class="spec-val badge bg">✓ Standalone workgroup — NOT domain joined</span></div>
     <div class="spec-row"><span class="spec-label">CA type: Standalone Root CA</span><span class="spec-val badge bg">✓ Confirmed in CA Properties</span></div>
     <div class="spec-row"><span class="spec-label">CA name: NovaCrestBank-Root-CA</span><span class="spec-val badge bg">✓ Verified in certificate Subject field</span></div>
@@ -1744,10 +1744,10 @@ Leaf certificate revocation check passed CertUtil: -verify command completed suc
     <div class="spec-row"><span class="spec-label">Hash: SHA-256</span><span class="spec-val badge bg">✓ sha256RSA in certificate Details</span></div>
     <div class="spec-row"><span class="spec-label">Validity: 20 years (expires April 2046)</span><span class="spec-val badge bg">✓ Verified in certificate</span></div>
     <div class="spec-row"><span class="spec-label">CRL period: 52 weeks</span><span class="spec-val badge bg">✓ Set via certutil</span></div>
-    <div class="spec-row"><span class="spec-label">CDP URL: http://pki.novacrestbank.local/pki/</span><span class="spec-val badge bg">✓ In certificate CDP extension</span></div>
-    <div class="spec-row"><span class="spec-label">AIA URL: http://pki.novacrestbank.local/pki/</span><span class="spec-val badge bg">✓ In certificate AIA extension</span></div>
-    <div class="spec-row"><span class="spec-label">CRL published to \\dc01\pki\</span><span class="spec-val badge bg">✓ HTTP 200 from pki.novacrestbank.local</span></div>
-    <div class="spec-row"><span class="spec-label">Root CA cert published to \\dc01\pki\</span><span class="spec-val badge bg">✓ HTTP 200 from pki.novacrestbank.local</span></div>
+    <div class="spec-row"><span class="spec-label">CDP URL: http://pki.novacrestbank.internal/pki/</span><span class="spec-val badge bg">✓ In certificate CDP extension</span></div>
+    <div class="spec-row"><span class="spec-label">AIA URL: http://pki.novacrestbank.internal/pki/</span><span class="spec-val badge bg">✓ In certificate AIA extension</span></div>
+    <div class="spec-row"><span class="spec-label">CRL published to \\dc01\pki\</span><span class="spec-val badge bg">✓ HTTP 200 from pki.novacrestbank.internal</span></div>
+    <div class="spec-row"><span class="spec-label">Root CA cert published to \\dc01\pki\</span><span class="spec-val badge bg">✓ HTTP 200 from pki.novacrestbank.internal</span></div>
     <div class="spec-row"><span class="spec-label">Root CA cert published to AD</span><span class="spec-val badge bg">✓ certutil -viewstore -enterprise Root shows it</span></div>
     <div class="spec-row"><span class="spec-label">Issuing CA CSR received and signed</span><span class="spec-val badge ba">⚠ Done after Win-04 generates the CSR</span></div>
     <div class="spec-row"><span class="spec-label">Signed Issuing CA cert delivered to Win-04</span><span class="spec-val badge ba">⚠ Done after signing — Win-04 installs it</span></div>
@@ -1763,12 +1763,12 @@ Leaf certificate revocation check passed CertUtil: -verify command completed suc
     <tbody>
       <tr>
         <td><strong>Win-04 — Issuing CA</strong></td>
-        <td>Install AD CS as an Enterprise Subordinate CA on issuingca.novacrestbank.local. Generate the CSR. Install the signed certificate from the Root CA. Configure certificate templates. Enable auto-enrolment.</td>
+        <td>Install AD CS as an Enterprise Subordinate CA on issuingca.novacrestbank.internal. Generate the CSR. Install the signed certificate from the Root CA. Configure certificate templates. Enable auto-enrolment.</td>
         <td>The Root CA must sign the Issuing CA CSR — done in Sections 19–21 of this guide (after Win-04 generates the CSR). Win-04 and Win-03 are interleaved for the signing operation.</td>
       </tr>
       <tr>
         <td><strong>vSphere-03 — vCenter AD integration + cert replacement</strong></td>
-        <td>Join vCenter to novacrestbank.local. Request a TLS certificate from the Issuing CA for vcenter.novacrestbank.local. Replace the self-signed VCSA certificate. Map AD groups to vCenter roles.</td>
+        <td>Join vCenter to novacrestbank.internal. Request a TLS certificate from the Issuing CA for vcenter.novacrestbank.internal. Replace the self-signed VCSA certificate. Map AD groups to vCenter roles.</td>
         <td>Requires the Issuing CA (Win-04) to be operational. The Root CA is not directly involved — the Issuing CA issues the vCenter certificate.</td>
       </tr>
     </tbody>

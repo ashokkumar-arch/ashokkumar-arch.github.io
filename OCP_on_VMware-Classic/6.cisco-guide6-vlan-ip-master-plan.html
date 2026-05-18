@@ -380,7 +380,7 @@
           <div class="ip-row"><span class="ip-addr">10.10.0.13</span><span class="ip-role">esxi03 vmk0</span><span class="ip-note">Host 3, Rack 2</span></div>
           <div class="ip-row"><span class="ip-addr">10.10.0.14</span><span class="ip-role">esxi04 vmk0</span><span class="ip-note">Host 4, Rack 2</span></div>
           <div class="ip-row"><span class="ip-addr">10.10.0.15</span><span class="ip-role">esxi05 vmk0</span><span class="ip-note">Host 5, Rack 3</span></div>
-          <div class="ip-row"><span class="ip-addr">10.10.0.100</span><span class="ip-role">vcenter.novacrestbank.local — vCenter VCSA</span><span class="ip-note">vCenter server appliance</span></div>
+          <div class="ip-row"><span class="ip-addr">10.10.0.100</span><span class="ip-role">vcenter.novacrestbank.internal — vCenter VCSA</span><span class="ip-note">vCenter server appliance</span></div>
           <div class="ip-row"><span class="ip-addr">10.10.0.101–200</span><span class="ip-role">Reserved for future infrastructure VMs</span><span class="ip-note">Monitoring, automation, tooling</span></div>
         </div>
       </div>
@@ -598,8 +598,8 @@
           <div class="ip-row"><span class="ip-addr">10.50.0.11–13</span><span class="ip-role">master01, master02, master03</span><span class="ip-note">OCP control plane</span></div>
           <div class="ip-row"><span class="ip-addr">10.50.0.21–23</span><span class="ip-role">infra01, infra02, infra03</span><span class="ip-note">Router, monitoring, registry</span></div>
           <div class="ip-row"><span class="ip-addr">10.50.0.31–33</span><span class="ip-role">worker01, worker02, worker03</span><span class="ip-note">Application workloads</span></div>
-          <div class="ip-row"><span class="ip-addr">10.50.0.200</span><span class="ip-role">API VIP — api.ocp.novacrestbank.local</span><span class="ip-note">Load-balanced across masters</span></div>
-          <div class="ip-row"><span class="ip-addr">10.50.0.201</span><span class="ip-role">Ingress VIP — *.apps.ocp.novacrestbank.local</span><span class="ip-note">Load-balanced across infra nodes</span></div>
+          <div class="ip-row"><span class="ip-addr">10.50.0.200</span><span class="ip-role">API VIP — api.ocp.novacrestbank.internal</span><span class="ip-note">Load-balanced across masters</span></div>
+          <div class="ip-row"><span class="ip-addr">10.50.0.201</span><span class="ip-role">Ingress VIP — *.apps.ocp.novacrestbank.internal</span><span class="ip-note">Load-balanced across infra nodes</span></div>
         </div>
       </div>
 
@@ -675,10 +675,10 @@
       <div class="vlan-section">
         <div class="vlan-section-label vs-who">Key IP assignments in VLAN 70</div>
         <div class="ip-block">
-          <div class="ip-row"><span class="ip-addr">10.70.0.10</span><span class="ip-role">dc01.novacrestbank.local — primary DC, DNS, DHCP, NTP</span><span class="ip-note">Static — never DHCP</span></div>
-          <div class="ip-row"><span class="ip-addr">10.70.0.11</span><span class="ip-role">dc02.novacrestbank.local — secondary DC, DNS failover</span><span class="ip-note">Static — never DHCP</span></div>
-          <div class="ip-row"><span class="ip-addr">10.70.0.20</span><span class="ip-role">rootca.novacrestbank.local — offline Root CA</span><span class="ip-note">Powered OFF after issuing issuing CA cert</span></div>
-          <div class="ip-row"><span class="ip-addr">10.70.0.21</span><span class="ip-role">issuingca.novacrestbank.local — online Issuing CA</span><span class="ip-note">Always on — issues day-to-day certificates</span></div>
+          <div class="ip-row"><span class="ip-addr">10.70.0.10</span><span class="ip-role">dc01.novacrestbank.internal — primary DC, DNS, DHCP, NTP</span><span class="ip-note">Static — never DHCP</span></div>
+          <div class="ip-row"><span class="ip-addr">10.70.0.11</span><span class="ip-role">dc02.novacrestbank.internal — secondary DC, DNS failover</span><span class="ip-note">Static — never DHCP</span></div>
+          <div class="ip-row"><span class="ip-addr">10.70.0.20</span><span class="ip-role">rootca.novacrestbank.internal — offline Root CA</span><span class="ip-note">Powered OFF after issuing issuing CA cert</span></div>
+          <div class="ip-row"><span class="ip-addr">10.70.0.21</span><span class="ip-role">issuingca.novacrestbank.internal — online Issuing CA</span><span class="ip-note">Always on — issues day-to-day certificates</span></div>
           <div class="ip-row"><span class="ip-addr">10.70.0.30–99</span><span class="ip-role">Reserved for management servers</span><span class="ip-note">Monitoring, Ansible, jump hosts</span></div>
         </div>
       </div>
@@ -782,7 +782,7 @@
       <tr>
         <td><code>.10</code></td>
         <td>First dedicated infrastructure device (if applicable)</td>
-        <td>For VLAN 70: dc01.novacrestbank.local = 10.70.0.10. For VLAN 10: used for vCenter = 10.10.0.100 (below). The .10 convention is a guideline, not a rigid rule.</td>
+        <td>For VLAN 70: dc01.novacrestbank.internal = 10.70.0.10. For VLAN 10: used for vCenter = 10.10.0.100 (below). The .10 convention is a guideline, not a rigid rule.</td>
       </tr>
       <tr>
         <td><code>.11–.20</code></td>
