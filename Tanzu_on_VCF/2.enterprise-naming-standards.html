@@ -1,0 +1,825 @@
+```html id="tx1w8y"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaCrestBank Enterprise Naming Standards</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1450px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            NovaCrestBank Enterprise Naming Standards
+        </div>
+
+        <div class="hero-subtitle">
+            Enterprise Naming Conventions and Object Standardization for VMware Cloud Foundation, NSX, Tanzu Kubernetes Service, Networking, Security, Platform Engineering, and Disaster Recovery
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">VCF</span>
+            <span class="badge">NSX</span>
+            <span class="badge">VKS</span>
+            <span class="badge">DNS</span>
+            <span class="badge">PKI</span>
+            <span class="badge">GitOps</span>
+            <span class="badge">Disaster Recovery</span>
+            <span class="badge">Platform Engineering</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#principles">Principles</a>
+        <a href="#sites">Sites</a>
+        <a href="#dns">DNS</a>
+        <a href="#vcf">VCF Naming</a>
+        <a href="#nsx">NSX Naming</a>
+        <a href="#k8s">Kubernetes</a>
+        <a href="#platform">Platform Engineering</a>
+        <a href="#security">Security</a>
+        <a href="#dr">DR Standards</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide defines the enterprise naming conventions and object-standardization strategy used throughout the NovaCrestBank VMware Cloud Foundation, NSX, and Tanzu Kubernetes Service platform.
+    </p>
+
+    <p>
+        Consistent naming standards are extremely important in real-world enterprise environments because naming consistency directly affects:
+    </p>
+
+    <ul>
+
+        <li>Operational troubleshooting</li>
+        <li>Automation reliability</li>
+        <li>Monitoring and observability</li>
+        <li>Disaster recovery operations</li>
+        <li>Infrastructure-as-Code consistency</li>
+        <li>Platform engineering workflows</li>
+        <li>Security policy management</li>
+        <li>Enterprise governance</li>
+
+    </ul>
+
+    <div class="callout">
+        <strong>Important:</strong><br><br>
+
+        In enterprise environments, inconsistent naming standards become operational problems at scale. The purpose of this guide is to establish predictable, repeatable, automation-friendly naming conventions across the entire platform stack.
+
+    </div>
+
+</section>
+
+<section id="principles">
+
+    <h2>2. Enterprise Naming Principles</h2>
+
+    <h3>2.1 Standardization Goals</h3>
+
+    <table>
+
+        <tr>
+            <th>Goal</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>Consistency</td>
+            <td>Use predictable naming structures across all environments.</td>
+        </tr>
+
+        <tr>
+            <td>Readability</td>
+            <td>Names should immediately communicate purpose and location.</td>
+        </tr>
+
+        <tr>
+            <td>Automation Friendly</td>
+            <td>Names must work cleanly with Terraform, Ansible, GitOps, and CI/CD pipelines.</td>
+        </tr>
+
+        <tr>
+            <td>Scalability</td>
+            <td>Naming structures must support future platform expansion.</td>
+        </tr>
+
+        <tr>
+            <td>Disaster Recovery Alignment</td>
+            <td>Primary and DR site naming must remain consistent.</td>
+        </tr>
+
+    </table>
+
+    <h3>2.2 General Naming Rules</h3>
+
+    <ul>
+
+        <li>Use lowercase characters only</li>
+        <li>Use hyphens instead of spaces</li>
+        <li>Avoid underscores where possible</li>
+        <li>Names should reflect environment and purpose</li>
+        <li>Keep naming structures automation-friendly</li>
+        <li>Avoid ambiguous abbreviations</li>
+
+    </ul>
+
+</section>
+
+<section id="sites">
+
+    <h2>3. Enterprise Site Naming Standards</h2>
+
+    <h3>3.1 Data Center Naming Standards</h3>
+
+    <table>
+
+        <tr>
+            <th>Site</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>mum-dc01</td>
+            <td>Mumbai Primary Production Data Center</td>
+        </tr>
+
+        <tr>
+            <td>hyd-dc02</td>
+            <td>Hyderabad Disaster Recovery Data Center</td>
+        </tr>
+
+    </table>
+
+    <h3>3.2 Region and Zone Naming</h3>
+
+<pre>
+ap-south
+ap-south-mum
+ap-south-hyd
+
+mum-dc01-zone-a
+mum-dc01-zone-b
+
+hyd-dc02-zone-a
+hyd-dc02-zone-b
+</pre>
+
+    <h3>3.3 Rack Naming</h3>
+
+<pre>
+mum-r01
+mum-r02
+mum-r03
+
+hyd-r01
+hyd-r02
+</pre>
+
+</section>
+
+<section id="dns">
+
+    <h2>4. DNS and Domain Naming Standards</h2>
+
+    <h3>4.1 Enterprise Internal Domain</h3>
+
+    <p>
+        The enterprise platform uses:
+    </p>
+
+<pre>
+novacrestbank.internal
+</pre>
+
+    <p>
+        instead of legacy <code>.local</code> naming conventions.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Why .internal Instead of .local?</strong><br><br>
+
+        Modern enterprise environments avoid <code>.local</code> because of multicast DNS (mDNS) conflicts, certificate complications, and legacy interoperability issues.
+        <br><br>
+
+        Using:
+        <br><br>
+
+        <code>novacrestbank.internal</code>
+        <br><br>
+
+        provides cleaner enterprise namespace separation and avoids public DNS overlap risks.
+
+    </div>
+
+    <h3>4.2 DNS Namespace Standards</h3>
+
+    <table>
+
+        <tr>
+            <th>Namespace</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>corp.novacrestbank.internal</td>
+            <td>Active Directory and identity services</td>
+        </tr>
+
+        <tr>
+            <td>mgmt.novacrestbank.internal</td>
+            <td>Infrastructure management services</td>
+        </tr>
+
+        <tr>
+            <td>nsx.novacrestbank.internal</td>
+            <td>NSX infrastructure components</td>
+        </tr>
+
+        <tr>
+            <td>k8s.novacrestbank.internal</td>
+            <td>Kubernetes platform services</td>
+        </tr>
+
+        <tr>
+            <td>ops.novacrestbank.internal</td>
+            <td>Monitoring and observability services</td>
+        </tr>
+
+        <tr>
+            <td>pki.novacrestbank.internal</td>
+            <td>PKI infrastructure services</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="vcf">
+
+    <h2>5. VMware Cloud Foundation Naming Standards</h2>
+
+    <h3>5.1 ESXi Host Naming</h3>
+
+<pre>
+esx-mum-mgmt-01
+esx-mum-mgmt-02
+esx-mum-prod-01
+esx-mum-prod-02
+
+esx-hyd-dr-01
+esx-hyd-dr-02
+</pre>
+
+    <h3>5.2 vCenter Naming</h3>
+
+<pre>
+vcsa-mum-mgmt01
+vcsa-hyd-dr01
+</pre>
+
+    <h3>5.3 SDDC Manager Naming</h3>
+
+<pre>
+sddc-mgr01
+</pre>
+
+    <h3>5.4 Cluster Naming</h3>
+
+<pre>
+cl-mum-mgmt
+cl-mum-prod-vks
+cl-mum-shared
+
+cl-hyd-dr
+</pre>
+
+    <h3>5.5 Workload Domain Naming</h3>
+
+<table>
+
+    <tr>
+        <th>Workload Domain</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>wld-mgmt</td>
+        <td>Management infrastructure</td>
+    </tr>
+
+    <tr>
+        <td>wld-shared-services</td>
+        <td>Shared enterprise services</td>
+    </tr>
+
+    <tr>
+        <td>wld-prod-vks</td>
+        <td>Production Kubernetes workloads</td>
+    </tr>
+
+    <tr>
+        <td>wld-ai-future</td>
+        <td>Future GPU and AI workloads</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="nsx">
+
+    <h2>6. NSX Naming Standards</h2>
+
+    <h3>6.1 NSX Manager Naming</h3>
+
+<pre>
+nsx-mgr01
+nsx-mgr02
+nsx-mgr03
+</pre>
+
+    <h3>6.2 Tier-0 and Tier-1 Naming</h3>
+
+<pre>
+t0-mum-prod
+t1-mum-mgmt
+t1-mum-prod-vks
+
+t0-hyd-dr
+t1-hyd-dr-vks
+</pre>
+
+    <h3>6.3 NSX Segment Naming</h3>
+
+<pre>
+seg-mgmt-vlan10
+seg-vmotion-vlan20
+seg-vsan-vlan30
+
+seg-vks-prod
+seg-vks-dev
+seg-vks-platform
+</pre>
+
+    <h3>6.4 NSX Security Group Naming</h3>
+
+<pre>
+sg-prod-k8s
+sg-platform-monitoring
+sg-platform-security
+sg-dr-replication
+</pre>
+
+</section>
+
+<section id="k8s">
+
+    <h2>7. Kubernetes Naming Standards</h2>
+
+    <h3>7.1 Supervisor Cluster Naming</h3>
+
+<pre>
+sup-mum-prod
+sup-hyd-dr
+</pre>
+
+    <h3>7.2 VKS Cluster Naming</h3>
+
+<pre>
+vks-prod-payments
+vks-prod-banking-api
+vks-prod-observability
+vks-dev-platform
+</pre>
+
+    <h3>7.3 Namespace Naming Standards</h3>
+
+<pre>
+prod-payments
+prod-banking-api
+prod-fraud-detection
+
+platform-monitoring
+platform-logging
+platform-security
+platform-gitops
+</pre>
+
+    <h3>7.4 Kubernetes Node Naming</h3>
+
+<pre>
+vks-prod-payments-cp01
+vks-prod-payments-wk01
+vks-prod-payments-wk02
+</pre>
+
+    <h3>7.5 Topology Labels</h3>
+
+<pre>
+topology.kubernetes.io/region=ap-south
+topology.kubernetes.io/zone=mum-dc01-zone-a
+topology.kubernetes.io/rack=mum-r01
+</pre>
+
+</section>
+
+<section id="platform">
+
+    <h2>8. Platform Engineering Naming Standards</h2>
+
+    <h3>8.1 Git Repository Naming</h3>
+
+<pre>
+terraform-vcf-platform
+terraform-nsx-networking
+
+gitops-platform-services
+gitops-prod-payments
+
+helm-platform-monitoring
+helm-platform-security
+</pre>
+
+    <h3>8.2 Terraform Module Naming</h3>
+
+<pre>
+modules/vsphere-vm
+modules/nsx-segment
+modules/vks-cluster
+modules/harbor-project
+</pre>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        Terraform module naming should reflect reusable infrastructure building blocks. Modules are reusable templates that standardize infrastructure provisioning across environments.
+
+    </div>
+
+    <h3>8.3 Harbor Registry Naming</h3>
+
+<pre>
+harbor-mum-prod
+harbor-hyd-dr
+</pre>
+
+    <h3>8.4 Argo CD Naming</h3>
+
+<pre>
+argocd-platform
+argocd-prod
+argocd-dr
+</pre>
+
+</section>
+
+<section id="security">
+
+    <h2>9. Security and PKI Naming Standards</h2>
+
+    <h3>9.1 Active Directory Naming</h3>
+
+<pre>
+dc1-mum
+dc2-mum
+
+dc1-hyd
+dc2-hyd
+</pre>
+
+    <h3>9.2 Certificate Authority Naming</h3>
+
+<pre>
+novacrestbank-root-ca
+novacrestbank-issuing-ca01
+</pre>
+
+    <h3>9.3 Vault and Secrets Naming</h3>
+
+<pre>
+vault-prod
+vault-dr
+
+secret-prod-payments-db
+secret-prod-api-tls
+</pre>
+
+    <h3>9.4 CyberArk Naming</h3>
+
+<pre>
+cyberark-pam01
+cyberark-vault01
+</pre>
+
+</section>
+
+<section id="dr">
+
+    <h2>10. Disaster Recovery Naming Standards</h2>
+
+    <h3>10.1 DR Consistency Principle</h3>
+
+    <p>
+        Disaster recovery environments should mirror primary production naming structures wherever possible.
+    </p>
+
+    <p>
+        This improves:
+    </p>
+
+    <ul>
+
+        <li>Operational familiarity</li>
+        <li>Automation consistency</li>
+        <li>Failover predictability</li>
+        <li>Troubleshooting simplicity</li>
+
+    </ul>
+
+    <h3>10.2 DR Naming Examples</h3>
+
+<table>
+
+    <tr>
+        <th>Primary</th>
+        <th>DR Equivalent</th>
+    </tr>
+
+    <tr>
+        <td>vks-prod-payments</td>
+        <td>vks-dr-payments</td>
+    </tr>
+
+    <tr>
+        <td>harbor-mum-prod</td>
+        <td>harbor-hyd-dr</td>
+    </tr>
+
+    <tr>
+        <td>argocd-prod</td>
+        <td>argocd-dr</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>11. What Comes Next</h2>
+
+    <p>
+        The next guide focuses on enterprise networking standards, VLAN planning, IP address management, routing strategy, NSX uplink architecture, and Kubernetes networking requirements.
+    </p>
+
+    <table>
+
+        <tr>
+            <th>Next Guide</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>3.enterprise-ip-vlan-routing-plan.html</td>
+            <td>Enterprise network architecture, VLAN design, IP planning, BGP strategy, NSX uplinks, Kubernetes networking, and DR routing standards.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="1.vcf-tanzu-enterprise-architecture.html">
+        ← Previous Guide
+    </a>
+
+    <a href="3.enterprise-ip-vlan-routing-plan.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

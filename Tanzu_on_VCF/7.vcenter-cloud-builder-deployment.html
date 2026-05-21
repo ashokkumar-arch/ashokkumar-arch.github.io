@@ -1,0 +1,1062 @@
+```html id="w7k2vc"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vCenter and VMware Cloud Builder Deployment</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            vCenter and VMware Cloud Builder Deployment
+        </div>
+
+        <div class="hero-subtitle">
+            Production-Grade Enterprise Deployment of VMware vCenter Server and VMware Cloud Builder for VMware Cloud Foundation Bring-Up
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">vCenter</span>
+            <span class="badge">Cloud Builder</span>
+            <span class="badge">VCF</span>
+            <span class="badge">Enterprise PKI</span>
+            <span class="badge">DNS</span>
+            <span class="badge">NTP</span>
+            <span class="badge">Production Grade</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#why">Why vCenter</a>
+        <a href="#cloudbuilder">What is Cloud Builder</a>
+        <a href="#prereq">Prerequisites</a>
+        <a href="#dns">DNS and Certificates</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#validation">Validation</a>
+        <a href="#security">Security</a>
+        <a href="#handoff">VCF Bring-Up</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide deploys:
+    </p>
+
+    <ul>
+
+        <li>VMware vCenter Server Appliance (VCSA)</li>
+        <li>VMware Cloud Builder</li>
+
+    </ul>
+
+    <p>
+        These components become the core orchestration layer for VMware Cloud Foundation.
+    </p>
+
+    <p>
+        In enterprise environments:
+    </p>
+
+    <ul>
+
+        <li>ESXi provides compute virtualization</li>
+        <li>vCenter provides centralized management</li>
+        <li>Cloud Builder automates VCF deployment</li>
+
+    </ul>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        VMware Cloud Foundation is not manually deployed component by component.
+        <br><br>
+
+        Instead:
+        <br><br>
+
+        Cloud Builder automates:
+        <br><br>
+
+        • vCenter integration<br>
+        • NSX deployment<br>
+        • vSAN cluster creation<br>
+        • SDDC Manager deployment<br>
+        • Workload domain creation
+
+    </div>
+
+</section>
+
+<section id="why">
+
+    <h2>2. Why Enterprises Use vCenter</h2>
+
+    <p>
+        A reader may get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        If ESXi hosts already exist, why is vCenter required?
+
+    </div>
+
+    <h3>2.1 Real-World Enterprise Reasoning</h3>
+
+    <p>
+        Standalone ESXi hosts are difficult to manage at enterprise scale.
+    </p>
+
+    <p>
+        Enterprises require:
+    </p>
+
+    <ul>
+
+        <li>Centralized inventory management</li>
+        <li>Role-based access control (RBAC)</li>
+        <li>Cluster management</li>
+        <li>Distributed networking</li>
+        <li>vMotion</li>
+        <li>DRS</li>
+        <li>HA</li>
+        <li>Certificate management</li>
+        <li>Monitoring and lifecycle management</li>
+
+    </ul>
+
+    <p>
+        vCenter becomes the enterprise control plane for VMware infrastructure.
+    </p>
+
+</section>
+
+<section id="cloudbuilder">
+
+    <h2>3. What is VMware Cloud Builder?</h2>
+
+    <p>
+        A reader may get another question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly is VMware Cloud Builder?
+        <br><br>
+
+        Is it another vCenter?
+
+    </div>
+
+    <h3>3.1 Real Enterprise Explanation</h3>
+
+    <p>
+        No.
+    </p>
+
+    <p>
+        Cloud Builder is a temporary deployment orchestration appliance used to automate VMware Cloud Foundation bring-up.
+    </p>
+
+    <h3>3.2 What Cloud Builder Does</h3>
+
+<table>
+
+    <tr>
+        <th>Function</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>Validates Environment</td>
+        <td>Checks DNS, NTP, networking, credentials</td>
+    </tr>
+
+    <tr>
+        <td>Deploys SDDC Manager</td>
+        <td>Deploys core VCF management appliance</td>
+    </tr>
+
+    <tr>
+        <td>Configures vSAN</td>
+        <td>Creates vSAN cluster automatically</td>
+    </tr>
+
+    <tr>
+        <td>Deploys NSX</td>
+        <td>Automates NSX installation</td>
+    </tr>
+
+    <tr>
+        <td>Creates Workload Domains</td>
+        <td>Prepares private cloud foundation</td>
+    </tr>
+
+</table>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        Cloud Builder is temporary.
+        <br><br>
+
+        After successful VCF bring-up:
+        <br><br>
+
+        • SDDC Manager becomes the permanent management platform<br>
+        • Cloud Builder is no longer required
+
+    </div>
+
+</section>
+
+<section id="prereq">
+
+    <h2>4. Enterprise Deployment Prerequisites</h2>
+
+    <h3>4.1 Infrastructure Prerequisites</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Enterprise DNS</td>
+        <td>Required</td>
+    </tr>
+
+    <tr>
+        <td>NTP</td>
+        <td>Required</td>
+    </tr>
+
+    <tr>
+        <td>Enterprise PKI</td>
+        <td>Required</td>
+    </tr>
+
+    <tr>
+        <td>ESXi Hosts</td>
+        <td>Installed</td>
+    </tr>
+
+    <tr>
+        <td>Management VLAN</td>
+        <td>Operational</td>
+    </tr>
+
+</table>
+
+    <h3>4.2 Planned Management Components</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Hostname</th>
+        <th>IP Address</th>
+    </tr>
+
+    <tr>
+        <td>vCenter</td>
+        <td>vcsa-mum-mgmt-01</td>
+        <td>10.10.20.50</td>
+    </tr>
+
+    <tr>
+        <td>Cloud Builder</td>
+        <td>vcf-builder-01</td>
+        <td>10.10.20.60</td>
+    </tr>
+
+    <tr>
+        <td>SDDC Manager</td>
+        <td>sddc-mgr-01</td>
+        <td>10.10.20.70</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="dns">
+
+    <h2>5. DNS, NTP, and Certificate Planning</h2>
+
+    <h3>5.1 Why DNS Matters</h3>
+
+    <p>
+        A reader may get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why is DNS repeatedly emphasized everywhere in enterprise VMware environments?
+
+    </div>
+
+    <p>
+        Real-world answer:
+    </p>
+
+    <ul>
+
+        <li>VMware components communicate heavily using FQDNs</li>
+        <li>Certificates depend on DNS consistency</li>
+        <li>Kubernetes depends on DNS resolution</li>
+        <li>NSX depends on proper forward and reverse lookups</li>
+
+    </ul>
+
+    <h3>5.2 Forward DNS Entries</h3>
+
+<pre>
+vcsa-mum-mgmt-01.novacrestbank.internal     10.10.20.50
+vcf-builder-01.novacrestbank.internal      10.10.20.60
+sddc-mgr-01.novacrestbank.internal         10.10.20.70
+</pre>
+
+    <h3>5.3 Reverse DNS Validation</h3>
+
+<pre>
+50.20.10.10.in-addr.arpa --> vcsa-mum-mgmt-01.novacrestbank.internal
+60.20.10.10.in-addr.arpa --> vcf-builder-01.novacrestbank.internal
+</pre>
+
+    <h3>5.4 NTP Requirements</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>NTP Server</th>
+    </tr>
+
+    <tr>
+        <td>ESXi Hosts</td>
+        <td>10.10.70.40</td>
+    </tr>
+
+    <tr>
+        <td>vCenter</td>
+        <td>10.10.70.40</td>
+    </tr>
+
+    <tr>
+        <td>Cloud Builder</td>
+        <td>10.10.70.40</td>
+    </tr>
+
+</table>
+
+    <div class="callout danger">
+
+        <strong>Critical:</strong><br><br>
+
+        Time drift causes:
+        <br><br>
+
+        • Certificate failures<br>
+        • SSO token failures<br>
+        • Kubernetes API failures<br>
+        • NSX deployment failures<br>
+        • Authentication instability
+
+    </div>
+
+</section>
+
+<section id="deployment">
+
+    <h2>6. Enterprise vCenter Deployment</h2>
+
+    <h3>6.1 Mount vCenter ISO</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Windows Admin Workstation
+-------------------------------------------------------
+
+Mounted ISO:
+VMware-VCSA-all-8.0.2.iso
+
+Installer Path:
+vcsa-ui-installer\win32\installer.exe
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>6.2 Stage 1 — Deploy Appliance</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+vCenter Server Appliance Deployment
+-------------------------------------------------------
+
+Deployment Target:
+esx-mum-mgmt-01.novacrestbank.internal
+
+Deployment Size:
+Small
+
+Datastore:
+local-esx-mgmt-ds01
+
+Network:
+VLAN-20-MGMT
+
+IP Address:
+10.10.20.50
+
+Hostname:
+vcsa-mum-mgmt-01.novacrestbank.internal
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>6.3 Stage 2 — Configure Appliance</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+vCenter Appliance Configuration
+-------------------------------------------------------
+
+SSO Domain:
+vsphere.local
+
+NTP:
+10.10.70.40
+
+SSH:
+Enabled (temporary)
+
+CEIP:
+Disabled
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>6.4 Why vsphere.local Exists</h3>
+
+    <p>
+        A reader may get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        If Active Directory exists, why does vCenter still create vsphere.local?
+
+    </div>
+
+    <p>
+        Real-world explanation:
+    </p>
+
+    <ul>
+
+        <li>vCenter contains its own identity source called Single Sign-On (SSO)</li>
+        <li>vsphere.local is the internal VMware authentication domain</li>
+        <li>Later, Active Directory integration will be configured</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>7. Enterprise Cloud Builder Deployment</h2>
+
+    <h3>7.1 Deploy Cloud Builder OVA</h3>
+
+    <p>
+        A reader may get another question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Where does the Cloud Builder appliance come from?
+        <br><br>
+
+        Is it installed manually like ESXi?
+
+    </div>
+
+    <p>
+        Real-world answer:
+    </p>
+
+    <ul>
+
+        <li>Cloud Builder is downloaded from Broadcom support portal</li>
+        <li>It is distributed as an OVA appliance</li>
+        <li>The OVA is deployed directly into ESXi or vCenter</li>
+
+    </ul>
+
+    <h3>7.2 Cloud Builder Deployment Example</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Deploy OVF Template
+-------------------------------------------------------
+
+OVA File:
+VMware-Cloud-Builder-5.x.x.ova
+
+Deployment Target:
+vcsa-mum-mgmt-01
+
+Network:
+VLAN-20-MGMT
+
+IP Address:
+10.10.20.60
+
+Hostname:
+vcf-builder-01.novacrestbank.internal
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>8. Cloud Builder Bring-Up Spreadsheet</h2>
+
+    <h3>8.1 Why a Spreadsheet?</h3>
+
+    <p>
+        A reader may get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why does VMware Cloud Foundation use an Excel spreadsheet?
+
+    </div>
+
+    <p>
+        Real-world answer:
+    </p>
+
+    <ul>
+
+        <li>The spreadsheet acts as deployment metadata</li>
+        <li>Cloud Builder consumes this data for automation</li>
+        <li>It reduces manual configuration errors</li>
+
+    </ul>
+
+    <h3>8.2 Spreadsheet Includes</h3>
+
+<table>
+
+    <tr>
+        <th>Category</th>
+        <th>Examples</th>
+    </tr>
+
+    <tr>
+        <td>DNS</td>
+        <td>FQDNs and IPs</td>
+    </tr>
+
+    <tr>
+        <td>Networking</td>
+        <td>VLANs and MTUs</td>
+    </tr>
+
+    <tr>
+        <td>vSAN</td>
+        <td>Disk groups</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>T0/T1 planning</td>
+    </tr>
+
+    <tr>
+        <td>Credentials</td>
+        <td>Passwords and accounts</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="validation">
+
+    <h2>9. Enterprise Validation and Verification</h2>
+
+    <h3>9.1 Verify vCenter Connectivity</h3>
+
+<pre>
+https://vcsa-mum-mgmt-01.novacrestbank.internal
+</pre>
+
+    <h3>9.2 Verify DNS Resolution</h3>
+
+<pre>
+PS C:\> nslookup vcsa-mum-mgmt-01.novacrestbank.internal
+
+Server:  dc1.novacrestbank.internal
+Address: 10.10.70.40
+
+Name:    vcsa-mum-mgmt-01.novacrestbank.internal
+Address: 10.10.20.50
+</pre>
+
+    <h3>9.3 Verify ESXi Hosts in vCenter</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+vSphere Client Inventory
+-------------------------------------------------------
+
+Datacenter:
+  mum-dc01
+
+Cluster:
+  mgmt-cluster-01
+
+Hosts:
+  esx-mum-mgmt-01
+  esx-mum-mgmt-02
+
+Status:
+  Connected
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>9.4 Verify Time Synchronization</h3>
+
+<pre>
+root@vcsa-mum-mgmt-01 [ ~ ]# timedatectl
+
+System clock synchronized: yes
+NTP service: active
+Timezone: Asia/Kolkata
+</pre>
+
+    <h3>9.5 Verify Cloud Builder Connectivity</h3>
+
+<pre>
+curl -k https://vcf-builder-01.novacrestbank.internal
+
+HTTP/1.1 200 OK
+</pre>
+
+</section>
+
+<section id="security">
+
+    <h2>10. Enterprise Security and Operational Planning</h2>
+
+    <h3>10.1 Temporary Security Exceptions</h3>
+
+<table>
+
+    <tr>
+        <th>Setting</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>SSH Enabled</td>
+        <td>Temporary</td>
+    </tr>
+
+    <tr>
+        <td>Default Certificates</td>
+        <td>Temporary</td>
+    </tr>
+
+    <tr>
+        <td>Local Accounts</td>
+        <td>Temporary</td>
+    </tr>
+
+</table>
+
+    <h3>10.2 What Happens Later</h3>
+
+    <ul>
+
+        <li>Enterprise CA certificates replace defaults</li>
+        <li>Active Directory integration is configured</li>
+        <li>RBAC policies are implemented</li>
+        <li>Lockdown policies are enforced</li>
+        <li>Centralized logging is enabled</li>
+
+    </ul>
+
+</section>
+
+<section id="handoff">
+
+    <h2>11. Handoff to VMware Cloud Foundation Bring-Up</h2>
+
+    <h3>11.1 Current Environment Status</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>ESXi Hosts</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>vCenter</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>Cloud Builder</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>DNS</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>NTP</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>VCF Bring-Up Sheet</td>
+        <td>Prepared</td>
+    </tr>
+
+</table>
+
+    <p>
+        The environment is now ready for:
+    </p>
+
+    <ul>
+
+        <li>VMware Cloud Foundation bring-up</li>
+        <li>SDDC Manager deployment</li>
+        <li>vSAN cluster initialization</li>
+        <li>NSX deployment</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>12. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>8.vcf-management-domain-bringup.html</td>
+        <td>Enterprise VMware Cloud Foundation bring-up, SDDC Manager deployment, NSX Manager deployment, vSAN initialization, and management domain creation.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="6.esxi-enterprise-installation.html">
+        ← Previous Guide
+    </a>
+
+    <a href="8.vcf-management-domain-bringup.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

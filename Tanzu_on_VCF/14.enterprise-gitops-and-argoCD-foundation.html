@@ -1,0 +1,1340 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise GitOps and ArgoCD Foundation</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --blue: #38bdf8;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid #1e293b;
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            max-width: 1400px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0b1220;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #0b1220;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--blue);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .callout {
+            border-left: 5px solid #22c55e;
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: #f59e0b;
+        }
+
+        .danger {
+            border-left-color: #ef4444;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            color: white;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise GitOps and ArgoCD Foundation
+        </div>
+
+        <div class="hero-subtitle">
+            Deploying enterprise-grade GitOps architecture using ArgoCD on VMware Kubernetes Service (VKS), implementing declarative Kubernetes delivery, Git-driven infrastructure management, environment promotion workflows, RBAC, secure CI/CD integration, and enterprise application lifecycle governance.
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">GitOps</span>
+            <span class="badge">ArgoCD</span>
+            <span class="badge">VKS</span>
+            <span class="badge">Enterprise CI/CD</span>
+            <span class="badge">Kubernetes Delivery</span>
+            <span class="badge">Declarative Infrastructure</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#gitops">What is GitOps</a>
+        <a href="#argocd">Why ArgoCD</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#repositories">Repository Structure</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guide, we built:
+    </p>
+
+    <ul>
+
+        <li>Enterprise Harbor Registry</li>
+        <li>Enterprise image governance</li>
+        <li>Vulnerability scanning</li>
+        <li>Image signing</li>
+        <li>Air-gapped image lifecycle management</li>
+
+    </ul>
+
+    <p>
+        However, a very important enterprise problem still exists.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Reader Question:</strong><br><br>
+
+        Even if container images exist:
+        <br><br>
+
+        • Who deploys Kubernetes YAML files?<br>
+        • Who updates deployments?<br>
+        • Who tracks configuration drift?<br>
+        • How do enterprises prevent manual kubectl changes?<br>
+        • How are environments promoted from Dev → QA → Production?<br>
+        • How is rollback performed?<br>
+        • How do enterprises audit changes?<br>
+        • What becomes the source of truth?
+
+    </div>
+
+    <h3>1.1 Real Enterprise Understanding</h3>
+
+    <p>
+        Real enterprise Kubernetes environments NEVER rely on engineers manually running kubectl apply against production clusters.
+    </p>
+
+    <p>
+        Instead, enterprise environments use GitOps.
+    </p>
+
+    <p>
+        Git becomes the:
+    </p>
+
+    <ul>
+
+        <li>Single source of truth</li>
+        <li>Deployment control plane</li>
+        <li>Audit system</li>
+        <li>Rollback mechanism</li>
+        <li>Environment promotion engine</li>
+
+    </ul>
+
+</section>
+
+<section id="gitops">
+
+    <h2>2. What is GitOps</h2>
+
+    <h3>2.1 Simple Beginner Understanding</h3>
+
+    <p>
+        GitOps means:
+    </p>
+
+    <div class="diagram">
+
+<pre>
+Git Repository
+        ↓
+
+Desired Kubernetes State
+
+        ↓
+
+ArgoCD Watches Git
+
+        ↓
+
+ArgoCD Applies Changes
+
+        ↓
+
+Cluster State Matches Git
+
+</pre>
+
+    </div>
+
+    <h3>2.2 Very Important Enterprise Principle</h3>
+
+    <div class="callout">
+
+        <strong>Golden Rule:</strong><br><br>
+
+        In GitOps:
+        <br><br>
+
+        Git is the truth.
+        <br><br>
+
+        Kubernetes clusters are NOT the truth.
+
+    </div>
+
+    <h3>2.3 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why is this important?
+        <br><br>
+
+        Why not just use kubectl manually?
+
+    </div>
+
+    <h3>2.4 Real Enterprise Problems with Manual kubectl</h3>
+
+<table>
+
+    <tr>
+        <th>Problem</th>
+        <th>Impact</th>
+    </tr>
+
+    <tr>
+        <td>Manual changes</td>
+        <td>Configuration drift</td>
+    </tr>
+
+    <tr>
+        <td>No audit trail</td>
+        <td>No compliance visibility</td>
+    </tr>
+
+    <tr>
+        <td>Human error</td>
+        <td>Production outages</td>
+    </tr>
+
+    <tr>
+        <td>No rollback control</td>
+        <td>Slow recovery</td>
+    </tr>
+
+    <tr>
+        <td>No approval workflow</td>
+        <td>Security risk</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="argocd">
+
+    <h2>3. Why Enterprises Use ArgoCD</h2>
+
+    <h3>3.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why ArgoCD?
+        <br><br>
+
+        Why not:
+        <br><br>
+
+        • Jenkins deployments<br>
+        • Manual Helm deployments<br>
+        • kubectl apply<br>
+        • FluxCD<br>
+        • GitHub Actions directly
+
+    </div>
+
+    <h3>3.2 Real Enterprise Explanation</h3>
+
+    <p>
+        ArgoCD became extremely popular because it provides:
+    </p>
+
+    <ul>
+
+        <li>Declarative Kubernetes delivery</li>
+        <li>Git-based reconciliation</li>
+        <li>Drift detection</li>
+        <li>Visual deployment dashboard</li>
+        <li>RBAC</li>
+        <li>SSO integration</li>
+        <li>Application rollback</li>
+        <li>Multi-cluster management</li>
+
+    </ul>
+
+    <h3>3.3 Real Enterprise Architecture Alignment</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Git</td>
+        <td>Source of truth</td>
+    </tr>
+
+    <tr>
+        <td>Harbor</td>
+        <td>Container images</td>
+    </tr>
+
+    <tr>
+        <td>ArgoCD</td>
+        <td>Deployment reconciliation</td>
+    </tr>
+
+    <tr>
+        <td>VKS</td>
+        <td>Kubernetes execution platform</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="architecture">
+
+    <h2>4. Enterprise GitOps Architecture</h2>
+
+    <h3>4.1 Production Enterprise Flow</h3>
+
+<div class="diagram">
+
+<pre>
+Developers
+    |
+    |
+Git Push
+    |
+    v
+
++--------------------------------------+
+| Enterprise Git Repository            |
+|--------------------------------------|
+| Kubernetes YAML                      |
+| Helm Charts                          |
+| Kustomize                            |
+| Environment Definitions              |
++--------------------------------------+
+
+                |
+                |
+                v
+
++--------------------------------------+
+| ArgoCD Platform                      |
+|--------------------------------------|
+| Watches Git                          |
+| Detects Drift                        |
+| Applies Desired State                |
++--------------------------------------+
+
+                |
+                |
+                v
+
++--------------------------------------+
+| VKS Production Clusters              |
++--------------------------------------+
+
+</pre>
+
+</div>
+
+    <h3>4.2 Enterprise GitOps Principles</h3>
+
+<ul>
+
+    <li>No manual kubectl apply in production</li>
+    <li>All changes must come from Git</li>
+    <li>All deployments are declarative</li>
+    <li>Rollback must be Git-driven</li>
+    <li>Cluster drift must auto-correct</li>
+
+</ul>
+
+</section>
+
+<section>
+
+    <h2>5. Enterprise Repository Structure</h2>
+
+    <h3>5.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        How should enterprise Git repositories actually look?
+        <br><br>
+
+        Should everything go into one repository?
+
+    </div>
+
+    <h3>5.2 Real Enterprise Recommendation</h3>
+
+    <p>
+        Enterprises usually separate:
+    </p>
+
+    <ul>
+
+        <li>Application source code</li>
+        <li>Kubernetes deployment manifests</li>
+        <li>Infrastructure-as-Code</li>
+        <li>Platform services</li>
+
+    </ul>
+
+    <h3>5.3 Enterprise GitOps Repository Structure</h3>
+
+<pre>
+gitops-platform/
+
+├── clusters/
+│   ├── dev/
+│   ├── qa/
+│   └── production/
+│
+├── applications/
+│   ├── customer-portal/
+│   ├── payments-api/
+│   └── fraud-engine/
+│
+├── platform-services/
+│   ├── ingress-nginx/
+│   ├── cert-manager/
+│   ├── harbor/
+│   ├── argocd/
+│   └── monitoring/
+│
+├── infrastructure/
+│   ├── terraform/
+│   ├── nsx/
+│   └── networking/
+│
+└── policies/
+    ├── kyverno/
+    └── opa/
+</pre>
+
+    <h3>5.4 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why separate these?
+        <br><br>
+
+        Why not keep everything together?
+
+    </div>
+
+    <h3>5.5 Real Enterprise Reason</h3>
+
+<table>
+
+    <tr>
+        <th>Repository Area</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>applications/</td>
+        <td>Application deployment definitions</td>
+    </tr>
+
+    <tr>
+        <td>clusters/</td>
+        <td>Environment-specific configurations</td>
+    </tr>
+
+    <tr>
+        <td>platform-services/</td>
+        <td>Shared Kubernetes platform services</td>
+    </tr>
+
+    <tr>
+        <td>infrastructure/</td>
+        <td>Infrastructure-as-Code</td>
+    </tr>
+
+    <tr>
+        <td>policies/</td>
+        <td>Security and governance</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="deployment">
+
+    <h2>6. Enterprise ArgoCD Deployment</h2>
+
+    <h3>6.1 Dedicated Namespace</h3>
+
+<pre>
+kubectl create namespace argocd-platform
+</pre>
+
+    <h3>6.2 Install ArgoCD</h3>
+
+<pre>
+kubectl apply -n argocd-platform \
+-f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+</pre>
+
+    <h3>6.3 Verify Pods</h3>
+
+<pre>
+kubectl get pods -n argocd-platform
+
+NAME                                      STATUS
+argocd-application-controller-0           Running
+argocd-applicationset-controller          Running
+argocd-dex-server                         Running
+argocd-notifications-controller           Running
+argocd-redis                              Running
+argocd-repo-server                        Running
+argocd-server                             Running
+</pre>
+
+    <h3>6.4 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly are these components?
+
+    </div>
+
+    <h3>6.5 ArgoCD Component Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>argocd-server</td>
+        <td>Web UI and API</td>
+    </tr>
+
+    <tr>
+        <td>repo-server</td>
+        <td>Reads Git repositories</td>
+    </tr>
+
+    <tr>
+        <td>application-controller</td>
+        <td>Reconciles cluster state</td>
+    </tr>
+
+    <tr>
+        <td>dex-server</td>
+        <td>SSO integration</td>
+    </tr>
+
+    <tr>
+        <td>redis</td>
+        <td>Caching and state management</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>7. Enterprise Ingress and TLS</h2>
+
+    <h3>7.1 Why Enterprise TLS Matters</h3>
+
+    <p>
+        ArgoCD becomes a critical enterprise control plane.
+    </p>
+
+    <p>
+        Therefore:
+    </p>
+
+    <ul>
+
+        <li>Enterprise TLS certificates are mandatory</li>
+        <li>SSO integration is mandatory</li>
+        <li>RBAC is mandatory</li>
+
+    </ul>
+
+    <h3>7.2 Enterprise FQDN</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>FQDN</th>
+    </tr>
+
+    <tr>
+        <td>ArgoCD</td>
+        <td>argocd.corp.novacrestbank.internal</td>
+    </tr>
+
+</table>
+
+    <h3>7.3 Example Ingress</h3>
+
+<pre>
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: argocd-server
+
+spec:
+
+  ingressClassName: nsx
+
+  tls:
+  - hosts:
+    - argocd.corp.novacrestbank.internal
+
+    secretName: argocd-tls
+
+  rules:
+  - host: argocd.corp.novacrestbank.internal
+
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+
+        backend:
+          service:
+            name: argocd-server
+
+            port:
+              number: 443
+</pre>
+
+</section>
+
+<section>
+
+    <h2>8. Enterprise Application Deployment Model</h2>
+
+    <h3>8.1 Example Enterprise Deployment Flow</h3>
+
+<div class="diagram">
+
+<pre>
+Developer Pushes Code
+            |
+            |
+CI Pipeline Builds Image
+            |
+            |
+Image Stored in Harbor
+            |
+            |
+Git Repository Updated
+            |
+            |
+ArgoCD Detects Git Change
+            |
+            |
+ArgoCD Deploys to Kubernetes
+            |
+            |
+Production Updated
+
+</pre>
+
+</div>
+
+    <h3>8.2 Real Enterprise Benefit</h3>
+
+<table>
+
+    <tr>
+        <th>Traditional Deployment</th>
+        <th>GitOps Deployment</th>
+    </tr>
+
+    <tr>
+        <td>Manual kubectl</td>
+        <td>Automated reconciliation</td>
+    </tr>
+
+    <tr>
+        <td>No drift detection</td>
+        <td>Continuous drift correction</td>
+    </tr>
+
+    <tr>
+        <td>Human dependency</td>
+        <td>Git-driven automation</td>
+    </tr>
+
+    <tr>
+        <td>Weak auditability</td>
+        <td>Complete Git audit trail</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>9. Enterprise ArgoCD Application Example</h2>
+
+    <h3>9.1 ArgoCD Application Definition</h3>
+
+<pre>
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: customer-portal
+
+spec:
+
+  project: production
+
+  source:
+    repoURL: https://git.corp.novacrestbank.internal/gitops
+
+    targetRevision: main
+
+    path: applications/customer-portal
+
+  destination:
+    server: https://kubernetes.default.svc
+
+    namespace: customer-portal-prod
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+</pre>
+
+    <h3>9.2 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly do:
+        <br><br>
+
+        • prune<br>
+        • selfHeal<br>
+        • targetRevision<br>
+        • path
+
+        actually mean?
+
+    </div>
+
+    <h3>9.3 Directive Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>Directive</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>prune</td>
+        <td>Deletes resources removed from Git</td>
+    </tr>
+
+    <tr>
+        <td>selfHeal</td>
+        <td>Corrects manual cluster drift</td>
+    </tr>
+
+    <tr>
+        <td>targetRevision</td>
+        <td>Git branch or tag</td>
+    </tr>
+
+    <tr>
+        <td>path</td>
+        <td>Manifest directory inside repository</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise RBAC and SSO Integration</h2>
+
+    <h3>10.1 Enterprise Requirement</h3>
+
+    <p>
+        ArgoCD should NEVER use local administrator accounts in production environments.
+    </p>
+
+    <h3>10.2 Real Enterprise Authentication</h3>
+
+<table>
+
+    <tr>
+        <th>Authentication Method</th>
+        <th>Enterprise Usage</th>
+    </tr>
+
+    <tr>
+        <td>LDAP</td>
+        <td>Common</td>
+    </tr>
+
+    <tr>
+        <td>OIDC</td>
+        <td>Very common</td>
+    </tr>
+
+    <tr>
+        <td>Active Directory Federation</td>
+        <td>Enterprise environments</td>
+    </tr>
+
+</table>
+
+    <h3>10.3 Example Enterprise RBAC</h3>
+
+<table>
+
+    <tr>
+        <th>Role</th>
+        <th>Permissions</th>
+    </tr>
+
+    <tr>
+        <td>Platform Admin</td>
+        <td>Full ArgoCD administration</td>
+    </tr>
+
+    <tr>
+        <td>Developers</td>
+        <td>Application sync only</td>
+    </tr>
+
+    <tr>
+        <td>Security Team</td>
+        <td>Read-only audit access</td>
+    </tr>
+
+    <tr>
+        <td>Operations Team</td>
+        <td>Production rollback access</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>11. Environment Promotion Strategy</h2>
+
+    <h3>11.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        How do enterprises safely move applications from:
+        <br><br>
+
+        Development → QA → Production?
+
+    </div>
+
+    <h3>11.2 Real Enterprise Approach</h3>
+
+<div class="diagram">
+
+<pre>
+Development Branch
+        |
+        |
+Pull Request
+        |
+        |
+QA Validation
+        |
+        |
+Security Approval
+        |
+        |
+Production Merge
+        |
+        |
+ArgoCD Deploys to Production
+
+</pre>
+
+</div>
+
+    <h3>11.3 Enterprise Benefits</h3>
+
+<ul>
+
+    <li>Controlled promotion</li>
+    <li>Auditability</li>
+    <li>Rollback capability</li>
+    <li>Approval workflows</li>
+    <li>Separation of duties</li>
+
+</ul>
+
+</section>
+
+<section>
+
+    <h2>12. Enterprise Drift Detection</h2>
+
+    <h3>12.1 Real Enterprise Problem</h3>
+
+    <p>
+        Engineers sometimes manually modify production clusters.
+    </p>
+
+    <p>
+        This creates:
+    </p>
+
+    <ul>
+
+        <li>Configuration drift</li>
+        <li>Compliance violations</li>
+        <li>Unexpected outages</li>
+
+    </ul>
+
+    <h3>12.2 ArgoCD Self-Healing</h3>
+
+<div class="diagram">
+
+<pre>
+Engineer Manually Changes Cluster
+                |
+                |
+ArgoCD Detects Drift
+                |
+                |
+ArgoCD Restores Git State
+                |
+                |
+Cluster Returns to Desired State
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="verification">
+
+    <h2>13. Enterprise Verification and Validation</h2>
+
+    <h3>13.1 Verify ArgoCD Pods</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+        <li>kubectl</li>
+    </ul>
+
+<pre>
+kubectl get pods -n argocd-platform
+
+NAME                                      STATUS
+argocd-server                             Running
+argocd-repo-server                        Running
+argocd-application-controller             Running
+</pre>
+
+    <h3>13.2 Verify ArgoCD UI</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+        <li>Browser</li>
+    </ul>
+
+<pre>
+URL:
+https://argocd.corp.novacrestbank.internal
+
+Status:
+Accessible
+
+TLS:
+Valid Enterprise Certificate
+
+Authentication:
+SSO Integrated
+</pre>
+
+    <h3>13.3 Verify Git Synchronization</h3>
+
+<pre>
+Application:
+customer-portal
+
+Sync Status:
+Synced
+
+Health:
+Healthy
+
+Repository:
+gitops-platform
+
+Target Revision:
+main
+</pre>
+
+    <h3>13.4 Verify Drift Detection</h3>
+
+<pre>
+Drift Simulation:
+Replica count manually changed from 3 → 1
+
+ArgoCD Detection:
+OUT OF SYNC
+
+Auto-Heal:
+Enabled
+
+Final Replica Count:
+3
+</pre>
+
+    <h3>13.5 Verify Rollback</h3>
+
+<pre>
+Rollback Target:
+customer-portal:v2.3
+
+Rollback Status:
+Completed Successfully
+
+Application Health:
+Healthy
+</pre>
+
+</section>
+
+<section>
+
+    <h2>14. Real Enterprise Understanding</h2>
+
+    <h3>14.1 What We Have Built</h3>
+
+    <ul>
+
+        <li>Enterprise GitOps control plane</li>
+        <li>Declarative Kubernetes delivery</li>
+        <li>Git-driven reconciliation</li>
+        <li>Environment promotion workflows</li>
+        <li>Enterprise drift correction</li>
+        <li>Audit-driven application lifecycle management</li>
+
+    </ul>
+
+    <h3>14.2 What Still Does NOT Exist Yet</h3>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Applications can now be deployed declaratively.
+        <br><br>
+
+        But enterprise security policy enforcement still does not exist yet.
+        <br><br>
+
+        We still need:
+        <br><br>
+
+        • OPA / Kyverno<br>
+        • Admission control<br>
+        • Runtime policy enforcement<br>
+        • Pod security standards<br>
+        • Namespace governance<br>
+        • Secrets governance
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>15. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>15.enterprise-policy-governance-and-admission-control.html</td>
+        <td>Implement enterprise Kubernetes governance using Kyverno and Open Policy Agent (OPA), enforce security policies, Pod Security Standards, admission control, image verification, namespace governance, compliance automation, and enterprise runtime policy enforcement.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="13.enterprise-container-registry-and-image-governance.html">
+        ← Previous Guide
+    </a>
+
+    <a href="15.enterprise-policy-governance-and-admission-control.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

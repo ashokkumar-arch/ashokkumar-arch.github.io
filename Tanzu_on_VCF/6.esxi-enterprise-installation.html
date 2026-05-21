@@ -1,0 +1,979 @@
+```html id="n8v2es"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise VMware ESXi Installation</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise VMware ESXi Installation
+        </div>
+
+        <div class="hero-subtitle">
+            Production-Grade VMware ESXi Deployment for VMware Cloud Foundation, NSX, and Tanzu Enterprise Platform Infrastructure
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">VMware ESXi 8</span>
+            <span class="badge">VCF Ready</span>
+            <span class="badge">NSX Ready</span>
+            <span class="badge">vSAN Ready</span>
+            <span class="badge">Enterprise Deployment</span>
+            <span class="badge">Production Grade</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#why">Why ESXi</a>
+        <a href="#prereq">Prerequisites</a>
+        <a href="#downloads">Downloads</a>
+        <a href="#iso">ISO Preparation</a>
+        <a href="#installation">Installation</a>
+        <a href="#networking">Networking</a>
+        <a href="#validation">Validation</a>
+        <a href="#security">Security</a>
+        <a href="#handoff">VCF Handoff</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide installs VMware ESXi on the enterprise physical infrastructure prepared in the previous guide.
+    </p>
+
+    <p>
+        These ESXi hosts become the foundational compute layer for:
+    </p>
+
+    <ul>
+
+        <li>VMware Cloud Foundation (VCF)</li>
+        <li>VMware NSX</li>
+        <li>vSAN</li>
+        <li>Tanzu Kubernetes Grid Service (VKS)</li>
+        <li>Enterprise Kubernetes platforms</li>
+        <li>AI-ready future workloads</li>
+
+    </ul>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        Many people think VMware starts at vCenter.
+        <br><br>
+
+        No.
+        <br><br>
+
+        Everything starts from ESXi.
+        <br><br>
+
+        If ESXi installation, networking, DNS, storage, or time synchronization are incorrect, the entire VMware Cloud Foundation deployment becomes unstable.
+
+    </div>
+
+</section>
+
+<section id="why">
+
+    <h2>2. Why Enterprises Use ESXi</h2>
+
+    <p>
+        A reader may get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        If Kubernetes exists, then why do enterprises still use ESXi and VMware infrastructure?
+        <br><br>
+
+        Why not directly deploy Kubernetes on bare metal?
+
+    </div>
+
+    <h3>2.1 Real Enterprise Reasoning</h3>
+
+    <p>
+        In real-world enterprise environments:
+    </p>
+
+    <ul>
+
+        <li>Enterprises already run thousands of virtual machines</li>
+        <li>Security and governance policies already exist around VMware</li>
+        <li>Backup and DR tooling already integrates with VMware</li>
+        <li>Infrastructure teams already know VMware operations</li>
+        <li>VMware provides enterprise-grade HA, DRS, and lifecycle management</li>
+
+    </ul>
+
+    <p>
+        Tanzu extends Kubernetes into this already-existing enterprise operational model instead of replacing everything completely.
+    </p>
+
+    <h3>2.2 Why This Matters for Tanzu</h3>
+
+    <p>
+        VMware Tanzu is designed specifically for enterprises that already run VMware infrastructure.
+    </p>
+
+    <p>
+        Tanzu allows:
+    </p>
+
+    <ul>
+
+        <li>VMware administrators to operate Kubernetes infrastructure</li>
+        <li>Platform teams to provide Kubernetes as a service</li>
+        <li>Developers to consume Kubernetes without managing infrastructure</li>
+        <li>Enterprises to modernize gradually instead of replacing everything</li>
+
+    </ul>
+
+</section>
+
+<section id="prereq">
+
+    <h2>3. Enterprise ESXi Deployment Prerequisites</h2>
+
+    <h3>3.1 Required Accounts and Access</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Broadcom Support Account</td>
+        <td>Download VMware software</td>
+    </tr>
+
+    <tr>
+        <td>VMware Licensing</td>
+        <td>Production licensing</td>
+    </tr>
+
+    <tr>
+        <td>VCF Subscription</td>
+        <td>Cloud Foundation entitlement</td>
+    </tr>
+
+    <tr>
+        <td>Hardware Vendor Support</td>
+        <td>Firmware compatibility validation</td>
+    </tr>
+
+</table>
+
+    <h3>3.2 Required Downloads</h3>
+
+<table>
+
+    <tr>
+        <th>Software</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>VMware ESXi 8 ISO</td>
+        <td>Hypervisor installation</td>
+    </tr>
+
+    <tr>
+        <td>HPE Custom ESXi Image</td>
+        <td>Hardware drivers</td>
+    </tr>
+
+    <tr>
+        <td>VMware Compatibility Guide</td>
+        <td>Hardware validation</td>
+    </tr>
+
+</table>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        A reader may get a question:
+        <br><br>
+
+        Why use HPE custom ESXi image instead of standard VMware ISO?
+        <br><br>
+
+        Real-world answer:
+        <br><br>
+
+        Enterprise servers require vendor-specific drivers and firmware integrations.
+        <br><br>
+
+        Using the vendor-customized image reduces:
+        <br><br>
+
+        • Driver mismatch issues<br>
+        • NIC compatibility problems<br>
+        • Storage controller failures<br>
+        • vSAN instability
+
+    </div>
+
+</section>
+
+<section id="downloads">
+
+    <h2>4. Downloading Enterprise VMware Images</h2>
+
+    <h3>4.1 VMware ESXi Download Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Broadcom Support Portal
+        |
+        |
+Download VMware ESXi ISO
+        |
+        |
+Download Vendor Custom Image
+        |
+        |
+Validate Checksums
+        |
+        |
+Create Bootable Media
+</pre>
+
+</div>
+
+    <h3>4.2 Enterprise Validation</h3>
+
+    <p>
+        Before using any installation ISO:
+    </p>
+
+    <ul>
+
+        <li>Validate SHA256 checksum</li>
+        <li>Validate version compatibility with VCF</li>
+        <li>Validate firmware support matrix</li>
+        <li>Validate NIC driver support</li>
+
+    </ul>
+
+</section>
+
+<section id="iso">
+
+    <h2>5. Creating ESXi Installation Media</h2>
+
+    <h3>5.1 Creating Bootable USB</h3>
+
+    <p>
+        Enterprise administrators commonly use:
+    </p>
+
+    <ul>
+
+        <li>Rufus</li>
+        <li>Balena Etcher</li>
+        <li>iLO Virtual Media</li>
+        <li>PXE boot infrastructure</li>
+
+    </ul>
+
+    <h3>5.2 Why Enterprises Prefer iLO Virtual Media</h3>
+
+    <p>
+        Real-world enterprise environments rarely walk physically into data centers for installations.
+    </p>
+
+    <p>
+        HPE iLO allows:
+    </p>
+
+    <ul>
+
+        <li>Remote ISO mounting</li>
+        <li>Remote console access</li>
+        <li>Power operations</li>
+        <li>BIOS management</li>
+
+    </ul>
+
+</section>
+
+<section id="installation">
+
+    <h2>6. VMware ESXi Installation</h2>
+
+    <h3>6.1 Booting the Server</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+HPE iLO Remote Console
+-------------------------------------------------------
+
+Boot Menu:
+
+  1. Virtual CD/DVD
+  2. Embedded SSD
+  3. PXE Boot
+
+Selected:
+  Virtual CD/DVD
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>6.2 VMware ESXi Installer</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+VMware ESXi 8 Installer
+-------------------------------------------------------
+
+Loading VMware ESXi installer...
+
+Detected Devices:
+  - Dual M.2 RAID1 Boot Volume
+  - Mellanox ConnectX NIC
+  - NVMe Storage Devices
+
+Press ENTER to continue installation.
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>6.3 Select Installation Target</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Select Installation Disk
+-------------------------------------------------------
+
+Available Devices:
+
+[ ] Local NVMe Datastore
+[ ] vSAN Capacity Device
+[X] Dual M.2 RAID1 Boot Device
+
+Selected:
+Dual M.2 RAID1 Boot Device
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Never install ESXi directly onto vSAN capacity disks.
+        <br><br>
+
+        ESXi boot devices should always be separate from vSAN storage devices in production environments.
+
+    </div>
+
+    <h3>6.4 Configure Root Password</h3>
+
+<pre>
+Root Password Requirements:
+
+Minimum Length: 14 Characters
+Uppercase Required
+Lowercase Required
+Numbers Required
+Special Characters Required
+</pre>
+
+    <h3>6.5 Installation Complete</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Installation Complete
+-------------------------------------------------------
+
+ESXi Successfully Installed.
+
+Remove installation media and reboot server.
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+</section>
+
+<section id="networking">
+
+    <h2>7. Enterprise ESXi Networking Configuration</h2>
+
+    <h3>7.1 Configure Management Network</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Configure Management Network
+-------------------------------------------------------
+
+Network Adapters:
+  vmnic0
+  vmnic1
+
+VLAN ID:
+  20
+
+IPv4 Configuration:
+  Static
+
+IP Address:
+  10.10.20.21
+
+Subnet Mask:
+  255.255.255.0
+
+Gateway:
+  10.10.20.1
+
+DNS:
+  10.10.70.40
+
+Hostname:
+  esx-mum-prod-01.novacrestbank.internal
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>7.2 Why Static IPs?</h3>
+
+    <p>
+        A reader may get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why not use DHCP for ESXi management interfaces?
+
+    </div>
+
+    <p>
+        Real-world answer:
+    </p>
+
+    <ul>
+
+        <li>Infrastructure components require predictable addressing</li>
+        <li>VCF automation depends on stable management IPs</li>
+        <li>DNS registration consistency is required</li>
+        <li>Certificates depend on stable FQDN mappings</li>
+
+    </ul>
+
+    <h3>7.3 Test Management Network</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Test Management Network
+-------------------------------------------------------
+
+Testing Management Network...
+
+PING GATEWAY: SUCCESS
+PING DNS: SUCCESS
+DNS LOOKUP: SUCCESS
+
+Result:
+Management Network Configuration Successful
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+</section>
+
+<section id="validation">
+
+    <h2>8. Enterprise ESXi Validation</h2>
+
+    <h3>8.1 Verify ESXi Version</h3>
+
+<pre>
+[root@esx-mum-prod-01:~] vmware -vl
+
+VMware ESXi 8.0.2 build-22380479
+VMware ESXi 8.0 Update 2
+</pre>
+
+    <h3>8.2 Verify Network Interfaces</h3>
+
+<pre>
+[root@esx-mum-prod-01:~] esxcli network nic list
+
+Name    PCI Device    Driver      Link  Speed  Duplex
+------  ------------  ----------  ----  -----  ------
+vmnic0  0000:01:00.0 nmlx5_core  Up    10000  Full
+vmnic1  0000:01:00.1 nmlx5_core  Up    10000  Full
+</pre>
+
+    <h3>8.3 Verify Storage Devices</h3>
+
+<pre>
+[root@esx-mum-prod-01:~] esxcli storage core device list
+
+naa.5000c500abcd1234
+   Display Name: Local NVMe Disk
+   Size: 745000 MB
+
+naa.6000c29abcd12345
+   Display Name: vSAN Capacity Disk
+   Size: 3840000 MB
+</pre>
+
+    <h3>8.4 Verify DNS Resolution</h3>
+
+<pre>
+[root@esx-mum-prod-01:~] nslookup vcf-mgr-01.novacrestbank.internal
+
+Server:  10.10.70.40
+Address: 10.10.70.40#53
+
+Name: vcf-mgr-01.novacrestbank.internal
+Address: 10.10.70.50
+</pre>
+
+    <h3>8.5 Verify NTP Synchronization</h3>
+
+<pre>
+[root@esx-mum-prod-01:~] esxcli system ntp get
+
+NTP Enabled: true
+NTP Servers: 10.10.70.40
+</pre>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        Time synchronization problems are one of the most common causes of:
+        <br><br>
+
+        • Certificate failures<br>
+        • Kubernetes authentication failures<br>
+        • NSX deployment issues<br>
+        • vCenter instability
+
+    </div>
+
+</section>
+
+<section id="security">
+
+    <h2>9. Enterprise ESXi Security Hardening</h2>
+
+    <h3>9.1 Initial Security Tasks</h3>
+
+<table>
+
+    <tr>
+        <th>Task</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Secure Root Password</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>Enable Lockdown Mode</td>
+        <td>Planned</td>
+    </tr>
+
+    <tr>
+        <td>Enable NTP</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>DNS Validation</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>SSH Access Restriction</td>
+        <td>Planned</td>
+    </tr>
+
+</table>
+
+    <h3>9.2 Why SSH Should Not Remain Permanently Enabled</h3>
+
+    <p>
+        Enterprise production environments minimize direct administrative access.
+    </p>
+
+    <p>
+        Instead:
+    </p>
+
+    <ul>
+
+        <li>vCenter becomes the primary management layer</li>
+        <li>Centralized authentication is used</li>
+        <li>Audit logging is enforced</li>
+        <li>RBAC policies are applied</li>
+
+    </ul>
+
+</section>
+
+<section id="handoff">
+
+    <h2>10. Handoff to VMware Cloud Foundation</h2>
+
+    <h3>10.1 Current Environment Status</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Physical Fabric</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>Enterprise Hardware</td>
+        <td>Installed</td>
+    </tr>
+
+    <tr>
+        <td>ESXi Hosts</td>
+        <td>Installed</td>
+    </tr>
+
+    <tr>
+        <td>DNS and NTP</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>VCF Prerequisites</td>
+        <td>Ready</td>
+    </tr>
+
+</table>
+
+    <p>
+        The environment is now ready for:
+    </p>
+
+    <ul>
+
+        <li>vCenter deployment</li>
+        <li>VMware Cloud Builder deployment</li>
+        <li>VMware Cloud Foundation initialization</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>11. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>7.vcenter-cloud-builder-deployment.html</td>
+        <td>Enterprise vCenter deployment, VMware Cloud Builder deployment, certificate planning, DNS integration, and preparation for VMware Cloud Foundation bring-up.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="5.enterprise-server-preparation-esxi-planning.html">
+        ← Previous Guide
+    </a>
+
+    <a href="7.vcenter-cloud-builder-deployment.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

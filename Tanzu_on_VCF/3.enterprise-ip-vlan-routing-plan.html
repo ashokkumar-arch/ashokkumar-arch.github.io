@@ -1,0 +1,919 @@
+```html id="n7k2pz"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaCrestBank Enterprise IP, VLAN, and Routing Plan</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            NovaCrestBank Enterprise IP, VLAN, and Routing Plan
+        </div>
+
+        <div class="hero-subtitle">
+            Production-Grade Network Design for VMware Cloud Foundation, NSX, Tanzu Kubernetes Service, Platform Engineering, Disaster Recovery, and Future Hybrid Cloud Expansion
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">Cisco Spine-Leaf</span>
+            <span class="badge">BGP</span>
+            <span class="badge">NSX</span>
+            <span class="badge">VCF</span>
+            <span class="badge">VKS</span>
+            <span class="badge">DR Ready</span>
+            <span class="badge">Zero Trust</span>
+            <span class="badge">Hybrid Cloud Ready</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#principles">Design Principles</a>
+        <a href="#fabric">Fabric Design</a>
+        <a href="#vlans">VLAN Plan</a>
+        <a href="#ipplan">IP Plan</a>
+        <a href="#bgp">BGP Routing</a>
+        <a href="#nsx">NSX Networking</a>
+        <a href="#k8s">Kubernetes Networking</a>
+        <a href="#dr">Disaster Recovery</a>
+        <a href="#future">Hybrid Cloud</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide defines the enterprise networking standards for the NovaCrestBank private cloud modernization platform built on VMware Cloud Foundation, NSX, and Tanzu Kubernetes Service.
+    </p>
+
+    <p>
+        The purpose of this guide is to establish a production-grade networking architecture that supports:
+    </p>
+
+    <ul>
+
+        <li>VMware Cloud Foundation infrastructure</li>
+        <li>NSX overlay networking</li>
+        <li>Enterprise Kubernetes networking</li>
+        <li>Disaster recovery failover</li>
+        <li>Zero-trust segmentation</li>
+        <li>Platform engineering automation</li>
+        <li>Future hybrid-cloud integration</li>
+        <li>Future AI-ready infrastructure expansion</li>
+
+    </ul>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        This guide assumes that the physical data center infrastructure already exists physically, including:
+        <br><br>
+
+        • Racks<br>
+        • Cabling<br>
+        • Power redundancy<br>
+        • Spine-leaf switching fabric hardware<br>
+        • Enterprise WAN connectivity between primary and DR sites
+
+    </div>
+
+</section>
+
+<section id="principles">
+
+    <h2>2. Enterprise Network Design Principles</h2>
+
+    <table>
+
+        <tr>
+            <th>Design Principle</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>High Availability</td>
+            <td>Eliminate single points of failure across networking layers.</td>
+        </tr>
+
+        <tr>
+            <td>Scalability</td>
+            <td>Support future Kubernetes and AI workload growth.</td>
+        </tr>
+
+        <tr>
+            <td>Segmentation</td>
+            <td>Separate management, storage, Kubernetes, and application traffic.</td>
+        </tr>
+
+        <tr>
+            <td>Automation Ready</td>
+            <td>Enable Infrastructure-as-Code and GitOps operations.</td>
+        </tr>
+
+        <tr>
+            <td>DR Consistency</td>
+            <td>Maintain consistent networking across primary and DR sites.</td>
+        </tr>
+
+        <tr>
+            <td>Hybrid Cloud Ready</td>
+            <td>Prepare for future AKS connectivity and workload federation.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="fabric">
+
+    <h2>3. Cisco Spine-Leaf Fabric Architecture</h2>
+
+    <h3>3.1 Fabric Design Overview</h3>
+
+    <p>
+        NovaCrestBank uses a modern spine-leaf architecture to provide predictable east-west bandwidth, scalable routing, and low-latency connectivity for virtualization and Kubernetes workloads.
+    </p>
+
+    <div class="diagram">
+
+<pre>
+                        +------------------+
+                        |   Spine-01       |
+                        +--------+---------+
+                                 |
+                        +--------+---------+
+                        |   Spine-02       |
+                        +--------+---------+
+                                 |
+         -----------------------------------------------------
+          |                |                |                |
+   +------+-----+   +------+-----+   +------+-----+   +------+-----+
+   |   Leaf-01  |   |   Leaf-02  |   |   Leaf-03  |   |   Leaf-04  |
+   +------+-----+   +------+-----+   +------+-----+   +------+-----+
+          |                |                |                |
+       ESXi Hosts       ESXi Hosts       NSX Edge        Storage
+
+</pre>
+
+    </div>
+
+    <h3>3.2 Enterprise Fabric Goals</h3>
+
+    <ul>
+
+        <li>Layer-3 underlay routing</li>
+        <li>BGP-based route exchange</li>
+        <li>NSX overlay transport support</li>
+        <li>vMotion optimization</li>
+        <li>vSAN low-latency transport</li>
+        <li>Multi-rack Kubernetes scalability</li>
+
+    </ul>
+
+</section>
+
+<section id="vlans">
+
+    <h2>4. Enterprise VLAN Design</h2>
+
+    <h3>4.1 VLAN Planning Strategy</h3>
+
+    <p>
+        VLANs are separated by infrastructure function to improve isolation, security, and operational clarity.
+    </p>
+
+    <table>
+
+        <tr>
+            <th>VLAN ID</th>
+            <th>Purpose</th>
+            <th>Subnet</th>
+        </tr>
+
+        <tr>
+            <td>10</td>
+            <td>OOB Management</td>
+            <td>10.10.10.0/24</td>
+        </tr>
+
+        <tr>
+            <td>20</td>
+            <td>ESXi Management</td>
+            <td>10.10.20.0/24</td>
+        </tr>
+
+        <tr>
+            <td>30</td>
+            <td>vMotion</td>
+            <td>10.10.30.0/24</td>
+        </tr>
+
+        <tr>
+            <td>40</td>
+            <td>vSAN</td>
+            <td>10.10.40.0/24</td>
+        </tr>
+
+        <tr>
+            <td>50</td>
+            <td>NSX Host TEP</td>
+            <td>10.10.50.0/24</td>
+        </tr>
+
+        <tr>
+            <td>60</td>
+            <td>NSX Edge TEP</td>
+            <td>10.10.60.0/24</td>
+        </tr>
+
+        <tr>
+            <td>70</td>
+            <td>VCF Management</td>
+            <td>10.10.70.0/24</td>
+        </tr>
+
+        <tr>
+            <td>80</td>
+            <td>Kubernetes Supervisor</td>
+            <td>10.10.80.0/24</td>
+        </tr>
+
+        <tr>
+            <td>90</td>
+            <td>Kubernetes Workload VIP</td>
+            <td>10.10.90.0/24</td>
+        </tr>
+
+        <tr>
+            <td>100</td>
+            <td>Storage Services</td>
+            <td>10.10.100.0/24</td>
+        </tr>
+
+        <tr>
+            <td>110</td>
+            <td>Monitoring and Logging</td>
+            <td>10.10.110.0/24</td>
+        </tr>
+
+        <tr>
+            <td>120</td>
+            <td>Backup and Replication</td>
+            <td>10.10.120.0/24</td>
+        </tr>
+
+    </table>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        NSX overlay segments will carry most Kubernetes application traffic.
+        <br><br>
+
+        VLANs are primarily used for:
+        <br><br>
+
+        • Infrastructure transport<br>
+        • Management traffic<br>
+        • Underlay routing<br>
+        • NSX transport connectivity
+
+    </div>
+
+</section>
+
+<section id="ipplan">
+
+    <h2>5. Enterprise IP Addressing Plan</h2>
+
+    <h3>5.1 Site-Level Address Allocation</h3>
+
+    <table>
+
+        <tr>
+            <th>Site</th>
+            <th>Address Space</th>
+        </tr>
+
+        <tr>
+            <td>mum-dc01</td>
+            <td>10.10.0.0/16</td>
+        </tr>
+
+        <tr>
+            <td>hyd-dc02</td>
+            <td>10.20.0.0/16</td>
+        </tr>
+
+    </table>
+
+    <h3>5.2 Infrastructure IP Allocation</h3>
+
+<pre>
+10.10.20.11   esx-mum-mgmt-01
+10.10.20.12   esx-mum-mgmt-02
+10.10.20.13   esx-mum-prod-01
+
+10.10.70.10   vcsa-mum-mgmt01
+10.10.70.20   sddc-mgr01
+
+10.10.70.30   nsx-mgr01
+10.10.70.31   nsx-mgr02
+10.10.70.32   nsx-mgr03
+</pre>
+
+    <h3>5.3 DNS and Identity Services</h3>
+
+<pre>
+10.10.70.40   dc1-mum
+10.10.70.41   dc2-mum
+
+10.20.70.40   dc1-hyd
+10.20.70.41   dc2-hyd
+</pre>
+
+</section>
+
+<section id="bgp">
+
+    <h2>6. BGP Routing Architecture</h2>
+
+    <h3>6.1 Why BGP?</h3>
+
+    <p>
+        BGP provides scalable dynamic routing between the physical underlay fabric and NSX overlay environment.
+    </p>
+
+    <p>
+        Modern enterprise data centers use BGP extensively because it:
+    </p>
+
+    <ul>
+
+        <li>Supports scalable route distribution</li>
+        <li>Improves convergence</li>
+        <li>Enables ECMP routing</li>
+        <li>Integrates cleanly with NSX</li>
+        <li>Supports future hybrid-cloud connectivity</li>
+
+    </ul>
+
+    <h3>6.2 Enterprise BGP Topology</h3>
+
+    <div class="diagram">
+
+<pre>
++--------------------------------------------------+
+|                Physical Fabric                   |
++--------------------------------------------------+
+
+Leaf-01 ASN: 65101
+Leaf-02 ASN: 65102
+Leaf-03 ASN: 65103
+
+                ||
+                || BGP Peering
+                ||
+
++--------------------------------------------------+
+|                NSX Tier-0 Gateway                |
+|                  ASN: 65200                      |
++--------------------------------------------------+
+
+</pre>
+
+    </div>
+
+    <h3>6.3 Example BGP Peer Design</h3>
+
+<table>
+
+    <tr>
+        <th>Peer</th>
+        <th>ASN</th>
+    </tr>
+
+    <tr>
+        <td>Leaf-01</td>
+        <td>65101</td>
+    </tr>
+
+    <tr>
+        <td>Leaf-02</td>
+        <td>65102</td>
+    </tr>
+
+    <tr>
+        <td>NSX Tier-0</td>
+        <td>65200</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="nsx">
+
+    <h2>7. NSX Overlay Networking</h2>
+
+    <h3>7.1 NSX Transport Design</h3>
+
+    <table>
+
+        <tr>
+            <th>Transport Component</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>Host TEP</td>
+            <td>ESXi overlay encapsulation endpoints</td>
+        </tr>
+
+        <tr>
+            <td>Edge TEP</td>
+            <td>NSX Edge overlay routing</td>
+        </tr>
+
+        <tr>
+            <td>Overlay Segments</td>
+            <td>Kubernetes and VM workload networking</td>
+        </tr>
+
+    </table>
+
+    <h3>7.2 NSX Overlay Segment Examples</h3>
+
+<pre>
+seg-vks-prod
+seg-vks-dev
+seg-vks-platform
+seg-monitoring
+seg-logging
+seg-gitops
+</pre>
+
+    <h3>7.3 NSX Tier-0 and Tier-1 Architecture</h3>
+
+<pre>
+t0-mum-prod
+
+t1-mum-mgmt
+t1-mum-prod-vks
+t1-mum-platform
+</pre>
+
+</section>
+
+<section id="k8s">
+
+    <h2>8. Kubernetes Networking Architecture</h2>
+
+    <h3>8.1 Kubernetes Networking Goals</h3>
+
+    <ul>
+
+        <li>Pod-to-pod connectivity</li>
+        <li>Service discovery</li>
+        <li>Ingress traffic management</li>
+        <li>Network policy enforcement</li>
+        <li>DR portability</li>
+        <li>Future hybrid-cloud integration</li>
+
+    </ul>
+
+    <h3>8.2 Supervisor and Workload Cluster Networking</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Subnet</th>
+    </tr>
+
+    <tr>
+        <td>Supervisor Control Plane</td>
+        <td>10.10.80.0/24</td>
+    </tr>
+
+    <tr>
+        <td>Kubernetes Load Balancer VIPs</td>
+        <td>10.10.90.0/24</td>
+    </tr>
+
+    <tr>
+        <td>Pod Networking</td>
+        <td>172.16.0.0/16</td>
+    </tr>
+
+    <tr>
+        <td>Service Networking</td>
+        <td>172.17.0.0/16</td>
+    </tr>
+
+</table>
+
+    <h3>8.3 Kubernetes Topology Awareness</h3>
+
+<pre>
+topology.kubernetes.io/region=ap-south
+
+topology.kubernetes.io/zone=mum-dc01-zone-a
+
+topology.kubernetes.io/rack=mum-r01
+</pre>
+
+    <p>
+        These labels allow Kubernetes schedulers to make topology-aware placement decisions to improve resiliency and reduce failure-domain impact.
+    </p>
+
+</section>
+
+<section id="dr">
+
+    <h2>9. Disaster Recovery Networking</h2>
+
+    <h3>9.1 DR Network Design Goals</h3>
+
+    <ul>
+
+        <li>Consistent subnet allocation</li>
+        <li>Replication-friendly routing</li>
+        <li>Predictable failover</li>
+        <li>GitOps portability</li>
+        <li>Minimal application changes during DR failover</li>
+
+    </ul>
+
+    <h3>9.2 DR Network Allocation</h3>
+
+<table>
+
+    <tr>
+        <th>Primary Site</th>
+        <th>DR Site</th>
+    </tr>
+
+    <tr>
+        <td>10.10.0.0/16</td>
+        <td>10.20.0.0/16</td>
+    </tr>
+
+    <tr>
+        <td>10.10.80.0/24</td>
+        <td>10.20.80.0/24</td>
+    </tr>
+
+    <tr>
+        <td>10.10.90.0/24</td>
+        <td>10.20.90.0/24</td>
+    </tr>
+
+</table>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        DR networking should mirror production networking as closely as possible to simplify:
+        <br><br>
+
+        • Automation<br>
+        • Recovery procedures<br>
+        • Kubernetes redeployments<br>
+        • GitOps synchronization<br>
+        • Monitoring integrations
+
+    </div>
+
+</section>
+
+<section id="future">
+
+    <h2>10. Future Hybrid Cloud Networking</h2>
+
+    <h3>10.1 Future AKS Integration</h3>
+
+    <p>
+        The enterprise networking architecture is intentionally designed to support future AKS integration for customer-facing workloads.
+    </p>
+
+    <h3>10.2 Hybrid Cloud Networking Goals</h3>
+
+    <ul>
+
+        <li>Private connectivity between on-premises and AKS</li>
+        <li>Secure DNS resolution</li>
+        <li>Private image-registry integration</li>
+        <li>GitOps portability</li>
+        <li>Consistent RBAC and certificate governance</li>
+
+    </ul>
+
+    <h3>10.3 Enterprise Hybrid Connectivity</h3>
+
+    <div class="diagram">
+
+<pre>
++------------------------------------------------------+
+|                  mum-dc01                            |
+|          VCF + NSX + VKS Platform                    |
++------------------------------------------------------+
+                     ||
+                     || ExpressRoute / VPN
+                     ||
++------------------------------------------------------+
+|                      Azure                           |
+|                     AKS                              |
++------------------------------------------------------+
+</pre>
+
+    </div>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        This hybrid-cloud design intentionally prioritizes:
+        <br><br>
+
+        • Private connectivity<br>
+        • Air-gapped security principles<br>
+        • Zero-trust segmentation<br>
+        • Controlled workload portability
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>11. What Comes Next</h2>
+
+    <p>
+        The next guide focuses on Cisco spine-leaf underlay deployment, switch initialization, VLAN creation, BGP configuration, MLAG/vPC configuration, and preparing the physical fabric for VMware Cloud Foundation and NSX deployment.
+    </p>
+
+    <table>
+
+        <tr>
+            <th>Next Guide</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>4.cisco-spine-leaf-underlay-deployment.html</td>
+            <td>Enterprise Cisco Nexus spine-leaf deployment, VLAN provisioning, BGP underlay routing, vPC configuration, and NSX-ready fabric preparation.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="2.enterprise-naming-standards.html">
+        ← Previous Guide
+    </a>
+
+    <a href="4.cisco-spine-leaf-underlay-deployment.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

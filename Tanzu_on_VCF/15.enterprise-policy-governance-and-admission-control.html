@@ -1,0 +1,1294 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Policy Governance and Admission Control</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --blue: #38bdf8;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid #1e293b;
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            max-width: 1450px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0b1220;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid #1f2937;
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--blue);
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .callout {
+            border-left: 5px solid #22c55e;
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: #f59e0b;
+        }
+
+        .danger {
+            border-left-color: #ef4444;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            color: white;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise Policy Governance and Admission Control
+        </div>
+
+        <div class="hero-subtitle">
+            Implementing enterprise-grade Kubernetes governance using Kyverno and Open Policy Agent (OPA), enforcing Pod Security Standards, admission control, image verification, namespace governance, compliance automation, and runtime policy enforcement for VMware Kubernetes Service (VKS) environments running on VMware Cloud Foundation (VCF) with NSX.
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">Kyverno</span>
+            <span class="badge">OPA</span>
+            <span class="badge">Admission Control</span>
+            <span class="badge">Enterprise Governance</span>
+            <span class="badge">Pod Security</span>
+            <span class="badge">Compliance</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#problem">Enterprise Problem</a>
+        <a href="#admission">Admission Control</a>
+        <a href="#kyverno">Kyverno</a>
+        <a href="#opa">OPA</a>
+        <a href="#policies">Policies</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guide, we implemented:
+    </p>
+
+    <ul>
+
+        <li>Enterprise GitOps</li>
+        <li>ArgoCD</li>
+        <li>Declarative Kubernetes delivery</li>
+        <li>Environment promotion workflows</li>
+        <li>Drift correction</li>
+
+    </ul>
+
+    <p>
+        However, another major enterprise problem still exists.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Reader Question:</strong><br><br>
+
+        What prevents developers or administrators from deploying:
+        <br><br>
+
+        • Privileged containers?<br>
+        • Insecure images?<br>
+        • Containers running as root?<br>
+        • Public Docker Hub images?<br>
+        • Containers without CPU/memory limits?<br>
+        • HostPath mounts?<br>
+        • Dangerous Linux capabilities?<br>
+        • Unapproved namespaces?<br>
+        • Non-compliant deployments?
+
+    </div>
+
+    <h3>1.1 Real Enterprise Understanding</h3>
+
+    <p>
+        Kubernetes itself allows many dangerous configurations unless governance policies are enforced.
+    </p>
+
+    <p>
+        Real enterprise Kubernetes environments MUST implement:
+    </p>
+
+    <ul>
+
+        <li>Policy governance</li>
+        <li>Admission control</li>
+        <li>Runtime policy enforcement</li>
+        <li>Security guardrails</li>
+        <li>Compliance validation</li>
+
+    </ul>
+
+</section>
+
+<section id="problem">
+
+    <h2>2. Enterprise Governance Problem</h2>
+
+    <h3>2.1 Beginner-Friendly Explanation</h3>
+
+    <p>
+        Imagine Kubernetes as a very powerful operating environment.
+    </p>
+
+    <p>
+        Without governance:
+    </p>
+
+    <ul>
+
+        <li>Anyone can deploy anything</li>
+        <li>Security standards become inconsistent</li>
+        <li>Compliance becomes impossible</li>
+        <li>Risk increases dramatically</li>
+
+    </ul>
+
+    <h3>2.2 Real Enterprise Risk Examples</h3>
+
+<table>
+
+    <tr>
+        <th>Risk</th>
+        <th>Impact</th>
+    </tr>
+
+    <tr>
+        <td>Privileged containers</td>
+        <td>Host compromise</td>
+    </tr>
+
+    <tr>
+        <td>Root containers</td>
+        <td>Privilege escalation</td>
+    </tr>
+
+    <tr>
+        <td>Public images</td>
+        <td>Malware risk</td>
+    </tr>
+
+    <tr>
+        <td>No resource limits</td>
+        <td>Cluster instability</td>
+    </tr>
+
+    <tr>
+        <td>Host networking</td>
+        <td>Network security violations</td>
+    </tr>
+
+</table>
+
+    <h3>2.3 Real Enterprise Goal</h3>
+
+<div class="diagram">
+
+<pre>
+Developer Deploys Application
+                |
+                |
+Kubernetes Admission Controller Intercepts
+                |
+                |
+Security Policies Evaluated
+                |
+     ------------------------
+     |                      |
+Allowed                Rejected
+     |                      |
+Deployment            Security Violation
+Continues             Returned to User
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="admission">
+
+    <h2>3. What is Kubernetes Admission Control</h2>
+
+    <h3>3.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly is admission control?
+        <br><br>
+
+        Is it a firewall?
+        <br><br>
+
+        Is it RBAC?
+
+    </div>
+
+    <h3>3.2 Simple Explanation</h3>
+
+    <p>
+        Admission control acts like a security checkpoint for Kubernetes resources.
+    </p>
+
+    <p>
+        Before Kubernetes accepts a deployment:
+    </p>
+
+    <ul>
+
+        <li>The request is intercepted</li>
+        <li>Policies are evaluated</li>
+        <li>The deployment is either allowed or rejected</li>
+
+    </ul>
+
+    <h3>3.3 Real Enterprise Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+kubectl apply deployment.yaml
+                |
+                |
+API Server Receives Request
+                |
+                |
+Admission Controllers Trigger
+                |
+                |
+Policy Engine Evaluates Rules
+                |
+     --------------------------
+     |                        |
+Pass                    Fail
+     |                        |
+Deployment              Deployment
+Created                 Rejected
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="kyverno">
+
+    <h2>4. Why Enterprises Use Kyverno</h2>
+
+    <h3>4.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why Kyverno?
+        <br><br>
+
+        Why not custom scripts?
+        <br><br>
+
+        Why not only Kubernetes Pod Security Standards?
+
+    </div>
+
+    <h3>4.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Kyverno became highly popular because policies can be written using native Kubernetes YAML instead of programming languages.
+    </p>
+
+    <h3>4.3 Enterprise Benefits</h3>
+
+<table>
+
+    <tr>
+        <th>Capability</th>
+        <th>Benefit</th>
+    </tr>
+
+    <tr>
+        <td>YAML-based policies</td>
+        <td>Easy operational management</td>
+    </tr>
+
+    <tr>
+        <td>Mutation</td>
+        <td>Automatically fix resources</td>
+    </tr>
+
+    <tr>
+        <td>Validation</td>
+        <td>Reject non-compliant workloads</td>
+    </tr>
+
+    <tr>
+        <td>Generation</td>
+        <td>Auto-create resources</td>
+    </tr>
+
+    <tr>
+        <td>Image verification</td>
+        <td>Supply chain protection</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="opa">
+
+    <h2>5. What is OPA (Open Policy Agent)</h2>
+
+    <h3>5.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What is OPA?
+        <br><br>
+
+        Why do enterprises use both Kyverno and OPA?
+
+    </div>
+
+    <h3>5.2 Real Enterprise Understanding</h3>
+
+    <p>
+        OPA is a general-purpose enterprise policy engine.
+    </p>
+
+    <p>
+        OPA is used not only in Kubernetes, but also in:
+    </p>
+
+    <ul>
+
+        <li>APIs</li>
+        <li>Cloud governance</li>
+        <li>Identity systems</li>
+        <li>CI/CD pipelines</li>
+        <li>Terraform governance</li>
+
+    </ul>
+
+    <h3>5.3 Kyverno vs OPA</h3>
+
+<table>
+
+    <tr>
+        <th>Feature</th>
+        <th>Kyverno</th>
+        <th>OPA</th>
+    </tr>
+
+    <tr>
+        <td>Policy Language</td>
+        <td>YAML</td>
+        <td>Rego</td>
+    </tr>
+
+    <tr>
+        <td>Ease of Use</td>
+        <td>Very Easy</td>
+        <td>Advanced</td>
+    </tr>
+
+    <tr>
+        <td>Kubernetes Native</td>
+        <td>Excellent</td>
+        <td>Excellent</td>
+    </tr>
+
+    <tr>
+        <td>Enterprise Flexibility</td>
+        <td>Good</td>
+        <td>Very Powerful</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>6. Enterprise Governance Architecture</h2>
+
+<div class="diagram">
+
+<pre>
++------------------------------------------------+
+| Developers / CI Pipelines                      |
++------------------------------------------------+
+                    |
+                    |
+                    v
+
++------------------------------------------------+
+| Kubernetes API Server                          |
++------------------------------------------------+
+                    |
+                    |
+                    v
+
++------------------------------------------------+
+| Admission Controllers                          |
+|------------------------------------------------|
+| Kyverno                                        |
+| OPA Gatekeeper                                 |
+| Pod Security Standards                         |
++------------------------------------------------+
+                    |
+         -------------------------
+         |                       |
+         |                       |
+         v                       v
+
+Allowed Deployments       Blocked Deployments
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>7. Enterprise Policy Categories</h2>
+
+<table>
+
+    <tr>
+        <th>Policy Category</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Security Policies</td>
+        <td>Prevent insecure workloads</td>
+    </tr>
+
+    <tr>
+        <td>Compliance Policies</td>
+        <td>Meet enterprise standards</td>
+    </tr>
+
+    <tr>
+        <td>Image Policies</td>
+        <td>Restrict image sources</td>
+    </tr>
+
+    <tr>
+        <td>Namespace Policies</td>
+        <td>Govern tenant boundaries</td>
+    </tr>
+
+    <tr>
+        <td>Resource Policies</td>
+        <td>Prevent resource abuse</td>
+    </tr>
+
+    <tr>
+        <td>Network Policies</td>
+        <td>Enforce segmentation</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>8. Enterprise Kyverno Installation</h2>
+
+    <h3>8.1 Create Namespace</h3>
+
+<pre>
+kubectl create namespace kyverno
+</pre>
+
+    <h3>8.2 Install Kyverno</h3>
+
+<pre>
+kubectl create -f \
+https://github.com/kyverno/kyverno/releases/download/v1.11.4/install.yaml
+</pre>
+
+    <h3>8.3 Verify Installation</h3>
+
+<pre>
+kubectl get pods -n kyverno
+
+NAME                                       STATUS
+kyverno-admission-controller               Running
+kyverno-background-controller              Running
+kyverno-cleanup-controller                 Running
+kyverno-reports-controller                 Running
+</pre>
+
+    <h3>8.4 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What do these controllers actually do?
+
+    </div>
+
+    <h3>8.5 Component Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>Controller</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>admission-controller</td>
+        <td>Evaluates admission requests</td>
+    </tr>
+
+    <tr>
+        <td>background-controller</td>
+        <td>Scans existing resources</td>
+    </tr>
+
+    <tr>
+        <td>cleanup-controller</td>
+        <td>Handles cleanup policies</td>
+    </tr>
+
+    <tr>
+        <td>reports-controller</td>
+        <td>Compliance reporting</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="policies">
+
+    <h2>9. Enterprise Policy Examples</h2>
+
+    <h3>9.1 Block Privileged Containers</h3>
+
+<pre>
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: block-privileged-containers
+
+spec:
+
+  validationFailureAction: enforce
+
+  rules:
+
+  - name: privileged-containers
+
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+
+    validate:
+      message: "Privileged containers are not allowed."
+
+      pattern:
+        spec:
+          containers:
+          - securityContext:
+              privileged: false
+</pre>
+
+    <h3>9.2 What This Policy Actually Does</h3>
+
+    <ul>
+
+        <li>Intercepts pod creation requests</li>
+        <li>Checks securityContext</li>
+        <li>Rejects privileged containers</li>
+        <li>Prevents host-level compromise risks</li>
+
+    </ul>
+
+    <h3>9.3 Block Containers Running as Root</h3>
+
+<pre>
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: require-non-root
+
+spec:
+
+  validationFailureAction: enforce
+
+  rules:
+
+  - name: validate-runAsNonRoot
+
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+
+    validate:
+      message: "Containers must not run as root."
+
+      pattern:
+        spec:
+          securityContext:
+            runAsNonRoot: true
+</pre>
+
+    <h3>9.4 Restrict Images to Enterprise Harbor</h3>
+
+<pre>
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: restrict-image-registries
+
+spec:
+
+  validationFailureAction: enforce
+
+  rules:
+
+  - name: validate-registries
+
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+
+    validate:
+      message: "Only Harbor registry images are allowed."
+
+      pattern:
+        spec:
+          containers:
+          - image: "harbor.corp.novacrestbank.internal/*"
+</pre>
+
+    <h3>9.5 Why This Matters</h3>
+
+<div class="callout">
+
+    <strong>Enterprise Security Principle:</strong><br><br>
+
+    Production clusters should NEVER allow unrestricted public container images.
+    <br><br>
+
+    This prevents:
+    <br><br>
+
+    • Malware images<br>
+    • Untrusted dependencies<br>
+    • Supply chain attacks<br>
+    • Compliance violations
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise Pod Security Standards</h2>
+
+    <h3>10.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What are Pod Security Standards?
+        <br><br>
+
+        Are they different from Kyverno?
+
+    </div>
+
+    <h3>10.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Pod Security Standards (PSS) are built-in Kubernetes security levels.
+    </p>
+
+<table>
+
+    <tr>
+        <th>PSS Level</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Privileged</td>
+        <td>Least restrictive</td>
+    </tr>
+
+    <tr>
+        <td>Baseline</td>
+        <td>Basic protection</td>
+    </tr>
+
+    <tr>
+        <td>Restricted</td>
+        <td>Strong security enforcement</td>
+    </tr>
+
+</table>
+
+    <h3>10.3 Enterprise Recommendation</h3>
+
+    <p>
+        Production banking environments should typically enforce:
+    </p>
+
+<pre>
+restricted
+</pre>
+
+</section>
+
+<section>
+
+    <h2>11. Enterprise Namespace Governance</h2>
+
+    <h3>11.1 Why Namespace Governance Matters</h3>
+
+    <p>
+        In large enterprises:
+    </p>
+
+    <ul>
+
+        <li>Many teams share Kubernetes platforms</li>
+        <li>Isolation becomes critical</li>
+        <li>Governance becomes mandatory</li>
+
+    </ul>
+
+    <h3>11.2 Example Enterprise Standards</h3>
+
+<table>
+
+    <tr>
+        <th>Namespace Rule</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Mandatory labels</td>
+        <td>Ownership tracking</td>
+    </tr>
+
+    <tr>
+        <td>Resource quotas</td>
+        <td>Prevent abuse</td>
+    </tr>
+
+    <tr>
+        <td>Limit ranges</td>
+        <td>Control container sizing</td>
+    </tr>
+
+    <tr>
+        <td>Network policies</td>
+        <td>Tenant isolation</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>12. Enterprise Resource Governance</h2>
+
+    <h3>12.1 Real Enterprise Problem</h3>
+
+    <p>
+        Without limits, a single workload can consume excessive CPU and memory resources.
+    </p>
+
+    <h3>12.2 Enterprise Resource Policy</h3>
+
+<pre>
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+
+metadata:
+  name: require-resource-limits
+
+spec:
+
+  validationFailureAction: enforce
+
+  rules:
+
+  - name: validate-resources
+
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+
+    validate:
+      message: "CPU and memory limits are required."
+
+      pattern:
+        spec:
+          containers:
+          - resources:
+              limits:
+                memory: "?*"
+                cpu: "?*"
+</pre>
+
+</section>
+
+<section>
+
+    <h2>13. Enterprise Compliance Reporting</h2>
+
+    <h3>13.1 Why Enterprises Need Reporting</h3>
+
+    <p>
+        Security teams must continuously verify:
+    </p>
+
+    <ul>
+
+        <li>Policy compliance</li>
+        <li>Drift violations</li>
+        <li>Runtime security posture</li>
+        <li>Audit readiness</li>
+
+    </ul>
+
+    <h3>13.2 Example Kyverno Policy Report</h3>
+
+<pre>
+kubectl get policyreport -A
+
+NAMESPACE              PASS   FAIL   WARN   ERROR   SKIP
+customer-prod          42     0      0      0       0
+payments-prod          38     1      0      0       0
+fraud-engine-prod      55     0      0      0       0
+</pre>
+
+</section>
+
+<section>
+
+    <h2>14. Enterprise Runtime Governance Integration</h2>
+
+    <h3>14.1 Real Enterprise Understanding</h3>
+
+    <p>
+        Admission control protects workloads BEFORE deployment.
+    </p>
+
+    <p>
+        But enterprises also need runtime security.
+    </p>
+
+    <h3>14.2 Runtime Security Examples</h3>
+
+<table>
+
+    <tr>
+        <th>Runtime Capability</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Falco</td>
+        <td>Runtime threat detection</td>
+    </tr>
+
+    <tr>
+        <td>NSX IDS/IPS</td>
+        <td>East-west inspection</td>
+    </tr>
+
+    <tr>
+        <td>vDefend</td>
+        <td>Microsegmentation security</td>
+    </tr>
+
+    <tr>
+        <td>eBPF monitoring</td>
+        <td>Kernel-level visibility</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="verification">
+
+    <h2>15. Enterprise Verification and Validation</h2>
+
+    <h3>15.1 Verify Kyverno Pods</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+        <li>kubectl</li>
+    </ul>
+
+<pre>
+kubectl get pods -n kyverno
+
+NAME                                       STATUS
+kyverno-admission-controller               Running
+kyverno-background-controller              Running
+</pre>
+
+    <h3>15.2 Verify Cluster Policies</h3>
+
+<pre>
+kubectl get clusterpolicy
+
+NAME                               READY
+block-privileged-containers        True
+require-non-root                   True
+restrict-image-registries          True
+require-resource-limits            True
+</pre>
+
+    <h3>15.3 Test Privileged Container Block</h3>
+
+<pre>
+kubectl apply -f privileged-pod.yaml
+
+Error from server:
+
+admission webhook "validate.kyverno.svc" denied the request:
+
+policy block-privileged-containers:
+Privileged containers are not allowed.
+</pre>
+
+    <h3>15.4 Verify Harbor Registry Enforcement</h3>
+
+<pre>
+kubectl apply -f dockerhub-nginx.yaml
+
+Error from server:
+
+Only Harbor registry images are allowed.
+</pre>
+
+    <h3>15.5 Verify Compliance Reports</h3>
+
+<pre>
+kubectl get policyreport -A
+
+NAMESPACE           PASS   FAIL
+customer-prod       42     0
+payments-prod       38     0
+</pre>
+
+</section>
+
+<section>
+
+    <h2>16. Real Enterprise Understanding</h2>
+
+    <h3>16.1 What We Have Built</h3>
+
+    <ul>
+
+        <li>Enterprise Kubernetes governance</li>
+        <li>Admission control enforcement</li>
+        <li>Policy-driven security guardrails</li>
+        <li>Namespace governance</li>
+        <li>Image governance enforcement</li>
+        <li>Resource governance</li>
+        <li>Compliance reporting</li>
+
+    </ul>
+
+    <h3>16.2 What Still Does NOT Exist Yet</h3>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        We now have governance and admission control.
+        <br><br>
+
+        However, we still do not yet have:
+        <br><br>
+
+        • Enterprise observability<br>
+        • Metrics aggregation<br>
+        • Centralized logging<br>
+        • Distributed tracing<br>
+        • Alerting<br>
+        • SRE operational visibility
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>17. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>16.enterprise-observability-monitoring-and-logging.html</td>
+        <td>Implement enterprise observability architecture using Prometheus, Grafana, Fluent Bit, OpenTelemetry, distributed tracing, centralized logging, alerting, and operational monitoring for VMware Kubernetes Service (VKS) environments running on VCF with NSX.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="14.enterprise-gitops-and-argoCD-foundation.html">
+        ← Previous Guide
+    </a>
+
+    <a href="16.enterprise-observability-monitoring-and-logging.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

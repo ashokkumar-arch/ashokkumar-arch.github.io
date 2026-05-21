@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaCrestBank VCF + NSX + Tanzu Enterprise Architecture</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1450px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            NovaCrestBank VCF + NSX + Tanzu Enterprise Architecture
+        </div>
+
+        <div class="hero-subtitle">
+            Enterprise Logical Architecture Design for VMware Cloud Foundation, NSX, Tanzu Kubernetes Service, Platform Engineering, and Disaster Recovery
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">VCF</span>
+            <span class="badge">NSX</span>
+            <span class="badge">VKS</span>
+            <span class="badge">Supervisor Cluster</span>
+            <span class="badge">Platform Engineering</span>
+            <span class="badge">Zero Trust</span>
+            <span class="badge">GitOps</span>
+            <span class="badge">Disaster Recovery</span>
+            <span class="badge">AI Ready</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#architecture-goals">Architecture Goals</a>
+        <a href="#sites">Data Centers</a>
+        <a href="#vcf">VCF Architecture</a>
+        <a href="#nsx">NSX Architecture</a>
+        <a href="#tanzu">Tanzu Architecture</a>
+        <a href="#platform-engineering">Platform Engineering</a>
+        <a href="#security">Security</a>
+        <a href="#dr">Disaster Recovery</a>
+        <a href="#future">Future Expansion</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Architecture Overview</h2>
+
+    <p>
+        This guide defines the logical enterprise architecture for the NovaCrestBank modernization initiative built on VMware Cloud Foundation (VCF), NSX, and Tanzu Kubernetes Service (VKS).
+    </p>
+
+    <p>
+        Unlike small lab-oriented Kubernetes deployments, this environment is designed as a production-grade enterprise private cloud platform capable of supporting:
+    </p>
+
+    <ul>
+        <li>Traditional virtual machine workloads</li>
+        <li>Modern Kubernetes applications</li>
+        <li>Multi-tenant platform engineering</li>
+        <li>Enterprise governance and policy enforcement</li>
+        <li>GitOps-driven operations</li>
+        <li>Disaster recovery and workload portability</li>
+        <li>Future AI-ready infrastructure expansion</li>
+        <li>Future hybrid-cloud integration</li>
+    </ul>
+
+    <div class="callout">
+        <strong>Important:</strong><br><br>
+
+        This guide intentionally focuses on enterprise architecture decisions before deployment implementation. In real-world enterprise environments, architecture decisions are finalized before any installation or provisioning begins.
+    </div>
+
+</section>
+
+<section id="architecture-goals">
+
+    <h2>2. Enterprise Architecture Goals</h2>
+
+    <table>
+
+        <tr>
+            <th>Architecture Goal</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>Operational Standardization</td>
+            <td>Provide consistent lifecycle management across infrastructure and Kubernetes platforms.</td>
+        </tr>
+
+        <tr>
+            <td>Security and Governance</td>
+            <td>Implement zero-trust architecture with centralized policy enforcement.</td>
+        </tr>
+
+        <tr>
+            <td>Platform Engineering</td>
+            <td>Provide reusable, self-service Kubernetes platforms using GitOps and Infrastructure-as-Code.</td>
+        </tr>
+
+        <tr>
+            <td>Disaster Recovery</td>
+            <td>Enable workload portability and DR failover capabilities between enterprise data centers.</td>
+        </tr>
+
+        <tr>
+            <td>Future Hybrid Cloud</td>
+            <td>Prepare the platform for future AKS integration and workload portability.</td>
+        </tr>
+
+        <tr>
+            <td>AI Readiness</td>
+            <td>Prepare dedicated GPU-ready workload domains for future enterprise AI workloads.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="sites">
+
+    <h2>3. Enterprise Data Center Topology</h2>
+
+    <h3>3.1 Primary and DR Sites</h3>
+
+    <table>
+
+        <tr>
+            <th>Site Name</th>
+            <th>Location</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>mum-dc01</td>
+            <td>Mumbai</td>
+            <td>Primary Production Data Center</td>
+        </tr>
+
+        <tr>
+            <td>hyd-dc02</td>
+            <td>Hyderabad</td>
+            <td>Secondary Disaster Recovery Site</td>
+        </tr>
+
+    </table>
+
+    <h3>3.2 Enterprise Namespace Strategy</h3>
+
+    <table>
+
+        <tr>
+            <th>Purpose</th>
+            <th>Namespace</th>
+        </tr>
+
+        <tr>
+            <td>Identity Services</td>
+            <td>corp.novacrestbank.internal</td>
+        </tr>
+
+        <tr>
+            <td>Infrastructure Services</td>
+            <td>mgmt.novacrestbank.internal</td>
+        </tr>
+
+        <tr>
+            <td>Kubernetes Platform</td>
+            <td>k8s.novacrestbank.internal</td>
+        </tr>
+
+        <tr>
+            <td>NSX Infrastructure</td>
+            <td>nsx.novacrestbank.internal</td>
+        </tr>
+
+        <tr>
+            <td>Operations Platform</td>
+            <td>ops.novacrestbank.internal</td>
+        </tr>
+
+        <tr>
+            <td>PKI Services</td>
+            <td>pki.novacrestbank.internal</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="vcf">
+
+    <h2>4. VMware Cloud Foundation Architecture</h2>
+
+    <h3>4.1 Why VMware Cloud Foundation</h3>
+
+    <p>
+        VMware Cloud Foundation provides a fully integrated private cloud platform that standardizes lifecycle management, infrastructure operations, networking, storage, and Kubernetes integration.
+    </p>
+
+    <h3>4.2 VCF Logical Components</h3>
+
+    <table>
+
+        <tr>
+            <th>Component</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>SDDC Manager</td>
+            <td>Lifecycle management and VCF orchestration</td>
+        </tr>
+
+        <tr>
+            <td>vCenter</td>
+            <td>Virtual infrastructure management</td>
+        </tr>
+
+        <tr>
+            <td>vSAN</td>
+            <td>Software-defined storage platform</td>
+        </tr>
+
+        <tr>
+            <td>NSX</td>
+            <td>Overlay networking and security</td>
+        </tr>
+
+        <tr>
+            <td>Workload Domains</td>
+            <td>Logical separation of infrastructure and applications</td>
+        </tr>
+
+    </table>
+
+    <h3>4.3 Workload Domain Design</h3>
+
+    <table>
+
+        <tr>
+            <th>Workload Domain</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>Management Domain</td>
+            <td>VCF management infrastructure and platform services</td>
+        </tr>
+
+        <tr>
+            <td>Shared Services Domain</td>
+            <td>Shared enterprise services such as monitoring, GitOps, and PKI</td>
+        </tr>
+
+        <tr>
+            <td>Production Kubernetes Domain</td>
+            <td>Enterprise Tanzu Kubernetes workloads</td>
+        </tr>
+
+        <tr>
+            <td>AI Workload Domain (Future)</td>
+            <td>GPU-enabled AI and ML workloads</td>
+        </tr>
+
+        <tr>
+            <td>Disaster Recovery Domain</td>
+            <td>DR replication and recovery workloads</td>
+        </tr>
+
+    </table>
+
+    <div class="diagram">
+
+<pre>
++-------------------------------------------------------+
+|                  VMware Cloud Foundation              |
++-------------------------------------------------------+
+
+  +---------------------+
+  |  Management Domain  |
+  +---------------------+
+
+  +---------------------+
+  | Shared Services WLD |
+  +---------------------+
+
+  +---------------------+
+  | Production VKS WLD  |
+  +---------------------+
+
+  +---------------------+
+  | Future AI WLD       |
+  +---------------------+
+
+</pre>
+
+    </div>
+
+</section>
+
+<section id="nsx">
+
+    <h2>5. NSX Enterprise Network Architecture</h2>
+
+    <h3>5.1 Why NSX</h3>
+
+    <p>
+        NSX provides software-defined networking, overlay networking, distributed security enforcement, and microsegmentation capabilities across the enterprise platform.
+    </p>
+
+    <h3>5.2 NSX Design Goals</h3>
+
+    <ul>
+
+        <li>Overlay-based workload networking</li>
+        <li>Microsegmentation and east-west security</li>
+        <li>Kubernetes workload isolation</li>
+        <li>Tier-0 and Tier-1 logical routing</li>
+        <li>DR-ready routing architecture</li>
+        <li>Future hybrid-cloud connectivity readiness</li>
+
+    </ul>
+
+    <h3>5.3 NSX Logical Topology</h3>
+
+    <div class="diagram">
+
+<pre>
+                +----------------------+
+                |   Physical Fabric    |
+                | Cisco Spine + Leaf   |
+                +----------+-----------+
+                           |
+                    BGP / VLAN
+                           |
+                +----------+-----------+
+                |      NSX Tier-0      |
+                +----------+-----------+
+                           |
+        +------------------+------------------+
+        |                                     |
++-------+--------+                 +----------+--------+
+| NSX Tier-1 MGMT|                 | NSX Tier-1 VKS    |
++----------------+                 +-------------------+
+
+</pre>
+
+    </div>
+
+    <h3>5.4 NSX Security Strategy</h3>
+
+    <table>
+
+        <tr>
+            <th>Security Layer</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>Distributed Firewall</td>
+            <td>East-west traffic filtering</td>
+        </tr>
+
+        <tr>
+            <td>Microsegmentation</td>
+            <td>Workload isolation</td>
+        </tr>
+
+        <tr>
+            <td>Security Groups</td>
+            <td>Dynamic workload grouping</td>
+        </tr>
+
+        <tr>
+            <td>Gateway Firewall</td>
+            <td>North-south traffic filtering</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="tanzu">
+
+    <h2>6. Tanzu Kubernetes Service Architecture</h2>
+
+    <h3>6.1 Why VKS Instead of Standalone Kubernetes</h3>
+
+    <p>
+        VKS is selected because it integrates Kubernetes lifecycle management directly into VMware Cloud Foundation and NSX, enabling operational consistency, governance alignment, and enterprise-grade lifecycle management.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Important Enterprise Clarification:</strong><br><br>
+
+        This portfolio intentionally focuses on modern VKS architecture instead of legacy Tanzu deployment models such as standalone TKGm. The enterprise direction is toward integrated Kubernetes lifecycle management inside VCF environments.
+
+    </div>
+
+    <h3>6.2 Tanzu Architecture Components</h3>
+
+    <table>
+
+        <tr>
+            <th>Component</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>Supervisor Cluster</td>
+            <td>Kubernetes control plane integrated into vSphere</td>
+        </tr>
+
+        <tr>
+            <td>VKS Clusters</td>
+            <td>Enterprise Kubernetes workload clusters</td>
+        </tr>
+
+        <tr>
+            <td>Namespaces</td>
+            <td>Multi-tenant workload isolation</td>
+        </tr>
+
+        <tr>
+            <td>Storage Policies</td>
+            <td>Persistent storage lifecycle management</td>
+        </tr>
+
+        <tr>
+            <td>NSX Integration</td>
+            <td>Kubernetes networking and ingress</td>
+        </tr>
+
+    </table>
+
+    <h3>6.3 Kubernetes Namespace Strategy</h3>
+
+<pre>
+prod-payments
+prod-banking-api
+prod-fraud-detection
+platform-observability
+platform-gitops
+platform-monitoring
+platform-security
+</pre>
+
+    <h3>6.4 Topology Awareness</h3>
+
+    <p>
+        Kubernetes clusters are designed with topology-aware placement policies to improve workload resiliency across racks, zones, and failure domains.
+    </p>
+
+<pre>
+topology.kubernetes.io/region=ap-south
+topology.kubernetes.io/zone=mum-dc01-zone-a
+</pre>
+
+</section>
+
+<section id="platform-engineering">
+
+    <h2>7. Enterprise Platform Engineering Architecture</h2>
+
+    <h3>7.1 Platform Engineering Direction</h3>
+
+    <p>
+        NovaCrestBank is transitioning from traditional infrastructure administration toward platform engineering and declarative operations.
+    </p>
+
+    <h3>7.2 Core Platform Engineering Components</h3>
+
+    <table>
+
+        <tr>
+            <th>Platform Component</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>GitLab</td>
+            <td>Internal enterprise Git platform</td>
+        </tr>
+
+        <tr>
+            <td>Argo CD</td>
+            <td>GitOps continuous delivery</td>
+        </tr>
+
+        <tr>
+            <td>Terraform</td>
+            <td>Infrastructure provisioning</td>
+        </tr>
+
+        <tr>
+            <td>Helm</td>
+            <td>Kubernetes application packaging</td>
+        </tr>
+
+        <tr>
+            <td>Kustomize</td>
+            <td>Environment-specific Kubernetes overlays</td>
+        </tr>
+
+        <tr>
+            <td>Harbor</td>
+            <td>Enterprise private container registry</td>
+        </tr>
+
+    </table>
+
+    <h3>7.3 GitOps Architecture</h3>
+
+    <div class="diagram">
+
+<pre>
++-------------------+
+| Developer Commits |
++---------+---------+
+          |
+          v
+
++-------------------+
+|      GitLab       |
++---------+---------+
+          |
+          v
+
++-------------------+
+|      Argo CD      |
++---------+---------+
+          |
+          v
+
++-------------------+
+|  VKS Clusters     |
++-------------------+
+</pre>
+
+    </div>
+
+</section>
+
+<section id="security">
+
+    <h2>8. Enterprise Security and Governance</h2>
+
+    <h3>8.1 Secrets and Identity Management</h3>
+
+    <table>
+
+        <tr>
+            <th>Platform</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>CyberArk</td>
+            <td>Privileged access management</td>
+        </tr>
+
+        <tr>
+            <td>Vault</td>
+            <td>Kubernetes and application secrets management</td>
+        </tr>
+
+        <tr>
+            <td>Active Directory</td>
+            <td>Enterprise identity integration</td>
+        </tr>
+
+        <tr>
+            <td>Enterprise PKI</td>
+            <td>Internal TLS trust management</td>
+        </tr>
+
+    </table>
+
+    <h3>8.2 Policy and Governance</h3>
+
+    <ul>
+
+        <li>OPA Gatekeeper</li>
+        <li>Namespace policy enforcement</li>
+        <li>Pod security standards</li>
+        <li>Image-signing enforcement</li>
+        <li>RBAC governance</li>
+
+    </ul>
+
+</section>
+
+<section id="dr">
+
+    <h2>9. Disaster Recovery Architecture</h2>
+
+    <h3>9.1 DR Design Goals</h3>
+
+    <ul>
+
+        <li>Site-level resiliency</li>
+        <li>Workload portability</li>
+        <li>Registry replication</li>
+        <li>GitOps repository replication</li>
+        <li>Observability federation</li>
+
+    </ul>
+
+    <h3>9.2 DR Architecture Flow</h3>
+
+    <div class="diagram">
+
+<pre>
++---------------------------------------------------------+
+|                     mum-dc01                            |
+|                 Primary Production                      |
++---------------------------------------------------------+
+          | Replication / Federation
+          |
+          v
++---------------------------------------------------------+
+|                     hyd-dc02                            |
+|                 Secondary DR Site                       |
++---------------------------------------------------------+
+</pre>
+
+    </div>
+
+</section>
+
+<section id="future">
+
+    <h2>10. Future Expansion Roadmap</h2>
+
+    <h3>10.1 Hybrid-Cloud Expansion</h3>
+
+    <p>
+        The enterprise platform is designed for future AKS integration and hybrid-cloud workload portability.
+    </p>
+
+    <h3>10.2 AI-Ready Infrastructure</h3>
+
+    <p>
+        Future AI-ready workload domains will support GPU-enabled Kubernetes clusters, model-serving platforms, and enterprise AI governance.
+    </p>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        AI capabilities are intentionally presented as future-ready architectural planning rather than overstated enterprise AI implementation claims.
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>11. What Comes Next</h2>
+
+    <p>
+        The next guide focuses on enterprise naming standards, hostname conventions, VLAN strategy, Kubernetes naming standards, and enterprise object naming consistency across VCF, NSX, and Tanzu environments.
+    </p>
+
+    <table>
+
+        <tr>
+            <th>Next Guide</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>2.enterprise-naming-standards.html</td>
+            <td>Enterprise naming conventions for VCF, NSX, Kubernetes, networking, DR, PKI, platform engineering, and observability components.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="0.enterprise-modernization-overview.html">
+        ← Previous Guide
+    </a>
+
+    <a href="2.enterprise-naming-standards.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>

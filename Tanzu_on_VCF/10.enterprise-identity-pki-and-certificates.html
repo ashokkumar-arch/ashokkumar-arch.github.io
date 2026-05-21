@@ -1,0 +1,1130 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Identity, PKI and Certificates</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            color: var(--muted);
+            font-size: 20px;
+            max-width: 1300px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            background: #0b1220;
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise Identity, PKI and Certificates
+        </div>
+
+        <div class="hero-subtitle">
+            Production-Grade Enterprise Identity Architecture for VMware Cloud Foundation, NSX, Tanzu Kubernetes, PKI, Active Directory Integration, Certificate Lifecycle Management, RBAC, LDAP, and Enterprise Authentication
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">Active Directory</span>
+            <span class="badge">PKI</span>
+            <span class="badge">Certificates</span>
+            <span class="badge">Enterprise Authentication</span>
+            <span class="badge">RBAC</span>
+            <span class="badge">VCF</span>
+            <span class="badge">NSX</span>
+            <span class="badge">Tanzu</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#why-identity">Why Identity Matters</a>
+        <a href="#ad-design">AD Design</a>
+        <a href="#pki">PKI Architecture</a>
+        <a href="#certificates">Certificates</a>
+        <a href="#ldap">LDAP Integration</a>
+        <a href="#rbac">RBAC</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In enterprise production environments, identity and certificate management are foundational security requirements.
+    </p>
+
+    <p>
+        Before Tanzu, Kubernetes, GitOps, CI/CD, AI, hybrid cloud, or application deployments exist, enterprise identity architecture must already be correctly designed.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Most enterprise outages and security incidents do not happen because Kubernetes failed.
+        <br><br>
+
+        They happen because:
+        <br><br>
+
+        • Certificates expired<br>
+        • DNS failed<br>
+        • Authentication failed<br>
+        • Incorrect RBAC permissions existed<br>
+        • Trust chains broke<br>
+        • LDAP integration failed<br>
+        • Service accounts were misconfigured
+
+    </div>
+
+    <h3>1.1 What This Guide Builds</h3>
+
+    <ul>
+
+        <li>Enterprise Active Directory architecture</li>
+        <li>Enterprise DNS integration</li>
+        <li>Enterprise PKI hierarchy</li>
+        <li>Certificate trust architecture</li>
+        <li>VCF authentication integration</li>
+        <li>NSX authentication integration</li>
+        <li>Tanzu identity integration</li>
+        <li>Enterprise RBAC design</li>
+
+    </ul>
+
+</section>
+
+<section id="why-identity">
+
+    <h2>2. Why Identity Architecture Matters</h2>
+
+    <p>
+        A reader may immediately get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why not simply use local administrator accounts everywhere?
+        <br><br>
+
+        Why build such a large identity architecture?
+
+    </div>
+
+    <h3>2.1 Real Enterprise Explanation</h3>
+
+    <p>
+        Enterprises cannot operate production infrastructure using disconnected local accounts.
+    </p>
+
+    <p>
+        Real enterprise environments require:
+    </p>
+
+    <ul>
+
+        <li>Centralized authentication</li>
+        <li>Centralized authorization</li>
+        <li>Auditing</li>
+        <li>Compliance</li>
+        <li>Certificate trust</li>
+        <li>Identity lifecycle management</li>
+
+    </ul>
+
+    <h3>2.2 Real Banking Requirements</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Reason</th>
+    </tr>
+
+    <tr>
+        <td>Centralized Authentication</td>
+        <td>Security and compliance</td>
+    </tr>
+
+    <tr>
+        <td>RBAC</td>
+        <td>Least privilege access</td>
+    </tr>
+
+    <tr>
+        <td>Certificate Trust</td>
+        <td>Encrypted secure communication</td>
+    </tr>
+
+    <tr>
+        <td>Identity Auditing</td>
+        <td>Regulatory compliance</td>
+    </tr>
+
+    <tr>
+        <td>Service Accounts</td>
+        <td>Automation and platform services</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="ad-design">
+
+    <h2>3. Enterprise Active Directory Architecture</h2>
+
+    <h3>3.1 Enterprise AD Design</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Hostname</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Primary Domain Controller</td>
+        <td>mum-dc01</td>
+        <td>Authentication + DNS</td>
+    </tr>
+
+    <tr>
+        <td>Secondary Domain Controller</td>
+        <td>mum-dc02</td>
+        <td>Redundancy</td>
+    </tr>
+
+    <tr>
+        <td>Offline Root CA</td>
+        <td>mum-rootca01</td>
+        <td>Root Certificate Authority</td>
+    </tr>
+
+    <tr>
+        <td>Issuing CA</td>
+        <td>mum-issuingca01</td>
+        <td>Enterprise Certificate Issuance</td>
+    </tr>
+
+</table>
+
+    <h3>3.2 Enterprise Domain Naming</h3>
+
+<pre>
+Active Directory Domain:
+corp.novacrestbank.internal
+</pre>
+
+    <h3>3.3 Why We Use .internal</h3>
+
+    <p>
+        A reader may get another important question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why are we using:
+        <br><br>
+
+        corp.novacrestbank.internal
+        <br><br>
+
+        instead of:
+        <br><br>
+
+        .local or .corp?
+
+    </div>
+
+    <h3>3.4 Real Enterprise Explanation</h3>
+
+    <ul>
+
+        <li>.local conflicts with mDNS/Bonjour</li>
+        <li>.corp created historical enterprise conflicts</li>
+        <li>.internal clearly indicates private internal infrastructure</li>
+        <li>.internal avoids public DNS overlap</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>4. Enterprise DNS Architecture</h2>
+
+    <h3>4.1 Why DNS is Critical</h3>
+
+    <div class="callout danger">
+
+        <strong>Critical:</strong><br><br>
+
+        Kubernetes, NSX, VCF, Tanzu, vCenter, and PKI all depend heavily on DNS.
+        <br><br>
+
+        If DNS fails:
+        <br><br>
+
+        • Cluster deployments fail<br>
+        • Certificate validation fails<br>
+        • Authentication fails<br>
+        • Kubernetes API resolution fails<br>
+        • NSX services fail
+
+    </div>
+
+    <h3>4.2 Enterprise DNS Zones</h3>
+
+<table>
+
+    <tr>
+        <th>DNS Zone</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>corp.novacrestbank.internal</td>
+        <td>Internal Active Directory zone</td>
+    </tr>
+
+    <tr>
+        <td>svc.corp.novacrestbank.internal</td>
+        <td>Infrastructure services</td>
+    </tr>
+
+    <tr>
+        <td>k8s.corp.novacrestbank.internal</td>
+        <td>Kubernetes ingress and applications</td>
+    </tr>
+
+</table>
+
+    <h3>4.3 Example Enterprise DNS Records</h3>
+
+<pre>
+vcenter-mum01.corp.novacrestbank.internal
+nsx-mgr01.corp.novacrestbank.internal
+sddc-mgr01.corp.novacrestbank.internal
+supervisor01.corp.novacrestbank.internal
+grafana.k8s.corp.novacrestbank.internal
+argocd.k8s.corp.novacrestbank.internal
+</pre>
+
+</section>
+
+<section id="pki">
+
+    <h2>5. Enterprise PKI Architecture</h2>
+
+    <h3>5.1 What is PKI?</h3>
+
+    <p>
+        A reader may immediately ask:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why do enterprises create their own certificate authorities?
+        <br><br>
+
+        Why not use self-signed certificates everywhere?
+
+    </div>
+
+    <h3>5.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Self-signed certificates create trust problems.
+    </p>
+
+    <p>
+        Enterprise PKI provides:
+    </p>
+
+    <ul>
+
+        <li>Centralized trust</li>
+        <li>Certificate lifecycle management</li>
+        <li>Automated certificate issuance</li>
+        <li>Revocation support</li>
+        <li>Enterprise compliance</li>
+
+    </ul>
+
+    <h3>5.3 Enterprise PKI Hierarchy</h3>
+
+<div class="diagram">
+
+<pre>
++----------------------------------------------------+
+|                Offline Root CA                     |
+|                mum-rootca01                        |
++----------------------------------------------------+
+                      |
+                      |
+          Signs subordinate CA certificate
+                      |
+                      |
++----------------------------------------------------+
+|                Issuing CA                          |
+|                mum-issuingca01                     |
++----------------------------------------------------+
+                      |
+        +-------------+-------------+
+        |             |             |
+   vCenter Cert   NSX Cert     Kubernetes Certs
+
+</pre>
+
+</div>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        Real enterprise environments keep the Root CA offline.
+        <br><br>
+
+        Only the Issuing CA remains online for daily operations.
+
+    </div>
+
+</section>
+
+<section id="certificates">
+
+    <h2>6. Enterprise Certificate Management</h2>
+
+    <h3>6.1 What Uses Certificates?</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>vCenter</td>
+        <td>HTTPS Management</td>
+    </tr>
+
+    <tr>
+        <td>NSX Manager</td>
+        <td>API and UI Security</td>
+    </tr>
+
+    <tr>
+        <td>Tanzu Supervisor</td>
+        <td>Kubernetes API Security</td>
+    </tr>
+
+    <tr>
+        <td>Ingress Controllers</td>
+        <td>Application TLS</td>
+    </tr>
+
+    <tr>
+        <td>Harbor Registry</td>
+        <td>Container Registry Security</td>
+    </tr>
+
+</table>
+
+    <h3>6.2 Enterprise Certificate Lifecycle</h3>
+
+<div class="diagram">
+
+<pre>
+Generate CSR
+      |
+      |
+Submit to Issuing CA
+      |
+      |
+Certificate Signed
+      |
+      |
+Import into Platform
+      |
+      |
+Trust Chain Validation
+      |
+      |
+Certificate Monitoring
+
+</pre>
+
+</div>
+
+    <h3>6.3 Example CSR Generation (vCenter)</h3>
+
+<pre>
+/usr/lib/vmware-vmca/bin/certificate-manager
+</pre>
+
+    <h3>6.4 Example Enterprise SAN Entries</h3>
+
+<pre>
+DNS:vcenter-mum01.corp.novacrestbank.internal
+DNS:vcenter
+IP:10.10.10.20
+</pre>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Modern enterprise certificates must include SAN entries.
+        <br><br>
+
+        Common Name (CN) alone is no longer sufficient.
+
+    </div>
+
+</section>
+
+<section id="ldap">
+
+    <h2>7. LDAP and Active Directory Integration</h2>
+
+    <h3>7.1 Why LDAP Integration Matters</h3>
+
+    <p>
+        Enterprises integrate infrastructure with Active Directory so administrators use centralized enterprise identities.
+    </p>
+
+    <h3>7.2 Enterprise Integration Targets</h3>
+
+<table>
+
+    <tr>
+        <th>Platform</th>
+        <th>Integration Type</th>
+    </tr>
+
+    <tr>
+        <td>vCenter</td>
+        <td>LDAP / Identity Federation</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>LDAP Integration</td>
+    </tr>
+
+    <tr>
+        <td>Tanzu</td>
+        <td>OIDC / LDAP</td>
+    </tr>
+
+    <tr>
+        <td>Harbor</td>
+        <td>LDAP Authentication</td>
+    </tr>
+
+</table>
+
+    <h3>7.3 Example Enterprise LDAP Configuration</h3>
+
+<pre>
+LDAP Server:
+ldaps://mum-dc01.corp.novacrestbank.internal
+
+Bind User:
+svc_ldap_bind
+
+Base DN:
+DC=corp,DC=novacrestbank,DC=internal
+</pre>
+
+</section>
+
+<section id="rbac">
+
+    <h2>8. Enterprise RBAC Design</h2>
+
+    <h3>8.1 What is RBAC?</h3>
+
+    <p>
+        RBAC means Role-Based Access Control.
+    </p>
+
+    <h3>8.2 Why RBAC is Critical</h3>
+
+    <div class="callout danger">
+
+        <strong>Critical:</strong><br><br>
+
+        Real enterprise environments NEVER give full administrator access to everyone.
+        <br><br>
+
+        Least privilege access is mandatory.
+
+    </div>
+
+    <h3>8.3 Enterprise Role Mapping</h3>
+
+<table>
+
+    <tr>
+        <th>Team</th>
+        <th>Access Scope</th>
+    </tr>
+
+    <tr>
+        <td>Platform Team</td>
+        <td>VCF + NSX + Tanzu Administration</td>
+    </tr>
+
+    <tr>
+        <td>Security Team</td>
+        <td>Read-Only + Security Policies</td>
+    </tr>
+
+    <tr>
+        <td>Developers</td>
+        <td>Kubernetes Namespace Access</td>
+    </tr>
+
+    <tr>
+        <td>Auditors</td>
+        <td>Read-Only</td>
+    </tr>
+
+</table>
+
+    <h3>8.4 Enterprise AD Security Groups</h3>
+
+<pre>
+GG-VCF-Admins
+GG-NSX-Admins
+GG-Tanzu-Admins
+GG-K8S-Developers
+GG-Security-Auditors
+</pre>
+
+</section>
+
+<section>
+
+    <h2>9. Enterprise Service Accounts</h2>
+
+    <h3>9.1 Why Service Accounts Exist</h3>
+
+    <p>
+        Automation platforms and enterprise services require non-human accounts.
+    </p>
+
+    <h3>9.2 Enterprise Service Accounts</h3>
+
+<table>
+
+    <tr>
+        <th>Service Account</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>svc_vcenter</td>
+        <td>vCenter Integration</td>
+    </tr>
+
+    <tr>
+        <td>svc_nsx</td>
+        <td>NSX Automation</td>
+    </tr>
+
+    <tr>
+        <td>svc_tanzu</td>
+        <td>Tanzu Platform Operations</td>
+    </tr>
+
+    <tr>
+        <td>svc_backup</td>
+        <td>Enterprise Backup Integration</td>
+    </tr>
+
+</table>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Service accounts should:
+        <br><br>
+
+        • Have non-expiring monitored passwords<br>
+        • Use least privilege access<br>
+        • Be vaulted in CyberArk or Vault<br>
+        • Never be used interactively
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise Certificate Replacement Workflow</h2>
+
+    <h3>10.1 Real Enterprise Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Enterprise PKI
+      |
+      |
+Generate CSR
+      |
+      |
+Sign Certificate
+      |
+      |
+Replace Default Platform Certificates
+      |
+      |
+Restart Platform Services
+      |
+      |
+Validate Trust Chain
+      |
+      |
+Validate Browser Trust
+
+</pre>
+
+</div>
+
+    <h3>10.2 What Happens if We Do NOT Replace Default Certificates?</h3>
+
+    <ul>
+
+        <li>Browser trust warnings occur</li>
+        <li>Automation APIs may fail</li>
+        <li>Kubernetes integrations may fail</li>
+        <li>Compliance audits fail</li>
+        <li>Security posture weakens</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>11. Enterprise Verification and Validation</h2>
+
+    <h3>11.1 Verify DNS Resolution</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>vCenter appliance</li>
+        <li>NSX Manager</li>
+        <li>ESXi hosts</li>
+        <li>Tanzu nodes</li>
+
+    </ul>
+
+<pre>
+nslookup nsx-mgr01.corp.novacrestbank.internal
+
+Server: 10.10.10.11
+Address: 10.10.10.11#53
+
+Name: nsx-mgr01.corp.novacrestbank.internal
+Address: 10.10.10.31
+</pre>
+
+    <h3>11.2 Verify Active Directory Join</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>vCenter UI</li>
+        <li>NSX UI</li>
+
+    </ul>
+
+<pre>
+Domain:
+corp.novacrestbank.internal
+
+Identity Source:
+Active Directory over LDAP
+
+Status:
+CONNECTED
+</pre>
+
+    <h3>11.3 Verify LDAP Connectivity</h3>
+
+<pre>
+ldapsearch -x \
+-H ldaps://mum-dc01.corp.novacrestbank.internal \
+-b "DC=corp,DC=novacrestbank,DC=internal"
+
+Result:
+SUCCESS
+</pre>
+
+    <h3>11.4 Verify Certificate Chain</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>Browser</li>
+        <li>OpenSSL CLI</li>
+
+    </ul>
+
+<pre>
+openssl s_client \
+-connect vcenter-mum01.corp.novacrestbank.internal:443
+
+Certificate chain
+ 0 s:/CN=vcenter-mum01.corp.novacrestbank.internal
+   i:/CN=NovaCrestBank Issuing CA
+
+Verify return code: 0 (ok)
+</pre>
+
+    <h3>11.5 Verify Certificate Expiry</h3>
+
+<pre>
+for store in $(/usr/lib/vmware-vmafd/bin/vecs-cli store list); do
+/usr/lib/vmware-vmafd/bin/vecs-cli entry list \
+--store $store --text | grep "Not After"
+done
+
+Not After : Jan 15 12:00:00 2028 GMT
+</pre>
+
+    <h3>11.6 Verify Enterprise RBAC</h3>
+
+<pre>
+User:
+john.smith@corp.novacrestbank.internal
+
+Assigned Role:
+Tanzu Namespace Developer
+
+Permissions:
+kubectl get pods --> ALLOWED
+kubectl delete namespace --> DENIED
+</pre>
+
+</section>
+
+<section>
+
+    <h2>12. Real Enterprise Understanding</h2>
+
+    <h3>12.1 What We Have Built So Far</h3>
+
+    <ul>
+
+        <li>Enterprise identity architecture</li>
+        <li>Enterprise PKI hierarchy</li>
+        <li>Centralized authentication</li>
+        <li>Enterprise trust model</li>
+        <li>RBAC governance foundation</li>
+        <li>Certificate lifecycle foundation</li>
+
+    </ul>
+
+    <h3>12.2 What Still Does NOT Exist Yet</h3>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Tanzu Kubernetes workload platforms still do not exist yet.
+        <br><br>
+
+        We are still building:
+        <br><br>
+
+        • Enterprise private cloud foundation<br>
+        • Enterprise networking foundation<br>
+        • Enterprise identity and trust foundation
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>13. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>11.vcf-workload-domain-and-nsx-expansion.html</td>
+        <td>Enterprise workload domain deployment, additional NSX clusters, production compute expansion, edge scaling, and workload-domain architecture for Tanzu and Kubernetes platforms.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="9.nsx-enterprise-networking-foundation.html">
+        ← Previous Guide
+    </a>
+
+    <a href="11.vcf-workload-domain-and-nsx-expansion.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

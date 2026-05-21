@@ -1,0 +1,1424 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Ingress, Load Balancing and Service Mesh</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --blue: #38bdf8;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid #1e293b;
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            max-width: 1450px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0b1220;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #0b1220;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--blue);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .callout {
+            border-left: 5px solid #22c55e;
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: #f59e0b;
+        }
+
+        .danger {
+            border-left-color: #ef4444;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            color: white;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise Ingress, Load Balancing and Service Mesh
+        </div>
+
+        <div class="hero-subtitle">
+            Designing and implementing enterprise-grade ingress architecture, NSX Advanced Load Balancer (AVI), Kubernetes ingress controllers, north-south traffic flow, east-west service communication, TLS termination, service mesh architecture, and secure application delivery for VMware Kubernetes Service (VKS) workloads running on VMware Cloud Foundation (VCF) with NSX.
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">NSX Advanced Load Balancer</span>
+            <span class="badge">Ingress</span>
+            <span class="badge">Service Mesh</span>
+            <span class="badge">TLS</span>
+            <span class="badge">North-South Traffic</span>
+            <span class="badge">East-West Traffic</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#why">Why Ingress</a>
+        <a href="#avi">NSX AVI</a>
+        <a href="#ingress">Ingress Controllers</a>
+        <a href="#tls">TLS</a>
+        <a href="#mesh">Service Mesh</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guide, we implemented:
+    </p>
+
+    <ul>
+
+        <li>Enterprise observability</li>
+        <li>Prometheus monitoring</li>
+        <li>Grafana dashboards</li>
+        <li>Centralized logging</li>
+        <li>OpenTelemetry tracing</li>
+        <li>Alerting architecture</li>
+
+    </ul>
+
+    <p>
+        However, another critical enterprise platform capability still does not exist.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Reader Question:</strong><br><br>
+
+        We deployed applications inside Kubernetes.
+        <br><br>
+
+        But:
+        <br><br>
+
+        • How do customers access applications?<br>
+        • How does traffic enter Kubernetes?<br>
+        • How is TLS implemented?<br>
+        • How do enterprises perform load balancing?<br>
+        • How are APIs exposed securely?<br>
+        • How is east-west service communication secured?<br>
+        • How do microservices communicate securely?
+
+    </div>
+
+    <p>
+        This guide solves those enterprise production requirements.
+    </p>
+
+</section>
+
+<section id="why">
+
+    <h2>2. Real Enterprise Understanding</h2>
+
+    <h3>2.1 What is Ingress</h3>
+
+    <p>
+        Ingress means:
+    </p>
+
+    <div class="diagram">
+
+<pre>
+External Users
+      |
+      |
+Internet / Enterprise Network
+      |
+      |
+Load Balancer
+      |
+      |
+Ingress Controller
+      |
+      |
+Kubernetes Services
+      |
+      |
+Pods
+
+</pre>
+
+    </div>
+
+    <h3>2.2 Beginner-Friendly Explanation</h3>
+
+    <p>
+        By default:
+    </p>
+
+    <ul>
+
+        <li>Kubernetes pods are internal</li>
+        <li>Applications are not reachable externally</li>
+        <li>No enterprise routing exists</li>
+        <li>No TLS exists</li>
+        <li>No enterprise load balancing exists</li>
+
+    </ul>
+
+    <p>
+        Ingress architecture solves these problems.
+    </p>
+
+</section>
+
+<section>
+
+    <h2>3. Why Enterprises Need Enterprise Load Balancers</h2>
+
+    <h3>3.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why not simply expose Kubernetes NodePort services?
+        <br><br>
+
+        Why do enterprises deploy dedicated load balancers?
+
+    </div>
+
+    <h3>3.2 Real Enterprise Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>NodePort Problem</th>
+        <th>Enterprise Requirement</th>
+    </tr>
+
+    <tr>
+        <td>No enterprise TLS</td>
+        <td>Centralized TLS termination</td>
+    </tr>
+
+    <tr>
+        <td>No WAF</td>
+        <td>Web Application Firewall</td>
+    </tr>
+
+    <tr>
+        <td>Limited scalability</td>
+        <td>Enterprise scalability</td>
+    </tr>
+
+    <tr>
+        <td>No traffic analytics</td>
+        <td>Operational visibility</td>
+    </tr>
+
+    <tr>
+        <td>No advanced routing</td>
+        <td>Application-aware routing</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="avi">
+
+    <h2>4. NSX Advanced Load Balancer (AVI)</h2>
+
+    <h3>4.1 What is AVI</h3>
+
+    <p>
+        NSX Advanced Load Balancer (formerly AVI Networks) is VMware/Broadcom’s enterprise-grade software-defined load balancer platform.
+    </p>
+
+    <h3>4.2 Real Enterprise Understanding</h3>
+
+    <p>
+        Enterprises use AVI for:
+    </p>
+
+    <ul>
+
+        <li>Kubernetes ingress</li>
+        <li>Application load balancing</li>
+        <li>TLS termination</li>
+        <li>Global load balancing</li>
+        <li>Web Application Firewall (WAF)</li>
+        <li>Application analytics</li>
+
+    </ul>
+
+    <h3>4.3 AVI Architecture</h3>
+
+<div class="diagram">
+
+<pre>
++------------------------------------------------+
+| AVI Controller Cluster                         |
++------------------------------------------------+
+                 |
+                 |
+        +----------------+
+        | Service Engines |
+        +----------------+
+                 |
+                 |
+        +----------------+
+        | Kubernetes     |
+        | Ingress        |
+        +----------------+
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>5. Enterprise Traffic Flow Architecture</h2>
+
+<div class="diagram">
+
+<pre>
+Customer Browser
+        |
+        |
+External DNS
+        |
+        |
+NSX Advanced Load Balancer
+        |
+        |
+Ingress Controller
+        |
+        |
+Kubernetes Services
+        |
+        |
+Microservices
+
+</pre>
+
+</div>
+
+    <h3>5.1 Real Enterprise Traffic Layers</h3>
+
+<table>
+
+    <tr>
+        <th>Layer</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>DNS</td>
+        <td>Name resolution</td>
+    </tr>
+
+    <tr>
+        <td>Load Balancer</td>
+        <td>Traffic distribution</td>
+    </tr>
+
+    <tr>
+        <td>Ingress</td>
+        <td>HTTP routing</td>
+    </tr>
+
+    <tr>
+        <td>Service</td>
+        <td>Internal abstraction</td>
+    </tr>
+
+    <tr>
+        <td>Pods</td>
+        <td>Application workloads</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="ingress">
+
+    <h2>6. Enterprise Ingress Controllers</h2>
+
+    <h3>6.1 What is an Ingress Controller</h3>
+
+    <p>
+        Kubernetes ingress resources alone do nothing.
+    </p>
+
+    <p>
+        An ingress controller:
+    </p>
+
+    <ul>
+
+        <li>Reads ingress definitions</li>
+        <li>Creates routing rules</li>
+        <li>Handles HTTP/HTTPS traffic</li>
+        <li>Routes requests to applications</li>
+
+    </ul>
+
+    <h3>6.2 Enterprise Ingress Controller Options</h3>
+
+<table>
+
+    <tr>
+        <th>Ingress Controller</th>
+        <th>Enterprise Usage</th>
+    </tr>
+
+    <tr>
+        <td>NGINX Ingress</td>
+        <td>Most common</td>
+    </tr>
+
+    <tr>
+        <td>AVI Kubernetes Operator</td>
+        <td>VMware-native integration</td>
+    </tr>
+
+    <tr>
+        <td>Contour</td>
+        <td>Tanzu ecosystem</td>
+    </tr>
+
+    <tr>
+        <td>Istio Gateway</td>
+        <td>Service mesh integration</td>
+    </tr>
+
+</table>
+
+    <h3>6.3 Real Enterprise Recommendation</h3>
+
+    <div class="callout">
+
+        <strong>NovaCrestBank Standard:</strong><br><br>
+
+        For VCF + NSX + VKS environments:
+        <br><br>
+
+        • NSX Advanced Load Balancer (AVI)<br>
+        • AVI Kubernetes Operator (AKO)<br>
+        • Contour/Envoy ingress architecture<br>
+        • Enterprise TLS integration
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>7. Deploy AVI Kubernetes Operator (AKO)</h2>
+
+    <h3>7.1 What is AKO</h3>
+
+    <p>
+        AKO means:
+    </p>
+
+<pre>
+AVI Kubernetes Operator
+</pre>
+
+    <p>
+        AKO automatically integrates Kubernetes ingress resources with NSX Advanced Load Balancer.
+    </p>
+
+    <h3>7.2 Enterprise AKO Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Ingress Resource Created
+            |
+            |
+AKO Detects Ingress
+            |
+            |
+AVI Automatically Creates:
+    |
+    |--- Virtual Service
+    |--- Pool
+    |--- VIP
+    |--- TLS Configuration
+
+</pre>
+
+</div>
+
+    <h3>7.3 Verify AKO Deployment</h3>
+
+<pre>
+kubectl get pods -n avi-system
+
+NAME                                  STATUS
+ako-0                                 Running
+avi-k8s-controller                    Running
+</pre>
+
+</section>
+
+<section>
+
+    <h2>8. Enterprise DNS Architecture</h2>
+
+    <h3>8.1 Why DNS Matters</h3>
+
+    <p>
+        Enterprise applications are never accessed using raw IP addresses.
+    </p>
+
+    <h3>8.2 Enterprise DNS Example</h3>
+
+<table>
+
+    <tr>
+        <th>Application</th>
+        <th>DNS Name</th>
+    </tr>
+
+    <tr>
+        <td>Customer Banking Portal</td>
+        <td>banking.apps.novacrestbank.internal</td>
+    </tr>
+
+    <tr>
+        <td>Payments API</td>
+        <td>payments-api.apps.novacrestbank.internal</td>
+    </tr>
+
+    <tr>
+        <td>Grafana</td>
+        <td>grafana.ops.novacrestbank.internal</td>
+    </tr>
+
+</table>
+
+    <h3>8.3 Enterprise DNS Flow</h3>
+
+<div class="diagram">
+
+<pre>
+User Request
+     |
+     |
+Enterprise DNS
+     |
+     |
+AVI VIP
+     |
+     |
+Ingress Controller
+     |
+     |
+Application Pods
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="tls">
+
+    <h2>9. Enterprise TLS and Certificate Management</h2>
+
+    <h3>9.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Where does HTTPS happen?
+        <br><br>
+
+        On the pod?
+        <br><br>
+
+        On the ingress controller?
+        <br><br>
+
+        On the load balancer?
+
+    </div>
+
+    <h3>9.2 Real Enterprise TLS Architecture</h3>
+
+<table>
+
+    <tr>
+        <th>Location</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>AVI Load Balancer</td>
+        <td>Primary TLS termination</td>
+    </tr>
+
+    <tr>
+        <td>Ingress Controller</td>
+        <td>Optional re-encryption</td>
+    </tr>
+
+    <tr>
+        <td>Pod</td>
+        <td>Application-level TLS if required</td>
+    </tr>
+
+</table>
+
+    <h3>9.3 Enterprise Certificate Sources</h3>
+
+<table>
+
+    <tr>
+        <th>Certificate Source</th>
+        <th>Usage</th>
+    </tr>
+
+    <tr>
+        <td>Enterprise Internal PKI</td>
+        <td>Internal applications</td>
+    </tr>
+
+    <tr>
+        <td>Public CA</td>
+        <td>Internet-facing apps</td>
+    </tr>
+
+    <tr>
+        <td>cert-manager</td>
+        <td>Kubernetes certificate automation</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>10. Example Enterprise Ingress Deployment</h2>
+
+    <h3>10.1 Create Application Namespace</h3>
+
+<pre>
+kubectl create namespace banking-apps
+</pre>
+
+    <h3>10.2 Deploy Sample Application</h3>
+
+<pre>
+kubectl create deployment customer-portal \
+--image=nginx \
+-n banking-apps
+</pre>
+
+    <h3>10.3 Expose Kubernetes Service</h3>
+
+<pre>
+kubectl expose deployment customer-portal \
+--port=80 \
+--target-port=80 \
+--type=ClusterIP \
+-n banking-apps
+</pre>
+
+    <h3>10.4 Create Ingress Resource</h3>
+
+<pre>
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: customer-portal-ingress
+  namespace: banking-apps
+spec:
+  ingressClassName: avi-lb
+  tls:
+  - hosts:
+    - banking.apps.novacrestbank.internal
+    secretName: banking-tls-secret
+
+  rules:
+  - host: banking.apps.novacrestbank.internal
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: customer-portal
+            port:
+              number: 80
+</pre>
+
+</section>
+
+<section>
+
+    <h2>11. Understanding the Ingress YAML</h2>
+
+<table>
+
+    <tr>
+        <th>Directive</th>
+        <th>Explanation</th>
+    </tr>
+
+    <tr>
+        <td>kind: Ingress</td>
+        <td>Creates ingress routing rules</td>
+    </tr>
+
+    <tr>
+        <td>ingressClassName</td>
+        <td>Selects ingress controller</td>
+    </tr>
+
+    <tr>
+        <td>tls</td>
+        <td>Defines HTTPS configuration</td>
+    </tr>
+
+    <tr>
+        <td>host</td>
+        <td>DNS hostname</td>
+    </tr>
+
+    <tr>
+        <td>path</td>
+        <td>Application URL path</td>
+    </tr>
+
+    <tr>
+        <td>backend</td>
+        <td>Target Kubernetes service</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>12. Enterprise East-West Traffic Problem</h2>
+
+    <h3>12.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        External traffic is north-south traffic.
+        <br><br>
+
+        But how do microservices securely communicate internally?
+
+    </div>
+
+    <h3>12.2 Real Enterprise Understanding</h3>
+
+    <p>
+        Modern applications contain many microservices.
+    </p>
+
+    <p>
+        Example:
+    </p>
+
+<div class="diagram">
+
+<pre>
+Frontend Service
+      |
+      |
+Payments API
+      |
+      |
+Fraud Detection API
+      |
+      |
+Customer Database API
+
+</pre>
+
+</div>
+
+    <p>
+        This internal service communication is called:
+    </p>
+
+<pre>
+East-West Traffic
+</pre>
+
+</section>
+
+<section id="mesh">
+
+    <h2>13. What is Service Mesh</h2>
+
+    <h3>13.1 Beginner-Friendly Explanation</h3>
+
+    <p>
+        A service mesh is an infrastructure layer that manages communication between microservices.
+    </p>
+
+    <h3>13.2 Enterprise Service Mesh Capabilities</h3>
+
+<table>
+
+    <tr>
+        <th>Capability</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>mTLS</td>
+        <td>Encrypted service communication</td>
+    </tr>
+
+    <tr>
+        <td>Traffic Policies</td>
+        <td>Routing control</td>
+    </tr>
+
+    <tr>
+        <td>Retries</td>
+        <td>Fault tolerance</td>
+    </tr>
+
+    <tr>
+        <td>Circuit Breaking</td>
+        <td>Failure isolation</td>
+    </tr>
+
+    <tr>
+        <td>Observability</td>
+        <td>Traffic visibility</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>14. Enterprise Service Mesh Architecture</h2>
+
+<div class="diagram">
+
+<pre>
++------------------------------------------------+
+| Service Mesh Control Plane                     |
++------------------------------------------------+
+          |               |               |
+          |               |               |
+          v               v               v
+
++----------------+ +----------------+ +----------------+
+| Frontend Pod   | | Payments Pod   | | Fraud API Pod |
+| Sidecar Proxy  | | Sidecar Proxy  | | Sidecar Proxy |
++----------------+ +----------------+ +----------------+
+
+</pre>
+
+</div>
+
+    <h3>14.1 What is a Sidecar Proxy</h3>
+
+    <p>
+        A sidecar proxy is an additional container attached to application pods.
+    </p>
+
+    <p>
+        The proxy:
+    </p>
+
+    <ul>
+
+        <li>Intercepts traffic</li>
+        <li>Encrypts traffic</li>
+        <li>Applies policies</li>
+        <li>Collects telemetry</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>15. Enterprise Service Mesh Options</h2>
+
+<table>
+
+    <tr>
+        <th>Service Mesh</th>
+        <th>Enterprise Usage</th>
+    </tr>
+
+    <tr>
+        <td>Istio</td>
+        <td>Most enterprise common</td>
+    </tr>
+
+    <tr>
+        <td>Linkerd</td>
+        <td>Lightweight environments</td>
+    </tr>
+
+    <tr>
+        <td>Consul</td>
+        <td>HashiCorp ecosystems</td>
+    </tr>
+
+</table>
+
+    <h3>15.1 Real Enterprise Recommendation</h3>
+
+    <div class="callout">
+
+        <strong>NovaCrestBank Standard:</strong><br><br>
+
+        • Istio service mesh<br>
+        • mTLS everywhere internally<br>
+        • East-west traffic encryption<br>
+        • Enterprise traffic governance<br>
+        • Zero-trust microservice communication
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>16. Enterprise Zero-Trust Traffic Model</h2>
+
+<div class="diagram">
+
+<pre>
+Traditional Network:
+    |
+    |
+Trusted Internal Traffic
+
+--------------------------------------------
+
+Zero Trust Model:
+    |
+    |
+NO implicit trust
+    |
+    |
+Every service authenticated
+Every connection encrypted
+Every request validated
+
+</pre>
+
+</div>
+
+    <h3>16.1 Why Enterprises Use Zero Trust</h3>
+
+<ul>
+
+    <li>Prevents lateral movement</li>
+    <li>Protects microservices</li>
+    <li>Limits attack propagation</li>
+    <li>Improves compliance posture</li>
+
+</ul>
+
+</section>
+
+<section>
+
+    <h2>17. Enterprise North-South vs East-West Traffic</h2>
+
+<table>
+
+    <tr>
+        <th>Traffic Type</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>North-South</td>
+        <td>User to application traffic</td>
+    </tr>
+
+    <tr>
+        <td>East-West</td>
+        <td>Service-to-service traffic</td>
+    </tr>
+
+</table>
+
+    <h3>17.1 Enterprise Real-Time Example</h3>
+
+<table>
+
+    <tr>
+        <th>Example</th>
+        <th>Traffic Type</th>
+    </tr>
+
+    <tr>
+        <td>Customer opening banking website</td>
+        <td>North-South</td>
+    </tr>
+
+    <tr>
+        <td>Frontend calling payment API</td>
+        <td>East-West</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>18. Enterprise Security Integration</h2>
+
+    <h3>18.1 NSX Integration</h3>
+
+    <p>
+        NSX integrates with:
+    </p>
+
+<ul>
+
+    <li>Kubernetes ingress</li>
+    <li>AVI load balancing</li>
+    <li>Distributed firewall</li>
+    <li>Microsegmentation</li>
+
+</ul>
+
+    <h3>18.2 Enterprise Security Controls</h3>
+
+<table>
+
+    <tr>
+        <th>Control</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>WAF</td>
+        <td>Web attack protection</td>
+    </tr>
+
+    <tr>
+        <td>DDoS Protection</td>
+        <td>Traffic flood mitigation</td>
+    </tr>
+
+    <tr>
+        <td>mTLS</td>
+        <td>Encrypted east-west traffic</td>
+    </tr>
+
+    <tr>
+        <td>Ingress Policies</td>
+        <td>Application exposure control</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="verification">
+
+    <h2>19. Enterprise Verification and Validation</h2>
+
+    <h3>19.1 Verify Ingress Resources</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+        <li>kubectl</li>
+    </ul>
+
+<pre>
+kubectl get ingress -A
+
+NAMESPACE       NAME                        HOSTS
+banking-apps    customer-portal-ingress    banking.apps.novacrestbank.internal
+</pre>
+
+    <h3>19.2 Verify External VIP</h3>
+
+<pre>
+kubectl get svc -A
+
+NAMESPACE         NAME                   TYPE           EXTERNAL-IP
+ingress-system    contour-envoy          LoadBalancer   172.16.40.210
+</pre>
+
+    <h3>19.3 Verify DNS Resolution</h3>
+
+<pre>
+nslookup banking.apps.novacrestbank.internal
+
+Server:  dc1.corp.novacrestbank.internal
+Address: 172.16.10.11
+
+Name: banking.apps.novacrestbank.internal
+Address: 172.16.40.210
+</pre>
+
+    <h3>19.4 Verify HTTPS Access</h3>
+
+<pre>
+curl -vk https://banking.apps.novacrestbank.internal
+
+HTTP/2 200
+server: envoy
+content-type: text/html
+</pre>
+
+    <h3>19.5 Verify AKO Integration</h3>
+
+<pre>
+kubectl logs ako-0 -n avi-system
+
+INFO Successfully created Virtual Service
+INFO VIP allocated: 172.16.40.210
+INFO Ingress synced successfully
+</pre>
+
+    <h3>19.6 Verify Service Mesh Pods</h3>
+
+<pre>
+kubectl get pods -n banking-apps
+
+NAME                                 READY
+frontend-7f68d7c7b9-zfhd9            2/2
+payments-api-58bc8df5db-hx7pt       2/2
+fraud-api-85dc9b9cf8-lm88s          2/2
+</pre>
+
+    <h3>19.7 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why do pods show:
+        <br><br>
+
+        2/2
+        <br><br>
+
+        instead of:
+        <br><br>
+
+        1/1
+
+    </div>
+
+    <h3>19.8 Real Enterprise Explanation</h3>
+
+    <p>
+        Because:
+    </p>
+
+    <ul>
+
+        <li>One container is the application</li>
+        <li>One container is the service mesh sidecar proxy</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>20. Real Enterprise Understanding</h2>
+
+    <h3>20.1 What We Have Built</h3>
+
+<ul>
+
+    <li>Enterprise ingress architecture</li>
+    <li>NSX Advanced Load Balancer integration</li>
+    <li>Kubernetes ingress</li>
+    <li>Enterprise TLS architecture</li>
+    <li>North-south traffic management</li>
+    <li>East-west service communication</li>
+    <li>Service mesh foundation</li>
+    <li>Zero-trust networking</li>
+
+</ul>
+
+    <h3>20.2 What Still Does NOT Exist Yet</h3>
+
+<div class="callout warning">
+
+    <strong>Important:</strong><br><br>
+
+    We now have enterprise application delivery.
+    <br><br>
+
+    However, we still do not yet have:
+    <br><br>
+
+    • Enterprise CI/CD pipelines<br>
+    • Internal software supply chain security<br>
+    • Enterprise artifact promotion workflows<br>
+    • Developer platform automation<br>
+    • Secure SDLC pipelines
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>21. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>18.enterprise-ci-cd-and-secure-software-supply-chain.html</td>
+        <td>Implement enterprise CI/CD pipelines, secure software supply chain architecture, container image signing, artifact promotion workflows, developer platform automation, secure SDLC pipelines, Git-integrated deployment workflows, and enterprise-grade application delivery security for VKS workloads running on VCF with NSX.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="16.enterprise-observability-monitoring-and-logging.html">
+        ← Previous Guide
+    </a>
+
+    <a href="18.enterprise-ci-cd-and-secure-software-supply-chain.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

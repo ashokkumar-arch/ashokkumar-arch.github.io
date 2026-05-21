@@ -1,0 +1,956 @@
+```html id="s9m4vf"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco Spine-Leaf Underlay Deployment</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Cisco Spine-Leaf Underlay Deployment
+        </div>
+
+        <div class="hero-subtitle">
+            Production-Grade Cisco Nexus Underlay Deployment for VMware Cloud Foundation, NSX, Tanzu Kubernetes Service, and Enterprise Platform Engineering
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">Cisco Nexus</span>
+            <span class="badge">Spine-Leaf</span>
+            <span class="badge">BGP</span>
+            <span class="badge">vPC</span>
+            <span class="badge">NSX Ready</span>
+            <span class="badge">VCF Ready</span>
+            <span class="badge">Enterprise Production</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#topology">Topology</a>
+        <a href="#planning">Planning</a>
+        <a href="#bootstrap">Bootstrap</a>
+        <a href="#spines">Spine Config</a>
+        <a href="#leafs">Leaf Config</a>
+        <a href="#vpc">vPC</a>
+        <a href="#bgp">BGP</a>
+        <a href="#verification">Verification</a>
+        <a href="#handoff">VCF Handoff</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide deploys the enterprise Cisco Nexus spine-leaf underlay fabric that becomes the physical networking foundation for the NovaCrestBank VMware Cloud Foundation and Tanzu platform.
+    </p>
+
+    <p>
+        This underlay fabric is responsible for:
+    </p>
+
+    <ul>
+
+        <li>Providing Layer-3 routed connectivity</li>
+        <li>Supporting NSX overlay networking</li>
+        <li>Providing low-latency east-west traffic flow</li>
+        <li>Supporting enterprise Kubernetes networking</li>
+        <li>Providing scalable BGP route distribution</li>
+        <li>Supporting future AI and GPU workload scaling</li>
+
+    </ul>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        VMware Cloud Foundation, NSX, Kubernetes, observability, GitOps, AI workloads, and future hybrid-cloud networking all depend on the physical fabric being designed correctly from the beginning.
+        <br><br>
+
+        This guide focuses on production-grade enterprise networking principles rather than simple lab-only deployment shortcuts.
+
+    </div>
+
+</section>
+
+<section id="topology">
+
+    <h2>2. Enterprise Physical Topology</h2>
+
+    <h3>2.1 Primary Data Center Topology</h3>
+
+    <div class="diagram">
+
+<pre>
+                              +------------------+
+                              |    Spine-01      |
+                              |   ASN: 65100     |
+                              +--------+---------+
+                                       |
+                              +--------+---------+
+                              |    Spine-02      |
+                              |   ASN: 65100     |
+                              +--------+---------+
+                                       |
+        ----------------------------------------------------------------
+
+            |                     |                     |               |
+
+      +-----+------+       +-----+------+       +------+-----+    +-----+------+
+      |   Leaf-01  |       |   Leaf-02  |       |   Leaf-03 |    |   Leaf-04  |
+      | ASN:65101  |       | ASN:65102  |       | ASN:65103 |    | ASN:65104  |
+      +------+------+       +------+------+       +------+-----+    +-----+------+
+             |                     |                     |                 |
+
+       ESXi Management       ESXi Compute          NSX Edge          Storage / Backup
+
+</pre>
+
+    </div>
+
+    <h3>2.2 Enterprise Design Goals</h3>
+
+    <table>
+
+        <tr>
+            <th>Goal</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>High Availability</td>
+            <td>Eliminate single points of failure.</td>
+        </tr>
+
+        <tr>
+            <td>Scalable Routing</td>
+            <td>Support future workload growth.</td>
+        </tr>
+
+        <tr>
+            <td>NSX Ready</td>
+            <td>Prepare for NSX overlay networking.</td>
+        </tr>
+
+        <tr>
+            <td>Kubernetes Ready</td>
+            <td>Support future Tanzu networking requirements.</td>
+        </tr>
+
+        <tr>
+            <td>Hybrid Cloud Ready</td>
+            <td>Prepare for future AKS integration.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="planning">
+
+    <h2>3. Enterprise Fabric Planning</h2>
+
+    <h3>3.1 Device Naming Standards</h3>
+
+<table>
+
+    <tr>
+        <th>Device</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>mum-spine-01</td>
+        <td>Primary Spine Switch 01</td>
+    </tr>
+
+    <tr>
+        <td>mum-spine-02</td>
+        <td>Primary Spine Switch 02</td>
+    </tr>
+
+    <tr>
+        <td>mum-leaf-01</td>
+        <td>ESXi Management Leaf</td>
+    </tr>
+
+    <tr>
+        <td>mum-leaf-02</td>
+        <td>ESXi Compute Leaf</td>
+    </tr>
+
+    <tr>
+        <td>mum-leaf-03</td>
+        <td>NSX Edge Leaf</td>
+    </tr>
+
+</table>
+
+    <h3>3.2 BGP ASN Planning</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>ASN</th>
+    </tr>
+
+    <tr>
+        <td>Spine Fabric</td>
+        <td>65100</td>
+    </tr>
+
+    <tr>
+        <td>Leaf-01</td>
+        <td>65101</td>
+    </tr>
+
+    <tr>
+        <td>Leaf-02</td>
+        <td>65102</td>
+    </tr>
+
+    <tr>
+        <td>Leaf-03</td>
+        <td>65103</td>
+    </tr>
+
+    <tr>
+        <td>NSX Tier-0</td>
+        <td>65200</td>
+    </tr>
+
+</table>
+
+    <h3>3.3 Enterprise VLAN Allocation</h3>
+
+<table>
+
+    <tr>
+        <th>VLAN</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>10</td>
+        <td>OOB Management</td>
+    </tr>
+
+    <tr>
+        <td>20</td>
+        <td>ESXi Management</td>
+    </tr>
+
+    <tr>
+        <td>30</td>
+        <td>vMotion</td>
+    </tr>
+
+    <tr>
+        <td>40</td>
+        <td>vSAN</td>
+    </tr>
+
+    <tr>
+        <td>50</td>
+        <td>NSX Host TEP</td>
+    </tr>
+
+    <tr>
+        <td>60</td>
+        <td>NSX Edge TEP</td>
+    </tr>
+
+    <tr>
+        <td>70</td>
+        <td>VCF Management</td>
+    </tr>
+
+    <tr>
+        <td>80</td>
+        <td>Supervisor Cluster</td>
+    </tr>
+
+    <tr>
+        <td>90</td>
+        <td>Kubernetes VIPs</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="bootstrap">
+
+    <h2>4. Initial Cisco Nexus Bootstrap</h2>
+
+    <h3>4.1 Initial Login</h3>
+
+    <p>
+        After physically cabling the switches and connecting console access, perform the initial Cisco Nexus bootstrap configuration.
+    </p>
+
+<pre>
+switch&gt; enable
+switch# configure terminal
+</pre>
+
+    <h3>4.2 Configure Hostname</h3>
+
+<pre>
+hostname mum-spine-01
+</pre>
+
+    <h3>4.3 Configure Management Interface</h3>
+
+<pre>
+interface mgmt0
+  ip address 10.10.10.11/24
+  no shutdown
+</pre>
+
+    <h3>4.4 Configure Default Route</h3>
+
+<pre>
+ip route 0.0.0.0/0 10.10.10.1
+</pre>
+
+    <h3>4.5 Configure NTP</h3>
+
+<pre>
+ntp server 10.10.70.40
+</pre>
+
+    <h3>4.6 Configure DNS</h3>
+
+<pre>
+ip domain-lookup
+ip name-server 10.10.70.40
+</pre>
+
+    <h3>4.7 Configure Local Administrative User</h3>
+
+<pre>
+username netadmin password STRONG_PASSWORD role network-admin
+</pre>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Local administrator accounts are initially required during bootstrap.
+        <br><br>
+
+        Later guides integrate Cisco infrastructure with:
+        <br><br>
+
+        • Active Directory<br>
+        • TACACS+<br>
+        • Centralized authentication<br>
+        • Enterprise RBAC policies
+
+    </div>
+
+</section>
+
+<section id="spines">
+
+    <h2>5. Spine Switch Configuration</h2>
+
+    <h3>5.1 Enable Required Features</h3>
+
+<pre>
+feature bgp
+feature interface-vlan
+feature ospf
+feature lacp
+feature nv overlay
+feature vn-segment-vlan-based
+</pre>
+
+    <h3>5.2 Configure Spine Uplink Interfaces</h3>
+
+<pre>
+interface ethernet1/1
+  description TO-LEAF-01
+  no switchport
+  ip address 172.16.0.1/31
+  no shutdown
+
+interface ethernet1/2
+  description TO-LEAF-02
+  no switchport
+  ip address 172.16.0.3/31
+  no shutdown
+</pre>
+
+    <h3>5.3 Configure BGP on Spine</h3>
+
+<pre>
+router bgp 65100
+
+  router-id 10.255.0.1
+
+  neighbor 172.16.0.0 remote-as 65101
+  neighbor 172.16.0.2 remote-as 65102
+
+  address-family ipv4 unicast
+</pre>
+
+</section>
+
+<section id="leafs">
+
+    <h2>6. Leaf Switch Configuration</h2>
+
+    <h3>6.1 Configure Leaf Hostname</h3>
+
+<pre>
+hostname mum-leaf-01
+</pre>
+
+    <h3>6.2 Enable Features</h3>
+
+<pre>
+feature bgp
+feature lacp
+feature interface-vlan
+feature vn-segment-vlan-based
+</pre>
+
+    <h3>6.3 Configure Uplink Interfaces to Spine</h3>
+
+<pre>
+interface ethernet1/49
+  description TO-SPINE-01
+  no switchport
+  ip address 172.16.0.0/31
+  no shutdown
+
+interface ethernet1/50
+  description TO-SPINE-02
+  no switchport
+  ip address 172.16.0.4/31
+  no shutdown
+</pre>
+
+    <h3>6.4 Configure VLANs</h3>
+
+<pre>
+vlan 20
+  name ESXI-MGMT
+
+vlan 30
+  name VMOTION
+
+vlan 40
+  name VSAN
+
+vlan 50
+  name NSX-HOST-TEP
+</pre>
+
+    <h3>6.5 Configure Trunk Port Toward ESXi</h3>
+
+<pre>
+interface ethernet1/10
+
+  description ESXI-HOST-01
+
+  switchport
+  switchport mode trunk
+
+  switchport trunk allowed vlan 20,30,40,50,60,70,80,90
+
+  spanning-tree port type edge trunk
+
+  no shutdown
+</pre>
+
+</section>
+
+<section id="vpc">
+
+    <h2>7. vPC Configuration</h2>
+
+    <h3>7.1 Why vPC?</h3>
+
+    <p>
+        vPC (Virtual Port Channel) allows ESXi hosts to connect redundantly to two separate leaf switches while appearing as a single logical switch.
+    </p>
+
+    <p>
+        This eliminates:
+    </p>
+
+    <ul>
+
+        <li>Single switch dependency</li>
+        <li>STP blocking issues</li>
+        <li>Bandwidth inefficiency</li>
+
+    </ul>
+
+    <h3>7.2 Configure vPC Domain</h3>
+
+<pre>
+vpc domain 10
+
+  peer-switch
+  peer-keepalive destination 10.10.10.12
+
+</pre>
+
+    <h3>7.3 Configure Peer Link</h3>
+
+<pre>
+interface port-channel1
+
+  switchport
+  switchport mode trunk
+  vpc peer-link
+
+interface ethernet1/47
+  channel-group 1 mode active
+
+interface ethernet1/48
+  channel-group 1 mode active
+</pre>
+
+    <h3>7.4 Configure ESXi vPC Port-Channel</h3>
+
+<pre>
+interface port-channel10
+
+  description ESXI-HOST-01
+
+  switchport
+  switchport mode trunk
+
+  vpc 10
+</pre>
+
+</section>
+
+<section id="bgp">
+
+    <h2>8. BGP Underlay Deployment</h2>
+
+    <h3>8.1 Configure BGP on Leaf</h3>
+
+<pre>
+router bgp 65101
+
+  router-id 10.255.1.1
+
+  neighbor 172.16.0.1 remote-as 65100
+  neighbor 172.16.0.5 remote-as 65100
+
+  address-family ipv4 unicast
+</pre>
+
+    <h3>8.2 Verify BGP Neighbors</h3>
+
+<pre>
+show bgp sessions
+</pre>
+
+    <h3>8.3 Expected Result</h3>
+
+<pre>
+Neighbor        ASN        State
+-------------------------------------
+172.16.0.1      65100      Established
+172.16.0.5      65100      Established
+</pre>
+
+</section>
+
+<section id="verification">
+
+    <h2>9. Enterprise Fabric Verification</h2>
+
+    <h3>9.1 Verify Interface Status</h3>
+
+<pre>
+show interface brief
+</pre>
+
+    <h3>9.2 Verify VLANs</h3>
+
+<pre>
+show vlan brief
+</pre>
+
+    <h3>9.3 Verify vPC Status</h3>
+
+<pre>
+show vpc
+</pre>
+
+    <h3>9.4 Verify BGP Routing</h3>
+
+<pre>
+show ip bgp summary
+</pre>
+
+    <h3>9.5 Verify MTU</h3>
+
+<pre>
+show interface ethernet1/1 | include MTU
+</pre>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        NSX overlay networking requires jumbo frames.
+        <br><br>
+
+        Ensure MTU consistency across:
+        <br><br>
+
+        • Spine switches<br>
+        • Leaf switches<br>
+        • ESXi vDS uplinks<br>
+        • NSX TEP interfaces
+
+    </div>
+
+</section>
+
+<section id="handoff">
+
+    <h2>10. Fabric Handoff to VMware Cloud Foundation</h2>
+
+    <h3>10.1 Fabric Readiness Checklist</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Layer-3 Underlay Routing</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>BGP Peering</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>vPC Redundancy</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>VLAN Provisioning</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>MTU Validation</td>
+        <td>Completed</td>
+    </tr>
+
+    <tr>
+        <td>NSX Transport Readiness</td>
+        <td>Completed</td>
+    </tr>
+
+</table>
+
+    <h3>10.2 What Happens Next?</h3>
+
+    <p>
+        With the enterprise fabric now operational, the next stage is preparing the physical servers for VMware Cloud Foundation deployment.
+    </p>
+
+    <p>
+        The next guide focuses on:
+    </p>
+
+    <ul>
+
+        <li>Enterprise server planning</li>
+        <li>BIOS configuration</li>
+        <li>Firmware validation</li>
+        <li>NIC mapping</li>
+        <li>RAID and storage planning</li>
+        <li>AI-ready hardware considerations</li>
+        <li>ESXi installation preparation</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>11. What Comes Next</h2>
+
+    <table>
+
+        <tr>
+            <th>Next Guide</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>5.enterprise-server-preparation-esxi-planning.html</td>
+            <td>Enterprise physical server preparation, BIOS tuning, NIC planning, firmware validation, storage layout, AI/GPU readiness, and ESXi deployment preparation.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="3.enterprise-ip-vlan-routing-plan.html">
+        ← Previous Guide
+    </a>
+
+    <a href="5.enterprise-server-preparation-esxi-planning.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

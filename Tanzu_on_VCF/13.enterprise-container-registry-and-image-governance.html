@@ -1,0 +1,1223 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Container Registry and Image Governance</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1300px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0b1220;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            color: white;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise Container Registry and Image Governance
+        </div>
+
+        <div class="hero-subtitle">
+            Deploying Harbor Enterprise Registry for VMware Kubernetes Service (VKS), implementing secure enterprise software supply chain governance, vulnerability scanning, image signing, RBAC, replication, air-gapped operations, and production-grade container image lifecycle management.
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">Harbor Registry</span>
+            <span class="badge">Container Security</span>
+            <span class="badge">Image Governance</span>
+            <span class="badge">VKS</span>
+            <span class="badge">Software Supply Chain</span>
+            <span class="badge">Air-Gapped Enterprise</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#why-registry">Why Registry</a>
+        <a href="#harbor">Why Harbor</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#security">Security</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        We successfully built:
+    </p>
+
+    <ul>
+
+        <li>VMware Cloud Foundation</li>
+        <li>NSX enterprise networking</li>
+        <li>vSphere Supervisor</li>
+        <li>VKS Kubernetes clusters</li>
+        <li>Enterprise storage integration</li>
+        <li>Enterprise namespace governance</li>
+
+    </ul>
+
+    <p>
+        However, applications still cannot be deployed securely yet.
+    </p>
+
+    <p>
+        A reader may immediately get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Kubernetes deploys container images.
+        <br><br>
+
+        So:
+        <br><br>
+
+        • Where are enterprise container images stored?<br>
+        • Can developers directly pull images from Docker Hub?<br>
+        • How do enterprises scan images for vulnerabilities?<br>
+        • How do enterprises prevent malicious images?<br>
+        • How do air-gapped environments work?<br>
+        • What if Docker Hub becomes unavailable?<br>
+        • How do enterprises control which images are allowed?
+
+    </div>
+
+    <h3>1.1 Real Enterprise Understanding</h3>
+
+    <p>
+        Real enterprise environments NEVER allow production Kubernetes clusters to pull images directly from public registries without governance.
+    </p>
+
+    <p>
+        Instead, enterprises deploy internal enterprise container registries with:
+    </p>
+
+    <ul>
+
+        <li>Image governance</li>
+        <li>RBAC</li>
+        <li>Vulnerability scanning</li>
+        <li>Image signing</li>
+        <li>Replication</li>
+        <li>Air-gapped image lifecycle management</li>
+        <li>Audit logging</li>
+        <li>Immutable artifact retention</li>
+
+    </ul>
+
+</section>
+
+<section id="why-registry">
+
+    <h2>2. Why Enterprise Container Registry Exists</h2>
+
+    <h3>2.1 Simple Understanding</h3>
+
+    <p>
+        A container registry is similar to:
+    </p>
+
+    <ul>
+
+        <li>VMware Content Library for VM templates</li>
+        <li>Git repositories for source code</li>
+
+    </ul>
+
+    <p>
+        But specifically for container images.
+    </p>
+
+    <h3>2.2 Real Enterprise Risk Without Internal Registry</h3>
+
+<table>
+
+    <tr>
+        <th>Risk</th>
+        <th>Problem</th>
+    </tr>
+
+    <tr>
+        <td>Docker Hub outage</td>
+        <td>Production deployments fail</td>
+    </tr>
+
+    <tr>
+        <td>Malicious images</td>
+        <td>Supply chain compromise</td>
+    </tr>
+
+    <tr>
+        <td>Internet dependency</td>
+        <td>Air-gapped environments fail</td>
+    </tr>
+
+    <tr>
+        <td>No scanning</td>
+        <td>Critical vulnerabilities deployed</td>
+    </tr>
+
+    <tr>
+        <td>No governance</td>
+        <td>Unapproved images used</td>
+    </tr>
+
+</table>
+
+    <h3>2.3 Real Enterprise Goal</h3>
+
+<div class="diagram">
+
+<pre>
+Internet Registries
+(DockerHub / Quay / GHCR)
+
+            ↓
+
+Enterprise Image Validation
+
+            ↓
+
+Vulnerability Scanning
+
+            ↓
+
+Image Signing
+
+            ↓
+
+Enterprise Harbor Registry
+
+            ↓
+
+Production Kubernetes Clusters
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="harbor">
+
+    <h2>3. Why Enterprises Use Harbor</h2>
+
+    <h3>3.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why Harbor?
+        <br><br>
+
+        Why not:
+        <br><br>
+
+        • Docker Hub<br>
+        • Nexus<br>
+        • Artifactory<br>
+        • GitHub Container Registry<br>
+        • AWS ECR
+
+    </div>
+
+    <h3>3.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Harbor is commonly used in enterprise Kubernetes environments because:
+    </p>
+
+    <ul>
+
+        <li>Open-source enterprise-grade registry</li>
+        <li>Native Kubernetes integration</li>
+        <li>Integrated vulnerability scanning</li>
+        <li>Integrated RBAC</li>
+        <li>Integrated image signing</li>
+        <li>Replication support</li>
+        <li>Air-gapped friendly</li>
+        <li>Strong VMware ecosystem adoption</li>
+
+    </ul>
+
+    <h3>3.3 Real Enterprise VMware Alignment</h3>
+
+    <p>
+        Harbor fits naturally into VMware Kubernetes enterprise architecture.
+    </p>
+
+    <table>
+
+        <tr>
+            <th>Platform</th>
+            <th>Purpose</th>
+        </tr>
+
+        <tr>
+            <td>VCF</td>
+            <td>Infrastructure platform</td>
+        </tr>
+
+        <tr>
+            <td>NSX</td>
+            <td>Enterprise networking and security</td>
+        </tr>
+
+        <tr>
+            <td>VKS</td>
+            <td>Kubernetes platform</td>
+        </tr>
+
+        <tr>
+            <td>Harbor</td>
+            <td>Enterprise image governance</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="architecture">
+
+    <h2>4. Enterprise Registry Architecture</h2>
+
+    <h3>4.1 Production Architecture</h3>
+
+<div class="diagram">
+
+<pre>
++-------------------------------------------------------+
+|              NovaCrestBank Enterprise                 |
++-------------------------------------------------------+
+
+     +-----------------------------------------+
+     | Harbor Enterprise Registry              |
+     |-----------------------------------------|
+     | UI                                      |
+     | API                                     |
+     | Vulnerability Scanner                   |
+     | Image Signing                           |
+     | RBAC                                    |
+     | Audit Logging                           |
+     | Replication Engine                      |
+     +-----------------------------------------+
+
+                     |
+                     |
+
+     +-----------------------------------------+
+     | Production VKS Clusters                 |
+     +-----------------------------------------+
+
+                     |
+                     |
+
+     +-----------------------------------------+
+     | Development Teams                       |
+     +-----------------------------------------+
+
+</pre>
+
+</div>
+
+    <h3>4.2 Enterprise Registry FQDN Design</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>FQDN</th>
+    </tr>
+
+    <tr>
+        <td>Harbor Registry</td>
+        <td>harbor.corp.novacrestbank.internal</td>
+    </tr>
+
+    <tr>
+        <td>Registry VIP</td>
+        <td>10.70.20.15</td>
+    </tr>
+
+    <tr>
+        <td>Scanner</td>
+        <td>trivy.harbor.corp.novacrestbank.internal</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>5. Enterprise Harbor Deployment Planning</h2>
+
+    <h3>5.1 Deployment Options</h3>
+
+<table>
+
+    <tr>
+        <th>Option</th>
+        <th>Enterprise Usage</th>
+    </tr>
+
+    <tr>
+        <td>Docker Compose</td>
+        <td>Lab only</td>
+    </tr>
+
+    <tr>
+        <td>Kubernetes Helm Deployment</td>
+        <td>Production</td>
+    </tr>
+
+</table>
+
+    <h3>5.2 Real Enterprise Recommendation</h3>
+
+    <p>
+        Real enterprise deployments use Kubernetes-native Harbor deployment using Helm.
+    </p>
+
+    <h3>5.3 Dedicated Platform Namespace</h3>
+
+<pre>
+kubectl create namespace harbor-platform
+</pre>
+
+</section>
+
+<section id="deployment">
+
+    <h2>6. Enterprise Harbor Deployment</h2>
+
+    <h3>6.1 Enterprise Helm Repository</h3>
+
+<pre>
+helm repo add harbor https://helm.goharbor.io
+helm repo update
+</pre>
+
+    <h3>6.2 Harbor Values File</h3>
+
+    <p>
+        File:
+    </p>
+
+<pre>
+platform-services/
+└── harbor/
+    ├── values.yaml
+    ├── tls/
+    ├── secrets/
+    └── storage/
+</pre>
+
+    <h3>6.3 Enterprise Harbor values.yaml</h3>
+
+<pre>
+expose:
+  type: ingress
+
+  tls:
+    enabled: true
+    certSource: secret
+
+  ingress:
+    hosts:
+      core: harbor.corp.novacrestbank.internal
+
+externalURL: https://harbor.corp.novacrestbank.internal
+
+harborAdminPassword: "REDACTED"
+
+persistence:
+  enabled: true
+
+  persistentVolumeClaim:
+    registry:
+      storageClass: gold-vsan-storageclass
+      size: 500Gi
+
+    jobservice:
+      storageClass: gold-vsan-storageclass
+      size: 50Gi
+
+trivy:
+  enabled: true
+
+notary:
+  enabled: true
+</pre>
+
+    <h3>6.4 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly is:
+        <br><br>
+
+        • expose<br>
+        • ingress<br>
+        • persistence<br>
+        • trivy<br>
+        • notary
+
+    </div>
+
+    <h3>6.5 Directive Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>Directive</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>expose</td>
+        <td>How Harbor becomes accessible</td>
+    </tr>
+
+    <tr>
+        <td>ingress</td>
+        <td>Kubernetes ingress configuration</td>
+    </tr>
+
+    <tr>
+        <td>persistence</td>
+        <td>Persistent image storage</td>
+    </tr>
+
+    <tr>
+        <td>trivy</td>
+        <td>Vulnerability scanning engine</td>
+    </tr>
+
+    <tr>
+        <td>notary</td>
+        <td>Image signing framework</td>
+    </tr>
+
+</table>
+
+    <h3>6.6 Deploy Harbor</h3>
+
+<pre>
+helm install harbor harbor/harbor \
+-n harbor-platform \
+-f values.yaml
+</pre>
+
+</section>
+
+<section id="security">
+
+    <h2>7. Enterprise Security and Governance</h2>
+
+    <h3>7.1 Vulnerability Scanning</h3>
+
+    <p>
+        Enterprise registries must scan all container images before production usage.
+    </p>
+
+    <h3>7.2 Trivy Scanner</h3>
+
+<table>
+
+    <tr>
+        <th>Scanner Function</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>CVE Detection</td>
+        <td>Find known vulnerabilities</td>
+    </tr>
+
+    <tr>
+        <td>OS Package Analysis</td>
+        <td>Scan operating system libraries</td>
+    </tr>
+
+    <tr>
+        <td>Dependency Analysis</td>
+        <td>Application dependency scanning</td>
+    </tr>
+
+</table>
+
+    <h3>7.3 Example Vulnerability Scan Result</h3>
+
+<pre>
+Image:
+payments-api:v2.3
+
+Scanner:
+Trivy
+
+Critical:
+0
+
+High:
+1
+
+Medium:
+4
+
+Low:
+7
+
+Status:
+APPROVED FOR STAGING
+</pre>
+
+    <h3>7.4 Image Signing</h3>
+
+    <p>
+        Enterprises must verify image authenticity.
+    </p>
+
+    <p>
+        Otherwise attackers can inject malicious images.
+    </p>
+
+    <h3>7.5 Enterprise Image Promotion Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Developer Pushes Image
+            |
+            |
+Vulnerability Scan
+            |
+            |
+Security Validation
+            |
+            |
+Image Signing
+            |
+            |
+Promotion to Production Repository
+            |
+            |
+Production Kubernetes Deployment
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>8. Enterprise RBAC Design</h2>
+
+    <h3>8.1 Enterprise Role Separation</h3>
+
+<table>
+
+    <tr>
+        <th>Role</th>
+        <th>Permissions</th>
+    </tr>
+
+    <tr>
+        <td>Platform Admins</td>
+        <td>Full Harbor administration</td>
+    </tr>
+
+    <tr>
+        <td>Developers</td>
+        <td>Push development images</td>
+    </tr>
+
+    <tr>
+        <td>Security Team</td>
+        <td>Approve production images</td>
+    </tr>
+
+    <tr>
+        <td>Kubernetes Clusters</td>
+        <td>Read-only pull access</td>
+    </tr>
+
+</table>
+
+    <h3>8.2 LDAP Integration</h3>
+
+    <p>
+        Harbor integrates with enterprise Active Directory.
+    </p>
+
+<pre>
+LDAP URL:
+ldaps://dc1.corp.novacrestbank.internal
+
+Base DN:
+DC=corp,DC=novacrestbank,DC=internal
+</pre>
+
+</section>
+
+<section>
+
+    <h2>9. Air-Gapped Enterprise Operations</h2>
+
+    <h3>9.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        If the environment is air-gapped:
+        <br><br>
+
+        • How are container images imported?<br>
+        • How are updates managed?<br>
+        • How are Kubernetes upgrades handled?
+
+    </div>
+
+    <h3>9.2 Real Enterprise Process</h3>
+
+<div class="diagram">
+
+<pre>
+Connected Staging Environment
+            |
+            |
+Download Approved Images
+            |
+            |
+Security Validation
+            |
+            |
+Offline Transfer
+            |
+            |
+Import into Air-Gapped Harbor
+            |
+            |
+Deploy into Production Kubernetes
+
+</pre>
+
+</div>
+
+    <h3>9.3 Example Image Export</h3>
+
+<pre>
+docker pull nginx:1.29
+
+docker save nginx:1.29 \
+-o nginx-1.29.tar
+</pre>
+
+    <h3>9.4 Example Air-Gapped Import</h3>
+
+<pre>
+docker load -i nginx-1.29.tar
+
+docker tag nginx:1.29 \
+harbor.corp.novacrestbank.internal/library/nginx:1.29
+
+docker push \
+harbor.corp.novacrestbank.internal/library/nginx:1.29
+</pre>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise Image Lifecycle Governance</h2>
+
+    <h3>10.1 Why Governance Matters</h3>
+
+    <p>
+        Enterprises cannot allow uncontrolled image sprawl.
+    </p>
+
+    <h3>10.2 Enterprise Governance Rules</h3>
+
+<table>
+
+    <tr>
+        <th>Governance Rule</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Immutable tags</td>
+        <td>Prevent image replacement</td>
+    </tr>
+
+    <tr>
+        <td>Retention policies</td>
+        <td>Remove unused artifacts</td>
+    </tr>
+
+    <tr>
+        <td>Mandatory scanning</td>
+        <td>Security enforcement</td>
+    </tr>
+
+    <tr>
+        <td>Signed images only</td>
+        <td>Prevent tampering</td>
+    </tr>
+
+    <tr>
+        <td>RBAC separation</td>
+        <td>Least privilege</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>11. Enterprise Kubernetes Registry Integration</h2>
+
+    <h3>11.1 Kubernetes Pull Secret</h3>
+
+<pre>
+kubectl create secret docker-registry harbor-regcred \
+--docker-server=harbor.corp.novacrestbank.internal \
+--docker-username=svc-k8s-pull \
+--docker-password='REDACTED'
+</pre>
+
+    <h3>11.2 Example Kubernetes Deployment</h3>
+
+<pre>
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: customer-portal
+
+spec:
+  replicas: 3
+
+  template:
+
+    spec:
+
+      imagePullSecrets:
+      - name: harbor-regcred
+
+      containers:
+      - name: customer-portal
+
+        image: harbor.corp.novacrestbank.internal/apps/customer-portal:v1.2
+</pre>
+
+</section>
+
+<section id="verification">
+
+    <h2>12. Enterprise Verification and Validation</h2>
+
+    <h3>12.1 Verify Harbor Pods</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>kubectl</li>
+
+    </ul>
+
+<pre>
+kubectl get pods -n harbor-platform
+
+NAME                                  STATUS
+harbor-core-0                         Running
+harbor-jobservice-0                   Running
+harbor-database-0                     Running
+harbor-portal-0                       Running
+harbor-registry-0                     Running
+harbor-trivy-0                        Running
+</pre>
+
+    <h3>12.2 Verify Harbor UI</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>Browser</li>
+
+    </ul>
+
+<pre>
+URL:
+https://harbor.corp.novacrestbank.internal
+
+Status:
+Accessible
+
+TLS:
+Valid Enterprise Certificate
+
+Authentication:
+LDAP Integrated
+</pre>
+
+    <h3>12.3 Verify Vulnerability Scanner</h3>
+
+<pre>
+Projects → apps → customer-portal
+
+Scanner:
+Trivy
+
+Status:
+Scan Completed
+
+Critical Vulnerabilities:
+0
+</pre>
+
+    <h3>12.4 Verify Image Push</h3>
+
+<pre>
+docker push \
+harbor.corp.novacrestbank.internal/apps/payments-api:v2.4
+
+Pushed Successfully:
+digest: sha256:7fd8ac91
+</pre>
+
+    <h3>12.5 Verify Kubernetes Pull</h3>
+
+<pre>
+kubectl describe pod customer-portal
+
+Image:
+harbor.corp.novacrestbank.internal/apps/customer-portal:v1.2
+
+Image Pull:
+Successful
+</pre>
+
+</section>
+
+<section>
+
+    <h2>13. Real Enterprise Understanding</h2>
+
+    <h3>13.1 What We Have Built</h3>
+
+    <ul>
+
+        <li>Enterprise software supply chain foundation</li>
+        <li>Enterprise image governance</li>
+        <li>Enterprise vulnerability scanning</li>
+        <li>Enterprise image signing</li>
+        <li>Enterprise Kubernetes image lifecycle platform</li>
+        <li>Air-gapped image management foundation</li>
+
+    </ul>
+
+    <h3>13.2 What Still Does NOT Exist Yet</h3>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Applications can now securely pull images.
+        <br><br>
+
+        But enterprise deployment automation still does not exist yet.
+        <br><br>
+
+        We still need:
+        <br><br>
+
+        • Git repositories<br>
+        • CI pipelines<br>
+        • GitOps<br>
+        • Deployment automation<br>
+        • Policy enforcement<br>
+        • Secrets management
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>14. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>14.enterprise-gitops-and-argoCD-foundation.html</td>
+        <td>Deploy enterprise GitOps platform using ArgoCD, implement declarative Kubernetes delivery, Git-driven application lifecycle management, environment promotion, RBAC, enterprise repository structures, and production GitOps governance.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="12.vsphere-supervisor-and-vks-foundation.html">
+        ← Previous Guide
+    </a>
+
+    <a href="14.enterprise-gitops-and-argoCD-foundation.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

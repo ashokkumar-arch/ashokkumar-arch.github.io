@@ -1,0 +1,1086 @@
+```html id="vcf8mgmt"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCF Management Domain Bring-Up</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1550px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            VMware Cloud Foundation Management Domain Bring-Up
+        </div>
+
+        <div class="hero-subtitle">
+            Enterprise Production-Grade VMware Cloud Foundation Bring-Up Including SDDC Manager, vSAN, NSX, and Management Domain Initialization
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">VCF</span>
+            <span class="badge">SDDC Manager</span>
+            <span class="badge">NSX</span>
+            <span class="badge">vSAN</span>
+            <span class="badge">Management Domain</span>
+            <span class="badge">Enterprise Automation</span>
+            <span class="badge">Production Grade</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#what-is-mgmt-domain">Management Domain</a>
+        <a href="#sddc-manager">SDDC Manager</a>
+        <a href="#workflow">Bring-Up Workflow</a>
+        <a href="#prereq">Prerequisites</a>
+        <a href="#spreadsheet">Deployment Sheet</a>
+        <a href="#bringup">Bring-Up Execution</a>
+        <a href="#validation">Validation</a>
+        <a href="#nsx">NSX Deployment</a>
+        <a href="#handoff">Next Phase</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide performs the actual VMware Cloud Foundation bring-up operation.
+    </p>
+
+    <p>
+        Up to this point:
+    </p>
+
+    <ul>
+
+        <li>The enterprise physical fabric was prepared</li>
+        <li>Enterprise ESXi hosts were installed</li>
+        <li>vCenter Server was deployed</li>
+        <li>Cloud Builder appliance was deployed</li>
+        <li>DNS and NTP were validated</li>
+
+    </ul>
+
+    <p>
+        Now:
+    </p>
+
+    <ul>
+
+        <li>SDDC Manager will be deployed</li>
+        <li>vSAN will be initialized</li>
+        <li>NSX will be deployed</li>
+        <li>The Management Domain will be created</li>
+
+    </ul>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        This is the point where the environment officially becomes VMware Cloud Foundation.
+        <br><br>
+
+        Before this:
+        <br><br>
+
+        • We only had infrastructure components.
+        <br><br>
+
+        After successful bring-up:
+        <br><br>
+
+        • We now have an enterprise private cloud platform.
+
+    </div>
+
+</section>
+
+<section id="what-is-mgmt-domain">
+
+    <h2>2. What is a Management Domain?</h2>
+
+    <p>
+        A reader may immediately get a question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly is a “Management Domain”?
+        <br><br>
+
+        Is it simply another VMware cluster?
+
+    </div>
+
+    <h3>2.1 Real Enterprise Explanation</h3>
+
+    <p>
+        No.
+    </p>
+
+    <p>
+        A VMware Cloud Foundation Management Domain is the foundational infrastructure domain that hosts the core infrastructure services required to operate the entire private cloud platform.
+    </p>
+
+    <h3>2.2 What Runs Inside the Management Domain?</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>SDDC Manager</td>
+        <td>VCF lifecycle and orchestration</td>
+    </tr>
+
+    <tr>
+        <td>vCenter Server</td>
+        <td>VMware infrastructure management</td>
+    </tr>
+
+    <tr>
+        <td>NSX Manager</td>
+        <td>Software-defined networking and security</td>
+    </tr>
+
+    <tr>
+        <td>vSAN</td>
+        <td>Shared enterprise storage</td>
+    </tr>
+
+</table>
+
+    <h3>2.3 Why Separate Domains Exist</h3>
+
+    <p>
+        VMware Cloud Foundation separates infrastructure into domains because enterprises require:
+    </p>
+
+    <ul>
+
+        <li>Isolation between infrastructure and workloads</li>
+        <li>Independent lifecycle management</li>
+        <li>Security separation</li>
+        <li>Operational boundaries</li>
+        <li>Failure isolation</li>
+
+    </ul>
+
+    <p>
+        Later:
+    </p>
+
+    <ul>
+
+        <li>Additional workload domains will host Tanzu clusters and enterprise applications</li>
+
+    </ul>
+
+</section>
+
+<section id="sddc-manager">
+
+    <h2>3. What is SDDC Manager?</h2>
+
+    <p>
+        A reader may get another question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        If vCenter already exists, why does VMware Cloud Foundation also require SDDC Manager?
+
+    </div>
+
+    <h3>3.1 Real Enterprise Explanation</h3>
+
+    <p>
+        vCenter manages VMware infrastructure.
+    </p>
+
+    <p>
+        SDDC Manager manages VMware Cloud Foundation lifecycle operations.
+    </p>
+
+    <h3>3.2 What SDDC Manager Does</h3>
+
+<table>
+
+    <tr>
+        <th>Capability</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>Lifecycle Management</td>
+        <td>Patch and upgrade VCF components</td>
+    </tr>
+
+    <tr>
+        <td>Domain Management</td>
+        <td>Create workload domains</td>
+    </tr>
+
+    <tr>
+        <td>NSX Lifecycle</td>
+        <td>Automate NSX upgrades</td>
+    </tr>
+
+    <tr>
+        <td>Cluster Expansion</td>
+        <td>Add ESXi hosts</td>
+    </tr>
+
+    <tr>
+        <td>Compliance Validation</td>
+        <td>Ensure supported versions</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="workflow">
+
+    <h2>4. VMware Cloud Foundation Bring-Up Workflow</h2>
+
+<div class="diagram">
+
+<pre>
++---------------------------------------------------------+
+|             VMware Cloud Foundation Bring-Up            |
++---------------------------------------------------------+
+
+Cloud Builder Appliance
+        |
+        |
+Validates:
+  - DNS
+  - NTP
+  - Networking
+  - Credentials
+  - ESXi Hosts
+        |
+        |
+Deploys:
+  - SDDC Manager
+  - NSX Manager
+  - vSAN Cluster
+        |
+        |
+Creates:
+  - Management Domain
+        |
+        |
+VCF Platform Ready
+
++---------------------------------------------------------+
+</pre>
+
+</div>
+
+</section>
+
+<section id="prereq">
+
+    <h2>5. Enterprise Bring-Up Prerequisites</h2>
+
+    <h3>5.1 Mandatory Validation Requirements</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Forward DNS</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>Reverse DNS</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>NTP</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>ESXi Reachability</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>vCenter Reachability</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>vSAN Disk Visibility</td>
+        <td>Validated</td>
+    </tr>
+
+</table>
+
+    <div class="callout danger">
+
+        <strong>Critical:</strong><br><br>
+
+        VMware Cloud Foundation bring-up is extremely sensitive to:
+        <br><br>
+
+        • DNS mismatches<br>
+        • Incorrect MTU settings<br>
+        • NTP drift<br>
+        • Incorrect passwords<br>
+        • Unsupported firmware<br>
+        • Missing reverse DNS records
+        <br><br>
+
+        In real-world enterprise deployments, most failed VCF bring-ups happen because of these issues.
+
+    </div>
+
+</section>
+
+<section id="spreadsheet">
+
+    <h2>6. Enterprise Bring-Up Spreadsheet Preparation</h2>
+
+    <h3>6.1 Why the Spreadsheet Is Important</h3>
+
+    <p>
+        A reader may get another question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why does VMware Cloud Foundation use a spreadsheet instead of a GUI wizard?
+
+    </div>
+
+    <p>
+        Real-world answer:
+    </p>
+
+    <ul>
+
+        <li>Enterprise deployments contain many interdependent settings</li>
+        <li>Automation requires structured metadata</li>
+        <li>The spreadsheet reduces human error</li>
+        <li>It acts as deployment-as-documentation</li>
+
+    </ul>
+
+    <h3>6.2 Example Bring-Up Metadata</h3>
+
+<table>
+
+    <tr>
+        <th>Field</th>
+        <th>Value</th>
+    </tr>
+
+    <tr>
+        <td>Management Domain Name</td>
+        <td>mgmt-domain-01</td>
+    </tr>
+
+    <tr>
+        <td>vCenter FQDN</td>
+        <td>vcsa-mum-mgmt-01.novacrestbank.internal</td>
+    </tr>
+
+    <tr>
+        <td>NSX Manager FQDN</td>
+        <td>nsx-mgr-01.novacrestbank.internal</td>
+    </tr>
+
+    <tr>
+        <td>vSAN VLAN</td>
+        <td>40</td>
+    </tr>
+
+    <tr>
+        <td>NSX TEP VLAN</td>
+        <td>50</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="bringup">
+
+    <h2>7. Executing VMware Cloud Foundation Bring-Up</h2>
+
+    <h3>7.1 Access Cloud Builder</h3>
+
+<pre>
+https://vcf-builder-01.novacrestbank.internal
+</pre>
+
+    <h3>7.2 Upload Bring-Up Spreadsheet</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+Cloud Builder Interface
+-------------------------------------------------------
+
+Bring-Up Workflow
+
+[ Upload Deployment Parameter Spreadsheet ]
+
+File:
+NovaCrestBank-VCF-Bringup.xlsx
+
+Status:
+Uploaded Successfully
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>7.3 Validation Stage</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+VCF Validation Checks
+-------------------------------------------------------
+
+Checking:
+  [OK] DNS Forward Lookup
+  [OK] DNS Reverse Lookup
+  [OK] ESXi Reachability
+  [OK] NTP Synchronization
+  [OK] Password Validation
+  [OK] vCenter Connectivity
+  [OK] vSAN Disks
+
+Validation Result:
+PASSED
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>7.4 What Happens During Bring-Up?</h3>
+
+    <p>
+        Many readers wonder:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly happens internally during VMware Cloud Foundation bring-up?
+
+    </div>
+
+    <p>
+        Real-world sequence:
+    </p>
+
+    <ul>
+
+        <li>Cloud Builder validates the environment</li>
+        <li>vSAN cluster is initialized</li>
+        <li>NSX Manager appliance is deployed</li>
+        <li>SDDC Manager appliance is deployed</li>
+        <li>vSphere Distributed Switches are configured</li>
+        <li>Management Domain is created</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>8. Enterprise vSAN Initialization</h2>
+
+    <h3>8.1 What Happens Here?</h3>
+
+    <p>
+        A reader may get another question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        We already installed disks earlier.
+        <br><br>
+
+        Why is vSAN still being “initialized”?
+
+    </div>
+
+    <p>
+        Real-world explanation:
+    </p>
+
+    <ul>
+
+        <li>Physical disks existed earlier</li>
+        <li>Now VMware logically converts them into a distributed storage cluster</li>
+        <li>vSAN creates distributed storage objects across hosts</li>
+
+    </ul>
+
+    <h3>8.2 vSAN Initialization Example</h3>
+
+<pre>
+vSAN Cluster: mgmt-cluster-01
+
+Disk Groups Created:
+  esx-mum-mgmt-01
+  esx-mum-mgmt-02
+
+Storage Policy:
+  RAID-1 FTT=1
+
+Status:
+Healthy
+</pre>
+
+</section>
+
+<section id="nsx">
+
+    <h2>9. Enterprise NSX Deployment</h2>
+
+    <h3>9.1 Why NSX Is Required</h3>
+
+    <p>
+        A reader may immediately ask:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why does VMware Cloud Foundation require NSX?
+        <br><br>
+
+        Why not use traditional VLAN networking?
+
+    </div>
+
+    <h3>9.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Traditional VLAN networking becomes difficult at enterprise cloud scale.
+    </p>
+
+    <p>
+        NSX provides:
+    </p>
+
+    <ul>
+
+        <li>Overlay networking</li>
+        <li>Microsegmentation</li>
+        <li>Distributed routing</li>
+        <li>Kubernetes integration</li>
+        <li>Dynamic security policies</li>
+
+    </ul>
+
+    <h3>9.3 NSX Deployment Workflow</h3>
+
+<div class="diagram">
+
+<pre>
++--------------------------------------------------+
+|               NSX Deployment                     |
++--------------------------------------------------+
+
+Deploy NSX Manager
+        |
+        |
+Configure Transport Nodes
+        |
+        |
+Create Overlay Transport Zones
+        |
+        |
+Configure TEP Interfaces
+        |
+        |
+Prepare ESXi Hosts
+
++--------------------------------------------------+
+</pre>
+
+</div>
+
+    <h3>9.4 NSX Deployment Validation</h3>
+
+<pre>
+NSX Manager Cluster Status:
+HEALTHY
+
+Transport Nodes:
+esx-mum-mgmt-01 --> SUCCESS
+esx-mum-mgmt-02 --> SUCCESS
+
+Overlay Tunnel Status:
+UP
+</pre>
+
+</section>
+
+<section id="validation">
+
+    <h2>10. Enterprise Validation and Verification</h2>
+
+    <h3>10.1 Verify SDDC Manager</h3>
+
+<pre>
+https://sddc-mgr-01.novacrestbank.internal
+</pre>
+
+    <h3>10.2 Verify Management Domain</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+SDDC Manager Inventory
+-------------------------------------------------------
+
+Management Domain:
+mgmt-domain-01
+
+Cluster:
+mgmt-cluster-01
+
+Hosts:
+  esx-mum-mgmt-01
+  esx-mum-mgmt-02
+
+Status:
+Healthy
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>10.3 Verify vSAN Health</h3>
+
+<pre>
+vSAN Health Summary:
+
+Cluster Health: GREEN
+
+Network Health: HEALTHY
+Disk Health: HEALTHY
+Object Health: HEALTHY
+</pre>
+
+    <h3>10.4 Verify NSX Cluster</h3>
+
+<pre>
+NSX Manager Cluster:
+
+nsx-mgr-01 --> UP
+nsx-mgr-02 --> UP
+nsx-mgr-03 --> UP
+
+Cluster Status:
+STABLE
+</pre>
+
+    <h3>10.5 Verify Time Synchronization</h3>
+
+<pre>
+[root@nsx-mgr-01:~] timedatectl
+
+System clock synchronized: yes
+NTP service: active
+Timezone: Asia/Kolkata
+</pre>
+
+</section>
+
+<section>
+
+    <h2>11. Real-World Enterprise Operational Understanding</h2>
+
+    <h3>11.1 What We Have Built So Far</h3>
+
+    <p>
+        At this stage:
+    </p>
+
+    <ul>
+
+        <li>The physical infrastructure exists</li>
+        <li>Enterprise VMware infrastructure exists</li>
+        <li>Distributed enterprise storage exists</li>
+        <li>Software-defined networking exists</li>
+        <li>Lifecycle automation exists</li>
+
+    </ul>
+
+    <p>
+        But:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Kubernetes still does not exist yet.
+        <br><br>
+
+        Right now we only finished the enterprise private-cloud infrastructure foundation.
+        <br><br>
+
+        Kubernetes and Tanzu layers come later on top of this platform.
+
+    </div>
+
+</section>
+
+<section id="handoff">
+
+    <h2>12. Handoff to Workload Domains and Enterprise Networking</h2>
+
+    <h3>12.1 Current Environment Status</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>VCF Management Domain</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>SDDC Manager</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>vSAN</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>Operational</td>
+    </tr>
+
+    <tr>
+        <td>Lifecycle Automation</td>
+        <td>Operational</td>
+    </tr>
+
+</table>
+
+    <p>
+        The environment is now ready for:
+    </p>
+
+    <ul>
+
+        <li>Enterprise NSX networking design</li>
+        <li>Edge node deployment</li>
+        <li>Workload domain creation</li>
+        <li>Tanzu enablement</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>13. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>9.nsx-enterprise-networking-foundation.html</td>
+        <td>Enterprise NSX architecture, transport zones, T0/T1 gateways, edge clusters, overlay networking, VLAN-backed segments, routing, and security planning for Tanzu workloads.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="7.vcenter-cloud-builder-deployment.html">
+        ← Previous Guide
+    </a>
+
+    <a href="9.nsx-enterprise-networking-foundation.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

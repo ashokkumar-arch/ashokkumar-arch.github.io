@@ -1,0 +1,1098 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCF Workload Domain and NSX Expansion</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            color: var(--muted);
+            font-size: 20px;
+            max-width: 1300px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            background: #0b1220;
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            VCF Workload Domain and NSX Expansion
+        </div>
+
+        <div class="hero-subtitle">
+            Enterprise Workload Domain Architecture, NSX Expansion, Production Compute Separation, Enterprise Kubernetes Infrastructure Foundation, and Real-World VMware Cloud Foundation Scaling
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">VCF</span>
+            <span class="badge">Workload Domains</span>
+            <span class="badge">NSX</span>
+            <span class="badge">Enterprise Architecture</span>
+            <span class="badge">Tanzu Foundation</span>
+            <span class="badge">Production Design</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#what-is-workload-domain">What is Workload Domain</a>
+        <a href="#enterprise-design">Enterprise Design</a>
+        <a href="#why-separate">Why Separation Matters</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#nsx-expansion">NSX Expansion</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guides, we deployed the VMware Cloud Foundation management domain, NSX foundation services, enterprise PKI, and enterprise identity architecture.
+    </p>
+
+    <p>
+        However, a reader may immediately get an important question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        If the management domain already exists:
+        <br><br>
+
+        • Why do we need workload domains?<br>
+        • Why not run Tanzu clusters directly inside the management domain?<br>
+        • Why do enterprises separate workloads?<br>
+        • What actually happens in real-world enterprise production environments?
+
+    </div>
+
+    <h3>1.1 Real Enterprise Explanation</h3>
+
+    <p>
+        In real enterprise environments, management infrastructure and production workloads are separated.
+    </p>
+
+    <p>
+        The management domain is reserved for:
+    </p>
+
+    <ul>
+
+        <li>vCenter</li>
+        <li>SDDC Manager</li>
+        <li>NSX Managers</li>
+        <li>Aria Suite</li>
+        <li>Infrastructure services</li>
+
+    </ul>
+
+    <p>
+        Production workloads are deployed into dedicated workload domains.
+    </p>
+
+</section>
+
+<section id="what-is-workload-domain">
+
+    <h2>2. What is a Workload Domain?</h2>
+
+    <h3>2.1 Simple Understanding</h3>
+
+    <p>
+        A workload domain is an isolated vSphere + NSX environment managed by VMware Cloud Foundation.
+    </p>
+
+    <div class="diagram">
+
+<pre>
++--------------------------------------------------------+
+|                 VMware Cloud Foundation                |
++--------------------------------------------------------+
+
+        +-------------------------------+
+        | Management Domain             |
+        |-------------------------------|
+        | vCenter                       |
+        | NSX Managers                  |
+        | SDDC Manager                  |
+        | Aria Suite                    |
+        +-------------------------------+
+
+        +-------------------------------+
+        | Workload Domain 01            |
+        |-------------------------------|
+        | Production Tanzu Clusters     |
+        | Kubernetes Workloads          |
+        | Banking Applications          |
+        +-------------------------------+
+
+        +-------------------------------+
+        | Workload Domain 02            |
+        |-------------------------------|
+        | AI/ML Platform                |
+        | GPU Workloads                 |
+        | Data Analytics                |
+        +-------------------------------+
+
+</pre>
+
+    </div>
+
+    <h3>2.2 Real Enterprise Benefits</h3>
+
+<table>
+
+    <tr>
+        <th>Benefit</th>
+        <th>Reason</th>
+    </tr>
+
+    <tr>
+        <td>Isolation</td>
+        <td>Production workloads isolated from management infrastructure</td>
+    </tr>
+
+    <tr>
+        <td>Security</td>
+        <td>Separate security boundaries</td>
+    </tr>
+
+    <tr>
+        <td>Scalability</td>
+        <td>Independent scaling</td>
+    </tr>
+
+    <tr>
+        <td>Maintenance</td>
+        <td>Independent lifecycle management</td>
+    </tr>
+
+    <tr>
+        <td>Compliance</td>
+        <td>Separate governance zones</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="enterprise-design">
+
+    <h2>3. Enterprise Workload Domain Design</h2>
+
+    <h3>3.1 NovaCrestBank Enterprise Architecture</h3>
+
+<table>
+
+    <tr>
+        <th>Domain</th>
+        <th>Purpose</th>
+        <th>Cluster Type</th>
+    </tr>
+
+    <tr>
+        <td>Management Domain</td>
+        <td>Infrastructure Management</td>
+        <td>Management Cluster</td>
+    </tr>
+
+    <tr>
+        <td>WLD-Prod-01</td>
+        <td>Tanzu Production Platform</td>
+        <td>Compute Cluster</td>
+    </tr>
+
+    <tr>
+        <td>WLD-AI-01</td>
+        <td>AI and GPU Workloads</td>
+        <td>GPU Cluster</td>
+    </tr>
+
+    <tr>
+        <td>WLD-Dev-01</td>
+        <td>Development and Testing</td>
+        <td>Dev/Test Cluster</td>
+    </tr>
+
+</table>
+
+    <h3>3.2 Enterprise Naming Convention</h3>
+
+<pre>
+Management Domain:
+mgmt-mum01
+
+Production Workload Domain:
+wld-prod-mum01
+
+AI Workload Domain:
+wld-ai-mum01
+
+Development Workload Domain:
+wld-dev-mum01
+</pre>
+
+</section>
+
+<section id="why-separate">
+
+    <h2>4. Why Enterprises Separate Workload Domains</h2>
+
+    <h3>4.1 Real Production Scenario</h3>
+
+    <p>
+        Imagine a production Kubernetes cluster experiences:
+    </p>
+
+    <ul>
+
+        <li>Memory exhaustion</li>
+        <li>Storage latency</li>
+        <li>Kernel panic</li>
+        <li>GPU driver crash</li>
+        <li>Massive pod scheduling failures</li>
+
+    </ul>
+
+    <p>
+        If Kubernetes workloads share the same management infrastructure cluster:
+    </p>
+
+    <div class="callout danger">
+
+        <strong>Critical Risk:</strong><br><br>
+
+        The entire private cloud platform itself becomes unstable.
+        <br><br>
+
+        Meaning:
+        <br><br>
+
+        • vCenter may become unstable<br>
+        • NSX may become unstable<br>
+        • SDDC Manager may fail<br>
+        • Entire infrastructure management may become unavailable
+
+    </div>
+
+    <h3>4.2 Real Enterprise Practice</h3>
+
+    <p>
+        Therefore, enterprises separate:
+    </p>
+
+    <ul>
+
+        <li>Management infrastructure</li>
+        <li>Production Kubernetes workloads</li>
+        <li>AI/GPU workloads</li>
+        <li>Development environments</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>5. Enterprise Physical Host Allocation</h2>
+
+    <h3>5.1 ESXi Allocation Strategy</h3>
+
+<table>
+
+    <tr>
+        <th>Cluster</th>
+        <th>Hosts</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Management Cluster</td>
+        <td>4</td>
+        <td>VCF Infrastructure</td>
+    </tr>
+
+    <tr>
+        <td>Production Workload Cluster</td>
+        <td>6</td>
+        <td>Tanzu Production</td>
+    </tr>
+
+    <tr>
+        <td>AI Cluster</td>
+        <td>4</td>
+        <td>GPU Workloads</td>
+    </tr>
+
+</table>
+
+    <h3>5.2 Production ESXi Naming</h3>
+
+<pre>
+esx-prod-mum01
+esx-prod-mum02
+esx-prod-mum03
+esx-prod-mum04
+esx-prod-mum05
+esx-prod-mum06
+</pre>
+
+</section>
+
+<section>
+
+    <h2>6. NSX Expansion Architecture</h2>
+
+    <h3>6.1 Why NSX Expansion is Required</h3>
+
+    <p>
+        A reader may get another important question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        NSX already exists in the management domain.
+        <br><br>
+
+        Why expand NSX again?
+
+    </div>
+
+    <h3>6.2 Real Enterprise Explanation</h3>
+
+    <p>
+        The NSX management plane already exists.
+    </p>
+
+    <p>
+        However:
+    </p>
+
+    <ul>
+
+        <li>Additional transport zones are required</li>
+        <li>Additional edge capacity is required</li>
+        <li>Additional overlay networking is required</li>
+        <li>Additional workload-segment networking is required</li>
+
+    </ul>
+
+    <h3>6.3 Enterprise NSX Architecture</h3>
+
+<div class="diagram">
+
+<pre>
++------------------------------------------------+
+|             NSX Management Plane               |
+|------------------------------------------------|
+| NSX Manager Cluster                            |
++------------------------------------------------+
+
+                |
+                |
+                v
+
++------------------------------------------------+
+|        Production Workload Domain              |
+|------------------------------------------------|
+| NSX Overlay Segments                           |
+| T1 Gateways                                    |
+| Kubernetes Networks                            |
+| Ingress Networks                               |
+| Load Balancer Networks                         |
++------------------------------------------------+
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="deployment">
+
+    <h2>7. Enterprise Workload Domain Deployment</h2>
+
+    <h3>7.1 Deployment Overview</h3>
+
+    <p>
+        The workload domain deployment process is performed through SDDC Manager.
+    </p>
+
+    <h3>7.2 Real Enterprise Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Rack and Cable ESXi Hosts
+            |
+            |
+Configure DNS and NTP
+            |
+            |
+Commission Hosts into SDDC Manager
+            |
+            |
+Validate Host Hardware
+            |
+            |
+Create Workload Domain
+            |
+            |
+Deploy vCenter
+            |
+            |
+Configure NSX
+            |
+            |
+Create Clusters
+            |
+            |
+Prepare for Tanzu
+
+</pre>
+
+</div>
+
+    <h3>7.3 Where to Perform Deployment</h3>
+
+<table>
+
+    <tr>
+        <th>Task</th>
+        <th>Platform</th>
+    </tr>
+
+    <tr>
+        <td>Host Commissioning</td>
+        <td>SDDC Manager</td>
+    </tr>
+
+    <tr>
+        <td>Workload Domain Deployment</td>
+        <td>SDDC Manager</td>
+    </tr>
+
+    <tr>
+        <td>NSX Deployment</td>
+        <td>SDDC Manager + NSX</td>
+    </tr>
+
+    <tr>
+        <td>Cluster Validation</td>
+        <td>vCenter</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>8. ESXi Host Commissioning</h2>
+
+    <h3>8.1 What is Host Commissioning?</h3>
+
+    <p>
+        Before ESXi hosts can participate in workload domains, VMware Cloud Foundation must validate them.
+    </p>
+
+    <h3>8.2 Validation Includes</h3>
+
+    <ul>
+
+        <li>Hardware compatibility</li>
+        <li>vSAN compatibility</li>
+        <li>NIC compatibility</li>
+        <li>Firmware validation</li>
+        <li>DNS validation</li>
+        <li>NTP validation</li>
+
+    </ul>
+
+    <h3>8.3 Example Commissioning Inventory</h3>
+
+<pre>
+Cluster Name:
+wld-prod-mum01
+
+Hosts:
+esx-prod-mum01
+esx-prod-mum02
+esx-prod-mum03
+esx-prod-mum04
+esx-prod-mum05
+esx-prod-mum06
+
+Status:
+COMMISSIONED
+</pre>
+
+</section>
+
+<section>
+
+    <h2>9. Enterprise NSX Design for Tanzu</h2>
+
+    <h3>9.1 Overlay Segments</h3>
+
+<table>
+
+    <tr>
+        <th>Segment</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>seg-k8s-supervisor</td>
+        <td>Supervisor Cluster</td>
+    </tr>
+
+    <tr>
+        <td>seg-k8s-workload</td>
+        <td>Tanzu Workload Clusters</td>
+    </tr>
+
+    <tr>
+        <td>seg-k8s-ingress</td>
+        <td>Ingress and Load Balancing</td>
+    </tr>
+
+    <tr>
+        <td>seg-k8s-services</td>
+        <td>Platform Services</td>
+    </tr>
+
+</table>
+
+    <h3>9.2 Enterprise T1 Gateway Design</h3>
+
+<pre>
+T1 Gateway:
+t1-prod-k8s-mum01
+
+Connected Segments:
+seg-k8s-supervisor
+seg-k8s-workload
+seg-k8s-ingress
+seg-k8s-services
+</pre>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise vSphere Cluster Design</h2>
+
+    <h3>10.1 Production Cluster Architecture</h3>
+
+<table>
+
+    <tr>
+        <th>Feature</th>
+        <th>Configuration</th>
+    </tr>
+
+    <tr>
+        <td>HA</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>DRS</td>
+        <td>Fully Automated</td>
+    </tr>
+
+    <tr>
+        <td>vSAN</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>vSphere Lifecycle Manager</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>Enabled</td>
+    </tr>
+
+</table>
+
+    <h3>10.2 Enterprise Failure Domain Design</h3>
+
+<div class="diagram">
+
+<pre>
+Rack-01
+    |
+    +--- esx-prod-mum01
+    +--- esx-prod-mum02
+
+Rack-02
+    |
+    +--- esx-prod-mum03
+    +--- esx-prod-mum04
+
+Rack-03
+    |
+    +--- esx-prod-mum05
+    +--- esx-prod-mum06
+
+</pre>
+
+</div>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        Real enterprise production environments distribute ESXi hosts across racks and failure domains.
+        <br><br>
+
+        This prevents:
+        <br><br>
+
+        • Rack-level outages<br>
+        • PDU failures<br>
+        • ToR switch failures<br>
+        • Cooling failures
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>11. Enterprise Validation and Verification</h2>
+
+    <h3>11.1 Verify Workload Domain Deployment</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>SDDC Manager UI</li>
+        <li>vCenter UI</li>
+
+    </ul>
+
+<pre>
+Workload Domain:
+wld-prod-mum01
+
+Status:
+ACTIVE
+
+vCenter:
+vcenter-prod-mum01.corp.novacrestbank.internal
+
+NSX:
+nsx-prod-mum01.corp.novacrestbank.internal
+</pre>
+
+    <h3>11.2 Verify NSX Cluster Preparation</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>NSX UI</li>
+
+    </ul>
+
+<pre>
+System > Fabric > Hosts
+
+Cluster:
+prod-cluster01
+
+NSX Status:
+SUCCESS
+
+Transport Node State:
+UP
+</pre>
+
+    <h3>11.3 Verify Overlay Segments</h3>
+
+<pre>
+Segment:
+seg-k8s-workload
+
+Transport Zone:
+tz-overlay-prod
+
+Gateway:
+t1-prod-k8s-mum01
+
+Status:
+UP
+</pre>
+
+    <h3>11.4 Verify vSAN Health</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>vCenter → Cluster → Monitor → vSAN → Skyline Health</li>
+
+    </ul>
+
+<pre>
+Overall Health:
+HEALTHY
+
+Disk Groups:
+HEALTHY
+
+Network:
+HEALTHY
+
+Data:
+HEALTHY
+</pre>
+
+    <h3>11.5 Verify DNS Resolution</h3>
+
+<pre>
+nslookup vcenter-prod-mum01.corp.novacrestbank.internal
+
+Server: 10.10.10.11
+Address: 10.10.10.11#53
+
+Name:
+vcenter-prod-mum01.corp.novacrestbank.internal
+
+Address:
+10.30.10.20
+</pre>
+
+    <h3>11.6 Verify Cluster Health</h3>
+
+<pre>
+Cluster:
+prod-cluster01
+
+HA:
+ENABLED
+
+DRS:
+FULLY AUTOMATED
+
+Host Count:
+6
+
+Overall Status:
+GREEN
+</pre>
+
+</section>
+
+<section>
+
+    <h2>12. Real Enterprise Understanding</h2>
+
+    <h3>12.1 What We Have Built So Far</h3>
+
+    <ul>
+
+        <li>Production-ready VMware Cloud Foundation platform</li>
+        <li>Dedicated workload domain architecture</li>
+        <li>Enterprise NSX overlay networking</li>
+        <li>Production compute separation</li>
+        <li>Enterprise-grade failure domain design</li>
+        <li>Kubernetes-ready infrastructure foundation</li>
+
+    </ul>
+
+    <h3>12.2 What Still Does NOT Exist Yet</h3>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Tanzu Kubernetes itself still does not exist yet.
+        <br><br>
+
+        We are still preparing:
+        <br><br>
+
+        • Production networking foundation<br>
+        • Enterprise compute foundation<br>
+        • Enterprise workload isolation<br>
+        • Enterprise NSX overlay architecture
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>13. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>12.vsphere-supervisor-and-vks-foundation.html</td>
+        <td>Enable vSphere Supervisor, deploy enterprise Kubernetes control plane foundation, configure namespaces, networking, storage policies, VM classes, and prepare enterprise VKS platform services.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="10.enterprise-identity-pki-and-certificates.html">
+        ← Previous Guide
+    </a>
+
+    <a href="12.vsphere-supervisor-and-vks-foundation.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

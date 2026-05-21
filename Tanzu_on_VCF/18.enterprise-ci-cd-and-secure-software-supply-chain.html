@@ -1,0 +1,1196 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise CI/CD and Secure Software Supply Chain</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --green: #22c55e;
+            --blue: #38bdf8;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid #1e293b;
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            max-width: 1450px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0b1220;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #0b1220;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--green);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--blue);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .callout {
+            border-left: 5px solid #22c55e;
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: #f59e0b;
+        }
+
+        .danger {
+            border-left-color: #ef4444;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            color: white;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise CI/CD and Secure Software Supply Chain
+        </div>
+
+        <div class="hero-subtitle">
+            Designing and implementing enterprise-grade CI/CD pipelines, secure software supply chain controls, image signing, artifact governance, vulnerability scanning, Git-integrated delivery workflows, deployment automation, and zero-trust application delivery architecture for VMware Kubernetes Service (VKS) workloads running on VMware Cloud Foundation (VCF) with NSX.
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">CI/CD</span>
+            <span class="badge">Supply Chain Security</span>
+            <span class="badge">Tekton</span>
+            <span class="badge">GitOps</span>
+            <span class="badge">Cosign</span>
+            <span class="badge">Image Signing</span>
+            <span class="badge">Trivy</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#cicd">CI/CD</a>
+        <a href="#pipeline">Pipeline Architecture</a>
+        <a href="#security">Supply Chain Security</a>
+        <a href="#tekton">Tekton</a>
+        <a href="#cosign">Cosign</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guide, we implemented:
+    </p>
+
+    <ul>
+
+        <li>Enterprise ingress architecture</li>
+        <li>NSX Advanced Load Balancer integration</li>
+        <li>Enterprise TLS</li>
+        <li>Service mesh architecture</li>
+        <li>East-west encrypted traffic</li>
+        <li>Zero-trust service communication</li>
+
+    </ul>
+
+    <p>
+        However, modern enterprise Kubernetes platforms still have a major problem.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Reader Question:</strong><br><br>
+
+        We deployed applications manually.
+        <br><br>
+
+        But:
+        <br><br>
+
+        • How do enterprises automate deployments?<br>
+        • How do developers push code securely?<br>
+        • How are container images validated?<br>
+        • How do enterprises prevent malicious containers?<br>
+        • How do pipelines work?<br>
+        • How do enterprises implement DevSecOps?<br>
+        • How is software supply chain security implemented?
+
+    </div>
+
+    <p>
+        This guide solves those real-world enterprise platform engineering requirements.
+    </p>
+
+</section>
+
+<section id="cicd">
+
+    <h2>2. What is CI/CD</h2>
+
+    <h3>2.1 Beginner-Friendly Explanation</h3>
+
+    <p>
+        CI/CD means:
+    </p>
+
+<pre>
+CI  = Continuous Integration
+CD  = Continuous Delivery / Continuous Deployment
+</pre>
+
+    <h3>2.2 Real Enterprise Understanding</h3>
+
+<table>
+
+    <tr>
+        <th>Phase</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Code Commit</td>
+        <td>Developer pushes code</td>
+    </tr>
+
+    <tr>
+        <td>Build</td>
+        <td>Application compiled</td>
+    </tr>
+
+    <tr>
+        <td>Test</td>
+        <td>Security and functional validation</td>
+    </tr>
+
+    <tr>
+        <td>Image Build</td>
+        <td>Container image creation</td>
+    </tr>
+
+    <tr>
+        <td>Image Scan</td>
+        <td>Vulnerability scanning</td>
+    </tr>
+
+    <tr>
+        <td>Image Sign</td>
+        <td>Artifact authenticity validation</td>
+    </tr>
+
+    <tr>
+        <td>Deploy</td>
+        <td>Application deployment</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>3. Why Enterprises Need Secure Software Supply Chains</h2>
+
+    <h3>3.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why do enterprises care so much about container image security?
+        <br><br>
+
+        Why not simply:
+        <br><br>
+
+        docker build
+        <br>
+        docker push
+
+    </div>
+
+    <h3>3.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Because attackers target software supply chains.
+    </p>
+
+    <p>
+        Modern enterprise attacks often happen through:
+    </p>
+
+<ul>
+
+    <li>Compromised container images</li>
+    <li>Malicious dependencies</li>
+    <li>Fake artifacts</li>
+    <li>Stolen build credentials</li>
+    <li>Unverified software packages</li>
+
+</ul>
+
+</section>
+
+<section>
+
+    <h2>4. Real Enterprise Software Supply Chain Architecture</h2>
+
+<div class="diagram">
+
+<pre>
+Developer
+    |
+    |
+Git Repository
+    |
+    |
+CI Pipeline
+    |
+    |
+Container Build
+    |
+    |
+Security Scanning
+    |
+    |
+Image Signing
+    |
+    |
+Private Registry
+    |
+    |
+GitOps Deployment
+    |
+    |
+Kubernetes Cluster
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>5. Enterprise CI/CD Platform Components</h2>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>GitLab / Gitea</td>
+        <td>Internal source control</td>
+    </tr>
+
+    <tr>
+        <td>Tekton</td>
+        <td>Kubernetes-native pipelines</td>
+    </tr>
+
+    <tr>
+        <td>Harbor</td>
+        <td>Private container registry</td>
+    </tr>
+
+    <tr>
+        <td>Trivy</td>
+        <td>Container vulnerability scanning</td>
+    </tr>
+
+    <tr>
+        <td>Cosign</td>
+        <td>Image signing</td>
+    </tr>
+
+    <tr>
+        <td>ArgoCD</td>
+        <td>GitOps deployment</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>6. Enterprise DevSecOps Understanding</h2>
+
+    <h3>6.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What is DevSecOps?
+        <br><br>
+
+        Is it simply DevOps with security tools?
+
+    </div>
+
+    <h3>6.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Traditional DevOps focused mainly on speed.
+    </p>
+
+    <p>
+        DevSecOps integrates security directly into:
+    </p>
+
+<ul>
+
+    <li>Code development</li>
+    <li>Build pipelines</li>
+    <li>Artifact creation</li>
+    <li>Deployment workflows</li>
+    <li>Runtime enforcement</li>
+
+</ul>
+
+</section>
+
+<section id="tekton">
+
+    <h2>7. Why Tekton for Enterprise Kubernetes Pipelines</h2>
+
+    <h3>7.1 What is Tekton</h3>
+
+    <p>
+        Tekton is a Kubernetes-native CI/CD framework.
+    </p>
+
+    <h3>7.2 Real Enterprise Advantage</h3>
+
+<table>
+
+    <tr>
+        <th>Traditional CI/CD</th>
+        <th>Tekton</th>
+    </tr>
+
+    <tr>
+        <td>External build servers</td>
+        <td>Kubernetes-native pipelines</td>
+    </tr>
+
+    <tr>
+        <td>Infrastructure-heavy</td>
+        <td>Container-native</td>
+    </tr>
+
+    <tr>
+        <td>VM-centric</td>
+        <td>Cloud-native</td>
+    </tr>
+
+</table>
+
+    <h3>7.3 Enterprise Recommendation</h3>
+
+    <div class="callout">
+
+        <strong>NovaCrestBank Standard:</strong><br><br>
+
+        • Tekton pipelines<br>
+        • Harbor private registry<br>
+        • ArgoCD GitOps deployment<br>
+        • Cosign image signing<br>
+        • Trivy scanning<br>
+        • Zero-trust software delivery
+
+    </div>
+
+</section>
+
+<section id="pipeline">
+
+    <h2>8. Enterprise Pipeline Workflow</h2>
+
+<div class="diagram">
+
+<pre>
+Developer Pushes Code
+         |
+         |
+Git Webhook Trigger
+         |
+         |
+Tekton Pipeline Starts
+         |
+         |
+Container Build
+         |
+         |
+Trivy Vulnerability Scan
+         |
+         |
+Cosign Image Signing
+         |
+         |
+Push to Harbor Registry
+         |
+         |
+GitOps Manifest Update
+         |
+         |
+ArgoCD Sync
+         |
+         |
+Deployment to VKS
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>9. Deploy Tekton Pipelines</h2>
+
+    <h3>9.1 Install Tekton</h3>
+
+<pre>
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+</pre>
+
+    <h3>9.2 Verify Tekton Installation</h3>
+
+<pre>
+kubectl get pods -n tekton-pipelines
+
+NAME                                           STATUS
+tekton-pipelines-controller-6c9b6f7f58        Running
+tekton-pipelines-webhook-8fcb5fd8             Running
+</pre>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise Pipeline YAML</h2>
+
+    <h3>10.1 Example Tekton Pipeline</h3>
+
+<pre>
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: banking-app-pipeline
+
+spec:
+
+  tasks:
+
+  - name: build-image
+
+  - name: security-scan
+
+  - name: sign-image
+
+  - name: push-image
+
+  - name: update-gitops-repo
+</pre>
+
+    <h3>10.2 Understanding Every Directive</h3>
+
+<table>
+
+    <tr>
+        <th>Directive</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>apiVersion</td>
+        <td>Tekton API version</td>
+    </tr>
+
+    <tr>
+        <td>kind: Pipeline</td>
+        <td>Creates CI/CD pipeline</td>
+    </tr>
+
+    <tr>
+        <td>metadata.name</td>
+        <td>Pipeline name</td>
+    </tr>
+
+    <tr>
+        <td>spec</td>
+        <td>Pipeline configuration</td>
+    </tr>
+
+    <tr>
+        <td>tasks</td>
+        <td>Pipeline execution stages</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="security">
+
+    <h2>11. Enterprise Vulnerability Scanning</h2>
+
+    <h3>11.1 Why Vulnerability Scanning Matters</h3>
+
+    <p>
+        Container images often contain:
+    </p>
+
+<ul>
+
+    <li>Outdated packages</li>
+    <li>Critical CVEs</li>
+    <li>Known exploits</li>
+    <li>Weak libraries</li>
+
+</ul>
+
+    <h3>11.2 Enterprise Trivy Scan Example</h3>
+
+<pre>
+trivy image harbor.corp.novacrestbank.internal/banking/customer-api:v1
+</pre>
+
+    <h3>11.3 Example Enterprise Scan Output</h3>
+
+<pre>
+CRITICAL: 0
+HIGH: 1
+MEDIUM: 4
+LOW: 7
+
+Recommendation:
+Upgrade openssl package
+</pre>
+
+</section>
+
+<section id="cosign">
+
+    <h2>12. Enterprise Image Signing with Cosign</h2>
+
+    <h3>12.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why sign container images?
+        <br><br>
+
+        Why not simply trust internal developers?
+
+    </div>
+
+    <h3>12.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Image signing ensures:
+    </p>
+
+<ul>
+
+    <li>Artifact authenticity</li>
+    <li>Tamper detection</li>
+    <li>Supply chain trust</li>
+    <li>Compliance validation</li>
+
+</ul>
+
+    <h3>12.3 Generate Cosign Keys</h3>
+
+<pre>
+cosign generate-key-pair
+</pre>
+
+    <h3>12.4 Sign Container Image</h3>
+
+<pre>
+cosign sign \
+harbor.corp.novacrestbank.internal/banking/customer-api:v1
+</pre>
+
+    <h3>12.5 Verify Image Signature</h3>
+
+<pre>
+cosign verify \
+harbor.corp.novacrestbank.internal/banking/customer-api:v1
+</pre>
+
+    <h3>12.6 Example Verification Output</h3>
+
+<pre>
+Verification for harbor.corp.novacrestbank.internal/banking/customer-api:v1 --
+The following checks were performed:
+✓ Signature verified
+✓ Claims validated
+✓ Transparency log verified
+</pre>
+
+</section>
+
+<section>
+
+    <h2>13. Enterprise Admission Control Integration</h2>
+
+    <h3>13.1 Real Enterprise Security Enforcement</h3>
+
+    <p>
+        Enterprises do not allow:
+    </p>
+
+<ul>
+
+    <li>Unsigned images</li>
+    <li>Unscanned images</li>
+    <li>Critical vulnerabilities</li>
+
+</ul>
+
+    <h3>13.2 Enterprise Policy Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Developer Deploys Image
+        |
+        |
+Admission Controller Checks:
+        |
+        |--- Is image signed?
+        |--- Is image trusted?
+        |--- Is vulnerability score acceptable?
+        |
+        |
+Deployment Allowed / Blocked
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>14. Enterprise GitOps Integration</h2>
+
+    <h3>14.1 Real Enterprise Deployment Flow</h3>
+
+<table>
+
+    <tr>
+        <th>Action</th>
+        <th>System</th>
+    </tr>
+
+    <tr>
+        <td>Developer commits code</td>
+        <td>Git Repository</td>
+    </tr>
+
+    <tr>
+        <td>Pipeline builds image</td>
+        <td>Tekton</td>
+    </tr>
+
+    <tr>
+        <td>Image stored securely</td>
+        <td>Harbor</td>
+    </tr>
+
+    <tr>
+        <td>GitOps manifests updated</td>
+        <td>Pipeline automation</td>
+    </tr>
+
+    <tr>
+        <td>Deployment synchronized</td>
+        <td>ArgoCD</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>15. Enterprise Secure SDLC</h2>
+
+    <h3>15.1 What is SDLC</h3>
+
+<pre>
+SDLC = Software Development Lifecycle
+</pre>
+
+    <h3>15.2 Enterprise Secure SDLC Stages</h3>
+
+<div class="diagram">
+
+<pre>
+Planning
+   |
+Coding
+   |
+Security Validation
+   |
+Build
+   |
+Vulnerability Scan
+   |
+Artifact Signing
+   |
+Deployment
+   |
+Runtime Monitoring
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>16. Real Enterprise Air-Gapped CI/CD Architecture</h2>
+
+    <h3>16.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        How do enterprises implement CI/CD in air-gapped environments?
+
+    </div>
+
+    <h3>16.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Air-gapped environments require:
+    </p>
+
+<ul>
+
+    <li>Internal Git repositories</li>
+    <li>Internal Harbor registry</li>
+    <li>Offline image synchronization</li>
+    <li>Internal package repositories</li>
+    <li>Private certificate authorities</li>
+
+</ul>
+
+    <h3>16.3 Enterprise Air-Gapped Flow</h3>
+
+<div class="diagram">
+
+<pre>
+Internal GitLab
+       |
+       |
+Tekton Pipelines
+       |
+       |
+Internal Harbor Registry
+       |
+       |
+ArgoCD
+       |
+       |
+VKS Workload Clusters
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>17. Enterprise RBAC and Identity Integration</h2>
+
+    <h3>17.1 Enterprise Security Requirements</h3>
+
+<table>
+
+    <tr>
+        <th>Role</th>
+        <th>Permissions</th>
+    </tr>
+
+    <tr>
+        <td>Developers</td>
+        <td>Commit code</td>
+    </tr>
+
+    <tr>
+        <td>Security Team</td>
+        <td>Approve vulnerabilities</td>
+    </tr>
+
+    <tr>
+        <td>Platform Team</td>
+        <td>Manage pipelines</td>
+    </tr>
+
+    <tr>
+        <td>Auditors</td>
+        <td>Read-only visibility</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>18. Enterprise Verification and Validation</h2>
+
+    <h3>18.1 Verify Tekton Pipelines</h3>
+
+    <p>
+        Check from:
+    </p>
+
+<ul>
+
+    <li>kubectl</li>
+
+</ul>
+
+<pre>
+kubectl get pipelines
+
+NAME                    AGE
+banking-app-pipeline    5d
+</pre>
+
+    <h3>18.2 Verify Pipeline Runs</h3>
+
+<pre>
+kubectl get pipelineruns
+
+NAME                                  SUCCEEDED
+banking-app-run-001                   True
+</pre>
+
+    <h3>18.3 Verify Harbor Images</h3>
+
+<pre>
+curl -k https://harbor.corp.novacrestbank.internal/api/v2.0/projects
+</pre>
+
+    <h3>18.4 Verify Image Signature</h3>
+
+<pre>
+cosign verify harbor.corp.novacrestbank.internal/banking/customer-api:v1
+</pre>
+
+    <h3>18.5 Verify Vulnerability Scanning</h3>
+
+<pre>
+trivy image harbor.corp.novacrestbank.internal/banking/customer-api:v1
+</pre>
+
+    <h3>18.6 Verify ArgoCD Synchronization</h3>
+
+<pre>
+argocd app list
+
+NAME                 STATUS      HEALTH
+banking-platform     Synced      Healthy
+</pre>
+
+    <h3>18.7 Verify Kubernetes Deployment</h3>
+
+<pre>
+kubectl get deployments -A
+
+NAMESPACE       NAME             READY
+banking-apps    customer-api     3/3
+</pre>
+
+</section>
+
+<section>
+
+    <h2>19. Real Enterprise Understanding</h2>
+
+    <h3>19.1 What We Have Built</h3>
+
+<ul>
+
+    <li>Enterprise CI/CD pipelines</li>
+    <li>Secure software supply chain</li>
+    <li>Container image signing</li>
+    <li>Enterprise vulnerability scanning</li>
+    <li>GitOps-integrated delivery</li>
+    <li>Zero-trust artifact governance</li>
+    <li>Air-gapped deployment workflows</li>
+
+</ul>
+
+    <h3>19.2 What Still Does NOT Exist Yet</h3>
+
+<div class="callout warning">
+
+    <strong>Important:</strong><br><br>
+
+    We now have:
+    <br><br>
+
+    • Enterprise Kubernetes platform<br>
+    • Enterprise networking<br>
+    • Observability<br>
+    • GitOps<br>
+    • Secure CI/CD<br>
+    • Secure software delivery
+    <br><br>
+
+    However, we still do not yet have:
+    <br><br>
+
+    • Enterprise backup and disaster recovery<br>
+    • Multi-site workload resiliency<br>
+    • DR failover orchestration<br>
+    • Enterprise business continuity automation
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>20. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>19.enterprise-backup-disaster-recovery-and-business-continuity.html</td>
+        <td>Implement enterprise-grade backup architecture, Kubernetes disaster recovery, Velero-based cluster protection, NSX-aware multi-site failover design, workload recovery orchestration, application continuity planning, cross-site data replication, and enterprise business continuity architecture for VKS workloads running on VMware Cloud Foundation with NSX.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="17.enterprise-ingress-loadbalancing-and-service-mesh.html">
+        ← Previous Guide
+    </a>
+
+    <a href="19.enterprise-backup-disaster-recovery-and-business-continuity.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

@@ -1,0 +1,1391 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Observability, Monitoring and Logging</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --blue: #38bdf8;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid #1e293b;
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            max-width: 1450px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0b1220;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #0b1220;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--blue);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .callout {
+            border-left: 5px solid #22c55e;
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: #f59e0b;
+        }
+
+        .danger {
+            border-left-color: #ef4444;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            color: white;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise Observability, Monitoring and Logging
+        </div>
+
+        <div class="hero-subtitle">
+            Implementing enterprise-grade observability architecture using Prometheus, Grafana, Fluent Bit, OpenTelemetry, Loki, distributed tracing, alerting, metrics aggregation, centralized logging, and operational monitoring for VMware Kubernetes Service (VKS) environments running on VMware Cloud Foundation (VCF) with NSX.
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">Prometheus</span>
+            <span class="badge">Grafana</span>
+            <span class="badge">Loki</span>
+            <span class="badge">OpenTelemetry</span>
+            <span class="badge">Fluent Bit</span>
+            <span class="badge">Enterprise Observability</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#why">Why Observability</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#prometheus">Prometheus</a>
+        <a href="#grafana">Grafana</a>
+        <a href="#logging">Logging</a>
+        <a href="#tracing">Tracing</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guide, we implemented:
+    </p>
+
+    <ul>
+
+        <li>Enterprise policy governance</li>
+        <li>Kyverno</li>
+        <li>OPA</li>
+        <li>Admission control</li>
+        <li>Compliance enforcement</li>
+        <li>Security guardrails</li>
+
+    </ul>
+
+    <p>
+        However, another major enterprise operational problem still exists.
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Reader Question:</strong><br><br>
+
+        Once workloads are deployed:
+        <br><br>
+
+        • How do enterprises monitor Kubernetes?<br>
+        • How do platform teams identify outages?<br>
+        • How do engineers troubleshoot failures?<br>
+        • Where do logs go?<br>
+        • How are alerts generated?<br>
+        • How are application traces visualized?<br>
+        • How is cluster health monitored?<br>
+        • How do SRE teams operate production Kubernetes?
+
+    </div>
+
+    <h3>1.1 Real Enterprise Understanding</h3>
+
+    <p>
+        Production Kubernetes environments are impossible to operate without observability.
+    </p>
+
+    <p>
+        Enterprises MUST implement:
+    </p>
+
+    <ul>
+
+        <li>Metrics collection</li>
+        <li>Centralized logging</li>
+        <li>Distributed tracing</li>
+        <li>Alerting</li>
+        <li>Dashboards</li>
+        <li>Capacity visibility</li>
+        <li>SRE operational monitoring</li>
+
+    </ul>
+
+</section>
+
+<section id="why">
+
+    <h2>2. What is Observability</h2>
+
+    <h3>2.1 Beginner-Friendly Explanation</h3>
+
+    <p>
+        Observability means:
+    </p>
+
+    <div class="diagram">
+
+<pre>
+Understanding:
+    |
+    |
+What is happening inside systems
+    |
+    |
+In real time
+    |
+    |
+Using:
+    |
+    |--- Metrics
+    |--- Logs
+    |--- Traces
+
+</pre>
+
+    </div>
+
+    <h3>2.2 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What is the difference between:
+        <br><br>
+
+        • Monitoring<br>
+        • Logging<br>
+        • Tracing<br>
+        • Observability
+
+    </div>
+
+    <h3>2.3 Real Enterprise Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>Capability</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Monitoring</td>
+        <td>Measures system health</td>
+    </tr>
+
+    <tr>
+        <td>Logging</td>
+        <td>Captures events and messages</td>
+    </tr>
+
+    <tr>
+        <td>Tracing</td>
+        <td>Tracks requests across services</td>
+    </tr>
+
+    <tr>
+        <td>Observability</td>
+        <td>Combines all operational visibility</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>3. Real Enterprise Problem</h2>
+
+    <h3>3.1 Traditional VM Monitoring vs Kubernetes Monitoring</h3>
+
+<table>
+
+    <tr>
+        <th>Traditional VM Monitoring</th>
+        <th>Kubernetes Monitoring</th>
+    </tr>
+
+    <tr>
+        <td>Mostly static</td>
+        <td>Highly dynamic</td>
+    </tr>
+
+    <tr>
+        <td>Long-lived servers</td>
+        <td>Ephemeral containers</td>
+    </tr>
+
+    <tr>
+        <td>Simple applications</td>
+        <td>Microservices</td>
+    </tr>
+
+    <tr>
+        <td>Limited scaling</td>
+        <td>Rapid scaling</td>
+    </tr>
+
+    <tr>
+        <td>Simple logs</td>
+        <td>Distributed logging</td>
+    </tr>
+
+</table>
+
+    <h3>3.2 Why Enterprise Kubernetes Visibility is Difficult</h3>
+
+    <ul>
+
+        <li>Pods constantly restart</li>
+        <li>Containers are short-lived</li>
+        <li>Applications are distributed</li>
+        <li>Services communicate across namespaces</li>
+        <li>Multiple clusters exist</li>
+
+    </ul>
+
+</section>
+
+<section id="architecture">
+
+    <h2>4. Enterprise Observability Architecture</h2>
+
+<div class="diagram">
+
+<pre>
++---------------------------------------------------+
+| Enterprise Kubernetes Clusters (VKS)             |
++---------------------------------------------------+
+             |              |              |
+             |              |              |
+             v              v              v
+
+       Metrics          Logs          Traces
+           |               |               |
+           |               |               |
+           v               v               v
+
+    +------------+   +-----------+   +-------------+
+    | Prometheus |   | FluentBit |   | OpenTelemetry|
+    +------------+   +-----------+   +-------------+
+           |               |               |
+           |               |               |
+           v               v               v
+
+    +------------+   +-----------+   +-------------+
+    | Grafana    |   | Loki      |   | Tempo       |
+    +------------+   +-----------+   +-------------+
+
+</pre>
+
+</div>
+
+    <h3>4.1 Enterprise Platform Components</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Prometheus</td>
+        <td>Metrics collection</td>
+    </tr>
+
+    <tr>
+        <td>Grafana</td>
+        <td>Dashboards and visualization</td>
+    </tr>
+
+    <tr>
+        <td>Fluent Bit</td>
+        <td>Log forwarding</td>
+    </tr>
+
+    <tr>
+        <td>Loki</td>
+        <td>Log storage</td>
+    </tr>
+
+    <tr>
+        <td>OpenTelemetry</td>
+        <td>Distributed tracing collection</td>
+    </tr>
+
+    <tr>
+        <td>Tempo</td>
+        <td>Trace storage</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="prometheus">
+
+    <h2>5. Why Enterprises Use Prometheus</h2>
+
+    <h3>5.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why Prometheus?
+        <br><br>
+
+        Why not traditional monitoring tools only?
+
+    </div>
+
+    <h3>5.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Prometheus became the industry-standard Kubernetes monitoring platform because it is:
+    </p>
+
+    <ul>
+
+        <li>Kubernetes-native</li>
+        <li>Cloud-native</li>
+        <li>Highly scalable</li>
+        <li>Service discovery aware</li>
+        <li>Excellent for time-series metrics</li>
+
+    </ul>
+
+    <h3>5.3 Enterprise Monitoring Targets</h3>
+
+<table>
+
+    <tr>
+        <th>Target</th>
+        <th>Examples</th>
+    </tr>
+
+    <tr>
+        <td>Kubernetes</td>
+        <td>Pods, nodes, deployments</td>
+    </tr>
+
+    <tr>
+        <td>Infrastructure</td>
+        <td>CPU, memory, disk, network</td>
+    </tr>
+
+    <tr>
+        <td>Applications</td>
+        <td>Latency, errors, throughput</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>Network visibility</td>
+    </tr>
+
+    <tr>
+        <td>VCF Components</td>
+        <td>vCenter, ESXi, vSAN</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>6. Enterprise Prometheus Deployment</h2>
+
+    <h3>6.1 Create Monitoring Namespace</h3>
+
+<pre>
+kubectl create namespace observability-platform
+</pre>
+
+    <h3>6.2 Deploy kube-prometheus-stack</h3>
+
+<pre>
+helm repo add prometheus-community \
+https://prometheus-community.github.io/helm-charts
+
+helm repo update
+
+helm install prometheus prometheus-community/kube-prometheus-stack \
+-n observability-platform
+</pre>
+
+    <h3>6.3 Verify Deployment</h3>
+
+<pre>
+kubectl get pods -n observability-platform
+
+NAME                                                 STATUS
+alertmanager-prometheus-kube-prometheus-alertmanager Running
+prometheus-grafana                                   Running
+prometheus-kube-state-metrics                        Running
+prometheus-prometheus-node-exporter                  Running
+prometheus-prometheus-kube-prometheus-prometheus     Running
+</pre>
+
+    <h3>6.4 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What are these components?
+
+    </div>
+
+    <h3>6.5 Component Explanation</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Prometheus Server</td>
+        <td>Metrics database</td>
+    </tr>
+
+    <tr>
+        <td>Node Exporter</td>
+        <td>Host metrics collection</td>
+    </tr>
+
+    <tr>
+        <td>kube-state-metrics</td>
+        <td>Kubernetes object metrics</td>
+    </tr>
+
+    <tr>
+        <td>Alertmanager</td>
+        <td>Alert routing</td>
+    </tr>
+
+    <tr>
+        <td>Grafana</td>
+        <td>Visualization platform</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="grafana">
+
+    <h2>7. Enterprise Grafana Dashboards</h2>
+
+    <h3>7.1 Why Dashboards Matter</h3>
+
+    <p>
+        Raw metrics alone are difficult to understand.
+    </p>
+
+    <p>
+        Enterprises need:
+    </p>
+
+    <ul>
+
+        <li>Visual dashboards</li>
+        <li>Operational visibility</li>
+        <li>SRE troubleshooting</li>
+        <li>Executive reporting</li>
+
+    </ul>
+
+    <h3>7.2 Enterprise Dashboard Examples</h3>
+
+<table>
+
+    <tr>
+        <th>Dashboard</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Cluster Health</td>
+        <td>Kubernetes health overview</td>
+    </tr>
+
+    <tr>
+        <td>Node Utilization</td>
+        <td>CPU and memory monitoring</td>
+    </tr>
+
+    <tr>
+        <td>Application Latency</td>
+        <td>User experience visibility</td>
+    </tr>
+
+    <tr>
+        <td>NSX Networking</td>
+        <td>Traffic visibility</td>
+    </tr>
+
+    <tr>
+        <td>Storage Monitoring</td>
+        <td>vSAN and persistent volume monitoring</td>
+    </tr>
+
+</table>
+
+    <h3>7.3 Enterprise Grafana Access</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>FQDN</th>
+    </tr>
+
+    <tr>
+        <td>Grafana</td>
+        <td>grafana.corp.novacrestbank.internal</td>
+    </tr>
+
+    <tr>
+        <td>Prometheus</td>
+        <td>prometheus.corp.novacrestbank.internal</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="logging">
+
+    <h2>8. Enterprise Centralized Logging</h2>
+
+    <h3>8.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why centralized logging?
+        <br><br>
+
+        Why not just use kubectl logs?
+
+    </div>
+
+    <h3>8.2 Real Enterprise Problem</h3>
+
+    <p>
+        Pods are ephemeral.
+    </p>
+
+    <p>
+        When containers restart:
+    </p>
+
+    <ul>
+
+        <li>Logs disappear</li>
+        <li>Troubleshooting becomes difficult</li>
+        <li>Compliance becomes impossible</li>
+
+    </ul>
+
+    <h3>8.3 Real Enterprise Solution</h3>
+
+<div class="diagram">
+
+<pre>
+Containers
+    |
+    |
+stdout/stderr logs
+    |
+    |
+Fluent Bit
+    |
+    |
+Loki
+    |
+    |
+Grafana
+
+</pre>
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>9. Enterprise Fluent Bit Deployment</h2>
+
+    <h3>9.1 Why Fluent Bit</h3>
+
+<table>
+
+    <tr>
+        <th>Reason</th>
+        <th>Benefit</th>
+    </tr>
+
+    <tr>
+        <td>Lightweight</td>
+        <td>Low resource usage</td>
+    </tr>
+
+    <tr>
+        <td>Kubernetes-native</td>
+        <td>Easy integration</td>
+    </tr>
+
+    <tr>
+        <td>High performance</td>
+        <td>Enterprise scalability</td>
+    </tr>
+
+    <tr>
+        <td>Flexible outputs</td>
+        <td>Loki, Elasticsearch, Splunk</td>
+    </tr>
+
+</table>
+
+    <h3>9.2 Install Fluent Bit</h3>
+
+<pre>
+helm repo add fluent https://fluent.github.io/helm-charts
+
+helm install fluent-bit fluent/fluent-bit \
+-n observability-platform
+</pre>
+
+    <h3>9.3 Verify Fluent Bit Pods</h3>
+
+<pre>
+kubectl get daemonset -n observability-platform
+
+NAME         DESIRED   CURRENT   READY
+fluent-bit   12        12        12
+</pre>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise Loki Deployment</h2>
+
+    <h3>10.1 Why Enterprises Use Loki</h3>
+
+    <p>
+        Loki integrates tightly with Grafana and provides:
+    </p>
+
+    <ul>
+
+        <li>Efficient Kubernetes logging</li>
+        <li>Low operational overhead</li>
+        <li>Label-based log indexing</li>
+        <li>Cloud-native scalability</li>
+
+    </ul>
+
+    <h3>10.2 Deploy Loki</h3>
+
+<pre>
+helm repo add grafana https://grafana.github.io/helm-charts
+
+helm install loki grafana/loki-stack \
+-n observability-platform
+</pre>
+
+    <h3>10.3 Verify Loki</h3>
+
+<pre>
+kubectl get pods -n observability-platform
+
+NAME              STATUS
+loki-0            Running
+promtail-7v2fd    Running
+</pre>
+
+</section>
+
+<section id="tracing">
+
+    <h2>11. Enterprise Distributed Tracing</h2>
+
+    <h3>11.1 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        What exactly is distributed tracing?
+        <br><br>
+
+        Why do enterprises need it?
+
+    </div>
+
+    <h3>11.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Modern enterprise applications are microservices-based.
+    </p>
+
+    <p>
+        A single request may travel across:
+    </p>
+
+    <ul>
+
+        <li>Ingress</li>
+        <li>Frontend API</li>
+        <li>Backend API</li>
+        <li>Database service</li>
+        <li>Authentication services</li>
+
+    </ul>
+
+    <h3>11.3 Distributed Tracing Flow</h3>
+
+<div class="diagram">
+
+<pre>
+Customer Request
+        |
+        |
+Ingress Controller
+        |
+        |
+Frontend Service
+        |
+        |
+Payments API
+        |
+        |
+Fraud Detection API
+        |
+        |
+Database
+
+</pre>
+
+</div>
+
+    <h3>11.4 Why This Matters</h3>
+
+    <p>
+        Tracing helps enterprises identify:
+    </p>
+
+    <ul>
+
+        <li>Latency bottlenecks</li>
+        <li>Slow services</li>
+        <li>Failed API calls</li>
+        <li>Service dependencies</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>12. Enterprise OpenTelemetry Deployment</h2>
+
+    <h3>12.1 Why OpenTelemetry</h3>
+
+<table>
+
+    <tr>
+        <th>Capability</th>
+        <th>Benefit</th>
+    </tr>
+
+    <tr>
+        <td>Vendor-neutral</td>
+        <td>Avoids lock-in</td>
+    </tr>
+
+    <tr>
+        <td>Tracing support</td>
+        <td>Distributed visibility</td>
+    </tr>
+
+    <tr>
+        <td>Metrics support</td>
+        <td>Unified telemetry</td>
+    </tr>
+
+    <tr>
+        <td>Logging support</td>
+        <td>Standardized collection</td>
+    </tr>
+
+</table>
+
+    <h3>12.2 Install OpenTelemetry Operator</h3>
+
+<pre>
+kubectl apply -f \
+https://github.com/open-telemetry/opentelemetry-operator/releases/latest/download/opentelemetry-operator.yaml
+</pre>
+
+    <h3>12.3 Verify OpenTelemetry</h3>
+
+<pre>
+kubectl get pods -n opentelemetry-operator-system
+
+NAME                                         STATUS
+opentelemetry-operator-controller-manager    Running
+</pre>
+
+</section>
+
+<section>
+
+    <h2>13. Enterprise Alerting</h2>
+
+    <h3>13.1 Why Alerting Matters</h3>
+
+    <p>
+        Monitoring without alerting is incomplete.
+    </p>
+
+    <p>
+        Enterprises require:
+    </p>
+
+    <ul>
+
+        <li>Real-time notifications</li>
+        <li>Incident escalation</li>
+        <li>SRE operational workflows</li>
+        <li>24x7 monitoring</li>
+
+    </ul>
+
+    <h3>13.2 Enterprise Alert Examples</h3>
+
+<table>
+
+    <tr>
+        <th>Alert</th>
+        <th>Condition</th>
+    </tr>
+
+    <tr>
+        <td>High CPU Usage</td>
+        <td>CPU > 90%</td>
+    </tr>
+
+    <tr>
+        <td>Node Failure</td>
+        <td>Node unreachable</td>
+    </tr>
+
+    <tr>
+        <td>Pod CrashLoop</td>
+        <td>Repeated failures</td>
+    </tr>
+
+    <tr>
+        <td>Disk Exhaustion</td>
+        <td>Disk usage > 85%</td>
+    </tr>
+
+    <tr>
+        <td>API Latency</td>
+        <td>Response time threshold exceeded</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>14. Enterprise VCF and NSX Monitoring Integration</h2>
+
+    <h3>14.1 Real Enterprise Understanding</h3>
+
+    <p>
+        Enterprises do NOT monitor Kubernetes alone.
+    </p>
+
+    <p>
+        Full-stack monitoring includes:
+    </p>
+
+<table>
+
+    <tr>
+        <th>Layer</th>
+        <th>Examples</th>
+    </tr>
+
+    <tr>
+        <td>Hardware</td>
+        <td>Servers, fans, power</td>
+    </tr>
+
+    <tr>
+        <td>ESXi</td>
+        <td>CPU, memory, storage</td>
+    </tr>
+
+    <tr>
+        <td>vCenter</td>
+        <td>Cluster operations</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>Network visibility</td>
+    </tr>
+
+    <tr>
+        <td>VKS</td>
+        <td>Containers and workloads</td>
+    </tr>
+
+    <tr>
+        <td>Applications</td>
+        <td>Business services</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>15. Enterprise Security and Compliance Visibility</h2>
+
+    <h3>15.1 Security Monitoring Examples</h3>
+
+<ul>
+
+    <li>Failed authentication attempts</li>
+    <li>Unauthorized deployments</li>
+    <li>Policy violations</li>
+    <li>Suspicious east-west traffic</li>
+    <li>Abnormal API activity</li>
+
+</ul>
+
+    <h3>15.2 Compliance Retention</h3>
+
+<table>
+
+    <tr>
+        <th>Log Type</th>
+        <th>Retention Example</th>
+    </tr>
+
+    <tr>
+        <td>Security Logs</td>
+        <td>1 year</td>
+    </tr>
+
+    <tr>
+        <td>Audit Logs</td>
+        <td>7 years</td>
+    </tr>
+
+    <tr>
+        <td>Application Logs</td>
+        <td>90 days</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="verification">
+
+    <h2>16. Enterprise Verification and Validation</h2>
+
+    <h3>16.1 Verify Monitoring Pods</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+        <li>kubectl</li>
+    </ul>
+
+<pre>
+kubectl get pods -n observability-platform
+
+NAME                                                STATUS
+prometheus-prometheus-kube-prometheus-prometheus    Running
+prometheus-grafana                                  Running
+loki-0                                              Running
+fluent-bit-j4f8d                                    Running
+</pre>
+
+    <h3>16.2 Verify Grafana Access</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+        <li>Browser</li>
+    </ul>
+
+<pre>
+URL:
+https://grafana.corp.novacrestbank.internal
+
+Status:
+Accessible
+
+Authentication:
+Enterprise SSO Enabled
+</pre>
+
+    <h3>16.3 Verify Metrics Collection</h3>
+
+<pre>
+kubectl top nodes
+
+NAME             CPU(cores)   MEMORY(bytes)
+esx-vks-01       2150m        14320Mi
+esx-vks-02       1980m        15110Mi
+esx-vks-03       2340m        14890Mi
+</pre>
+
+    <h3>16.4 Verify Centralized Logs</h3>
+
+<pre>
+kubectl logs deployment/customer-api
+
+2026-05-20T09:18:11Z INFO API started
+2026-05-20T09:18:15Z INFO Database connected
+2026-05-20T09:18:18Z INFO TLS handshake successful
+</pre>
+
+    <h3>16.5 Verify Alertmanager</h3>
+
+<pre>
+kubectl get alertmanager -A
+
+NAMESPACE                  NAME         VERSION
+observability-platform     main         v0.27.0
+</pre>
+
+    <h3>16.6 Verify OpenTelemetry</h3>
+
+<pre>
+kubectl get opentelemetrycollector -A
+
+NAMESPACE                  NAME              MODE
+observability-platform     otel-collector    deployment
+</pre>
+
+</section>
+
+<section>
+
+    <h2>17. Real Enterprise Understanding</h2>
+
+    <h3>17.1 What We Have Built</h3>
+
+<ul>
+
+    <li>Enterprise metrics collection</li>
+    <li>Centralized logging</li>
+    <li>Distributed tracing</li>
+    <li>Enterprise dashboards</li>
+    <li>Operational visibility</li>
+    <li>SRE observability foundation</li>
+    <li>Alerting architecture</li>
+
+</ul>
+
+    <h3>17.2 What Still Does NOT Exist Yet</h3>
+
+<div class="callout warning">
+
+    <strong>Important:</strong><br><br>
+
+    We now have enterprise observability.
+    <br><br>
+
+    However, we still do not yet have:
+    <br><br>
+
+    • Enterprise ingress architecture<br>
+    • Kubernetes load balancing<br>
+    • External traffic exposure<br>
+    • TLS termination strategy<br>
+    • North-south traffic governance<br>
+    • Service mesh architecture
+
+</div>
+
+</section>
+
+<section>
+
+    <h2>18. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>17.enterprise-ingress-loadbalancing-and-service-mesh.html</td>
+        <td>Implement enterprise ingress architecture using NSX Advanced Load Balancer (AVI), ingress controllers, TLS termination, north-south traffic management, east-west service communication, and service mesh architecture for VMware Kubernetes Service (VKS) workloads running on VCF with NSX.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="15.enterprise-policy-governance-and-admission-control.html">
+        ← Previous Guide
+    </a>
+
+    <a href="17.enterprise-ingress-loadbalancing-and-service-mesh.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

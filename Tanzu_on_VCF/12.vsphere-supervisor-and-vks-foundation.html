@@ -1,0 +1,1302 @@
+```html id="f7q9vp"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vSphere Supervisor and VKS Foundation</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1600px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            color: var(--muted);
+            font-size: 20px;
+            max-width: 1350px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #1f2937;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            background: #0b1220;
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+            margin-top: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            vSphere Supervisor and VKS Foundation
+        </div>
+
+        <div class="hero-subtitle">
+            Enterprise Kubernetes Platform Foundation Using VMware vSphere Supervisor, VMware Kubernetes Service (VKS), NSX Networking, Enterprise Storage Policies, Namespace Governance, and Production Kubernetes Platform Architecture
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">VKS</span>
+            <span class="badge">Supervisor Cluster</span>
+            <span class="badge">vSphere Kubernetes</span>
+            <span class="badge">Enterprise Kubernetes</span>
+            <span class="badge">NSX</span>
+            <span class="badge">VCF</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#what-is-supervisor">What is Supervisor</a>
+        <a href="#what-is-vks">What is VKS</a>
+        <a href="#enterprise-design">Enterprise Design</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#networking">Networking</a>
+        <a href="#storage">Storage</a>
+        <a href="#verification">Verification</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        In the previous guide, we deployed enterprise workload domains and NSX overlay networking infrastructure.
+    </p>
+
+    <p>
+        However, Kubernetes itself still does not exist yet.
+    </p>
+
+    <p>
+        A reader may immediately get a very important question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        We already built:
+        <br><br>
+
+        • ESXi clusters<br>
+        • NSX networking<br>
+        • Workload domains<br>
+        • Enterprise PKI<br>
+        • Enterprise identity integration
+        <br><br>
+
+        So:
+        <br><br>
+
+        • What exactly creates Kubernetes?<br>
+        • Where does Kubernetes actually run?<br>
+        • What is Supervisor?<br>
+        • What is VKS?<br>
+        • Is VKS the same as upstream Kubernetes?<br>
+        • Why do enterprises use this instead of manually installing Kubernetes?
+
+    </div>
+
+    <h3>1.1 Real Enterprise Explanation</h3>
+
+    <p>
+        VMware Cloud Foundation provides enterprise Kubernetes through:
+    </p>
+
+    <ul>
+
+        <li>vSphere Supervisor</li>
+        <li>VMware Kubernetes Service (VKS)</li>
+        <li>NSX integrated networking</li>
+        <li>vSphere integrated storage</li>
+        <li>Enterprise lifecycle management</li>
+
+    </ul>
+
+    <p>
+        This allows enterprises to operate Kubernetes as part of the VMware private cloud platform instead of running disconnected standalone Kubernetes clusters.
+    </p>
+
+</section>
+
+<section id="what-is-supervisor">
+
+    <h2>2. What is vSphere Supervisor?</h2>
+
+    <h3>2.1 Simple Understanding</h3>
+
+    <p>
+        vSphere Supervisor converts a vSphere cluster into a Kubernetes-enabled platform.
+    </p>
+
+    <div class="diagram">
+
+<pre>
++------------------------------------------------------+
+|                 vSphere Cluster                      |
+|------------------------------------------------------|
+| ESXi Hosts                                           |
+| vSAN Storage                                         |
+| NSX Networking                                       |
++------------------------------------------------------+
+
+                    ENABLE SUPERVISOR
+
+                           ↓
+
++------------------------------------------------------+
+|              Supervisor Cluster                      |
+|------------------------------------------------------|
+| Kubernetes Control Plane                             |
+| Kubernetes APIs                                      |
+| Namespace Services                                   |
+| Tanzu Integration                                    |
++------------------------------------------------------+
+
+</pre>
+
+    </div>
+
+    <h3>2.2 What Actually Happens Internally?</h3>
+
+    <p>
+        A reader may get another question:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        When we enable Supervisor:
+        <br><br>
+
+        • What exactly gets deployed?<br>
+        • Are Kubernetes VMs created?<br>
+        • Where are they deployed?<br>
+        • Does Supervisor run directly on ESXi?
+
+    </div>
+
+    <h3>2.3 Real Technical Explanation</h3>
+
+    <p>
+        When Supervisor is enabled:
+    </p>
+
+    <ul>
+
+        <li>Supervisor control plane virtual machines are automatically deployed</li>
+        <li>Kubernetes APIs become integrated into vSphere</li>
+        <li>Namespaces become Kubernetes-aware</li>
+        <li>NSX networking integration becomes active</li>
+        <li>Kubernetes operators become integrated into the platform</li>
+
+    </ul>
+
+    <h3>2.4 Supervisor Control Plane VMs</h3>
+
+<table>
+
+    <tr>
+        <th>VM Name</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>sv-control-plane-01</td>
+        <td>Kubernetes API Control Plane</td>
+    </tr>
+
+    <tr>
+        <td>sv-control-plane-02</td>
+        <td>High Availability Control Plane</td>
+    </tr>
+
+    <tr>
+        <td>sv-control-plane-03</td>
+        <td>High Availability Control Plane</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="what-is-vks">
+
+    <h2>3. What is VMware Kubernetes Service (VKS)?</h2>
+
+    <h3>3.1 Real Enterprise Explanation</h3>
+
+    <p>
+        VKS is VMware's enterprise Kubernetes service for deploying production Kubernetes clusters on VMware Cloud Foundation.
+    </p>
+
+    <h3>3.2 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        There are many Tanzu names:
+        <br><br>
+
+        • TKG<br>
+        • TKGm<br>
+        • TKGi<br>
+        • TKGs<br>
+        • VKS
+        <br><br>
+
+        What are enterprises actually using now?
+
+    </div>
+
+    <h3>3.3 Real Enterprise Understanding</h3>
+
+<table>
+
+    <tr>
+        <th>Technology</th>
+        <th>Status</th>
+        <th>Enterprise Direction</th>
+    </tr>
+
+    <tr>
+        <td>TKGm</td>
+        <td>Legacy/Previous Model</td>
+        <td>Transitioning</td>
+    </tr>
+
+    <tr>
+        <td>TKGi</td>
+        <td>Enterprise Kubernetes Platform</td>
+        <td>Still Exists</td>
+    </tr>
+
+    <tr>
+        <td>TKGs</td>
+        <td>Supervisor-based Kubernetes</td>
+        <td>Core Foundation</td>
+    </tr>
+
+    <tr>
+        <td>VKS</td>
+        <td>Modern VMware Kubernetes Service</td>
+        <td>Strategic Direction</td>
+    </tr>
+
+</table>
+
+    <h3>3.4 Why Enterprises Prefer VKS</h3>
+
+    <ul>
+
+        <li>Integrated with VMware Cloud Foundation</li>
+        <li>Integrated lifecycle management</li>
+        <li>Integrated NSX networking</li>
+        <li>Integrated vSphere storage</li>
+        <li>Integrated identity and RBAC</li>
+        <li>Integrated monitoring and governance</li>
+
+    </ul>
+
+</section>
+
+<section id="enterprise-design">
+
+    <h2>4. Enterprise Kubernetes Platform Architecture</h2>
+
+    <h3>4.1 Enterprise Design</h3>
+
+<div class="diagram">
+
+<pre>
++-------------------------------------------------------+
+|              VMware Cloud Foundation                  |
++-------------------------------------------------------+
+
+        +-----------------------------------+
+        | Management Domain                 |
+        +-----------------------------------+
+
+        +-----------------------------------+
+        | Production Workload Domain        |
+        |-----------------------------------|
+        | vSphere Supervisor                |
+        | VKS Clusters                      |
+        | NSX Networking                    |
+        | vSAN Storage                      |
+        +-----------------------------------+
+
+                |
+                |
+                v
+
++-------------------------------------------------------+
+|             Enterprise Applications                   |
+|-------------------------------------------------------|
+| Banking APIs                                          |
+| Customer Portals                                      |
+| Fraud Detection                                       |
+| Payment Services                                      |
+| Internal Applications                                 |
++-------------------------------------------------------+
+
+</pre>
+
+</div>
+
+    <h3>4.2 Enterprise Kubernetes Cluster Types</h3>
+
+<table>
+
+    <tr>
+        <th>Cluster</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Production Cluster</td>
+        <td>Banking Production Applications</td>
+    </tr>
+
+    <tr>
+        <td>Development Cluster</td>
+        <td>Developer Platform</td>
+    </tr>
+
+    <tr>
+        <td>Platform Services Cluster</td>
+        <td>Monitoring, Logging, GitOps</td>
+    </tr>
+
+    <tr>
+        <td>AI Cluster</td>
+        <td>GPU and AI Workloads</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>5. Enterprise Prerequisites Before Enabling Supervisor</h2>
+
+    <h3>5.1 Important Understanding</h3>
+
+    <p>
+        A reader may think:
+    </p>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why can we not simply click:
+        <br><br>
+
+        “Enable Supervisor”
+        <br><br>
+
+        and immediately get Kubernetes?
+
+    </div>
+
+    <h3>5.2 Real Enterprise Explanation</h3>
+
+    <p>
+        Supervisor depends on multiple enterprise platform services already functioning correctly.
+    </p>
+
+    <h3>5.3 Mandatory Requirements</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>NSX Overlay Networking</td>
+        <td>Kubernetes networking</td>
+    </tr>
+
+    <tr>
+        <td>Enterprise DNS</td>
+        <td>Cluster resolution</td>
+    </tr>
+
+    <tr>
+        <td>NTP</td>
+        <td>Certificate validation</td>
+    </tr>
+
+    <tr>
+        <td>Storage Policies</td>
+        <td>Persistent volumes</td>
+    </tr>
+
+    <tr>
+        <td>Enterprise PKI</td>
+        <td>Secure trust chain</td>
+    </tr>
+
+    <tr>
+        <td>Identity Integration</td>
+        <td>Authentication and RBAC</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="deployment">
+
+    <h2>6. Enterprise Supervisor Deployment</h2>
+
+    <h3>6.1 Where Deployment Happens</h3>
+
+<table>
+
+    <tr>
+        <th>Task</th>
+        <th>Platform</th>
+    </tr>
+
+    <tr>
+        <td>Enable Supervisor</td>
+        <td>vCenter</td>
+    </tr>
+
+    <tr>
+        <td>NSX Integration</td>
+        <td>vCenter + NSX</td>
+    </tr>
+
+    <tr>
+        <td>IP Pool Configuration</td>
+        <td>NSX</td>
+    </tr>
+
+    <tr>
+        <td>Storage Policy Assignment</td>
+        <td>vCenter</td>
+    </tr>
+
+</table>
+
+    <h3>6.2 Enterprise Supervisor Deployment Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Validate NSX Networking
+            |
+            |
+Create IP Pools
+            |
+            |
+Configure Supervisor Networking
+            |
+            |
+Assign Storage Policies
+            |
+            |
+Enable Supervisor
+            |
+            |
+Deploy Control Plane VMs
+            |
+            |
+Validate Kubernetes APIs
+            |
+            |
+Enable Namespace Services
+
+</pre>
+
+</div>
+
+</section>
+
+<section id="networking">
+
+    <h2>7. Enterprise Networking for Supervisor and VKS</h2>
+
+    <h3>7.1 Enterprise Networking Components</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Supervisor Network</td>
+        <td>Kubernetes control plane</td>
+    </tr>
+
+    <tr>
+        <td>Workload Network</td>
+        <td>Kubernetes worker nodes</td>
+    </tr>
+
+    <tr>
+        <td>Ingress Network</td>
+        <td>External application access</td>
+    </tr>
+
+    <tr>
+        <td>Load Balancer VIP Pool</td>
+        <td>Kubernetes LoadBalancer services</td>
+    </tr>
+
+</table>
+
+    <h3>7.2 Enterprise IP Pool Design</h3>
+
+<pre>
+Supervisor Network:
+10.50.10.0/24
+
+Workload Network:
+10.50.20.0/24
+
+Ingress Network:
+10.50.30.0/24
+
+VIP Pool:
+10.50.40.100 - 10.50.40.200
+</pre>
+
+    <h3>7.3 Why Multiple Networks Exist</h3>
+
+    <p>
+        Real enterprise environments separate Kubernetes traffic types.
+    </p>
+
+    <ul>
+
+        <li>Control plane traffic</li>
+        <li>Application traffic</li>
+        <li>Ingress traffic</li>
+        <li>Load balancer traffic</li>
+        <li>East-west pod traffic</li>
+
+    </ul>
+
+</section>
+
+<section id="storage">
+
+    <h2>8. Enterprise Storage Policies</h2>
+
+    <h3>8.1 Why Storage Policies Matter</h3>
+
+    <p>
+        Kubernetes applications require persistent storage.
+    </p>
+
+    <p>
+        Enterprise applications cannot rely only on temporary container storage.
+    </p>
+
+    <h3>8.2 Enterprise Storage Classes</h3>
+
+<table>
+
+    <tr>
+        <th>Storage Policy</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>gold-vsan-policy</td>
+        <td>Production databases</td>
+    </tr>
+
+    <tr>
+        <td>silver-vsan-policy</td>
+        <td>General applications</td>
+    </tr>
+
+    <tr>
+        <td>bronze-vsan-policy</td>
+        <td>Development workloads</td>
+    </tr>
+
+</table>
+
+    <h3>8.3 Example Kubernetes StorageClass</h3>
+
+<pre>
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+
+metadata:
+  name: gold-vsan-storageclass
+
+provisioner: csi.vsphere.vmware.com
+
+parameters:
+  storagepolicyname: gold-vsan-policy
+</pre>
+
+    <h3>8.4 Reader Doubt Clarification</h3>
+
+    <div class="callout warning">
+
+        <strong>Question:</strong><br><br>
+
+        Why does Kubernetes need storage integration with vSphere?
+
+    </div>
+
+    <h3>8.5 Real Enterprise Explanation</h3>
+
+    <p>
+        Enterprise applications require:
+    </p>
+
+    <ul>
+
+        <li>Persistent databases</li>
+        <li>Stateful applications</li>
+        <li>Data durability</li>
+        <li>Disaster recovery support</li>
+        <li>Enterprise backup integration</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>9. Enterprise Namespace Architecture</h2>
+
+    <h3>9.1 What is a Namespace?</h3>
+
+    <p>
+        A namespace is an isolated Kubernetes environment for teams and applications.
+    </p>
+
+    <h3>9.2 Enterprise Namespace Design</h3>
+
+<table>
+
+    <tr>
+        <th>Namespace</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>banking-prod</td>
+        <td>Production banking workloads</td>
+    </tr>
+
+    <tr>
+        <td>payments-prod</td>
+        <td>Payment services</td>
+    </tr>
+
+    <tr>
+        <td>monitoring-platform</td>
+        <td>Monitoring stack</td>
+    </tr>
+
+    <tr>
+        <td>gitops-platform</td>
+        <td>ArgoCD platform services</td>
+    </tr>
+
+</table>
+
+    <h3>9.3 Why Namespaces Matter</h3>
+
+    <ul>
+
+        <li>Security isolation</li>
+        <li>RBAC separation</li>
+        <li>Resource governance</li>
+        <li>Quota management</li>
+        <li>Multi-team operations</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>10. Enterprise VM Classes</h2>
+
+    <h3>10.1 What is a VM Class?</h3>
+
+    <p>
+        VM Classes define Kubernetes node sizing standards.
+    </p>
+
+    <h3>10.2 Enterprise VM Class Design</h3>
+
+<table>
+
+    <tr>
+        <th>VM Class</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>best-effort-small</td>
+        <td>Development clusters</td>
+    </tr>
+
+    <tr>
+        <td>guaranteed-medium</td>
+        <td>Production applications</td>
+    </tr>
+
+    <tr>
+        <td>guaranteed-large</td>
+        <td>Large production workloads</td>
+    </tr>
+
+    <tr>
+        <td>gpu-large</td>
+        <td>AI and GPU workloads</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section>
+
+    <h2>11. Enterprise VKS Cluster Deployment</h2>
+
+    <h3>11.1 Real Deployment Workflow</h3>
+
+<div class="diagram">
+
+<pre>
+Create Namespace
+        |
+        |
+Assign Permissions
+        |
+        |
+Assign Storage Policies
+        |
+        |
+Assign VM Classes
+        |
+        |
+Deploy VKS Cluster
+        |
+        |
+Deploy Kubernetes Nodes
+        |
+        |
+Validate Cluster Health
+        |
+        |
+Provide kubectl Access
+
+</pre>
+
+</div>
+
+    <h3>11.2 Example Production Cluster</h3>
+
+<pre>
+Cluster Name:
+vks-prod-cluster01
+
+Control Plane Nodes:
+3
+
+Worker Nodes:
+6
+
+Kubernetes Version:
+v1.29
+
+Network:
+seg-k8s-workload
+
+Storage Policy:
+gold-vsan-policy
+</pre>
+
+</section>
+
+<section>
+
+    <h2>12. Enterprise Security Foundation</h2>
+
+    <h3>12.1 Enterprise Security Integration</h3>
+
+<table>
+
+    <tr>
+        <th>Security Layer</th>
+        <th>Purpose</th>
+    </tr>
+
+    <tr>
+        <td>Enterprise PKI</td>
+        <td>Certificate trust</td>
+    </tr>
+
+    <tr>
+        <td>LDAP Integration</td>
+        <td>Authentication</td>
+    </tr>
+
+    <tr>
+        <td>RBAC</td>
+        <td>Authorization</td>
+    </tr>
+
+    <tr>
+        <td>NSX DFW</td>
+        <td>Microsegmentation</td>
+    </tr>
+
+    <tr>
+        <td>Namespaces</td>
+        <td>Workload isolation</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="verification">
+
+    <h2>13. Enterprise Verification and Validation</h2>
+
+    <h3>13.1 Verify Supervisor Status</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>vCenter → Workload Management</li>
+
+    </ul>
+
+<pre>
+Supervisor Cluster:
+supervisor-prod-mum01
+
+Status:
+RUNNING
+
+Control Plane Nodes:
+3
+
+Networking:
+NSX
+
+Storage:
+vSAN
+
+Overall Status:
+HEALTHY
+</pre>
+
+    <h3>13.2 Verify Supervisor Control Plane VMs</h3>
+
+    <p>
+        Check from:
+    </p>
+
+    <ul>
+
+        <li>vCenter → VMs and Templates</li>
+
+    </ul>
+
+<pre>
+sv-control-plane-01
+sv-control-plane-02
+sv-control-plane-03
+
+Power State:
+ON
+
+Guest OS:
+Photon OS
+
+Status:
+RUNNING
+</pre>
+
+    <h3>13.3 Verify Kubernetes API Connectivity</h3>
+
+<pre>
+kubectl vsphere login \
+--server supervisor-prod-mum01.corp.novacrestbank.internal \
+--vsphere-username john.smith@corp.novacrestbank.internal
+
+Logged in successfully.
+
+Context:
+supervisor-prod-mum01
+</pre>
+
+    <h3>13.4 Verify Kubernetes Nodes</h3>
+
+<pre>
+kubectl get nodes
+
+NAME                        STATUS   ROLES
+master-01                   Ready    control-plane
+master-02                   Ready    control-plane
+master-03                   Ready    control-plane
+worker-01                   Ready    worker
+worker-02                   Ready    worker
+worker-03                   Ready    worker
+worker-04                   Ready    worker
+worker-05                   Ready    worker
+worker-06                   Ready    worker
+</pre>
+
+    <h3>13.5 Verify Storage Integration</h3>
+
+<pre>
+kubectl get storageclass
+
+NAME                        PROVISIONER
+gold-vsan-storageclass      csi.vsphere.vmware.com
+silver-vsan-storageclass    csi.vsphere.vmware.com
+bronze-vsan-storageclass    csi.vsphere.vmware.com
+</pre>
+
+    <h3>13.6 Verify Namespace Access</h3>
+
+<pre>
+kubectl get ns
+
+NAME
+banking-prod
+payments-prod
+monitoring-platform
+gitops-platform
+</pre>
+
+    <h3>13.7 Verify Persistent Volume Provisioning</h3>
+
+<pre>
+kubectl get pvc
+
+NAME             STATUS   VOLUME
+postgres-pvc     Bound    pvc-4d8f91
+grafana-pvc      Bound    pvc-7d9ab1
+</pre>
+
+    <h3>13.8 Verify NSX Networking</h3>
+
+<pre>
+kubectl get svc
+
+NAME                 TYPE           EXTERNAL-IP
+payments-api         LoadBalancer   10.50.40.110
+customer-portal      LoadBalancer   10.50.40.111
+</pre>
+
+</section>
+
+<section>
+
+    <h2>14. Real Enterprise Understanding</h2>
+
+    <h3>14.1 What We Have Built So Far</h3>
+
+    <ul>
+
+        <li>Enterprise Kubernetes platform foundation</li>
+        <li>vSphere Supervisor platform</li>
+        <li>Production-ready Kubernetes infrastructure</li>
+        <li>Enterprise NSX-integrated Kubernetes networking</li>
+        <li>Enterprise storage integration</li>
+        <li>Enterprise namespace governance</li>
+        <li>Enterprise Kubernetes lifecycle foundation</li>
+
+    </ul>
+
+    <h3>14.2 What Still Does NOT Exist Yet</h3>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Enterprise platform services still do not exist yet.
+        <br><br>
+
+        We still need:
+        <br><br>
+
+        • Monitoring<br>
+        • Logging<br>
+        • GitOps<br>
+        • CI/CD<br>
+        • Image registry<br>
+        • Service mesh<br>
+        • Security policies<br>
+        • Secrets management
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2>15. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>13.enterprise-container-registry-and-image-governance.html</td>
+        <td>Deploy Harbor enterprise registry, implement image signing, vulnerability scanning, RBAC, replication, air-gapped image lifecycle management, and enterprise software supply chain governance.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="11.vcf-workload-domain-and-nsx-expansion.html">
+        ← Previous Guide
+    </a>
+
+    <a href="13.enterprise-container-registry-and-image-governance.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+```
+

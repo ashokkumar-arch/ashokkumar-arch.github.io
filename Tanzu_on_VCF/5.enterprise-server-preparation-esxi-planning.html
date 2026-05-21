@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Server Preparation and ESXi Planning</title>
+
+    <style>
+
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        header {
+            background: linear-gradient(to right, #0f172a, #111827);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 1200px;
+        }
+
+        .badge-container {
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #1f2937;
+            background: #0b1220;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: #0b1220;
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+        }
+
+        nav .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        section {
+            margin-top: 40px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 35px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #d1d5db;
+        }
+
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #1f2937;
+            padding: 14px;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+        }
+
+        table td {
+            background: #0b1220;
+        }
+
+        .callout {
+            border-left: 5px solid var(--green);
+            background: #111827;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .warning {
+            border-left-color: var(--yellow);
+        }
+
+        .danger {
+            border-left-color: var(--red);
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            color: #93c5fd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .diagram {
+            background: #020617;
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+
+        .footer-nav a {
+            text-decoration: none;
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="container">
+
+        <div class="hero-title">
+            Enterprise Server Preparation and ESXi Planning
+        </div>
+
+        <div class="hero-subtitle">
+            Production-Grade Physical Server Preparation, Hardware Planning, BIOS Tuning, Storage Design, AI/GPU Readiness, and VMware ESXi Deployment Planning for VMware Cloud Foundation
+        </div>
+
+        <div class="badge-container">
+
+            <span class="badge">HPE ProLiant</span>
+            <span class="badge">ESXi</span>
+            <span class="badge">VCF</span>
+            <span class="badge">vSAN</span>
+            <span class="badge">GPU Ready</span>
+            <span class="badge">Enterprise Hardware</span>
+            <span class="badge">Production Planning</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+<nav>
+
+    <div class="container">
+
+        <a href="#overview">Overview</a>
+        <a href="#hardware">Hardware Planning</a>
+        <a href="#topology">Rack Topology</a>
+        <a href="#bios">BIOS Configuration</a>
+        <a href="#storage">Storage Planning</a>
+        <a href="#networking">NIC Planning</a>
+        <a href="#gpu">GPU Readiness</a>
+        <a href="#esxi">ESXi Planning</a>
+        <a href="#validation">Validation</a>
+        <a href="#handoff">VCF Handoff</a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+<section id="overview">
+
+    <h2>1. Overview</h2>
+
+    <p>
+        This guide prepares the enterprise physical server infrastructure for VMware Cloud Foundation deployment.
+    </p>
+
+    <p>
+        In real-world enterprise environments, server preparation is extremely important because incorrect BIOS settings, firmware mismatches, storage layout mistakes, or NIC design issues can create instability across the entire private cloud platform.
+    </p>
+
+    <p>
+        This guide focuses on:
+    </p>
+
+    <ul>
+
+        <li>Production-grade enterprise hardware planning</li>
+        <li>BIOS optimization</li>
+        <li>Storage architecture</li>
+        <li>NIC design and traffic separation</li>
+        <li>GPU and AI workload readiness</li>
+        <li>vSAN readiness</li>
+        <li>VMware Cloud Foundation compatibility alignment</li>
+
+    </ul>
+
+    <div class="callout">
+
+        <strong>Important:</strong><br><br>
+
+        VMware Cloud Foundation is not simply "install ESXi and proceed."
+        <br><br>
+
+        VCF requires:
+        <br><br>
+
+        • Strict hardware compatibility<br>
+        • Supported firmware combinations<br>
+        • Consistent server design<br>
+        • Proper NIC mapping<br>
+        • Proper storage planning<br>
+        • Consistent BIOS tuning
+
+    </div>
+
+</section>
+
+<section id="hardware">
+
+    <h2>2. Enterprise Hardware Planning</h2>
+
+    <h3>2.1 Enterprise Server Platform Selection</h3>
+
+    <p>
+        Unlike the earlier OpenShift on VMware (Classic) portfolio project which used HPE DL380 servers, this modern enterprise platform intentionally uses newer-generation hardware that supports:
+    </p>
+
+    <ul>
+
+        <li>AI/GPU expansion readiness</li>
+        <li>Higher memory density</li>
+        <li>PCIe Gen4/Gen5 support</li>
+        <li>Future Tanzu AI workloads</li>
+        <li>Modern vSAN storage optimization</li>
+
+    </ul>
+
+    <h3>2.2 Selected Enterprise Hardware</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Selection</th>
+    </tr>
+
+    <tr>
+        <td>Server Model</td>
+        <td>HPE ProLiant DL385 Gen11</td>
+    </tr>
+
+    <tr>
+        <td>CPU</td>
+        <td>AMD EPYC 9654</td>
+    </tr>
+
+    <tr>
+        <td>Memory</td>
+        <td>1 TB DDR5 RAM</td>
+    </tr>
+
+    <tr>
+        <td>Boot Device</td>
+        <td>Dual M.2 RAID1</td>
+    </tr>
+
+    <tr>
+        <td>vSAN Cache</td>
+        <td>NVMe SSD</td>
+    </tr>
+
+    <tr>
+        <td>vSAN Capacity</td>
+        <td>Enterprise NVMe SSD</td>
+    </tr>
+
+    <tr>
+        <td>NIC</td>
+        <td>Dual 100GbE Mellanox ConnectX</td>
+    </tr>
+
+    <tr>
+        <td>GPU Ready</td>
+        <td>NVIDIA L40S / H100 Future Expansion</td>
+    </tr>
+
+</table>
+
+    <h3>2.3 Why DL385 Instead of DL380?</h3>
+
+    <table>
+
+        <tr>
+            <th>Reason</th>
+            <th>Description</th>
+        </tr>
+
+        <tr>
+            <td>PCIe Expansion</td>
+            <td>Better GPU expansion capability.</td>
+        </tr>
+
+        <tr>
+            <td>AI Readiness</td>
+            <td>Supports future enterprise AI workloads.</td>
+        </tr>
+
+        <tr>
+            <td>Memory Density</td>
+            <td>Improved memory scalability.</td>
+        </tr>
+
+        <tr>
+            <td>Modern Platform</td>
+            <td>Better alignment with modern private-cloud workloads.</td>
+        </tr>
+
+    </table>
+
+</section>
+
+<section id="topology">
+
+    <h2>3. Enterprise Rack and Host Topology</h2>
+
+    <h3>3.1 Physical Rack Layout</h3>
+
+<div class="diagram">
+
+<pre>
++------------------------------------------------------+
+|                   Rack mum-r01                       |
++------------------------------------------------------+
+
+U42   TOR Switch Pair
+U40   Spine Uplink Patch Panel
+
+U35   esx-mum-mgmt-01
+U34   esx-mum-mgmt-02
+
+U30   esx-mum-prod-01
+U29   esx-mum-prod-02
+U28   esx-mum-prod-03
+U27   esx-mum-prod-04
+
+U20   NSX Edge Node Appliance Hosts
+
+U10   Storage / Backup Infrastructure
+
+</pre>
+
+</div>
+
+    <h3>3.2 Failure Domain Awareness</h3>
+
+    <p>
+        Enterprise workload placement must consider:
+    </p>
+
+    <ul>
+
+        <li>Rack-level failure domains</li>
+        <li>Power-feed separation</li>
+        <li>Switch uplink redundancy</li>
+        <li>Kubernetes topology-aware scheduling</li>
+
+    </ul>
+
+<pre>
+topology.kubernetes.io/zone=mum-dc01-zone-a
+
+topology.kubernetes.io/rack=mum-r01
+</pre>
+
+</section>
+
+<section id="bios">
+
+    <h2>4. Enterprise BIOS Configuration</h2>
+
+    <h3>4.1 Why BIOS Configuration Matters</h3>
+
+    <p>
+        Incorrect BIOS settings are one of the most common causes of:
+    </p>
+
+    <ul>
+
+        <li>Performance instability</li>
+        <li>NUMA inefficiency</li>
+        <li>vSAN latency issues</li>
+        <li>ESXi hardware detection problems</li>
+        <li>GPU passthrough failures</li>
+
+    </ul>
+
+    <h3>4.2 Enterprise BIOS Standards</h3>
+
+<table>
+
+    <tr>
+        <th>Setting</th>
+        <th>Recommended Value</th>
+    </tr>
+
+    <tr>
+        <td>Virtualization</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>SR-IOV</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>IOMMU</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>NUMA</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>Power Profile</td>
+        <td>Maximum Performance</td>
+    </tr>
+
+    <tr>
+        <td>Hyper-Threading</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>Secure Boot</td>
+        <td>Enabled</td>
+    </tr>
+
+</table>
+
+    <h3>4.3 Enterprise BIOS Example (Almost Real Look-Alike)</h3>
+
+<div class="diagram">
+
+<pre>
+-------------------------------------------------------
+HPE ProLiant DL385 Gen11 System Utilities
+-------------------------------------------------------
+
+System Configuration
+  BIOS/Platform Configuration (RBSU)
+     Processor Options
+        AMD-Vi: Enabled
+        NUMA: Enabled
+        SMT: Enabled
+
+     Power Management
+        Power Profile: Maximum Performance
+
+     PCIe Device Configuration
+        SR-IOV: Enabled
+
+     Secure Boot Configuration
+        Secure Boot: Enabled
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+</section>
+
+<section id="storage">
+
+    <h2>5. Enterprise Storage Planning</h2>
+
+    <h3>5.1 vSAN Architecture</h3>
+
+    <p>
+        The environment uses VMware vSAN as the primary enterprise storage platform.
+    </p>
+
+    <h3>5.2 vSAN Disk Group Design</h3>
+
+<table>
+
+    <tr>
+        <th>Tier</th>
+        <th>Device Type</th>
+    </tr>
+
+    <tr>
+        <td>Cache Tier</td>
+        <td>Enterprise NVMe SSD</td>
+    </tr>
+
+    <tr>
+        <td>Capacity Tier</td>
+        <td>Enterprise NVMe SSD</td>
+    </tr>
+
+</table>
+
+    <h3>5.3 Storage Design Goals</h3>
+
+    <ul>
+
+        <li>Low latency</li>
+        <li>High throughput</li>
+        <li>AI/GPU future scalability</li>
+        <li>Kubernetes persistent volume support</li>
+        <li>Enterprise resilience</li>
+
+    </ul>
+
+    <div class="callout warning">
+
+        <strong>Important:</strong><br><br>
+
+        Consumer-grade SSDs must never be used in production vSAN environments.
+        <br><br>
+
+        Enterprise-grade endurance-rated NVMe devices are required.
+
+    </div>
+
+</section>
+
+<section id="networking">
+
+    <h2>6. Enterprise NIC and Traffic Planning</h2>
+
+    <h3>6.1 NIC Architecture</h3>
+
+<table>
+
+    <tr>
+        <th>Traffic Type</th>
+        <th>VLAN</th>
+    </tr>
+
+    <tr>
+        <td>ESXi Management</td>
+        <td>20</td>
+    </tr>
+
+    <tr>
+        <td>vMotion</td>
+        <td>30</td>
+    </tr>
+
+    <tr>
+        <td>vSAN</td>
+        <td>40</td>
+    </tr>
+
+    <tr>
+        <td>NSX Host TEP</td>
+        <td>50</td>
+    </tr>
+
+    <tr>
+        <td>NSX Edge TEP</td>
+        <td>60</td>
+    </tr>
+
+    <tr>
+        <td>Kubernetes Supervisor</td>
+        <td>80</td>
+    </tr>
+
+</table>
+
+    <h3>6.2 Enterprise NIC Mapping</h3>
+
+<div class="diagram">
+
+<pre>
++------------------------------------------------------+
+|               ESXi Host NIC Mapping                  |
++------------------------------------------------------+
+
+vmnic0  --> Leaf-01
+vmnic1  --> Leaf-02
+
+vDS-Uplink-A --> vmnic0
+vDS-Uplink-B --> vmnic1
+
+-------------------------------------------------------
+
+Traffic Separation:
+
+Management  --> VLAN 20
+vMotion     --> VLAN 30
+vSAN        --> VLAN 40
+NSX TEP     --> VLAN 50
+
+-------------------------------------------------------
+</pre>
+
+</div>
+
+    <h3>6.3 MTU Planning</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>MTU</th>
+    </tr>
+
+    <tr>
+        <td>NSX Overlay</td>
+        <td>9000</td>
+    </tr>
+
+    <tr>
+        <td>vSAN</td>
+        <td>9000</td>
+    </tr>
+
+    <tr>
+        <td>vMotion</td>
+        <td>9000</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="gpu">
+
+    <h2>7. Enterprise GPU and AI Readiness</h2>
+
+    <h3>7.1 Why AI Readiness Is Included</h3>
+
+    <p>
+        Modern enterprise private-cloud platforms increasingly support:
+    </p>
+
+    <ul>
+
+        <li>AI inference workloads</li>
+        <li>RAG pipelines</li>
+        <li>Enterprise LLM hosting</li>
+        <li>GPU-accelerated analytics</li>
+
+    </ul>
+
+    <p>
+        Even if AI workloads are not immediately deployed, enterprise architecture planning must account for future expansion.
+    </p>
+
+    <h3>7.2 GPU Readiness Standards</h3>
+
+<table>
+
+    <tr>
+        <th>Requirement</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>PCIe Expansion Slots</td>
+        <td>Required</td>
+    </tr>
+
+    <tr>
+        <td>GPU Power Capacity</td>
+        <td>Required</td>
+    </tr>
+
+    <tr>
+        <td>SR-IOV</td>
+        <td>Enabled</td>
+    </tr>
+
+    <tr>
+        <td>IOMMU</td>
+        <td>Enabled</td>
+    </tr>
+
+</table>
+
+    <div class="callout">
+
+        <strong>Portfolio Strategy:</strong><br><br>
+
+        This portfolio intentionally demonstrates:
+        <br><br>
+
+        • AI readiness awareness<br>
+        • Enterprise planning maturity<br>
+        • GPU infrastructure understanding<br>
+        • Modern platform architecture thinking
+        <br><br>
+
+        without overstating full enterprise AI implementation.
+
+    </div>
+
+</section>
+
+<section id="esxi">
+
+    <h2>8. VMware ESXi Planning</h2>
+
+    <h3>8.1 ESXi Version Planning</h3>
+
+<table>
+
+    <tr>
+        <th>Component</th>
+        <th>Version</th>
+    </tr>
+
+    <tr>
+        <td>VMware ESXi</td>
+        <td>ESXi 8.x</td>
+    </tr>
+
+    <tr>
+        <td>VMware Cloud Foundation</td>
+        <td>VCF 5.x</td>
+    </tr>
+
+    <tr>
+        <td>NSX</td>
+        <td>NSX 4.x</td>
+    </tr>
+
+</table>
+
+    <h3>8.2 Enterprise ESXi Host Naming</h3>
+
+<pre>
+esx-mum-mgmt-01
+esx-mum-mgmt-02
+
+esx-mum-prod-01
+esx-mum-prod-02
+esx-mum-prod-03
+esx-mum-prod-04
+</pre>
+
+    <h3>8.3 Enterprise ESXi IP Allocation</h3>
+
+<pre>
+10.10.20.11   esx-mum-mgmt-01
+10.10.20.12   esx-mum-mgmt-02
+
+10.10.20.21   esx-mum-prod-01
+10.10.20.22   esx-mum-prod-02
+</pre>
+
+</section>
+
+<section id="validation">
+
+    <h2>9. Enterprise Validation Checklist</h2>
+
+<table>
+
+    <tr>
+        <th>Validation</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Firmware Compatibility</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>BIOS Configuration</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>NIC Mapping</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>MTU Consistency</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>vSAN Device Visibility</td>
+        <td>Validated</td>
+    </tr>
+
+    <tr>
+        <td>GPU Expansion Readiness</td>
+        <td>Validated</td>
+    </tr>
+
+</table>
+
+</section>
+
+<section id="handoff">
+
+    <h2>10. Handoff to ESXi Deployment</h2>
+
+    <p>
+        At this stage:
+    </p>
+
+    <ul>
+
+        <li>The enterprise physical fabric is operational</li>
+        <li>The servers are physically installed</li>
+        <li>BIOS tuning is completed</li>
+        <li>Storage architecture is validated</li>
+        <li>NIC planning is completed</li>
+        <li>The environment is ready for VMware ESXi deployment</li>
+
+    </ul>
+
+</section>
+
+<section>
+
+    <h2>11. What Comes Next</h2>
+
+<table>
+
+    <tr>
+        <th>Next Guide</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>6.esxi-enterprise-installation.html</td>
+        <td>Production-grade VMware ESXi installation, enterprise networking configuration, vDS planning, datastore preparation, and VCF-ready host deployment.</td>
+    </tr>
+
+</table>
+
+</section>
+
+<div class="footer-nav">
+
+    <a href="4.cisco-spine-leaf-underlay-deployment.html">
+        ← Previous Guide
+    </a>
+
+    <a href="6.esxi-enterprise-installation.html">
+        Next Guide →
+    </a>
+
+</div>
+
+</div>
+
+</body>
+</html>
