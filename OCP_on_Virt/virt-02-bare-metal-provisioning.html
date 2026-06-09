@@ -858,136 +858,136 @@ bm-virt-05.novacre: READY</span>
   # NIC2 (slot 2): eth2 → leaf-01 Eth1/26, eth3 → leaf-02 Eth1/26
   # The exact ethX names may vary — verify with 'ip link show' in the discovery environment</span>
 
-  - <span class="key">name:</span> eth0
-    <span class="key">type:</span> ethernet
+  - <span class="key">name:</span> <span style="color:#a8d8a8">eth0</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">ethernet</span>
     <span class="comment">    # state: up — this interface must be active. "down" would mean the cable is unplugged
     # or the port on the leaf is shutdown. If eth0 is down, the bond cannot form.</span>
-    <span class="key">state:</span> up
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
 
-  - <span class="key">name:</span> eth1
-    <span class="key">type:</span> ethernet
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">eth1</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">ethernet</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
 
-  - <span class="key">name:</span> eth2
-    <span class="key">type:</span> ethernet
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">eth2</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">ethernet</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
 
-  - <span class="key">name:</span> eth3
-    <span class="key">type:</span> ethernet
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">eth3</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">ethernet</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
 
 <span class="comment">  # ── Layer 2: LACP bond ────────────────────────────────────────────────────
   # bond0 aggregates all four physical ports into one logical 100G link
   # (theoretical max: 4 × 25G = 100G; practical usable: ~50G with LACP hash distribution)</span>
 
-  - <span class="key">name:</span> bond0
-    <span class="key">type:</span> bond
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">bond0</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">bond</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
     <span class="key">link-aggregation:</span>
       <span class="comment">      # mode: 802.3ad — this is LACP (Link Aggregation Control Protocol)
       # The switch (leaf-01/02) is also configured for LACP on the port-channels (VIRT-01 Section 13)
       # Both sides must agree on LACP — if the switch is in "on" mode (static) and the OS
       # is in 802.3ad mode (LACP), the bond will not form. Verify the switch port-channel
       # uses "channel-group 211 mode active" — not "mode on"</span>
-      <span class="key">mode:</span> 802.3ad
+      <span class="key">mode:</span> <span style="color:#a8d8a8">802.3ad</span>
       <span class="key">options:</span>
         <span class="comment">        # lacp-rate: fast — send LACP PDUs every 1 second instead of every 30 seconds
         # Faster LACP rate means the bond detects a link failure in ~3 seconds (3 missed PDUs)
         # instead of ~90 seconds. For a production banking environment, 90-second failover
         # detection is unacceptable. "fast" is the correct setting for production.</span>
-        <span class="key">lacp-rate:</span> fast
+        <span class="key">lacp-rate:</span> <span style="color:#a8d8a8">fast</span>
         <span class="comment">        # xmit-hash-policy: layer3+4 — uses source/destination IP and port for LACP hash
         # This distributes flows across the bond's physical links based on the TCP/IP tuple.
         # "layer2" (MAC-based) concentrates flows to the same destination on one link.
         # "layer3+4" distributes better for a server with multiple concurrent connections.</span>
-        <span class="key">xmit-hash-policy:</span> layer3+4
+        <span class="key">xmit-hash-policy:</span> <span style="color:#a8d8a8">layer3+4</span>
       <span class="key">port:</span>
-        - eth0
-        - eth1
-        - eth2
-        - eth3
+        <span style="color:#a8d8a8">- eth0</span>
+        <span style="color:#a8d8a8">- eth1</span>
+        <span style="color:#a8d8a8">- eth2</span>
+        <span style="color:#a8d8a8">- eth3</span>
     <span class="key">ipv4:</span>
       <span class="comment">      # bond0 itself has no IP — IPs are assigned to VLAN sub-interfaces below
       # dhcp: false — no DHCP on the bond interface directly. DHCP is handled on bond0.110.</span>
-      <span class="key">enabled:</span> false
-      <span class="key">dhcp:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
+      <span class="key">dhcp:</span> <span style="color:#a8d8a8">false</span>
 
 <span class="comment">  # ── Layer 3 and 4: VLAN sub-interfaces with IP addressing ─────────────────</span>
 
-  - <span class="key">name:</span> bond0.110
-    <span class="key">type:</span> vlan
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">bond0.110</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">vlan</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
     <span class="key">vlan:</span>
       <span class="comment">      # base-iface: bond0 — this VLAN sub-interface sits on top of the bond
       # id: 110 — frames sent on this interface are tagged with VLAN 110 by the OS
       # The leaf switch receives VLAN 110 tagged frames on Po211 — it matches the trunk config</span>
-      <span class="key">base-iface:</span> bond0
-      <span class="key">id:</span> 110
+      <span class="key">base-iface:</span> <span style="color:#a8d8a8">bond0</span>
+      <span class="key">id:</span> <span style="color:#a8d8a8">110</span>
     <span class="key">ipv4:</span>
-      <span class="key">enabled:</span> true
-      <span class="key">dhcp:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">true</span>
+      <span class="key">dhcp:</span> <span style="color:#a8d8a8">false</span>
       <span class="key">address:</span>
         <span class="comment">        # ip: 10.110.0.11 — this is bm-virt-01's static node IP (from VIRT-00 Section 05)
         # prefix-length: 24 — the subnet is /24 (10.110.0.0/24)
         # This is the IP the OCP cluster uses for kubelet-to-API communication,
         # pod-to-pod OVN tunnels, and node management</span>
-        - <span class="key">ip:</span> 10.110.0.11
-          <span class="key">prefix-length:</span> 24
+        - <span class="key">ip:</span> <span style="color:#a8d8a8">10.110.0.11</span>
+          <span class="key">prefix-length:</span> <span style="color:#a8d8a8">24</span>
     <span class="key">ipv6:</span>
-      <span class="key">enabled:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
 
-  - <span class="key">name:</span> bond0.120
-    <span class="key">type:</span> vlan
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">bond0.120</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">vlan</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
     <span class="key">vlan:</span>
-      <span class="key">base-iface:</span> bond0
+      <span class="key">base-iface:</span> <span style="color:#a8d8a8">bond0</span>
       <span class="comment">      # id: 120 — ODF replication VLAN
       # All Ceph OSD replication traffic uses this sub-interface
       # VLAN 120 frames go on NIC2 (eth2/eth3 in the bond) through leaf-01/02
       # but LACP hash may distribute to any port — both physical paths support VLAN 120</span>
-      <span class="key">id:</span> 120
+      <span class="key">id:</span> <span style="color:#a8d8a8">120</span>
     <span class="key">ipv4:</span>
-      <span class="key">enabled:</span> true
-      <span class="key">dhcp:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">true</span>
+      <span class="key">dhcp:</span> <span style="color:#a8d8a8">false</span>
       <span class="key">address:</span>
         <span class="comment">        # 10.120.0.11 — ODF replication IP for bm-virt-01
         # Ceph OSDs on other nodes reach this IP for replication traffic
         # No gateway needed — all Ceph peers are in the same /24</span>
-        - <span class="key">ip:</span> 10.120.0.11
-          <span class="key">prefix-length:</span> 24
+        - <span class="key">ip:</span> <span style="color:#a8d8a8">10.120.0.11</span>
+          <span class="key">prefix-length:</span> <span style="color:#a8d8a8">24</span>
     <span class="key">ipv6:</span>
-      <span class="key">enabled:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
 
-  - <span class="key">name:</span> bond0.130
-    <span class="key">type:</span> vlan
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">bond0.130</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">vlan</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
     <span class="key">vlan:</span>
-      <span class="key">base-iface:</span> bond0
-      <span class="key">id:</span> 130
+      <span class="key">base-iface:</span> <span style="color:#a8d8a8">bond0</span>
+      <span class="key">id:</span> <span style="color:#a8d8a8">130</span>
     <span class="comment">    # bond0.130 — VM workload primary VLAN
     # This sub-interface has no static IP on the node itself
     # VM traffic uses it at Layer 2 — the VM gets an IP from 10.130.0.0/24
     # The node acts as a bridge between the VM and the physical VLAN
     # This is the OVN localnet topology configured in VIRT-05</span>
     <span class="key">ipv4:</span>
-      <span class="key">enabled:</span> false
-      <span class="key">dhcp:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
+      <span class="key">dhcp:</span> <span style="color:#a8d8a8">false</span>
     <span class="key">ipv6:</span>
-      <span class="key">enabled:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
 
-  - <span class="key">name:</span> bond0.140
-    <span class="key">type:</span> vlan
-    <span class="key">state:</span> up
+  - <span class="key">name:</span> <span style="color:#a8d8a8">bond0.140</span>
+    <span class="key">type:</span> <span style="color:#a8d8a8">vlan</span>
+    <span class="key">state:</span> <span style="color:#a8d8a8">up</span>
     <span class="key">vlan:</span>
-      <span class="key">base-iface:</span> bond0
-      <span class="key">id:</span> 140
+      <span class="key">base-iface:</span> <span style="color:#a8d8a8">bond0</span>
+      <span class="key">id:</span> <span style="color:#a8d8a8">140</span>
     <span class="comment">    # bond0.140 — VM workload DMZ VLAN — same pattern as bond0.130
     # No node IP — L2 bridge only for VM traffic</span>
     <span class="key">ipv4:</span>
-      <span class="key">enabled:</span> false
-      <span class="key">dhcp:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
+      <span class="key">dhcp:</span> <span style="color:#a8d8a8">false</span>
     <span class="key">ipv6:</span>
-      <span class="key">enabled:</span> false
+      <span class="key">enabled:</span> <span style="color:#a8d8a8">false</span>
 
 <span class="comment"># ── Layer 5: Routing ─────────────────────────────────────────────────────</span>
 <span class="key">routes:</span>
@@ -995,10 +995,10 @@ bm-virt-05.novacre: READY</span>
     <span class="comment">    # Default route — all traffic not destined for local subnets exits via 10.110.0.3
     # 10.110.0.3 is the HSRP virtual IP on the leaf switches (leaf-01 is Active)
     # table-id: 254 is the main routing table (the default)</span>
-    - <span class="key">destination:</span> 0.0.0.0/0
-      <span class="key">next-hop-address:</span> 10.110.0.3
-      <span class="key">next-hop-interface:</span> bond0.110
-      <span class="key">table-id:</span> 254
+    - <span class="key">destination:</span> <span style="color:#a8d8a8">0.0.0.0/0</span>
+      <span class="key">next-hop-address:</span> <span style="color:#a8d8a8">10.110.0.3</span>
+      <span class="key">next-hop-interface:</span> <span style="color:#a8d8a8">bond0.110</span>
+      <span class="key">table-id:</span> <span style="color:#a8d8a8">254</span>
 
 <span class="comment"># ── DNS configuration ──────────────────────────────────────────────────────</span>
 <span class="key">dns-resolver:</span>
@@ -1007,10 +1007,10 @@ bm-virt-05.novacre: READY</span>
     # server: DC01 and DC02 — the Windows DNS servers from the VCF environment
     # These are the same DNS servers used by all other components in NovaCrestBank</span>
     <span class="key">search:</span>
-      - novacrestbank.local
+      <span style="color:#a8d8a8">- novacrestbank.local</span>
     <span class="key">server:</span>
-      - 10.70.0.10
-      - 10.70.0.11
+      <span style="color:#a8d8a8">- 10.70.0.10</span>
+      <span style="color:#a8d8a8">- 10.70.0.11</span>
     </div>
   </div>
   </section>
